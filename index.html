@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no"><meta name="theme-color" content="#101b1d">
-<title>殘車之後｜第一章與城鎮 V0.3.2</title>
+<title>殘車之後｜第一章與城鎮 V0.3.3</title>
 <style>
 :root{--ink:#e9e5d5;--muted:#b7c4b5;--gold:#ddc18b;--line:rgba(224,215,176,.23);--bg:#101819;--panel:rgba(17,27,29,.96);--glass:rgba(13,26,27,.79)}*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","PingFang TC",sans-serif}button{font:inherit;touch-action:manipulation;cursor:pointer}body{overflow:hidden}#app{position:relative;width:100vw;height:100dvh;overflow:hidden;background:#101a1a}#view{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}#shade{pointer-events:none;position:absolute;inset:0;background:linear-gradient(180deg,rgba(6,15,16,.58) 0%,transparent 29%,transparent 51%,rgba(5,11,12,.87) 100%)}.top{position:absolute;top:0;left:0;right:0;padding:calc(12px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) 5px calc(16px + env(safe-area-inset-left));display:flex;justify-content:space-between;align-items:start;gap:12px;pointer-events:none}.top>div,.top>nav{pointer-events:auto}.eyebrow{font-size:10px;letter-spacing:.22em;color:#d0bc91}.place{font-family:Georgia,"Noto Serif TC",serif;font-size:clamp(19px,3.1vh,29px);letter-spacing:.1em;text-shadow:0 3px 8px #000}.subplace{color:#cdd2be;font-size:11px;margin-top:3px;max-width:61vw}.top nav{display:flex;gap:7px}.icon{width:40px;height:38px;display:grid;place-items:center;color:#e1d5b8;background:rgba(9,24,25,.71);border:1px solid var(--line);border-radius:9px;backdrop-filter:blur(9px);font-size:18px}.icon:hover,.icon:focus-visible{background:#274440;outline:1px solid var(--gold)}#toast{position:absolute;left:50%;top:18%;transform:translateX(-50%);background:rgba(9,20,22,.9);border:1px solid var(--line);border-radius:8px;padding:9px 16px;text-align:center;font-size:12px;max-width:82%;opacity:0;transition:opacity .25s;pointer-events:none;line-height:1.7}#toast.active{opacity:1}.bottom{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(180deg,transparent,rgba(5,15,17,.92) 20%);padding:18px calc(16px + env(safe-area-inset-right)) calc(13px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:end}.narrative{font-family:Georgia,"Noto Serif TC",serif;font-size:clamp(12px,1.65vw,15px);line-height:1.72;color:#e5e3d5;text-shadow:0 2px 3px #000;max-width:650px;min-height:40px;margin:0 0 8px}.actions{display:flex;flex-wrap:wrap;gap:7px}.action{color:#eee4cf;background:rgba(18,37,37,.85);border:1px solid rgba(226,200,140,.34);padding:10px 13px;border-radius:7px;font-size:12px;min-height:39px}.action.primary{background:rgba(123,96,51,.76);border-color:rgba(238,199,118,.68);font-weight:650}.action:hover,.action:focus-visible{background:#39534c;outline:1px solid var(--gold)}.sidebar{align-self:end;display:flex;flex-direction:column;align-items:end;gap:8px}.sidebar button{color:#d8c8a9;background:rgba(14,32,32,.71);border:1px solid var(--line);padding:9px 12px;border-radius:7px;font-size:12px}.sidebar button:hover{background:#2d4543}.chips{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}.chip{font-size:10px;color:#d9d0ac;padding:5px 8px;background:rgba(9,19,21,.74);border:1px solid var(--line);border-radius:40px}.hotspot{position:absolute;transform:translate(-50%,-50%);border:1px solid #f1d899;border-radius:50%;width:24px;height:24px;background:rgba(255,211,116,.22);box-shadow:0 0 0 8px rgba(255,203,102,.06),0 0 20px rgba(250,222,153,.53);transition:opacity .2s;z-index:1;opacity:0;pointer-events:none}.hotspot.on{opacity:1;pointer-events:auto}.hotspot:after{content:'+';color:#fff5d8;font-size:15px;line-height:20px}#hotspots{position:absolute;inset:0;pointer-events:none}#hotspots button{pointer-events:auto}.veil{position:absolute;inset:0;background:rgba(1,10,12,.73);backdrop-filter:blur(8px);z-index:5;display:flex;align-items:center;justify-content:center;padding:12px}.hidden{display:none!important}.panel{width:min(560px,calc(100vw - 34px));max-height:calc(100dvh - 24px);overflow:auto;background:linear-gradient(145deg,#20312f,#101b1e 65%);border:1px solid rgba(220,197,143,.39);border-radius:12px;box-shadow:0 22px 90px rgba(0,0,0,.65);padding:clamp(16px,3vw,26px)}.panel-head{display:flex;justify-content:space-between;align-items:start;gap:10px}.kicker{font-size:10px;letter-spacing:.22em;color:#c4aa7d;text-transform:uppercase}.panel h2{font-family:Georgia,"Noto Serif TC",serif;font-weight:500;font-size:clamp(23px,4vw,31px);margin:7px 0 12px;color:#f3e9d5}.panel p{font-size:13px;color:#d3d7cd;line-height:1.85;white-space:pre-line}.panel .choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:18px}.choice{border:1px solid rgba(221,195,139,.38);background:rgba(35,58,53,.72);padding:12px 13px;border-radius:8px;color:#f5ecdb;min-height:43px;text-align:left;font-size:13px}.choice:hover,.choice:focus-visible{background:#3f5a50;outline:1px solid #d1b57e}.close{background:none;border:none;color:#c7c6b9;font-size:24px;padding:0 3px}.meta{color:#aeaf9d;font-size:11px;line-height:1.7}.line{height:1px;background:var(--line);margin:15px 0}.note{background:rgba(193,163,99,.1);border-left:2px solid #c2a76e;padding:10px;font-size:12px;line-height:1.75;color:#e5dcc3}.journal{max-width:700px}.journal-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 14px}.journal-tab{font-size:12px;padding:8px 12px;background:transparent;color:var(--muted);border:1px solid var(--line);border-radius:6px}.journal-tab.selected{background:#556347;color:#fff4de}.journal-list{margin:8px 0 0;padding-left:18px;font-size:13px;line-height:2;color:#e0e2d7}.screen-title{font-family:Georgia,"Noto Serif TC",serif;font-size:clamp(32px,7vw,56px)!important;color:#f5ead2;letter-spacing:.14em;text-shadow:0 5px 18px #000;margin:4px 0 11px!important}.start{background:linear-gradient(130deg,rgba(14,33,33,.93),rgba(10,21,23,.92));width:min(530px,93vw)}.start .choice{width:100%;text-align:center;margin-top:10px}.start .note{margin-top:16px}.stamp{font-size:12px;letter-spacing:.3em;color:#ddc28e}.orientation{position:absolute;inset:0;z-index:10;display:none;place-items:center;background:#101f1e;color:#dfd2b5;padding:35px;text-align:center}.orientation strong{font-size:24px;font-weight:500}.orientation p{font-size:13px;line-height:1.8}.hp{color:#f0bca9}.level{font-variant-numeric:tabular-nums}.panel::-webkit-scrollbar{width:5px}.panel::-webkit-scrollbar-thumb{background:#827656}@media(max-width:700px) and (orientation:landscape){.top{padding-top:5px}.place{font-size:20px}.subplace{display:none}.icon{width:34px;height:32px;font-size:15px}.bottom{padding-top:8px;padding-bottom:7px}.narrative{font-size:11px;line-height:1.5;min-height:0;margin-bottom:5px;max-width:480px}.action{font-size:11px;min-height:31px;padding:7px 9px}.sidebar button{font-size:10px;padding:6px 9px}.chip{font-size:9px;padding:3px 7px}.panel{padding:14px 17px}.panel h2{font-size:23px;margin:3px 0 7px}.panel p{font-size:12px;line-height:1.65}.panel .choices{margin-top:10px}.choice{padding:8px 11px;min-height:35px;font-size:12px}.line{margin:8px 0}}@media(max-width:600px) and (orientation:portrait){.orientation{display:grid}}@media(max-height:360px) and (orientation:landscape){.top .eyebrow,.sidebar .chips{display:none}.bottom{gap:6px}.action{padding:6px 8px}.narrative{font-size:10px}}
 /* V0.2: keep the beautiful 2D scene visible and controls reachable in small landscape screens. */
@@ -11,7 +11,7 @@
 @media(max-width:700px) and (orientation:landscape){.bottom{max-height:59dvh}.action{min-height:36px}}
 @media(max-height:360px) and (orientation:landscape){.bottom{max-height:62dvh}}
 
-/* V0.3.2: One direct action; optional routes are displayed only on request. */
+/* V0.3.3: One direct action; optional routes are displayed only on request. */
 .actions{flex-wrap:nowrap;align-items:center;gap:8px}
 .action{max-width:min(51vw,290px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .action.primary{padding-left:17px;padding-right:17px}
@@ -22,7 +22,7 @@
 @media(max-width:700px) and (orientation:landscape){.bottom{max-height:43dvh}.action{max-width:47vw;min-height:38px;font-size:12px}.narrative{max-width:64vw}}
 @media(max-height:360px) and (orientation:landscape){.bottom{max-height:48dvh}}
 
-/* V0.3.2: compact mixed journal + actionable navigation */
+/* V0.3.3: compact mixed journal + actionable navigation */
 .travel-feed{position:absolute;z-index:3;left:calc(12px + env(safe-area-inset-left));top:clamp(79px,14dvh,108px);width:min(286px,36vw);max-height:calc(100dvh - 154px);display:flex;flex-direction:column;overflow:hidden;border:1px solid rgba(226,203,145,.31);border-radius:10px;background:rgba(11,24,25,.84);backdrop-filter:blur(9px);box-shadow:0 10px 28px rgba(0,0,0,.26)}
 .travel-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 10px;border-bottom:1px solid rgba(226,203,145,.16);color:#e7d3a9;font-size:12px}.travel-head button{font-size:11px;min-height:28px;padding:3px 7px;color:#e2d8bc;border:1px solid rgba(226,203,145,.28);border-radius:5px;background:rgba(35,54,49,.7)}
 .travel-inner{min-height:0;overflow-y:auto;padding:7px 10px 9px;scrollbar-width:thin}.travel-feed.collapsed{width:auto;max-height:none}.travel-feed.collapsed .travel-head{border-bottom:0}.travel-feed.collapsed .travel-inner{display:none}
@@ -34,7 +34,7 @@
 @media(max-width:700px) and (orientation:landscape){.travel-feed{left:calc(7px + env(safe-area-inset-left));top:52px;width:min(214px,33vw);max-height:calc(100dvh - 137px)}.travel-head{padding:4px 7px;font-size:11px}.travel-inner{padding:5px 7px}.travel-event{font-size:10px;margin-bottom:5px}.travel-target{font-size:10px;min-height:30px;padding:4px 6px}.travel-target:nth-child(n+3){display:none}.travel-journal-link{font-size:10px;margin-top:2px}}
 @media(max-height:360px) and (orientation:landscape){.travel-feed{top:46px;max-height:calc(100dvh - 113px)}.travel-target:nth-child(n+3){display:none}}
 
-/* V0.3.2: battle-log-inspired travel messages, updated as a scrolling text stream */
+/* V0.3.3: battle-log-inspired travel messages, updated as a scrolling text stream */
 .travel-feed{top:clamp(76px,13dvh,102px);width:min(362px,36vw);max-height:calc(100dvh - 166px);border-radius:5px;background:rgba(7,12,15,.78);border-color:rgba(210,204,178,.3);box-shadow:0 5px 18px rgba(0,0,0,.23)}
 .travel-head{padding:4px 7px;background:rgba(5,10,11,.8);font-size:11px;letter-spacing:.04em}.travel-head button{font-size:10px;min-height:24px;padding:2px 5px;border-radius:3px}
 .travel-inner{min-height:0;display:flex;flex-direction:column;padding:0}.travel-feed.collapsed{width:auto;max-height:none}
@@ -48,7 +48,7 @@
 @media(max-width:700px) and (orientation:landscape){.travel-feed{top:49px;width:min(252px,36vw);max-height:calc(100dvh - 120px)}.travel-head{padding:2px 5px;font-size:10px}.travel-head button{min-height:22px}.travel-log-scroll{min-height:36px;max-height:clamp(60px,18dvh,87px);padding:3px 5px}.travel-event{font-size:9px;line-height:1.22}.travel-event-time{font-size:8px}.travel-event-thought{padding-left:20px}.travel-footer{padding:3px 5px}.travel-target{font-size:9px;min-height:27px;padding:3px 5px}.travel-target:nth-child(n+3){display:none}.travel-journal-link{font-size:9px}}
 @media(max-height:360px) and (orientation:landscape){.travel-feed{top:44px;max-height:calc(100dvh - 104px)}.travel-log-scroll{max-height:48px}.travel-target:nth-child(n+3){display:none}}
 
-/* V0.3.2 — scenery-first compact transparent HUD; expanded mode remains legible */
+/* V0.3.3 — scenery-first compact transparent HUD; expanded mode remains legible */
 .travel-feed{transition:background .18s ease,box-shadow .18s ease;backdrop-filter:none}
 .travel-event-main,.travel-event-thought,.travel-target-label{text-shadow:0 1px 4px rgba(0,0,0,.97),0 0 2px #081011}
 .travel-feed.collapsed{width:min(286px,32vw);max-height:30dvh;overflow:hidden;border:0;border-radius:0;background:linear-gradient(90deg,rgba(4,10,12,.38),rgba(4,10,12,.12) 76%,transparent);box-shadow:none;backdrop-filter:none}
@@ -72,7 +72,7 @@
  .travel-feed.collapsed .travel-target{font-size:9px;min-height:24px}
 }
 
-/* V0.3.2: keep previous messages in one flowing transcript; animate new entries upward.
+/* V0.3.3: keep previous messages in one flowing transcript; animate new entries upward.
    In compact mode only the last few lines are visible, but history stays in the DOM. */
 .travel-feed.collapsed .travel-log-scroll{height:clamp(43px,12dvh,76px);max-height:none;min-height:0;flex:none;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;scroll-behavior:auto;-webkit-overflow-scrolling:touch}
 .travel-feed:not(.collapsed) .travel-log-scroll{scroll-behavior:auto}
@@ -86,14 +86,14 @@
 }
 @media(prefers-reduced-motion:reduce){.travel-feed,.travel-log-scroll{scroll-behavior:auto!important;transition:none!important}}
 
-/* V0.3.2: do not hide third-and-later events; keep a small real scroll viewport on mobile. */
+/* V0.3.3: do not hide third-and-later events; keep a small real scroll viewport on mobile. */
 .travel-feed .travel-log-scroll .travel-event{display:block}
 .travel-feed.collapsed .travel-log-scroll::-webkit-scrollbar{display:none}
 .travel-feed.collapsed .travel-log-scroll{overscroll-behavior-y:contain}
 @media(max-width:700px) and (orientation:landscape){.travel-feed .travel-log-scroll .travel-event{display:block}}
 @media(max-height:360px) and (orientation:landscape){.travel-feed .travel-log-scroll .travel-event{display:block}}
 
-/* V0.3.2 — Exactly three compact journey events; full archive remains scrollable when expanded.
+/* V0.3.3 — Exactly three compact journey events; full archive remains scrollable when expanded.
    Each row holds one objective event line and one inner-thought line. */
 .travel-feed.collapsed{max-height:42dvh}
 .travel-feed.collapsed .travel-log-scroll{
@@ -140,7 +140,7 @@
 }
 /* Keep the mobile fix: no :nth-child rules that hide later entries. */
 
-/* V0.3.2 Thumb-zone and mobile interaction improvements */
+/* V0.3.3 Thumb-zone and mobile interaction improvements */
 #app{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 button,.action,.choice,.travel-target{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 input,textarea,.panel p,.journal-list,.journey-entry{user-select:text;-webkit-user-select:text}
@@ -157,23 +157,46 @@ input,textarea,.panel p,.journal-list,.journey-entry{user-select:text;-webkit-us
 }
 @media(max-height:360px) and (orientation:landscape){.action{min-height:35px}#swipeHelp{bottom:calc(69px + env(safe-area-inset-bottom))}}
 
-/* V0.3.2: horizontal swipes pan only the current 2D scene image.
+/* V0.3.3: horizontal swipes pan only the current 2D scene image.
    A small controlled zoom provides crop margins, avoiding empty edges. */
 #view,#hotspots{transform-origin:center center;transition:transform .18s ease-out;will-change:transform}
 #app.is-panning #view,#app.is-panning #hotspots{transition:none}
 @media(prefers-reduced-motion:reduce){#view,#hotspots{transition:none}}
+
+/* V0.3.3 scene-first HUD: scenery visible beneath every layer. */
+#shade{background:linear-gradient(180deg,rgba(5,13,19,.36) 0%,transparent 24%,transparent 65%,rgba(5,13,19,.32) 100%)}
+.bottom{background:linear-gradient(180deg,transparent 0%,rgba(5,14,18,.12) 34%,rgba(5,13,17,.49) 100%);padding-top:10px;gap:9px}
+.narrative{text-shadow:0 1px 4px #061016,0 2px 7px #061016}
+#dialogVeil{background:rgba(5,13,18,.22);backdrop-filter:blur(1.2px);align-items:flex-end;padding:8px calc(12px + env(safe-area-inset-right)) calc(9px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left))}
+#dialogVeil .panel{display:flex;flex-direction:column;gap:0;width:min(760px,calc(100vw - 28px));max-height:min(68dvh,350px);overflow:hidden;padding:clamp(10px,1.5vw,17px);background:linear-gradient(130deg,rgba(16,29,34,.90),rgba(8,20,28,.88));border-color:rgba(221,194,142,.45);border-radius:9px;box-shadow:0 8px 26px rgba(0,0,0,.38)}
+#dialogVeil .panel-head{flex-shrink:0}
+#dialogVeil .panel h2{font-size:clamp(17px,3.2vw,25px);margin:2px 0 5px}
+#dialogVeil #dialogText{min-height:25px;overflow:auto;overscroll-behavior:contain;flex:1 1 auto;font-size:clamp(11px,1.5vw,13px);line-height:1.5;margin:3px 0 5px;scrollbar-width:thin}
+#dialogVeil .choices{flex:0 0 auto;margin-top:7px;gap:6px}
+#dialogVeil .choice{min-height:36px;padding:7px 10px;font-size:clamp(11px,1.45vw,13px)}
+@media(max-width:700px) and (orientation:landscape){
+ #dialogVeil .panel{width:min(95vw,680px);max-height:70dvh}
+ #dialogVeil .panel-head{gap:5px}
+ #dialogVeil .panel h2{margin:1px 0 3px}
+ #dialogVeil .choice{min-height:33px;padding:5px 8px}
+ .bottom{padding-top:5px;gap:6px}
+}
+@media(max-height:360px) and (orientation:landscape){
+ #dialogVeil .panel{max-height:78dvh;padding:7px 10px}
+ #dialogVeil .panel .choices{margin-top:3px}
+}
 </style>
 </head>
 <body>
 <div id="app"><canvas id="view" aria-label="第一人稱冒險場景"></canvas><div id="shade"></div>
-<header class="top"><div><div class="eyebrow">CHAPTER 01–02 · 互動原型 V0.3.2</div><div class="place" id="place">破損的馬車</div><div class="subplace" id="subplace">森林深處 · 未知的道路</div></div><nav><button class="icon" id="hintBtn" title="顯示可互動位置" aria-label="顯示可互動位置">✧</button><button class="icon" id="journalBtn" title="旅程日誌" aria-label="旅程日誌">☷</button><button class="icon" id="menuBtn" title="選單" aria-label="選單">⚙</button></nav></header>
+<header class="top"><div><div class="eyebrow">CHAPTER 01–02 · 互動原型 V0.3.3</div><div class="place" id="place">破損的馬車</div><div class="subplace" id="subplace">森林深處 · 未知的道路</div></div><nav><button class="icon" id="hintBtn" title="顯示可互動位置" aria-label="顯示可互動位置">✧</button><button class="icon" id="journalBtn" title="旅程日誌" aria-label="旅程日誌">☷</button><button class="icon" id="menuBtn" title="選單" aria-label="選單">⚙</button></nav></header>
 <div id="hotspots"></div><div id="toast" role="status"></div>
 <section id="travelFeed" class="travel-feed" aria-label="生活與冒險紀錄"><div class="travel-head"><strong>旅途紀錄</strong><button id="travelToggle" type="button" aria-expanded="true">收合</button></div><div class="travel-inner"><div class="travel-log-scroll" id="travelLogScroll" role="log" aria-label="旅途訊息" aria-live="polite" aria-relevant="additions"><div id="travelRecent"></div></div><div class="travel-footer"><div class="travel-target-label">目前可前往／互動</div><div class="travel-targets" id="travelTargets"></div><button class="travel-journal-link" id="travelOpenJournal" type="button">全部旅途紀錄</button></div></div></section>
 <div id="swipeHelp" aria-hidden="true">左右滑動看場景 · 上滑執行行動</div><div class="bottom"><div><div class="narrative" id="narrative"></div><div class="actions" id="actions"></div></div><div class="sidebar"><div class="chips"><span class="chip" id="chapterChip">第一章</span><span class="chip" id="partyChip">獨自一人</span><span class="chip level" id="hpChip">體力 16/16</span></div><button id="mapBtn">◇ 探索紀錄</button></div></div>
 <div class="veil hidden" id="dialogVeil"><section class="panel" role="dialog" aria-modal="true" aria-labelledby="dialogTitle"><div class="panel-head"><div><div class="kicker" id="dialogKicker">發現</div><h2 id="dialogTitle"></h2></div><button class="close" id="dialogClose" aria-label="關閉">×</button></div><p id="dialogText"></p><div class="choices" id="dialogChoices"></div></section></div>
 <div class="veil hidden" id="journalVeil"><section class="panel journal" role="dialog" aria-modal="true"><div class="panel-head"><div><div class="kicker">FIELD NOTES</div><h2>旅程日誌</h2></div><button class="close" id="journalClose">×</button></div><div class="journal-tabs" id="journalTabs"></div><div id="journalContent"></div><div class="line"></div><p class="meta">本版本使用瀏覽器本機儲存，並未連接《鱗片與種子》的雲端存檔。可在設定中匯出備份。</p></section></div>
-<div class="veil hidden" id="menuVeil"><section class="panel" role="dialog" aria-modal="true"><div class="panel-head"><div><div class="kicker">OPTIONS</div><h2>探索設定</h2></div><button class="close" id="menuClose">×</button></div><p id="menuStatus">遊戲會自動在本機儲存。</p><div class="choices"><button class="choice" id="soundBtn">音效：關閉</button><button class="choice" id="exportBtn">匯出存檔</button><button class="choice" id="importBtn">匯入存檔</button><button class="choice" id="restartBtn">重新開始</button></div><input id="fileInput" type="file" accept="application/json" class="hidden"><div class="line"></div><div class="note">V0.3.2 測試版本：第二章的公會、委託與人物對話是可修改的玩法草案。人物稱呼仍為佔位，主角身體來歷、復活原因及正式戰鬥方式都尚未定案。</div></section></div>
-<div class="veil" id="startVeil"><section class="panel start"><div class="stamp">A STORY OF THE UNKNOWN</div><h1 class="screen-title">殘車之後</h1><p>你在一輛被毀壞的貨運馬車裡醒來。森林靜得出奇，而你不記得自己為何來到這裡。</p><button class="choice" id="startBtn">開始新的旅程</button><button class="choice hidden" id="continueBtn">繼續旅程</button><div class="note">V0.3.2 可玩原型 · 橫式手機／電腦　｜　探索優先、調查可選　｜　不需登入及付費</div></section></div>
+<div class="veil hidden" id="menuVeil"><section class="panel" role="dialog" aria-modal="true"><div class="panel-head"><div><div class="kicker">OPTIONS</div><h2>探索設定</h2></div><button class="close" id="menuClose">×</button></div><p id="menuStatus">遊戲會自動在本機儲存。</p><div class="choices"><button class="choice" id="soundBtn">音效：關閉</button><button class="choice" id="exportBtn">匯出存檔</button><button class="choice" id="importBtn">匯入存檔</button><button class="choice" id="restartBtn">重新開始</button></div><input id="fileInput" type="file" accept="application/json" class="hidden"><div class="line"></div><div class="note">V0.3.3 測試版本：第二章的公會、委託與人物對話是可修改的玩法草案。人物稱呼仍為佔位，主角身體來歷、復活原因及正式戰鬥方式都尚未定案。</div></section></div>
+<div class="veil" id="startVeil"><section class="panel start"><div class="stamp">A STORY OF THE UNKNOWN</div><h1 class="screen-title">殘車之後</h1><p>你在一輛被毀壞的貨運馬車裡醒來。森林靜得出奇，而你不記得自己為何來到這裡。</p><button class="choice" id="startBtn">開始新的旅程</button><button class="choice hidden" id="continueBtn">繼續旅程</button><div class="note">V0.3.3 可玩原型 · 橫式手機／電腦　｜　探索優先、調查可選　｜　不需登入及付費</div></section></div>
 <div class="orientation"><div><strong>請將手機轉為橫向</strong><p>第一章與城鎮探索以橫式畫面呈現。</p>↻</div></div>
 </div>
 <script>
@@ -184,7 +207,7 @@ const names={wreck:['破損的馬車','森林邊緣 · 一切從這裡開始'],t
 const roster=[{id:'brother',name:'弟弟（隊長）',speech:'先別急著起身。這裡可能還有危險。'},{id:'sister',name:'姊姊',speech:'你能聽清楚我們說話嗎？'},{id:'a',name:'夥伴甲',speech:'這輛馬車損壞得真嚴重……'},{id:'b',name:'夥伴乙',speech:'我先看看四周有沒有怪物。'},{id:'c',name:'夥伴丙',speech:'帶點水過來吧，他看起來不太好。'},{id:'d',name:'夥伴丁',speech:'我們得趕在天黑之前回城。'}];
 function randomSeed(){return (Date.now()^((Math.random()*4294967295)>>>0))>>>0;}
 function selectFour(seed){let a=[0,1,2,3,4,5],v=seed>>>0;for(let i=a.length-1;i>0;i--){v=(Math.imul(v,1664525)+1013904223)>>>0;let j=v%(i+1);[a[i],a[j]]=[a[j],a[i]];}return a.slice(0,4).sort((x,y)=>x-y);}
-function initial(){const seed=randomSeed();return{v:1,seed,scene:'wreck',hp:16,maxHp:16,seen:[],notes:[],items:[],party:selectFour(seed),flags:{},visits:{wreck:1},savedAt:Date.now(),sound:false,feedCollapsed:false,travelHudMode:'compact',travelLog:[{type:'daily',message:'在被毀壞的貨運馬車中醒來。',thought:'這是哪裡？我得先看看周圍。',scene:'wreck',time:Date.now()}]};}
+function initial(){const seed=randomSeed();return{v:1,seed,scene:'wreck',hp:16,maxHp:16,seen:[],notes:[],items:[],party:selectFour(seed),flags:{},visits:{wreck:1},savedAt:Date.now(),sound:false,feedCollapsed:false,travelHudMode:'compact',travelLog:[{type:'daily',message:'在毀壞的馬車篷內醒來，扶著斷裂木板爬到了外面。',thought:'我怎麼會在這裡？先看看四周吧。',scene:'wreck',time:Date.now()}]};}
 function validSave(j){return !!(j&&j.v===1&&names[j.scene]&&Number.isFinite(j.hp)&&Number.isFinite(j.maxHp)&&Array.isArray(j.party)&&j.party.length===4&&new Set(j.party).size===4&&j.party.every(i=>Number.isInteger(i)&&i>=0&&i<6)&&Array.isArray(j.seen)&&Array.isArray(j.notes)&&Array.isArray(j.items)&&j.flags&&typeof j.flags==='object'&&j.visits&&typeof j.visits==='object');}
 function load(){try{const j=JSON.parse(localStorage.getItem(KEY));return validSave(j)?j:null;}catch{return null;}}
 let s=load()||initial(), hasSave=!!load(),modal=null,showHints=false,journalTab='discoveries',toastHandle=null;
@@ -272,6 +295,23 @@ function sceneDistance(scene=s.scene){
 }
 /* More horizontal source pixels require a proportionally smaller output HEIGHT;
    increasing crop width alone would squeeze the wagon on the phone. */
+/* Same painted world, a DIFFERENT right-hand composition for the adjacent trail.
+   This is a temporary art-continuity pass until a dedicated trail illustration is ready. */
+function trailPanoramaCrop(){
+ if(!wreckPanoramaReady)return null;
+ const width=wreckPanorama.naturalWidth,height=wreckPanorama.naturalHeight;
+ const viewport=$('view'),shownWidth=Math.max(1,viewport.clientWidth||window.innerWidth),
+  shownHeight=Math.max(1,viewport.clientHeight||window.innerHeight),aspect=shownWidth/shownHeight;
+ // Closer look down the wooded road, avoiding the wagon dominating the scene.
+ const desiredHeight=Math.min(height,height*.56);
+ const cropWidth=Math.min(width,desiredHeight*aspect);
+ const cropHeight=cropWidth/aspect;
+ const maxX=Math.max(0,width-cropWidth),maxY=Math.max(0,height-cropHeight);
+ const centerX=width*.73,centerY=height*.49;
+ const sourceX=Math.max(0,Math.min(maxX,centerX-cropWidth/2+scenePan*160));
+ const sourceY=Math.max(0,Math.min(maxY,centerY-cropHeight/2));
+ return{width,height,cropWidth,sourceX,sourceY,cropHeight,destY:0,destHeight:H,distance:1};
+}
 function wreckPanoramaCrop(){
  if(!wreckPanoramaReady)return null;
  const width=wreckPanorama.naturalWidth,height=wreckPanorama.naturalHeight;
@@ -290,12 +330,12 @@ function wreckPanoramaCrop(){
 }
 function scheduleWreckRedraw(){
  if(wreckPaintPending)return;wreckPaintPending=true;
- requestAnimationFrame(()=>{wreckPaintPending=false;if(s.scene==='wreck')sceneDraw(t);});
+ requestAnimationFrame(()=>{wreckPaintPending=false;if(s.scene==='wreck'||s.scene==='trail')sceneDraw(t);});
 }
 function setScenePan(value,instant=false){
  scenePan=Math.max(-PAN_LIMIT,Math.min(PAN_LIMIT,value));
  if(instant)$('app').classList.add('is-panning');
- if(s.scene==='wreck'&&wreckPanoramaReady){
+ if((s.scene==='wreck'||s.scene==='trail')&&wreckPanoramaReady){
   // Pan source pixels inside the panorama; don't move the overlay UI or scale the canvas.
   $('view').style.transform='none';$('hotspots').style.transform='none';
   if(showHints)renderHotspots();
@@ -360,8 +400,8 @@ function entries(){const a={
  home:[action('回到城鎮街道',()=>change('street'),true),action('與昨天留守的兩人聊天',meetHome),action('看看公共空間',()=>dialog('一起生活的地方','牆邊掛著修補過的旅行斗篷，桌上則是輪流採買的清單。這裡是六位冒險者自己生活的地方，並不是主角自動入住的房間。',[{label:'不打擾了',fn:()=>{}}],'生活角落'))]
 };return a[s.scene]||[];}
 function render(){if(!names[s.scene])s.scene='wreck';$('place').textContent=names[s.scene][0];$('subplace').textContent=names[s.scene][1];$('partyChip').textContent=s.flags.rescued?'與冒險者相遇':'獨自探索';$('hpChip').textContent=`體力 ${s.hp}/${s.maxHp}`;$('chapterChip').textContent=s.flags.morning?'第二章 · 清晨':s.flags.chapterDone?'第一章片段完成':'第一章';const texts={
- wreck:'你在已被摧毀的馬車裡醒來。可以左右滑動查看散落貨物和遠處的林道；不必調查完才能離開。',
- trail:s.flags.rescued?'遠方的城鎮已經出現。你可以回頭看看，也可以繼續前進。':'一條舊路通往森林深處。你可以探索其他地方，或直接向前走。',
+ wreck:'你從毀壞的車篷下爬出來，泥土的涼意讓意識慢慢清晰。前方是散落貨物與通往林間的道路；可以自由觀察，也能直接離開。',
+ trail:s.flags.rescued?'你沿著車轍走到林道，遠方的城鎮逐漸清晰。可以回望事故現場，也可以繼續前進。':'沿路走離馬車，林間的古老石拱與轉彎的小徑映入眼簾。你可以慢慢探索，也能直接前進。',
  clearing:'陌生的風聲、樹根間的微光。你可以接近，也可以完全不理會。',
  ruin:'古老石門默默矗立。它像是某個故事的開始，但你現在可以直接離開。',
  gate:s.flags.morning?'你已經知道城鎮的道路，隨時可以往來森林與市集。':'城牆在暮色下逐漸清晰。四名冒險者答應帶你到安全的地方。',
@@ -378,7 +418,7 @@ function renderHotspots(){
  const el=$('hotspots');el.replaceChildren();
  const per={wreck:[['散落貨箱',.36,.71,glance],['車輪痕跡',.45,.53,marks],['離開的林道',.85,.57,()=>change('trail')]],clearing:[['微光',59,69,light],['聲音',75,46,soundInForest]],ruin:[['石門',51,45,ruinLook]],inn:[['鏡子',73,43,innMark]],guild:[['公告板',69,49,guildBoard]],outskirts:[['舊路標',67,49,roadsideSign]],home:[['留守夥伴',48,59,meetHome]]};
  if(!showHints)return;
- const panorama=s.scene==='wreck'?wreckPanoramaCrop():null;
+ const panorama=s.scene==='wreck'?wreckPanoramaCrop():s.scene==='trail'?trailPanoramaCrop():null;
  for(const [label,x,y,fn] of per[s.scene]||[]){
   let screenX=panorama?100*(x*panorama.width-panorama.sourceX)/panorama.cropWidth:x;
   let screenY=panorama?100*(panorama.destY+y*panorama.destHeight)/H:y;
@@ -428,7 +468,7 @@ $('journalBtn').onclick=()=>journal('journey');$('mapBtn').onclick=()=>journal('
 $('soundBtn').onclick=()=>{s.sound=!s.sound;$('soundBtn').textContent='音效：'+(s.sound?'開啟':'關閉');save();beep(520);};
 $('restartBtn').onclick=()=>{if(!confirm('確定重新開始？目前本機存檔將被覆蓋。'))return;s=initial();resetViewPan();$('menuVeil').classList.add('hidden');render();toast('已開始新的旅程');};
 $('exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify(s,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='dungeon-adventure-save-v02.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};$('importBtn').onclick=()=>$('fileInput').click();$('fileInput').onchange=async e=>{try{const text=await e.target.files[0].text(),j=JSON.parse(text);if(!validSave(j))throw Error('格式不相容');s=j;resetViewPan();if(!Array.isArray(s.travelLog))s.travelLog=[];if(typeof s.feedCollapsed!=='boolean')s.feedCollapsed=false;if(!['compact','expanded'].includes(s.travelHudMode))s.travelHudMode='compact';save();render();$('menuVeil').classList.add('hidden');toast('已匯入存檔');}catch{alert('無法讀取這份存檔。');}e.target.value='';};
-$('startBtn').onclick=()=>{s=initial();resetViewPan();hasSave=true;$('startVeil').classList.add('hidden');render();toast('點選下方地點與事件，開始探索');};if(hasSave){$('continueBtn').classList.remove('hidden');$('continueBtn').onclick=()=>{$('startVeil').classList.add('hidden');render();if(s.flags.inBattle)battleDialog('繼續尚未結束的遭遇戰。');};}
+$('startBtn').onclick=()=>{s=initial();resetViewPan();hasSave=true;$('startVeil').classList.add('hidden');render();toast('你扶著破損車板爬到外面，開始觀察事故現場。');};if(hasSave){$('continueBtn').classList.remove('hidden');$('continueBtn').onclick=()=>{$('startVeil').classList.add('hidden');render();if(s.flags.inBattle)battleDialog('繼續尚未結束的遭遇戰。');};}
 window.addEventListener('keydown',e=>{
 if(e.metaKey||e.ctrlKey||e.altKey||e.target.matches('input,textarea,select,[contenteditable="true"]'))return;
 if(e.key==='Escape'){e.preventDefault();if(!$('journalVeil').classList.contains('hidden'))$('journalVeil').classList.add('hidden');
@@ -463,7 +503,7 @@ function prepareWreckBackdrop(){
 }
 wreckPanorama.onload=()=>{wreckPanoramaReady=wreckPanorama.naturalWidth>0;
  wreckBlurBackdrop=wreckPanoramaReady?prepareWreckBackdrop():null;
- if(s.scene==='wreck'){setScenePan(scenePan);renderHotspots();sceneDraw(t);}
+ if(s.scene==='wreck'||s.scene==='trail'){setScenePan(scenePan);renderHotspots();sceneDraw(t);}
 };
 wreckPanorama.onerror=()=>{wreckPanoramaReady=false;console.warn('Wreck panorama unavailable; using original procedural drawing.');};
 wreckPanorama.decoding='async';wreckPanorama.src='./assets/wreck_panorama_v1.webp';
@@ -496,11 +536,11 @@ function home(){rect(0,0,W,H,grad(0,0,0,H,'#756650','#2f2c28'));wallPlanks();rec
 function mote(time){const r=rng(939);for(let i=0;i<29;i++){const x=(r()*960+Math.sin(time*.29+i)*19),y=(r()*540+time*(3+i%4))%540;ellipse(x,y,1+(i%3)*.65,1+(i%2),i%2?'#f0d99d':'#c4dec8',.28+(i%5)*.045);}}
 function sceneDraw(time){
  ctx.clearRect(0,0,W,H);
- const crop=s.scene==='wreck'?wreckPanoramaCrop():null;
+ const crop=s.scene==='wreck'?wreckPanoramaCrop():s.scene==='trail'?trailPanoramaCrop():null;
  if(crop){
-  if(wreckBlurBackdrop)ctx.drawImage(wreckBlurBackdrop,0,0,W,H);
+  if(s.scene==='wreck'&&wreckBlurBackdrop)ctx.drawImage(wreckBlurBackdrop,0,0,W,H);
   else{ctx.fillStyle='#111e22';ctx.fillRect(0,0,W,H);}
-  // Show more panorama horizontally, reduce its height by the SAME factor.
+  // Draw from the same continuous painted world; keep aspect-preserving crop.
   ctx.drawImage(wreckPanorama,crop.sourceX,crop.sourceY,crop.cropWidth,crop.cropHeight,
     0,crop.destY,W,crop.destHeight);
   return;
