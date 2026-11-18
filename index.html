@@ -336,11 +336,14 @@ function setScenePan(value,instant=false){
  scenePan=Math.max(-PAN_LIMIT,Math.min(PAN_LIMIT,value));
  if(instant)$('app').classList.add('is-panning');
  if((s.scene==='wreck'||s.scene==='trail')&&wreckPanoramaReady){
+  // The image crop matches the actual screen ratio. Use 'fill' to avoid cover-cropping the 16:9 canvas buffer.
+  $('view').style.objectFit='fill';
   // Pan source pixels inside the panorama; don't move the overlay UI or scale the canvas.
   $('view').style.transform='none';$('hotspots').style.transform='none';
   if(showHints)renderHotspots();
   scheduleWreckRedraw();
  }else{
+  $('view').style.objectFit='cover';
   // Procedural scenes also have independent zoom parameters. Keep their
   // scaled view >= 1 to avoid showing a blank margin around unfinished art.
   const zoom=Math.max(1,PAN_ZOOM/sceneDistance(s.scene));
