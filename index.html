@@ -308,7 +308,7 @@ function trailPanoramaCrop(){
  const cropHeight=cropWidth/aspect;
  const maxX=Math.max(0,width-cropWidth),maxY=Math.max(0,height-cropHeight);
  const centerX=width*.73,centerY=height*.49;
- const sourceX=Math.max(0,Math.min(maxX,centerX-cropWidth/2+scenePan*160));
+ const sourceX=Math.max(0,Math.min(maxX,centerX-cropWidth/2-scenePan*160));
  const sourceY=Math.max(0,Math.min(maxY,centerY-cropHeight/2));
  return{width,height,cropWidth,sourceX,sourceY,cropHeight,destY:0,destHeight:H,distance:1};
 }
