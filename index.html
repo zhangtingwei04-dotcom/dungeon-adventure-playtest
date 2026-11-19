@@ -1209,6 +1209,146 @@ input,textarea,.panel p,.journal-list,.journey-entry{user-select:text;-webkit-us
  .story-ornament{flex-basis:10px;height:10px}
 }
 
+
+/* V0.6.1 — faithful travel-record panel.
+   Screenshot reference: 1536×707, journal x≈65..432, y≈192..434.
+   Data continues to come from the real travel log; no decorative fake entries. */
+.travel-feed,.travel-feed.collapsed,.travel-feed:not(.collapsed){
+ position:absolute;left:4.23%;top:27.15%;width:23.95%;height:34.4%;
+ z-index:3;display:flex;flex-direction:column;overflow:hidden;
+ border:1.5px solid #8c9c79;border-radius:12px;
+ background:linear-gradient(135deg,rgba(27,59,52,.98),rgba(8,32,34,.99));
+ box-shadow:inset 0 0 0 1px rgba(159,168,121,.17),0 2px 9px #031d1b64;
+}
+.travel-feed .travel-head,.travel-feed.collapsed .travel-head{
+ flex:0 0 auto;min-height:clamp(29px,7.3dvh,53px);
+ display:flex;align-items:center;justify-content:flex-start;gap:clamp(7px,.73vw,12px);
+ padding:clamp(4px,.75dvh,9px) clamp(11px,1.06vw,17px);
+ border:0;border-bottom:1px solid rgba(143,151,117,.34);
+ background:linear-gradient(110deg,#24483e,#1b3d36);
+}
+.travel-feed .travel-head .travel-book{flex:0 0 clamp(18px,2.05vw,30px);width:clamp(18px,2.05vw,30px);height:clamp(17px,4.3dvh,29px)}
+.travel-feed .travel-head strong{
+ flex:1;min-width:0;text-align:left;
+ font-family:Georgia,"Noto Serif TC","PingFang TC",serif;
+ font-weight:650;font-size:clamp(12px,1.5vw,20px);letter-spacing:.075em;
+ color:#f6e7c5;text-shadow:0 2px 3px #071b18;
+ white-space:nowrap;
+}
+.travel-feed .travel-head button,.travel-feed.collapsed .travel-head button{
+ flex:0 0 auto;min-height:clamp(21px,3.6dvh,28px);width:clamp(21px,2.5vw,29px);
+ padding:0;border:0;border-radius:6px;background:transparent;
+ box-shadow:none;color:#b8a67d;font-size:clamp(14px,1.5vw,22px);
+}
+.travel-feed .travel-head button:focus-visible{outline:2px solid #d6b47b}
+.travel-feed .travel-inner,.travel-feed.collapsed .travel-inner{
+ flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden;
+ background:linear-gradient(145deg,rgba(7,22,26,.55),rgba(11,34,32,.44));
+}
+.travel-feed .travel-log-scroll,.travel-feed.collapsed .travel-log-scroll,.travel-feed:not(.collapsed) .travel-log-scroll{
+ flex:1 1 auto;height:auto!important;max-height:none!important;min-height:0!important;
+ padding:clamp(7px,1.06dvh,11px) clamp(11px,1.06vw,17px) 4px;
+ overflow-y:auto;overflow-x:hidden;scroll-behavior:auto;
+ scrollbar-width:thin;scrollbar-color:#806a4c transparent;
+}
+.travel-feed .travel-event,.travel-feed.collapsed .travel-event{
+ display:block;min-height:0;max-height:none;
+ margin:0;padding:clamp(4px,.75dvh,8px) 0;
+ border:0;border-bottom:0;background:transparent;
+ font-family:Georgia,"Noto Serif TC","PingFang TC",serif;
+}
+.travel-feed .travel-event-line,.travel-feed.collapsed .travel-event-line{
+ display:flex;align-items:baseline;gap:clamp(6px,.75vw,12px);
+ width:100%;height:auto;max-height:none;min-width:0;
+ white-space:nowrap;overflow:hidden;
+ line-height:1.45;
+}
+.travel-feed .travel-event-time,.travel-feed.collapsed .travel-event-time{
+ display:inline-block;flex:0 0 clamp(33px,3.3vw,51px);
+ margin:0;white-space:nowrap;color:#adb8b5;
+ font-size:clamp(10px,1vw,15px);line-height:1.45;font-variant-numeric:tabular-nums;
+}
+.travel-feed .travel-event-thought,.travel-feed.collapsed .travel-event-thought{
+ flex:1 1 auto;min-width:0;display:block!important;
+ padding:0;margin:0;max-height:none;height:auto;
+ white-space:nowrap!important;overflow:hidden!important;
+ text-overflow:ellipsis;-webkit-line-clamp:unset!important;line-clamp:unset!important;
+ font-style:italic;font-size:clamp(11px,1.23vw,18px);line-height:1.45;
+ color:#dcacd9!important;text-shadow:0 1px 2px #090e17;
+}
+.travel-feed .travel-event-main,.travel-feed.collapsed .travel-event-main{
+ flex:1 1 auto;min-width:0;display:block!important;white-space:nowrap!important;
+ overflow:hidden!important;text-overflow:ellipsis;
+ font-size:clamp(10px,1.05vw,16px);color:#e4e0d3;
+ line-height:1.45;
+}
+.travel-feed .travel-event-detail{display:none}
+.travel-feed:not(.collapsed) .travel-event-detail{
+ display:block;color:#b6c6ba;font-size:clamp(10px,.95vw,13px);
+ padding:3px 0 0 clamp(39px,4vw,60px);line-height:1.45;overflow-wrap:anywhere;
+}
+.travel-feed .travel-footer,.travel-feed.collapsed .travel-footer,.travel-feed:not(.collapsed) .travel-footer{
+ flex:0 0 auto;position:relative;z-index:2;
+ padding:clamp(7px,1.15dvh,12px) clamp(11px,1.06vw,17px) clamp(9px,1.3dvh,14px);
+ border:0;background:transparent;
+}
+.travel-feed.collapsed .travel-targets,.travel-feed .travel-targets{display:flex;align-items:center;gap:5px;flex-wrap:nowrap}
+.travel-feed.collapsed .travel-target-label{display:none!important}
+.travel-feed.collapsed .travel-journal-link{display:none!important}
+.travel-feed.collapsed .travel-target:nth-child(n+2){display:none!important}
+.travel-feed .travel-target,.travel-feed.collapsed .travel-target,.travel-feed:not(.collapsed) .travel-target{
+ flex:0 1 auto;display:inline-flex;align-items:center;justify-content:flex-start;
+ gap:clamp(5px,.6vw,9px);min-width:0;width:auto;
+ min-height:clamp(30px,5.6dvh,45px);max-width:calc(100% - 37px);
+ padding:5px clamp(8px,.9vw,14px);
+ border:2px solid #cba66e;border-radius:9px;
+ background:linear-gradient(120deg,#244939,#183a2f);
+ box-shadow:inset 0 0 0 1px #caa87452,0 2px 0 rgba(3,23,19,.75);
+ color:#efdbb7;font-size:clamp(10px,1.2vw,17px);line-height:1.25;
+ font-weight:600;text-align:left;white-space:nowrap;letter-spacing:.02em;
+}
+.travel-feed .travel-target.is-route::before{
+ content:'';flex:0 0 clamp(13px,1.35vw,20px);
+ width:clamp(13px,1.35vw,20px);height:clamp(17px,1.8vw,27px);
+ background-repeat:no-repeat;background-size:contain;background-position:center;
+ background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 27'%3E%3Cpath d='M10 1a9 9 0 0 0-9 9c0 7 9 16 9 16s9-9 9-16a9 9 0 0 0-9-9z' fill='%23d9b781'/%3E%3Ccircle cx='10' cy='10' r='3.3' fill='%2328463a'/%3E%3C/svg%3E");
+}
+.travel-feed .travel-target:not(.is-route)::before{content:'◎';color:#d9b781}
+.travel-feed .travel-target-text{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.travel-feed .travel-target:hover,.travel-feed .travel-target:focus-visible{outline:1px solid #f2dba8;background:#315843}
+.travel-feather{
+ position:absolute;z-index:1;right:clamp(6px,.55vw,11px);bottom:clamp(8px,1.1dvh,13px);
+ width:clamp(17px,2vw,29px);height:clamp(28px,7.1dvh,51px);
+ filter:drop-shadow(0 2px 2px #061c1d);pointer-events:none;
+}
+@media(max-width:950px) and (orientation:landscape){
+ .travel-feed .travel-head,.travel-feed.collapsed .travel-head{min-height:clamp(26px,7.15dvh,40px);padding:3px 7px}
+ .travel-feed .travel-head .travel-book{flex-basis:18px;width:18px;height:18px}
+ .travel-feed .travel-head strong{font-size:clamp(12px,1.63vw,16px)}
+ .travel-feed .travel-head button{width:23px;min-height:23px}
+ .travel-feed .travel-log-scroll,.travel-feed.collapsed .travel-log-scroll{padding:4px 7px 2px}
+ .travel-feed .travel-event,.travel-feed.collapsed .travel-event{padding:clamp(3px,.76dvh,6px) 0}
+ .travel-feed .travel-event-time{flex-basis:clamp(30px,3.4vw,42px);font-size:clamp(9px,1.1vw,12px)}
+ .travel-feed .travel-event-thought,.travel-feed.collapsed .travel-event-thought{font-size:clamp(10px,1.47vw,14px)}
+ .travel-feed .travel-event-main{font-size:clamp(10px,1.25vw,13px)}
+ .travel-feed .travel-footer,.travel-feed.collapsed .travel-footer{padding:5px 7px 7px}
+ .travel-feed .travel-target,.travel-feed.collapsed .travel-target{min-height:clamp(29px,5.5dvh,37px);font-size:clamp(10px,1.38vw,13px);padding:4px 8px}
+ .travel-feather{right:5px;bottom:6px;height:clamp(26px,6.5dvh,39px)}
+}
+@media(max-width:700px) and (orientation:landscape){
+ .travel-feed .travel-head,.travel-feed.collapsed .travel-head{min-height:24px;padding:2px 5px}
+ .travel-feed .travel-head .travel-book{flex-basis:15px;width:15px;height:15px}
+ .travel-feed .travel-head strong{font-size:10px}
+ .travel-feed .travel-head button{font-size:15px;min-height:20px;width:20px}
+ .travel-feed .travel-log-scroll,.travel-feed.collapsed .travel-log-scroll{padding:3px 5px 1px}
+ .travel-feed .travel-event,.travel-feed.collapsed .travel-event{padding:2px 0}
+ .travel-feed .travel-event-time{flex-basis:28px;font-size:8px}
+ .travel-feed .travel-event-thought,.travel-feed.collapsed .travel-event-thought{font-size:9px}
+ .travel-feed .travel-target,.travel-feed.collapsed .travel-target{min-height:24px;padding:3px 5px;font-size:9px}
+ .travel-feed .travel-footer,.travel-feed.collapsed .travel-footer{padding:3px 5px 5px}
+ .travel-feather{width:14px;height:25px;bottom:4px;right:3px}
+}
+
 </style>
 </head>
 <body>
@@ -1312,7 +1452,12 @@ input,textarea,.panel p,.journal-list,.journey-entry{user-select:text;-webkit-us
  <p id="sceneInspectionText"></p><div class="inspection-actions" id="sceneInspectionActions"></div>
 </section>
 <div id="toast" role="status"></div>
-<section id="travelFeed" class="travel-feed" aria-label="生活與冒險紀錄"><div class="travel-head"><svg class="travel-book" aria-hidden="true" viewBox="0 0 28 25" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 5C10 2.6 5.1 2.3 2 3.3v16.5c4.3-1.4 8.5-.5 12 2.1V5Zm0 0c4-2.4 8.9-2.7 12-1.7v16.5c-4.3-1.4-8.5-.5-12 2.1V5Z" fill="#c5a472" stroke="#f1d39b" stroke-width="1.2"/><path d="M14 6.1v14.1M5.4 7.3c2.2-.2 4 .2 5.6 1M5.4 11c2.2-.2 4 .2 5.6 1m11.6-4.7c-2.2-.2-4 .2-5.6 1m5.6 2.7c-2.2-.2-4 .2-5.6 1" stroke="#6b5435" stroke-width="1.1" stroke-linecap="round"/></svg><strong>旅途紀錄</strong><button id="travelToggle" type="button" aria-expanded="true">收合</button></div><div class="travel-inner"><div class="travel-log-scroll" id="travelLogScroll" role="log" aria-label="旅途訊息" aria-live="polite" aria-relevant="additions"><div id="travelRecent"></div></div><div class="travel-footer"><div class="travel-target-label">目前可前往／互動</div><div class="travel-targets" id="travelTargets"></div><button class="travel-journal-link" id="travelOpenJournal" type="button">全部旅途紀錄</button></div></div></section>
+<section id="travelFeed" class="travel-feed" aria-label="生活與冒險紀錄"><div class="travel-head"><svg class="travel-book" aria-hidden="true" viewBox="0 0 28 25" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 5C10 2.6 5.1 2.3 2 3.3v16.5c4.3-1.4 8.5-.5 12 2.1V5Zm0 0c4-2.4 8.9-2.7 12-1.7v16.5c-4.3-1.4-8.5-.5-12 2.1V5Z" fill="#c5a472" stroke="#f1d39b" stroke-width="1.2"/><path d="M14 6.1v14.1M5.4 7.3c2.2-.2 4 .2 5.6 1M5.4 11c2.2-.2 4 .2 5.6 1m11.6-4.7c-2.2-.2-4 .2-5.6 1m5.6 2.7c-2.2-.2-4 .2-5.6 1" stroke="#6b5435" stroke-width="1.1" stroke-linecap="round"/></svg><strong>旅途紀錄</strong><button id="travelToggle" type="button" aria-expanded="true">收合</button></div><div class="travel-inner"><div class="travel-log-scroll" id="travelLogScroll" role="log" aria-label="旅途訊息" aria-live="polite" aria-relevant="additions"><div id="travelRecent"></div></div><div class="travel-footer"><div class="travel-target-label">目前可前往／互動</div><div class="travel-targets" id="travelTargets"></div><button class="travel-journal-link" id="travelOpenJournal" type="button">全部旅途紀錄</button></div></div><svg class="travel-feather" aria-hidden="true" viewBox="0 0 42 73" xmlns="http://www.w3.org/2000/svg">
+<path d="M7 70 Q18 55 19 40 Q11 26 20 14 Q27 3 38 2 Q43 21 34 36 Q31 44 22 48 Q18 62 7 70Z" fill="#8e6944" stroke="#4b3b28" stroke-width="1.4"/>
+<path d="M19 46 Q23 25 38 2 M11 62 Q23 43 35 25" fill="none" stroke="#d5ad70" stroke-width="1.1"/>
+<path d="M22 22 l-8 4 m15-10-9 2 m14 8-11 6 m8 7-11-1 m17-18-12 6 m-7 18-9-1" fill="none" stroke="#c39866" stroke-width="1"/>
+<path d="M7 70 Q15 65 24 45" fill="none" stroke="#654d31" stroke-width="1.4"/>
+</svg></section>
 <section class="story-panel" aria-label="目前場景敘事"><div class="story-ornament" aria-hidden="true"><svg viewBox="0 0 330 24" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
  <path d="M3 12H138 M190 12H327" stroke="#caa66d" stroke-width="1.2" fill="none" opacity=".86"/>
  <path d="M134 12l7-3 4 3-4 3z M196 12l-7-3-4 3 4 3z" fill="#caa66d"/>
@@ -2193,7 +2338,9 @@ function renderFeed(){
  const compact=s.travelHudMode!=='expanded',modeChanged=feedRenderedMode!==s.travelHudMode;
  feedRenderedMode=s.travelHudMode;
  feed.classList.toggle('collapsed',compact);
- $('travelToggle').textContent=compact?'展開':'縮小';
+ $('travelToggle').textContent=compact?'⌄':'⌃';
+ $('travelToggle').setAttribute('aria-label',compact?'展開完整旅途紀錄':'縮小旅途紀錄');
+ $('travelToggle').title=compact?'展開完整旅途紀錄':'縮小旅途紀錄';
  $('travelToggle').setAttribute('aria-expanded',String(!compact));
  const scroll=$('travelLogScroll'),recent=$('travelRecent');
  // One continuous log: append new events instead of replacing the previous messages.
@@ -2213,9 +2360,18 @@ function renderFeed(){
   const line=document.createElement('div');line.className='travel-event-line';
   const clock=document.createElement('span');clock.className='travel-event-time';
   clock.textContent=Number.isFinite(e.time)?new Date(e.time).toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit',hour12:false}):'旅途';
-  const main=document.createElement('span');main.className='travel-event-main';main.textContent=e.message;
-  line.append(clock,main);box.appendChild(line);
-  if(e.thought){const thought=document.createElement('span');thought.className='travel-event-thought';thought.textContent='「'+e.thought+'」';box.appendChild(thought);}
+  if(e.thought){
+   // In the compact journal the character's original thought is the lead line.
+   // The objective event stays in the same record and appears in expanded mode.
+   box.classList.add('has-thought');
+   const thought=document.createElement('span');thought.className='travel-event-thought';
+   thought.textContent='「'+e.thought+'」';line.append(clock,thought);box.appendChild(line);
+   const detail=document.createElement('div');detail.className='travel-event-detail';
+   detail.textContent=e.message;box.appendChild(detail);
+  }else{
+   const main=document.createElement('span');main.className='travel-event-main';
+   main.textContent=e.message;line.append(clock,main);box.appendChild(line);
+  }
   recent.appendChild(box);
  }
  const grew=logs.length>first;
@@ -2239,7 +2395,10 @@ function renderFeed(){
   others=available.filter(a=>!routes.includes(a)),picks=[...routes.slice(0,2),...others.slice(0,1)].slice(0,3);
  for(const a of picks){
   const b=document.createElement('button');b.className='travel-target';b.type='button';
-  b.textContent=(routes.includes(a)?'➜ ':'◎ ')+a.title;b.title='點選：'+a.title;b.onclick=a.fn;
+  const isRoute=routes.includes(a);
+  b.classList.toggle('is-route',isRoute);
+  const label=document.createElement('span');label.className='travel-target-text';label.textContent=a.title;
+  b.appendChild(label);b.title='點選：'+a.title;b.onclick=a.fn;
   links.appendChild(b);
  }
  if(!picks.length)links.textContent='目前沒有可用行動。';
