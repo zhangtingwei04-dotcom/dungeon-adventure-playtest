@@ -1410,6 +1410,64 @@ input,textarea,.panel p,.journal-list,.journey-entry{user-select:text;-webkit-us
  }
 }
 
+
+/* V0.6.4 — major frame expansion and symmetrical inset */
+/* Requested visual change: substantially taller frame (top edge up,
+   bottom edge down) and BOTH side rails further inward.
+   Preserve wagon art and gameplay coordinates. Adjust only the adjacent
+   edge-facing controls so nothing sits across the new rails. */
+#worldFrame{
+ top:2.3%;
+ bottom:2.5%;
+ left:5.8%;
+ right:5.8%;
+ border-radius:clamp(18px,2.1vw,33px);
+}
+/* Left-column content clears the newly inset left-side rail;
+   right navigation clears the newly inset right-side rail. */
+.top>div:first-child{
+ transform:translate(1.45vw,.8dvh);
+}
+.top nav{
+ transform:translateX(-2.2vw);
+}
+.travel-feed,.travel-feed.collapsed,.travel-feed:not(.collapsed){
+ left:6.3%;
+ width:22%;
+}
+.story-panel{
+ left:7.15%;
+ width:19.85%;
+}
+#placeDrawer{
+ right:calc(7% + env(safe-area-inset-right,0px));
+}
+/* Keep the bottom action bar exactly as it was; the frame is decorative. */
+@media (max-width:950px) and (orientation:landscape){
+ #worldFrame{top:2.1%;bottom:2.5%;left:5.8%;right:5.8%;}
+ .top>div:first-child{transform:translate(1.45vw,.7dvh);}
+ .top nav{transform:translateX(-2.2vw);}
+ .travel-feed,.travel-feed.collapsed,.travel-feed:not(.collapsed){
+  left:6.3%;
+  width:22%;
+ }
+ .story-panel{left:7.15%;width:19.85%;}
+ #placeDrawer{right:calc(7% + env(safe-area-inset-right,0px));}
+}
+@media (max-width:700px) and (orientation:landscape){
+ #worldFrame{top:1.9%;bottom:2.2%;left:5.7%;right:5.7%;}
+ .top>div:first-child{transform:translate(1.35vw,.7dvh);}
+ .top nav{transform:translateX(-2.15vw);}
+ .travel-feed,.travel-feed.collapsed,.travel-feed:not(.collapsed){
+  left:6.25%;width:22.1%;
+ }
+ .story-panel{left:7.1%;width:19.9%;}
+ #placeDrawer{right:calc(7% + env(safe-area-inset-right,0px));}
+}
+@media (max-height:350px) and (orientation:landscape){
+ #worldFrame{top:1.5%;bottom:2.1%;}
+}
+
 </style>
 </head>
 <body>
