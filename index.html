@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-Hant">
+<html lang="zh-Hant" class="stage-locked" data-layout-version="fixed-0.7.4">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no"><meta name="theme-color" content="#101b1d">
 <title>殘車之後｜第一章與城鎮 V0.5.1</title>
@@ -2066,6 +2066,17 @@ html.stage-locked #app #sceneInspection{
  font-size:17px!important;line-height:1.5!important;
 }
 
+
+/* V0.7.4 — permanent reference-stage layout in landscape.
+   No opt-out via ?layout=fluid; old saved URLs now show the intended fixed
+   1536×707 composition. Portrait still uses the orientation prompt.
+   Stage position and scaling are maintained by syncDesignStage. */
+html.stage-locked:not(.stage-wide) #app{
+ width:1536px!important;height:707px!important;
+ transform-origin:0 0!important;
+ transform:translate3d(var(--stage-left,0px),var(--stage-top,0px),0) scale(var(--stage-scale,1))!important;
+}
+
 </style>
 </head>
 <body>
@@ -2229,14 +2240,19 @@ html.stage-locked #app #sceneInspection{
 // not 16:9 (which describes only the nested scene view), and not the
 // approximate 2.1:1 proposed in the draft. No game state changes here.
 const STAGE_WIDTH=1536, STAGE_HEIGHT=707;
-const fluidFallback=new URLSearchParams(window.location.search).get('layout')==='fluid';
+// Fixed layout is now authoritative in landscape: do not let an old
+// ?layout=fluid URL override the player's chosen design.
+const STAGE_LAYOUT_VERSION='fixed-0.7.4';
 function syncDesignStage(){
  const visual=window.visualViewport;
  const viewportWidth=Math.max(1,visual?.width||window.innerWidth);
  const viewportHeight=Math.max(1,visual?.height||window.innerHeight);
  const portraitPhone=viewportWidth<viewportHeight&&viewportWidth<=700;
- const lock=!fluidFallback&&!portraitPhone;
+ const lock=!portraitPhone;
+ // Keep a verifiable marker for troubleshooting stale Safari or Pages cache.
  const root=document.documentElement;
+ root.dataset.layoutVersion=STAGE_LAYOUT_VERSION;
+ root.dataset.stageMode=lock?'fixed':'portrait';
  root.classList.toggle('stage-locked',lock);
  if(!lock){root.style.removeProperty('--stage-scale');
   root.style.removeProperty('--stage-left');root.style.removeProperty('--stage-top');return;}
