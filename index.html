@@ -1870,7 +1870,7 @@ html.stage-locked #worldFrame{
 /* Left header, live travel records, and narrative are independent pieces
    of a single fixed-coordinate left panel. */
 html.stage-locked #app .top{
- top:88px!important;left:78px!important;right:74px!important;
+ top:88px!important;left:78px!important;right:95px!important;
  padding:0!important;align-items:flex-start!important;
 }
 html.stage-locked #app .top>div:first-child{
@@ -1999,7 +1999,7 @@ html.stage-locked #app #placeDrawerToggle .place-drawer-count{
 }
 /* Stable bottom row, clear of the crystal art and lower gold frame. */
 html.stage-locked #app .bottom{
- left:80px!important;right:138px!important;
+ left:80px!important;right:190px!important;
  bottom:59px!important;height:64px!important;
  padding:0!important;max-height:none!important;
  overflow:visible!important;
@@ -2043,6 +2043,28 @@ html.stage-locked #app #sceneInspection{
 }
 /* On mobile portrait do not lock the UI: existing full-screen orientation
    prompt is preserved, without a miniature scaled modal. */
+
+
+/* V0.7.1 — fixed-stage functional panels stay practical after scaling. */
+html.stage-locked #app #placeDrawerPanel .place-drawer-head strong{font-size:18px!important}
+html.stage-locked #app #placeDrawerPanel .place-drawer-head{padding:10px 12px!important}
+html.stage-locked #app #placeDrawerPanel button,
+html.stage-locked #app #placeDrawerPanel .place-drawer-guide,
+html.stage-locked #app #placeDrawerPanel .place-drawer-empty{
+ font-size:15px!important;line-height:1.45!important;
+}
+html.stage-locked #app #placeDrawerPanel .place-mini-card-toggle,
+html.stage-locked #app #placeDrawerPanel .place-mini-go{
+ min-height:42px!important;
+}
+html.stage-locked #app .panel .choice{
+ min-height:60px!important;font-size:20px!important;
+}
+html.stage-locked #app .panel p{font-size:19px!important;line-height:1.6!important}
+html.stage-locked #app .panel .meta{font-size:15px!important}
+html.stage-locked #app #sceneInspection{
+ font-size:17px!important;line-height:1.5!important;
+}
 
 </style>
 </head>
