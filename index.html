@@ -887,8 +887,9 @@ function explorationDaily(site){
  const day=Math.floor(s.worldMinutes/1440)+1;
  const record=s.exploration.daily[site];
  if(!record||record.day!==day){
-  s.exploration.daily[site]={day,collected:0};
+  s.exploration.daily[site]={day,collected:0,spawned:0};
  }
+ if(!Number.isFinite(s.exploration.daily[site].spawned)||s.exploration.daily[site].spawned<0)s.exploration.daily[site].spawned=0;
  return s.exploration.daily[site];
 }
 function collectExplorationMaterial(site,id){
@@ -970,8 +971,9 @@ function exploreArea(){
  if(area.materials.length){
   const daily=explorationDaily(site);
   if(!Array.isArray(e.pending[site]))e.pending[site]=[];
-  if(e.pending[site].length<3&&e.pending[site].length+daily.collected<2&&Math.random()<.7){
+  if(e.pending[site].length<3&&daily.spawned<2&&Math.random()<.7){
    e.pending[site].push({id:site+'-'+count,material:area.materials[(count-1)%area.materials.length]});
+   daily.spawned++;
   }
  }
  e.last[site]=latest;
