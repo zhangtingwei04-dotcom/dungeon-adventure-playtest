@@ -584,7 +584,7 @@ function renderRecoveredItems(out){
   const none=document.createElement('p');none.className='map-note';
   none.textContent=s.recovery.looted?'已搜集的殘骽物品都已分解。':'目前沒有可鑑定或分解的殘骽物品。';out.appendChild(none);
  }
- const label=document.createElement('div');label.className='map-section';label.textContent='已分解材料';out.appendChild(label);
+ const label=document.createElement('div');label.className='map-section';label.textContent='回收與探索材料';out.appendChild(label);
  const material=document.createElement('p');material.className='map-note';
  const mats=Object.entries(s.recovery.parts).filter(([,n])=>Number.isFinite(n)&&n>0);
  material.textContent=mats.length?mats.map(([name,n])=>name+' ×'+n).join('、'):'目前沒有材料。';out.appendChild(material);
@@ -976,7 +976,7 @@ function exploreArea(){
  }
  e.last[site]=latest;
  const feature=latest.route?'並找到新的路線卡':latest.wreckFound?'，還發現林邊舊馬車殘骸':'，留意到新的環境細節';
- addTravel('daily','在'+names[site][0]+'探索約10分鐘'+feature+'。','這裡還有許多可以慢慢觀察的東西。');
+ addTravel('daily','在'+names[site][0]+'進行第'+count+'次探索（約10分鐘，'+gameTime(s.worldMinutes)+'）'+feature+'。','這裡還有許多可以慢慢觀察的東西。');
  save();render();showExplorationResults(site);
 }
 const roster=[{id:'brother',name:'弟弟（隊長）',speech:'先別急著起身。這裡可能還有危險。'},{id:'sister',name:'姊姊',speech:'你能聽清楚我們說話嗎？'},{id:'a',name:'夥伴甲',speech:'這輛馬車損壞得真嚴重……'},{id:'b',name:'夥伴乙',speech:'我先看看四周有沒有怪物。'},{id:'c',name:'夥伴丙',speech:'帶點水過來吧，他看起來不太好。'},{id:'d',name:'夥伴丁',speech:'我們得趕在天黑之前回城。'}];
