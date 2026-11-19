@@ -902,7 +902,7 @@ function routeKnown(a,b){
 }
 function discoverRoute(a,b){
  const r=travelRoute(a,b);if(!r||routeKnown(a,b))return false;
- s.routeDiscovery.known.push(routeKey(a,b));save();return true;
+ s.routeDiscovery.known.push(routeKey(a,b));updatePlaceDrawerBadge();save();return true;
 }
 function routeAllowedToSearch(from,to){
  if(!travelRoute(from,to))return false;
