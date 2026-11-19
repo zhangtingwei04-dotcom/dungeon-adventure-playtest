@@ -779,6 +779,114 @@ input,textarea,.panel p,.journal-list,.journey-entry{user-select:text;-webkit-us
  .bottom .action{font-size:10px}
  #placeDrawer{top:36%;bottom:31%;right:2.5%}
 }
+
+/* 2026-11-19 | Reference-match pass: ornamental frame, legible mobile HUD,
+   always-visible optional exploration, and crisp pixel-art presentation. */
+#app{background:radial-gradient(ellipse at 52% 42%,#14352e 0%,#092a27 54%,#051b1c 100%)}
+#worldFrame{
+ border:3px solid #b99a63;
+ box-shadow:0 0 0 3px #072523,0 0 0 5px #8d744b,
+  inset 0 0 0 4px #062420,inset 0 0 0 6px rgba(218,180,107,.47),
+  0 13px 32px rgba(0,0,0,.34);
+}
+.worldFrameArt{opacity:1;filter:drop-shadow(0 1px 1px #0d211b)}
+.frameEmblem{color:#e7cd99;text-shadow:0 0 7px #b78f50}
+#sceneStage{
+ border-color:#c7a66f;
+ box-shadow:0 0 0 3px #06211c,0 0 0 5px #9e8355,
+   0 0 0 7px rgba(2,16,16,.45),0 10px 26px #061713a8;
+}
+#sceneStage #view{
+ object-fit:fill;
+ image-rendering:pixelated;
+ filter:contrast(1.08) saturate(1.06);
+}
+#sceneStage::before,#sceneStage::after{pointer-events:none}
+#sceneStage .hotspot.on{
+ width:28px;height:28px;min-width:28px;min-height:28px;
+ opacity:.42;background:rgba(43,75,56,.45);border-color:#ecd6a2;
+ box-shadow:0 0 0 4px rgba(233,194,110,.075),0 0 10px #c6a36b99;
+}
+#sceneStage .hotspot.on:hover,#sceneStage .hotspot.on:focus-visible{opacity:1}
+.top .place{
+ border-color:#dab77a;
+ border-radius:14px;
+ background:linear-gradient(100deg,#0e3029,#28513d 53%,#0b332c);
+ box-shadow:inset 0 0 0 2px #09251f,inset 0 0 0 3px rgba(214,182,117,.18),
+   0 3px 0 #081d17;
+ text-shadow:0 2px 2px #06140e;
+}
+.top .place::before,.top .place::after{color:#a3bb72}
+.top .icon{
+ border-color:#bf9f6c;background:linear-gradient(150deg,#18362d,#092822);
+ box-shadow:inset 0 0 0 2px #081b18,0 2px 0 #071a16,0 0 0 1px #9b824b66;
+}
+.travel-feed,.travel-feed.collapsed,.travel-feed:not(.collapsed){
+ background:linear-gradient(130deg,rgba(28,63,52,.96),rgba(10,37,35,.96));
+ border-color:#9aa57b;
+ box-shadow:inset 0 0 0 1px #36634c,0 5px 10px #03171354;
+}
+.travel-head,.travel-feed.collapsed .travel-head{
+ background:linear-gradient(110deg,rgba(52,98,71,.76),rgba(19,52,43,.92));
+ color:#f3dfb4;border-bottom-color:#899367;
+}
+.travel-log-scroll,.travel-feed.collapsed .travel-log-scroll{
+ overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
+ scrollbar-color:#b39463 transparent;
+}
+.travel-feed.collapsed .travel-event-line,.travel-feed.collapsed .travel-event-thought{
+ display:block;-webkit-line-clamp:unset;line-clamp:unset;
+ overflow-wrap:anywhere;white-space:normal;
+}
+.travel-feed .travel-event-main{color:#f0e8d5}
+.travel-feed .travel-event-thought{color:#dfc2df}
+.travel-feed .travel-target{border-color:#cfaf79}
+.bottom .narrative{
+ left:-.3%;width:27%;min-height:0;max-height:24dvh;
+ overflow-y:auto;overflow-x:hidden;
+ scrollbar-width:thin;scrollbar-color:#b79e66 transparent;
+ line-height:1.6;white-space:normal;text-wrap:pretty;
+ bottom:calc(100% + 7px);
+}
+.bottom .actions{display:flex;gap:10px;flex-wrap:nowrap}
+.bottom .action{flex:0 0 auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bottom .action.primary{
+ background:linear-gradient(155deg,#83633e,#4c321e);
+ border-color:#d7b17a;
+ box-shadow:inset 0 0 0 1px #f3d49c5c,0 3px 0 #201b15;
+}
+.bottom .action.explore{
+ background:linear-gradient(155deg,#21633e,#0b462f);
+ border-color:#92c48b;
+ box-shadow:inset 0 0 0 1px #a5db9866,0 3px 0 #10291b;
+}
+#placeDrawerToggle{
+ background:linear-gradient(145deg,#1a4137,#0c2928);
+ border-color:#cfac73;box-shadow:0 0 0 2px #06261f;
+}
+@media(max-width:950px) and (orientation:landscape){
+ #sceneStage{border-width:2px}
+ .top .place{padding:3px 5px}
+ .bottom .narrative{max-height:24dvh;width:27%;bottom:calc(100% + 4px);font-size:clamp(9px,1.13vw,12px);line-height:1.52}
+ .bottom .actions{gap:7px}
+ .bottom .action{max-width:22vw;min-height:clamp(31px,6.7dvh,44px);font-size:clamp(10px,1.25vw,13px);padding:5px 9px}
+ .travel-feed .travel-event-main,.travel-feed .travel-event-thought{line-height:1.33}
+}
+@media(max-width:700px) and (orientation:landscape){
+ .bottom .narrative{max-height:23dvh;width:28%;font-size:9px;line-height:1.4}
+ .bottom .actions{gap:5px}
+ .bottom .action{max-width:22vw;min-height:32px;padding:5px 6px;font-size:9px}
+ .travel-feed,.travel-feed.collapsed,.travel-feed:not(.collapsed){height:33%}
+}
+@media(max-height:460px) and (orientation:landscape){
+ .bottom{bottom:8.5%;height:10%}
+ .bottom .narrative{max-height:23dvh;bottom:calc(100% + 4px)}
+ .travel-feed,.travel-feed.collapsed,.travel-feed:not(.collapsed){height:32%;top:26.5%}
+ .travel-log-scroll,.travel-feed.collapsed .travel-log-scroll{padding-top:2px;padding-bottom:2px}
+ .bottom .action{min-height:30px}
+}
+@media(prefers-reduced-motion:reduce){.travel-feed,.bottom .action{animation:none;transition:none}}
+
 </style>
 </head>
 <body>
@@ -804,7 +912,28 @@ input,textarea,.panel p,.journal-list,.journey-entry{user-select:text;-webkit-us
   <g transform="translate(1498,619)" fill="#8a70c3" stroke="#d2bafa" stroke-width="2">
    <path d="M0 36 L13 7 L28 35 L18 50Z"/><path d="M27 46 L39 -6 L48 43 L38 55Z"/><path d="M49 44 L69 16 L67 54 L59 58Z"/>
   </g>
- </svg>
+ 
+  <!-- Fine vinework and the winding serpent are purely ornamental. -->
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+   <path d="M84 26 C142 34 178 30 226 19 S318 27 380 23 M1228 24 C1288 32 1332 19 1390 26 S1494 26 1551 21" stroke="#a4aa66" stroke-width="3" opacity=".82"/>
+   <path d="M89 32 C102 64 71 77 54 106 M1511 32 C1492 74 1532 85 1547 125 M60 609 C83 585 112 626 139 636 M1458 637 C1497 619 1517 581 1541 570" stroke="#7d9a59" stroke-width="3"/>
+   <path d="M665 27 C690 16 702 42 718 31 S752 15 762 30 S788 42 800 25 S822 11 840 29 S874 43 885 19 C893 7 917 14 918 27" stroke="#d6b67a" stroke-width="7"/>
+   <path d="M665 27 C690 16 702 42 718 31 S752 15 762 30 S788 42 800 25 S822 11 840 29 S874 43 885 19 C893 7 917 14 918 27" stroke="#66593d" stroke-width="1.6"/>
+   <path d="M916 22 q10 -9 21 1 l-9 8 -9 -3" fill="#c6ac77" stroke="#91724a" stroke-width="1.2"/>
+   <circle cx="930" cy="20" r="1.7" fill="#172721" stroke="none"/>
+   <path d="M938 24 l8 2 -7 3" stroke="#cc9174" stroke-width="1"/>
+  </g>
+  <g fill="#72984e" stroke="#a9ae69" stroke-width="1.2" opacity=".95">
+   <path d="M123 31 Q94 9 105 2 Q130 7 123 31Z M177 30 Q177 3 202 10 Q194 27 177 30Z M250 28 Q238 4 224 10 Q220 24 250 28Z"/>
+   <path d="M1300 28 Q1270 2 1265 15 Q1277 30 1300 28Z M1363 26 Q1374 2 1396 9 Q1389 28 1363 26Z M1460 28 Q1468 3 1490 13 Q1479 31 1460 28Z"/>
+   <path d="M66 568 Q37 549 26 558 Q33 578 66 568Z M81 598 Q105 576 121 590 Q105 609 81 598Z"/>
+   <path d="M1513 585 Q1541 549 1557 569 Q1542 589 1513 585Z M1482 631 Q1462 612 1447 622 Q1451 638 1482 631Z"/>
+  </g>
+  <g stroke="#9b8b55" fill="none" stroke-width="1.3" opacity=".7">
+   <path d="M242 24 Q265 48 279 28 Q288 12 305 26 M1284 29 Q1300 48 1327 26"/>
+   <path d="M99 634 C220 621 260 649 380 639 M1212 638 C1329 647 1376 627 1472 634"/>
+  </g>
+</svg>
  <span class="frameEmblem" aria-hidden="true">◇</span>
  <span class="frameDivider" aria-hidden="true"></span>
 </div><section id="sceneStage" aria-label="第一人稱場景視窗"><canvas id="view" aria-label="第一人稱冒險場景"></canvas><div id="dayTint" aria-hidden="true"></div><div id="shade"></div><div id="hotspots"></div><div id="sceneActors" aria-hidden="true"></div><div id="encounterCue" class="hidden" role="status" aria-live="polite"></div></section>
@@ -1254,6 +1383,10 @@ function normalizeRouteDiscovery(){
  const rd=s.routeDiscovery;
  if(!Array.isArray(rd.known))rd.known=[];
  rd.known=Array.from(new Set(rd.known.filter(k=>typeof k==='string'&&ROUTE_TIMES.some(r=>routeKey(r.a,r.b)===k))));
+ // The visible road out of the wreck is always accessible; searching remains optional.
+ // Migrate existing saves without revealing the other, still-hidden pathways.
+ const exitKey=routeKey('wreck','trail');
+ if(!rd.known.includes(exitKey))rd.known.push(exitKey);
  if(!rd.searchCounts||typeof rd.searchCounts!=='object'||Array.isArray(rd.searchCounts))rd.searchCounts={};
 }
 function routeKnown(a,b){
@@ -1682,7 +1815,7 @@ function selectFour(seed){let a=[0,1,2,3,4,5],v=seed>>>0;for(let i=a.length-1;i>
 function initial(){const seed=randomSeed();return{v:1,seed,scene:'wreck',worldMinutes:960,routeDiscovery:{known:[],searchCounts:{}},placeCardsViewed:[],exploration:{counts:{},routeProgress:{},pending:{},daily:{},last:{}},recovery:{found:false,looted:false,items:[],parts:{}},forestEcology:{checkedDays:{},observed:{},ingredients:{},leafCollected:false},forestRare:{checkedDays:{},sighted:{},hints:{},ingredients:{},goblinGearTaken:false,rabbitHerbTaken:false},hp:16,maxHp:16,seen:[],notes:[],items:[],party:selectFour(seed),flags:{},visits:{wreck:1},savedAt:Date.now(),sound:false,feedCollapsed:false,travelHudMode:'compact',travelLog:[{type:'daily',message:'在毀壞的馬車篷內醒來，扶著斷裂木板爬到了外面。',thought:'我怎麼會在這裡？先看看四周吧。',scene:'wreck',time:Date.now()}]};}
 function validSave(j){return !!(j&&j.v===1&&names[j.scene]&&Number.isFinite(j.hp)&&Number.isFinite(j.maxHp)&&Array.isArray(j.party)&&j.party.length===4&&new Set(j.party).size===4&&j.party.every(i=>Number.isInteger(i)&&i>=0&&i<6)&&Array.isArray(j.seen)&&Array.isArray(j.notes)&&Array.isArray(j.items)&&j.flags&&typeof j.flags==='object'&&j.visits&&typeof j.visits==='object');}
 function load(){try{const j=JSON.parse(localStorage.getItem(KEY));return validSave(j)?j:null;}catch{return null;}}
-let s=load()||initial(), hasSave=!!load(),modal=null,showHints=true,journalTab='discoveries',toastHandle=null;
+let s=load()||initial(), hasSave=!!load(),modal=null,showHints=false,journalTab='discoveries',toastHandle=null;
 if(!Array.isArray(s.travelLog))s.travelLog=[];
 normalizeGameTime();normalizeRecovery();normalizeForestRare();normalizeForestEcology();normalizeRouteDiscovery();normalizeExploration();normalizePlaceCards();
 if(typeof s.feedCollapsed!=='boolean')s.feedCollapsed=false;if(!['compact','expanded'].includes(s.travelHudMode))s.travelHudMode='compact';
