@@ -2066,6 +2066,80 @@ html.stage-locked #app #sceneInspection{
  font-size:17px!important;line-height:1.5!important;
 }
 
+
+/* V0.7.2 — ultra-wide iPhone Safari / landscape auto layout.
+   The fixed 1536×707 reference is preserved where its ratio matches.
+   When usable viewport is >2.36:1, ordinary full-width UI eliminates
+   huge letterbox margins without distorting scene art or stretching type.
+   The fixed reference remains available at ?layout=locked.
+   Mode switches have hysteresis to avoid jumps as Safari chrome animates. */
+html.stage-wide,html.stage-wide body{
+ margin:0;width:100%;height:100%;overflow:hidden;
+ background:#061f1c;
+}
+html.stage-wide #app{
+ position:relative!important;
+ width:100vw!important;height:100dvh!important;
+ min-width:0!important;min-height:0!important;
+ max-width:none!important;max-height:none!important;
+ transform:none!important;overflow:hidden!important;
+}
+html.stage-wide #worldFrame{
+ top:0!important;bottom:0!important;
+ left:5.8%!important;right:5.8%!important;
+}
+/* Preserve relative positions of the artwork and controls but increase
+   readable journal text and prevent small route labels truncating. */
+html.stage-wide #app .travel-feed,
+html.stage-wide #app .travel-feed.collapsed,
+html.stage-wide #app .travel-feed:not(.collapsed){
+ left:6.3%!important;top:27.2%!important;
+ width:22.5%!important;height:34.3%!important;
+}
+html.stage-wide #app .travel-head strong{
+ font-size:clamp(13px,1.4vw,20px)!important;
+}
+html.stage-wide #app .travel-event-time{
+ font-size:clamp(10px,.98vw,14px)!important;
+}
+html.stage-wide #app .travel-event-thought{
+ font-size:clamp(12px,1.23vw,17px)!important;
+}
+html.stage-wide #app .travel-route-tag{
+ font-size:clamp(11px,1.1vw,15px)!important;
+ min-height:clamp(29px,5.7dvh,40px)!important;
+}
+html.stage-wide #app .story-panel{
+ left:7.15%!important;top:62%!important;
+ width:20.1%!important;height:14.4%!important;
+}
+html.stage-wide #app .story-panel .narrative{
+ font-size:clamp(12px,1.25vw,18px)!important;
+ line-height:1.46!important;
+}
+html.stage-wide #app .top nav{transform:none!important;gap:10px}
+html.stage-wide #app #placeDrawer{
+ right:calc(5.8% + 4px + env(safe-area-inset-right,0px))!important;
+}
+html.stage-wide #app .bottom{
+ right:11.9%!important;bottom:9.3%!important;
+}
+/* Keep the compass and action label clear of the crystal ornament. */
+html.stage-wide #app .bottom .actions{flex-wrap:nowrap!important}
+@media(max-width:950px) and (orientation:landscape){
+ html.stage-wide #app .top nav{gap:7px}
+ html.stage-wide #app .travel-feed .travel-route-tag{font-size:12px!important}
+ html.stage-wide #app .story-panel .narrative{font-size:clamp(11px,1.38vw,15px)!important}
+}
+@media(max-width:700px) and (orientation:landscape){
+ html.stage-wide #app .top nav{gap:5px}
+ html.stage-wide #app #worldFrame{left:5.7%!important;right:5.7%!important}
+ html.stage-wide #app .travel-feed .travel-route-tag{font-size:10px!important}
+ html.stage-wide #app #placeDrawer{
+  right:calc(5.7% + 4px + env(safe-area-inset-right,0px))!important;
+ }
+}
+
 </style>
 </head>
 <body>
@@ -2229,15 +2303,32 @@ html.stage-locked #app #sceneInspection{
 // not 16:9 (which describes only the nested scene view), and not the
 // approximate 2.1:1 proposed in the draft. No game state changes here.
 const STAGE_WIDTH=1536, STAGE_HEIGHT=707;
-const fluidFallback=new URLSearchParams(window.location.search).get('layout')==='fluid';
+const layoutRequest=new URLSearchParams(window.location.search).get('layout');
+const forceFluid=layoutRequest==='fluid';
+const forceReference=layoutRequest==='locked';
+let lastOrientation=null,wideAdaptive=false;
 function syncDesignStage(){
  const visual=window.visualViewport;
  const viewportWidth=Math.max(1,visual?.width||window.innerWidth);
  const viewportHeight=Math.max(1,visual?.height||window.innerHeight);
  const portraitPhone=viewportWidth<viewportHeight&&viewportWidth<=700;
- const lock=!fluidFallback&&!portraitPhone;
+ const landscape=viewportWidth>viewportHeight;
+ const ratio=viewportWidth/viewportHeight;
+ // 1536x707 reference = 2.173:1. On wider Safari viewports a
+ // height-fit layout produces large side gutters and illegible text.
+ // Switch to responsive full-width coordinates instead of stretching art.
+ // Hysteresis prevents browser-toolbar show/hide from repeatedly
+ // flipping modes during ordinary scroll or address-bar animation.
+ if(lastOrientation!==landscape){
+  wideAdaptive=landscape&&ratio>=2.36;lastOrientation=landscape;
+ }else if(landscape&&ratio>=2.43)wideAdaptive=true;
+ else if(!landscape||ratio<=2.10)wideAdaptive=false;
+ const lock=!portraitPhone&&(forceReference||(!forceFluid&&!wideAdaptive));
+ const wide=!portraitPhone&&!forceFluid&&!forceReference&&wideAdaptive;
  const root=document.documentElement;
  root.classList.toggle('stage-locked',lock);
+ root.classList.toggle('stage-wide',wide);
+ root.dataset.stageMode=lock?'reference':wide?'wide':'fluid';
  if(!lock){root.style.removeProperty('--stage-scale');
   root.style.removeProperty('--stage-left');root.style.removeProperty('--stage-top');return;}
  const scale=Math.min(viewportWidth/STAGE_WIDTH,viewportHeight/STAGE_HEIGHT);
