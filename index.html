@@ -1676,6 +1676,164 @@ input,textarea,.panel p,.journal-list,.journey-entry{user-select:text;-webkit-us
 }
 @media(prefers-reduced-motion:reduce){#worldFrame .ornament-image{transition:none}}
 
+
+/* V0.6.8 — final alignment & responsive bounds.
+   Status: journal arrow is REAL functionality, so keep a quiet icon.
+   Decorative corner SVGs never receive pointer events. */
+
+/* Right-edge bookmark: the collapsed tab ends against the inner rail.
+   Increasing drawer vertical space prevents icon + 2-line label + NEW badge
+   from overflowing its top border on short iPhone landscape screens. */
+#placeDrawer{
+ top:34%;
+ bottom:20%;
+ right:calc(5.8% + 4px + env(safe-area-inset-right,0px));
+ --place-handle-width:45px;
+}
+#placeDrawer:not(.is-open){
+ transform:translateX(calc(100% - var(--place-handle-width)));
+}
+#placeDrawer.is-open{transform:translateX(0);}
+#placeDrawerToggle,
+#placeDrawer:not(.is-open) #placeDrawerToggle{
+ flex:0 0 var(--place-handle-width);
+ width:var(--place-handle-width);
+ min-width:var(--place-handle-width);
+ height:min(clamp(118px,25dvh,162px),calc(100% - 8px));
+ max-height:calc(100% - 8px);
+ min-height:0;
+ padding:9px 3px;
+ display:flex;flex-direction:column;
+ justify-content:center;align-items:center;gap:clamp(3px,.7dvh,7px);
+ border:2px solid #cbaa75;
+ border-radius:11px;
+ overflow:hidden;
+ box-sizing:border-box;
+ box-shadow:inset 0 0 0 2px rgba(7,30,24,.8),
+ inset 0 1px 0 rgba(255,227,162,.22),0 3px 9px rgba(0,0,0,.44);
+}
+#placeDrawerToggle .place-drawer-diamond{
+ position:static;display:block;flex:0 0 auto;
+ font-size:clamp(18px,1.8vw,24px);
+ line-height:1.12;margin:0;transform:none;
+ color:#f0dca8;text-shadow:0 1px 3px #051e18;
+}
+#placeDrawerToggle .place-drawer-vertical{
+ display:flex;flex:0 0 auto;
+ flex-direction:column;align-items:center;justify-content:center;
+ writing-mode:horizontal-tb!important;line-height:1.13;
+ gap:1px;letter-spacing:0;
+}
+#placeDrawerToggle .place-drawer-count{
+ flex:0 0 auto;min-width:22px;max-width:100%;
+ padding:3px 4px;font-size:clamp(8px,.85vw,11px);line-height:1.25;
+ box-shadow:inset 0 1px 1px rgba(255,236,180,.28);
+}
+
+/* Four utility keys: even spacing with a double-layer bronze rim.
+   Keep a smaller touch-safe configuration on narrow landscape screens. */
+.top nav{
+ display:flex;align-items:center;
+ gap:10px;white-space:nowrap;
+}
+.top .icon{
+ flex:0 0 auto;
+ width:44px;height:44px;
+ min-width:44px;min-height:44px;
+ border:2px solid #c7a779;border-radius:12px;
+ background:linear-gradient(145deg,#2a4c3e 0%,#153d33 55%,#0b2b28 100%);
+ box-shadow:inset 0 1px 1px rgba(255,255,255,.17),
+ inset 0 0 0 2px #08231e,inset 0 0 0 3px rgba(213,183,115,.27),
+ 0 3px 6px rgba(0,0,0,.6);
+}
+.top .icon svg{width:26px;height:26px}
+
+/* Ornamental metal foliage is INSIDE the scene viewport, not its source
+   canvas, so hotspots and background artwork remain independent. */
+#sceneStage .scene-corner{
+ position:absolute;z-index:6;
+ width:clamp(26px,3.5vw,51px);height:clamp(26px,3.5vw,51px);
+ pointer-events:none;user-select:none;filter:drop-shadow(0 1px 2px rgba(4,18,14,.65));
+}
+#sceneStage .scene-corner--tl{top:1px;left:1px}
+#sceneStage .scene-corner--tr{top:1px;right:1px;transform:scaleX(-1)}
+#sceneStage .scene-corner--bl{bottom:1px;left:1px;transform:scaleY(-1)}
+#sceneStage .scene-corner--br{bottom:1px;right:1px;transform:rotate(180deg)}
+
+/* Tight but readable chronology. Collapse remains fully keyboard/touch
+   operable; the toggle is discreet rather than removed. */
+.travel-feed .travel-head button,.travel-feed.collapsed .travel-head button{
+ width:24px;min-width:24px;min-height:24px;
+ border:0;background:transparent;box-shadow:none;
+ font-size:17px;color:#c7b088;
+}
+.travel-feed .travel-head button:focus-visible{outline:2px solid #d6b47b}
+.travel-feed .travel-event,.travel-feed.collapsed .travel-event{
+ padding:3px 0;line-height:1.34;
+}
+.travel-feed .travel-event-line,.travel-feed.collapsed .travel-event-line{line-height:1.34}
+.travel-feed .travel-event-main,.travel-feed .travel-event-thought{line-height:1.34}
+.travel-route-tag{
+ font-size:clamp(11px,1.16vw,15px);
+ line-height:1.35;min-height:clamp(30px,5dvh,41px);font-weight:550;
+}
+.travel-feather{
+ width:clamp(21px,2.3vw,34px);
+ height:clamp(32px,8dvh,57px);
+ filter:brightness(1.25) saturate(1.06) drop-shadow(0 1px 3px #1a2414);
+}
+
+/* Compact compass / route icons live in real SVG, not typographic glyphs. */
+.bottom .action.primary::before,.bottom .action.explore::before{content:none!important}
+.bottom .action{
+ display:inline-flex;align-items:center;justify-content:center;
+ gap:clamp(5px,.5vw,8px);
+ min-height:clamp(38px,7.5dvh,52px);
+ height:auto;
+}
+.bottom .action svg{
+ flex:0 0 clamp(16px,1.55vw,23px);
+ width:clamp(16px,1.55vw,23px);
+ height:clamp(16px,1.55vw,23px);
+ color:#e9d5a7;pointer-events:none;
+}
+.bottom .action.explore svg{color:#e9f5c0}
+.bottom .action-title{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bottom{right:11.9%}
+/* The previously large gem illustration overlapped the navigation controls.
+   Fit it beside the buttons while keeping the approved decorative texture. */
+#worldFrame .ornament-crystals{width:6%;height:auto;right:.1%;bottom:.5%}
+
+@media(max-width:950px) and (orientation:landscape){
+ .top{right:6.2%}
+ .top nav{gap:7px;transform:none}
+ .top .icon{width:clamp(30px,4.1vw,40px);height:clamp(30px,4.1vw,40px);
+  min-width:30px;min-height:30px;border-radius:9px}
+ .top .icon svg{width:clamp(19px,2.7vw,25px);height:clamp(19px,2.7vw,25px)}
+ .bottom{right:11.9%}
+ #placeDrawer{right:calc(5.8% + 3px + env(safe-area-inset-right,0px))}
+ .travel-route-tag{font-size:clamp(10px,1.12vw,13px)}
+}
+@media(max-width:700px) and (orientation:landscape){
+ .top nav{gap:5px;transform:none}
+ .top .icon{width:29px;height:29px;min-width:29px;min-height:29px}
+ #placeDrawer{right:calc(5.7% + 3px + env(safe-area-inset-right,0px));
+  --place-handle-width:40px}
+ #placeDrawerToggle,#placeDrawer:not(.is-open) #placeDrawerToggle{
+  width:40px;min-width:40px;flex-basis:40px;padding:6px 2px;
+ }
+ .bottom{right:11.9%}
+ .bottom .action{min-height:31px;gap:4px}
+ .bottom .action svg{flex-basis:16px;width:16px;height:16px}
+ .travel-route-tag{font-size:10px;min-height:24px}
+ .travel-feather{height:32px;width:20px}
+}
+@media(max-height:350px) and (orientation:landscape){
+ #placeDrawer{top:30%;bottom:18%}
+ #placeDrawerToggle{padding:5px 2px}
+ .bottom .action{min-height:30px}
+}
+
 </style>
 </head>
 <body>
@@ -1757,7 +1915,31 @@ input,textarea,.panel p,.journal-list,.journey-entry{user-select:text;-webkit-us
  </div>
  <span class="frameEmblem" aria-hidden="true">◇</span>
  <span class="frameDivider" aria-hidden="true"></span>
-</div><section id="sceneStage" aria-label="第一人稱場景視窗"><canvas id="view" aria-label="第一人稱冒險場景"></canvas><div id="dayTint" aria-hidden="true"></div><div id="shade"></div><div id="hotspots"></div><div id="sceneActors" aria-hidden="true"></div><div id="encounterCue" class="hidden" role="status" aria-live="polite"></div></section>
+</div><section id="sceneStage" aria-label="第一人稱場景視窗"><svg class="scene-corner scene-corner--tl" aria-hidden="true" viewBox="0 0 66 66" xmlns="http://www.w3.org/2000/svg">
+ <path d="M4 55V20Q4 5 20 5H55" fill="none" stroke="#3a2b1e" stroke-width="7" stroke-linecap="round"/>
+ <path d="M4 55V20Q4 5 20 5H55" fill="none" stroke="#d9b981" stroke-width="2.6" stroke-linecap="round"/>
+ <path d="M8 45C15 32 30 35 30 21S41 8 51 14C56 17 53 24 48 23C45 22 46 19 49 19" fill="none" stroke="#b99359" stroke-width="2" stroke-linecap="round"/>
+ <path d="M17 33Q8 31 8 23Q19 23 20 31M26 26Q31 12 41 15Q37 25 26 26M14 46Q23 37 31 43Q24 49 14 46" fill="#5a8558" stroke="#b5b079" stroke-width="1.1"/>
+ <circle cx="31" cy="20" r="1.5" fill="#f2d99e"/>
+ </svg><svg class="scene-corner scene-corner--tr" aria-hidden="true" viewBox="0 0 66 66" xmlns="http://www.w3.org/2000/svg">
+ <path d="M4 55V20Q4 5 20 5H55" fill="none" stroke="#3a2b1e" stroke-width="7" stroke-linecap="round"/>
+ <path d="M4 55V20Q4 5 20 5H55" fill="none" stroke="#d9b981" stroke-width="2.6" stroke-linecap="round"/>
+ <path d="M8 45C15 32 30 35 30 21S41 8 51 14C56 17 53 24 48 23C45 22 46 19 49 19" fill="none" stroke="#b99359" stroke-width="2" stroke-linecap="round"/>
+ <path d="M17 33Q8 31 8 23Q19 23 20 31M26 26Q31 12 41 15Q37 25 26 26M14 46Q23 37 31 43Q24 49 14 46" fill="#5a8558" stroke="#b5b079" stroke-width="1.1"/>
+ <circle cx="31" cy="20" r="1.5" fill="#f2d99e"/>
+ </svg><svg class="scene-corner scene-corner--bl" aria-hidden="true" viewBox="0 0 66 66" xmlns="http://www.w3.org/2000/svg">
+ <path d="M4 55V20Q4 5 20 5H55" fill="none" stroke="#3a2b1e" stroke-width="7" stroke-linecap="round"/>
+ <path d="M4 55V20Q4 5 20 5H55" fill="none" stroke="#d9b981" stroke-width="2.6" stroke-linecap="round"/>
+ <path d="M8 45C15 32 30 35 30 21S41 8 51 14C56 17 53 24 48 23C45 22 46 19 49 19" fill="none" stroke="#b99359" stroke-width="2" stroke-linecap="round"/>
+ <path d="M17 33Q8 31 8 23Q19 23 20 31M26 26Q31 12 41 15Q37 25 26 26M14 46Q23 37 31 43Q24 49 14 46" fill="#5a8558" stroke="#b5b079" stroke-width="1.1"/>
+ <circle cx="31" cy="20" r="1.5" fill="#f2d99e"/>
+ </svg><svg class="scene-corner scene-corner--br" aria-hidden="true" viewBox="0 0 66 66" xmlns="http://www.w3.org/2000/svg">
+ <path d="M4 55V20Q4 5 20 5H55" fill="none" stroke="#3a2b1e" stroke-width="7" stroke-linecap="round"/>
+ <path d="M4 55V20Q4 5 20 5H55" fill="none" stroke="#d9b981" stroke-width="2.6" stroke-linecap="round"/>
+ <path d="M8 45C15 32 30 35 30 21S41 8 51 14C56 17 53 24 48 23C45 22 46 19 49 19" fill="none" stroke="#b99359" stroke-width="2" stroke-linecap="round"/>
+ <path d="M17 33Q8 31 8 23Q19 23 20 31M26 26Q31 12 41 15Q37 25 26 26M14 46Q23 37 31 43Q24 49 14 46" fill="#5a8558" stroke="#b5b079" stroke-width="1.1"/>
+ <circle cx="31" cy="20" r="1.5" fill="#f2d99e"/>
+ </svg><canvas id="view" aria-label="第一人稱冒險場景"></canvas><div id="dayTint" aria-hidden="true"></div><div id="shade"></div><div id="hotspots"></div><div id="sceneActors" aria-hidden="true"></div><div id="encounterCue" class="hidden" role="status" aria-live="polite"></div></section>
 <header class="top"><div><div class="eyebrow">CHAPTER 01–02 · 互動原型 V0.5.1 <span class="world-clock" id="worldClock">第1日 16:00</span></div><div class="left-title-plaque"><svg class="left-title-art" viewBox="0 0 400 76" preserveAspectRatio="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
  <defs><linearGradient id="leftPlaqueFill" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0d332d"/><stop offset=".53" stop-color="#194437"/><stop offset="1" stop-color="#082a26"/></linearGradient></defs>
  <path d="M41 6 Q29 7 24 17 L24 23 L9 38 L24 51 L24 58 Q30 70 44 70 L356 70 Q369 69 375 57 L375 52 L392 38 L375 23 L375 18 Q370 6 357 6 Z" fill="#0b2823" stroke="#493822" stroke-width="5"/>
@@ -3010,6 +3192,15 @@ function entries(){const a={
  filtered.unshift(action('探索周遭 · 10分鐘',exploreArea,primary,!primary));
  return filtered;
 }
+const ACTION_GLYPHS=Object.freeze({
+ route:'<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3.5 12h15m-6-6 6 6-6 6" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+ explore:'<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="2" fill="currentColor"/><path d="m16.7 6.4-3 7.3-6.4 3 3-7.3 6.4-3Z" fill="#f6e5a4" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/></svg>'
+});
+function setActionVisual(button,kind,label){
+ button.insertAdjacentHTML('afterbegin',ACTION_GLYPHS[kind]||ACTION_GLYPHS.route);
+ const title=document.createElement('span');title.className='action-title';title.textContent=label;
+ button.appendChild(title);
+}
 function render(){if(!names[s.scene])s.scene='wreck';normalizeGameTime();$('place').textContent=names[s.scene][0];syncTimeAtmosphere();$('partyChip').textContent=s.flags.rescued?'與冒險者相遇':'獨自探索';$('hpChip').textContent=`體力 ${s.hp}/${s.maxHp}`;$('chapterChip').textContent=s.flags.morning?'第二章 · 清晨':s.flags.chapterDone?'第一章片段完成':'第一章';const texts={
  wreck:'你從毀壞的車篷下爬出來，泥土的涼意讓你逐漸清醒。',
  trail:s.flags.rescued?'你沿著車轍走到林道，遠方的城鎮逐漸清晰。可以回望事故現場，也可以繼續前進。':'樹影遮住前方道路。你可以搜索林邊的舊物與生物痕跡，或花一點時間辨認道路，將發現的岔路逐一記入地圖。',
@@ -3023,8 +3214,8 @@ function render(){if(!names[s.scene])s.scene='wreck';normalizeGameTime();$('plac
  outskirts:'城牆外的風帶著草木氣味。你可以看看風景、記下路標，或直接回城。',
  home:'六人的公共起居室裡有生活的痕跡。你只是受邀來訪，還不是固定房客。'
 };$('narrative').textContent=texts[s.scene];$('actions').replaceChildren();const available=entries();const primary=available.find(a=>a.primary)||available[0];
-if(primary){const b=document.createElement('button');b.className='action primary';b.textContent=primary.title;b.title='主要行動；點擊執行';b.onclick=()=>guardedAction(primary.fn);$('actions').appendChild(b);}
-const quick=available.find(a=>a.quick&&a!==primary);if(quick){const b=document.createElement('button');b.className='action explore';b.textContent=quick.title;b.onclick=()=>guardedAction(quick.fn);$('actions').appendChild(b);}
+if(primary){const b=document.createElement('button');b.className='action primary';setActionVisual(b,/探索|觀察/.test(primary.title)?'explore':'route',primary.title);b.title='主要行動；點擊執行';b.onclick=()=>guardedAction(primary.fn);$('actions').appendChild(b);}
+const quick=available.find(a=>a.quick&&a!==primary);if(quick){const b=document.createElement('button');b.className='action explore';setActionVisual(b,'explore',quick.title);b.onclick=()=>guardedAction(quick.fn);$('actions').appendChild(b);}
 /* Secondary interactions are now grouped under the right-side place drawer. */renderHotspots();renderFeed();renderPlaceDrawer();save();}
 function renderHotspots(){
  const el=$('hotspots');el.replaceChildren();
@@ -3205,7 +3396,13 @@ function sceneDraw(time){
  const isTrailArt=s.scene==='trail'&&trailForestReady;
  if(s.scene==='wreck'&&approvedWreckReady){
   ctx.save();ctx.imageSmoothingEnabled=false;
-  ctx.drawImage(approvedWreck,0,0,W,H);
+  // Preserve the entire approved 676×390 composition without stretching or
+  // cropping it inside the existing 16:9 interaction canvas.
+  const imageWidth=approvedWreck.naturalWidth,imageHeight=approvedWreck.naturalHeight;
+  const fit=Math.min(W/imageWidth,H/imageHeight);
+  const drawWidth=imageWidth*fit,drawHeight=imageHeight*fit;
+  ctx.fillStyle='#102820';ctx.fillRect(0,0,W,H);
+  ctx.drawImage(approvedWreck,(W-drawWidth)/2,(H-drawHeight)/2,drawWidth,drawHeight);
   ctx.restore();
   return;
  }
