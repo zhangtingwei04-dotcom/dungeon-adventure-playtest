@@ -936,6 +936,146 @@ input,textarea,.panel p,.journal-list,.journey-entry{user-select:text;-webkit-us
  .bottom .action{min-height:30px}
 }
 
+
+/* V0.5.3 — only the LEFT column: permanent readable story and tidy journal.
+   Keep the artwork, lower action buttons, location drawer, and saved data unchanged. */
+.top{top:12.1%}
+.top>div:first-child{width:23.7%}
+.top .place{
+ width:100%;max-width:none;min-height:clamp(34px,7.4dvh,54px);
+ padding:4px 9px;border:2px solid #d2ad71;
+ border-radius:11px 14px 11px 14px;
+ box-shadow:inset 0 0 0 2px #092a21,inset 0 0 0 3px rgba(222,193,133,.32),
+  0 3px 0 #061d19,0 0 0 1px rgba(5,17,15,.56);
+ text-align:center;
+}
+.top .place::before,.top .place::after{flex:0 0 auto;font-size:clamp(12px,1.4vw,22px)}
+.top .subplace{
+ margin:clamp(5px,1.35dvh,10px) 0 0;
+ text-align:center;font-size:clamp(10px,1.08vw,14px);
+ line-height:1.2;letter-spacing:.035em;color:#e6d1a6;
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.travel-feed,.travel-feed.collapsed,.travel-feed:not(.collapsed){
+ left:4.45%;top:27.4%;width:23.75%;height:31%;
+ border:1.5px solid #9ca484;border-radius:11px;
+ box-shadow:inset 0 0 0 1px #2c5b49,0 2px 8px rgba(1,15,13,.38);
+}
+.travel-head,.travel-feed.collapsed .travel-head{
+ display:flex;align-items:center;justify-content:initial;gap:7px;
+ padding:clamp(4px,.9dvh,9px) 9px;
+ min-height:clamp(30px,5dvh,43px);
+ background:linear-gradient(95deg,rgba(47,83,67,.94),rgba(20,50,42,.94));
+ border-bottom:1px solid rgba(205,183,132,.54);
+ font-size:clamp(11px,1.2vw,15px);letter-spacing:.04em;
+}
+.travel-head .travel-book{flex:0 0 22px;width:22px;height:20px}
+.travel-head strong{flex:1;text-align:left;font-weight:600}
+.travel-head button,.travel-feed .travel-head button{
+ flex:0 0 auto;min-height:clamp(24px,3.9dvh,34px);
+ padding:3px 8px;font-size:clamp(10px,.95vw,13px);
+ border-color:rgba(218,188,134,.56);border-radius:6px;
+}
+.travel-inner,.travel-feed.collapsed .travel-inner{
+ display:flex;flex:1;min-height:0;flex-direction:column;overflow:hidden;
+}
+.travel-feed .travel-log-scroll,.travel-feed.collapsed .travel-log-scroll{
+ flex:1 1 auto;min-height:0;height:auto;max-height:none;
+ overflow-x:hidden;overflow-y:auto;scrollbar-width:thin;
+ padding:clamp(5px,.9dvh,9px) clamp(8px,.8vw,13px);
+}
+.travel-feed.collapsed .travel-event{overflow:visible;white-space:normal}
+.travel-feed.collapsed .travel-event-line,.travel-feed.collapsed .travel-event-thought{
+ display:block;line-height:1.44;white-space:normal;overflow:visible;
+ -webkit-line-clamp:unset;line-clamp:unset;
+}
+.travel-feed.collapsed .travel-event-main{
+ display:inline!important;overflow:visible!important;
+ -webkit-line-clamp:unset!important;line-clamp:unset!important;
+ white-space:normal!important;overflow-wrap:anywhere;
+}
+.travel-feed .travel-event-main,.travel-feed .travel-event-thought{
+ font-size:clamp(10px,.97vw,13px);line-height:1.5;
+}
+.travel-feed .travel-event-time{font-size:clamp(9px,.83vw,12px);color:#adbdaf}
+.travel-feed .travel-footer,.travel-feed.collapsed .travel-footer{
+ flex:0 0 auto;padding:6px 8px 7px;
+ background:linear-gradient(90deg,rgba(12,37,33,.94),rgba(12,32,30,.96));
+ border-top:1px solid rgba(205,183,132,.45);
+}
+.travel-feed .travel-targets,.travel-feed.collapsed .travel-targets{min-height:0}
+.travel-feed .travel-target,.travel-feed.collapsed .travel-target{
+ min-height:clamp(29px,4.7dvh,39px);
+ padding:4px 9px;line-height:1.3;font-size:clamp(10px,1vw,13px);
+ background:linear-gradient(125deg,rgba(65,73,49,.94),rgba(26,52,41,.97));
+ border:1px solid #bc9a62;border-radius:8px;color:#f3dcac;
+}
+/* The narrative is now independently positioned under the journal, instead
+   of being pulled up from the lower action bar. This prevents line overlap. */
+.story-panel{
+ position:absolute;z-index:3;top:60%;left:6.15%;width:21.3%;height:13.1%;
+ display:flex;flex-direction:column;gap:clamp(6px,1.15dvh,10px);
+ min-height:0;pointer-events:none;overflow:hidden;
+}
+.story-ornament{
+ flex:0 0 clamp(11px,2.5dvh,19px);
+ display:flex;align-items:center;justify-content:center;gap:8px;
+ color:#c6ac72;font-size:clamp(10px,1.15vw,17px);
+ text-shadow:0 1px 2px #0a241d;
+}
+.story-ornament::before,.story-ornament::after{
+ content:'';height:1px;flex:1 1 auto;
+ background:linear-gradient(90deg,transparent,rgba(211,176,113,.83));
+}
+.story-ornament::after{transform:scaleX(-1)}
+.story-ornament span:nth-child(2){font-size:.8em;color:#e6ce92}
+.story-panel .narrative{
+ position:static!important;display:block;flex:1;min-height:0;
+ width:100%!important;height:auto!important;max-width:none!important;
+ max-height:none!important;margin:0!important;padding:0 3px 0 0!important;
+ overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;
+ scrollbar-color:#947b55 transparent;overscroll-behavior:contain;
+ font-family:Georgia,"Noto Serif TC",serif;
+ font-size:clamp(11px,1.13vw,16px)!important;line-height:1.55!important;
+ color:#f0e6d2!important;letter-spacing:.02em;
+ text-shadow:0 2px 3px #061c17;pointer-events:auto;
+}
+@media(max-width:950px) and (orientation:landscape){
+ .top{top:11.7%}
+ .top>div:first-child{width:23.5%}
+ .top .place{min-height:clamp(27px,6.8dvh,42px)}
+ .top .subplace{margin-top:4px;font-size:clamp(9px,1.05vw,12px)}
+ .travel-feed,.travel-feed.collapsed,.travel-feed:not(.collapsed){top:27.4%;height:31.3%;left:4.5%;width:23.6%}
+ .travel-head,.travel-feed.collapsed .travel-head{padding:3px 6px;gap:5px;min-height:27px}
+ .travel-head .travel-book{width:18px;height:17px;flex-basis:18px}
+ .travel-head button,.travel-feed .travel-head button{min-height:24px;padding:2px 6px}
+ .travel-feed .travel-log-scroll,.travel-feed.collapsed .travel-log-scroll{padding:4px 7px}
+ .travel-feed .travel-footer,.travel-feed.collapsed .travel-footer{padding:4px 6px 5px}
+ .travel-feed .travel-target,.travel-feed.collapsed .travel-target{min-height:29px;padding:4px 7px}
+ .story-panel{top:60%;height:13.1%;left:6.1%;width:21.5%;gap:6px}
+ .story-panel .narrative{font-size:clamp(10px,1.1vw,13px)!important;line-height:1.45!important}
+}
+@media(max-width:700px) and (orientation:landscape){
+ .top{top:11%}
+ .top .place{min-height:25px}
+ .top .subplace{font-size:9px}
+ .travel-feed,.travel-feed.collapsed,.travel-feed:not(.collapsed){top:27%;height:31.5%;left:4.5%;width:23.7%}
+ .travel-head,.travel-feed.collapsed .travel-head{min-height:24px;padding:2px 4px;font-size:9px;gap:3px}
+ .travel-head .travel-book{width:15px;height:14px;flex-basis:15px}
+ .travel-head button,.travel-feed .travel-head button{font-size:9px;min-height:20px;padding:2px 4px}
+ .travel-feed .travel-event-main,.travel-feed .travel-event-thought{font-size:9px}
+ .travel-feed .travel-event-time{font-size:8px}
+ .travel-feed .travel-target,.travel-feed.collapsed .travel-target{min-height:25px;font-size:9px;padding:3px 4px}
+ .story-panel{top:59.5%;height:14%;left:6.1%;width:21.4%;gap:4px}
+ .story-ornament{flex-basis:10px;gap:4px}
+ .story-panel .narrative{font-size:9px!important;line-height:1.35!important}
+}
+@media(max-height:350px) and (orientation:landscape){
+ .travel-feed,.travel-feed.collapsed,.travel-feed:not(.collapsed){top:26.6%;height:32%}
+ .story-panel{top:59.4%;height:14%;gap:3px}
+ .story-ornament{flex-basis:9px}
+}
+
 </style>
 </head>
 <body>
@@ -1031,7 +1171,8 @@ input,textarea,.panel p,.journal-list,.journey-entry{user-select:text;-webkit-us
 </section>
 <div id="toast" role="status"></div>
 <section id="travelFeed" class="travel-feed" aria-label="生活與冒險紀錄"><div class="travel-head"><svg class="travel-book" aria-hidden="true" viewBox="0 0 28 25" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 5C10 2.6 5.1 2.3 2 3.3v16.5c4.3-1.4 8.5-.5 12 2.1V5Zm0 0c4-2.4 8.9-2.7 12-1.7v16.5c-4.3-1.4-8.5-.5-12 2.1V5Z" fill="#c5a472" stroke="#f1d39b" stroke-width="1.2"/><path d="M14 6.1v14.1M5.4 7.3c2.2-.2 4 .2 5.6 1M5.4 11c2.2-.2 4 .2 5.6 1m11.6-4.7c-2.2-.2-4 .2-5.6 1m5.6 2.7c-2.2-.2-4 .2-5.6 1" stroke="#6b5435" stroke-width="1.1" stroke-linecap="round"/></svg><strong>旅途紀錄</strong><button id="travelToggle" type="button" aria-expanded="true">收合</button></div><div class="travel-inner"><div class="travel-log-scroll" id="travelLogScroll" role="log" aria-label="旅途訊息" aria-live="polite" aria-relevant="additions"><div id="travelRecent"></div></div><div class="travel-footer"><div class="travel-target-label">目前可前往／互動</div><div class="travel-targets" id="travelTargets"></div><button class="travel-journal-link" id="travelOpenJournal" type="button">全部旅途紀錄</button></div></div></section>
-<div class="bottom"><div><div class="narrative" id="narrative"></div><div class="actions" id="actions"></div></div><div class="sidebar"><div class="chips"><span class="chip" id="chapterChip">第一章</span><span class="chip" id="partyChip">獨自一人</span><span class="chip level" id="hpChip">體力 16/16</span></div><button id="mapBtn">◇ 探索紀錄</button></div></div>
+<section class="story-panel" aria-label="目前場景敘事"><div class="story-ornament" aria-hidden="true"><span>❧</span><span>✦</span><span>❧</span></div><div class="narrative" id="narrative"></div></section>
+<div class="bottom"><div><div class="actions" id="actions"></div></div><div class="sidebar"><div class="chips"><span class="chip" id="chapterChip">第一章</span><span class="chip" id="partyChip">獨自一人</span><span class="chip level" id="hpChip">體力 16/16</span></div><button id="mapBtn">◇ 探索紀錄</button></div></div>
 <div class="veil hidden" id="dialogVeil"><section class="panel" role="dialog" aria-modal="true" aria-labelledby="dialogTitle"><div class="panel-head"><div><div class="kicker" id="dialogKicker">發現</div><h2 id="dialogTitle"></h2></div><div id="dialogCharacter" aria-label="目前發言人物"><canvas id="dialogCharacterCanvas" width="48" height="64" aria-hidden="true"></canvas><span id="dialogCharacterName"></span></div><button class="close" id="dialogClose" aria-label="關閉">×</button></div><p id="dialogText"></p><div class="choices" id="dialogChoices"></div></section></div>
 <div class="veil hidden" id="journalVeil"><section class="panel journal" role="dialog" aria-modal="true"><div class="panel-head"><div><div class="kicker">FIELD NOTES</div><h2>旅程日誌</h2></div><button class="close" id="journalClose">×</button></div><div class="journal-tabs" id="journalTabs"></div><div id="journalContent"></div><div class="line"></div><p class="meta">本版本使用瀏覽器本機儲存，並未連接《鱗片與種子》的雲端存檔。可在設定中匯出備份。</p></section></div>
 <div class="veil hidden" id="menuVeil"><section class="panel" role="dialog" aria-modal="true"><div class="panel-head"><div><div class="kicker">OPTIONS</div><h2>探索設定</h2></div><button class="close" id="menuClose">×</button></div><p id="menuStatus">遊戲會自動在本機儲存。</p><div class="choices"><button class="choice" id="soundBtn">音效：關閉</button><button class="choice" id="exportBtn">匯出存檔</button><button class="choice" id="importBtn">匯入存檔</button><button class="choice" id="restartBtn">重新開始</button></div><div class="line"></div><div class="phase-preview-heading">光線預覽 · 不修改遊戲時間</div><p class="phase-preview-explain">只預覽場景光線，不會跳過事件或改動存檔。畫面右上角可結束預覽。</p><div class="choices phase-preview-options"><button class="choice" type="button" data-preview-period="dawn">清晨</button><button class="choice" type="button" data-preview-period="day">白天</button><button class="choice" type="button" data-preview-period="dusk">黃昏</button><button class="choice" type="button" data-preview-period="night">夜晚</button></div><input id="fileInput" type="file" accept="application/json" class="hidden"><div class="line"></div><div class="note">V0.5.1 測試版本：第二章的公會、委託與人物對話是可修改的玩法草案。人物稱呼仍為佔位，主角身體來歷、復活原因及正式戰鬥方式都尚未定案。</div></section></div>
