@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no"><meta name="theme-color" content="#101b1d">
-<title>殘車之後｜第一章與城鎮 V0.3.6</title>
+<title>殘車之後｜第一章與城鎮 V0.3.7</title>
 <style>
 :root{--ink:#e9e5d5;--muted:#b7c4b5;--gold:#ddc18b;--line:rgba(224,215,176,.23);--bg:#101819;--panel:rgba(17,27,29,.96);--glass:rgba(13,26,27,.79)}*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","PingFang TC",sans-serif}button{font:inherit;touch-action:manipulation;cursor:pointer}body{overflow:hidden}#app{position:relative;width:100vw;height:100dvh;overflow:hidden;background:#101a1a}#view{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}#shade{pointer-events:none;position:absolute;inset:0;background:linear-gradient(180deg,rgba(6,15,16,.58) 0%,transparent 29%,transparent 51%,rgba(5,11,12,.87) 100%)}.top{position:absolute;top:0;left:0;right:0;padding:calc(12px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) 5px calc(16px + env(safe-area-inset-left));display:flex;justify-content:space-between;align-items:start;gap:12px;pointer-events:none}.top>div,.top>nav{pointer-events:auto}.eyebrow{font-size:10px;letter-spacing:.22em;color:#d0bc91}.place{font-family:Georgia,"Noto Serif TC",serif;font-size:clamp(19px,3.1vh,29px);letter-spacing:.1em;text-shadow:0 3px 8px #000}.subplace{color:#cdd2be;font-size:11px;margin-top:3px;max-width:61vw}.top nav{display:flex;gap:7px}.icon{width:40px;height:38px;display:grid;place-items:center;color:#e1d5b8;background:rgba(9,24,25,.71);border:1px solid var(--line);border-radius:9px;backdrop-filter:blur(9px);font-size:18px}.icon:hover,.icon:focus-visible{background:#274440;outline:1px solid var(--gold)}#toast{position:absolute;left:50%;top:18%;transform:translateX(-50%);background:rgba(9,20,22,.9);border:1px solid var(--line);border-radius:8px;padding:9px 16px;text-align:center;font-size:12px;max-width:82%;opacity:0;transition:opacity .25s;pointer-events:none;line-height:1.7}#toast.active{opacity:1}.bottom{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(180deg,transparent,rgba(5,15,17,.92) 20%);padding:18px calc(16px + env(safe-area-inset-right)) calc(13px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:end}.narrative{font-family:Georgia,"Noto Serif TC",serif;font-size:clamp(12px,1.65vw,15px);line-height:1.72;color:#e5e3d5;text-shadow:0 2px 3px #000;max-width:650px;min-height:40px;margin:0 0 8px}.actions{display:flex;flex-wrap:wrap;gap:7px}.action{color:#eee4cf;background:rgba(18,37,37,.85);border:1px solid rgba(226,200,140,.34);padding:10px 13px;border-radius:7px;font-size:12px;min-height:39px}.action.primary{background:rgba(123,96,51,.76);border-color:rgba(238,199,118,.68);font-weight:650}.action:hover,.action:focus-visible{background:#39534c;outline:1px solid var(--gold)}.sidebar{align-self:end;display:flex;flex-direction:column;align-items:end;gap:8px}.sidebar button{color:#d8c8a9;background:rgba(14,32,32,.71);border:1px solid var(--line);padding:9px 12px;border-radius:7px;font-size:12px}.sidebar button:hover{background:#2d4543}.chips{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}.chip{font-size:10px;color:#d9d0ac;padding:5px 8px;background:rgba(9,19,21,.74);border:1px solid var(--line);border-radius:40px}.hotspot{position:absolute;transform:translate(-50%,-50%);border:1px solid #f1d899;border-radius:50%;width:24px;height:24px;background:rgba(255,211,116,.22);box-shadow:0 0 0 8px rgba(255,203,102,.06),0 0 20px rgba(250,222,153,.53);transition:opacity .2s;z-index:1;opacity:0;pointer-events:none}.hotspot.on{opacity:1;pointer-events:auto}.hotspot:after{content:'+';color:#fff5d8;font-size:15px;line-height:20px}#hotspots{position:absolute;inset:0;pointer-events:none}#hotspots button{pointer-events:auto}.veil{position:absolute;inset:0;background:rgba(1,10,12,.73);backdrop-filter:blur(8px);z-index:5;display:flex;align-items:center;justify-content:center;padding:12px}.hidden{display:none!important}.panel{width:min(560px,calc(100vw - 34px));max-height:calc(100dvh - 24px);overflow:auto;background:linear-gradient(145deg,#20312f,#101b1e 65%);border:1px solid rgba(220,197,143,.39);border-radius:12px;box-shadow:0 22px 90px rgba(0,0,0,.65);padding:clamp(16px,3vw,26px)}.panel-head{display:flex;justify-content:space-between;align-items:start;gap:10px}.kicker{font-size:10px;letter-spacing:.22em;color:#c4aa7d;text-transform:uppercase}.panel h2{font-family:Georgia,"Noto Serif TC",serif;font-weight:500;font-size:clamp(23px,4vw,31px);margin:7px 0 12px;color:#f3e9d5}.panel p{font-size:13px;color:#d3d7cd;line-height:1.85;white-space:pre-line}.panel .choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:18px}.choice{border:1px solid rgba(221,195,139,.38);background:rgba(35,58,53,.72);padding:12px 13px;border-radius:8px;color:#f5ecdb;min-height:43px;text-align:left;font-size:13px}.choice:hover,.choice:focus-visible{background:#3f5a50;outline:1px solid #d1b57e}.close{background:none;border:none;color:#c7c6b9;font-size:24px;padding:0 3px}.meta{color:#aeaf9d;font-size:11px;line-height:1.7}.line{height:1px;background:var(--line);margin:15px 0}.note{background:rgba(193,163,99,.1);border-left:2px solid #c2a76e;padding:10px;font-size:12px;line-height:1.75;color:#e5dcc3}.journal{max-width:700px}.journal-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 14px}.journal-tab{font-size:12px;padding:8px 12px;background:transparent;color:var(--muted);border:1px solid var(--line);border-radius:6px}.journal-tab.selected{background:#556347;color:#fff4de}.journal-list{margin:8px 0 0;padding-left:18px;font-size:13px;line-height:2;color:#e0e2d7}.screen-title{font-family:Georgia,"Noto Serif TC",serif;font-size:clamp(32px,7vw,56px)!important;color:#f5ead2;letter-spacing:.14em;text-shadow:0 5px 18px #000;margin:4px 0 11px!important}.start{background:linear-gradient(130deg,rgba(14,33,33,.93),rgba(10,21,23,.92));width:min(530px,93vw)}.start .choice{width:100%;text-align:center;margin-top:10px}.start .note{margin-top:16px}.stamp{font-size:12px;letter-spacing:.3em;color:#ddc28e}.orientation{position:absolute;inset:0;z-index:10;display:none;place-items:center;background:#101f1e;color:#dfd2b5;padding:35px;text-align:center}.orientation strong{font-size:24px;font-weight:500}.orientation p{font-size:13px;line-height:1.8}.hp{color:#f0bca9}.level{font-variant-numeric:tabular-nums}.panel::-webkit-scrollbar{width:5px}.panel::-webkit-scrollbar-thumb{background:#827656}@media(max-width:700px) and (orientation:landscape){.top{padding-top:5px}.place{font-size:20px}.subplace{display:none}.icon{width:34px;height:32px;font-size:15px}.bottom{padding-top:8px;padding-bottom:7px}.narrative{font-size:11px;line-height:1.5;min-height:0;margin-bottom:5px;max-width:480px}.action{font-size:11px;min-height:31px;padding:7px 9px}.sidebar button{font-size:10px;padding:6px 9px}.chip{font-size:9px;padding:3px 7px}.panel{padding:14px 17px}.panel h2{font-size:23px;margin:3px 0 7px}.panel p{font-size:12px;line-height:1.65}.panel .choices{margin-top:10px}.choice{padding:8px 11px;min-height:35px;font-size:12px}.line{margin:8px 0}}@media(max-width:600px) and (orientation:portrait){.orientation{display:grid}}@media(max-height:360px) and (orientation:landscape){.top .eyebrow,.sidebar .chips{display:none}.bottom{gap:6px}.action{padding:6px 8px}.narrative{font-size:10px}}
 /* V0.2: keep the beautiful 2D scene visible and controls reachable in small landscape screens. */
@@ -11,7 +11,7 @@
 @media(max-width:700px) and (orientation:landscape){.bottom{max-height:59dvh}.action{min-height:36px}}
 @media(max-height:360px) and (orientation:landscape){.bottom{max-height:62dvh}}
 
-/* V0.3.6: One direct action; optional routes are displayed only on request. */
+/* V0.3.7: One direct action; optional routes are displayed only on request. */
 .actions{flex-wrap:nowrap;align-items:center;gap:8px}
 .action{max-width:min(51vw,290px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .action.primary{padding-left:17px;padding-right:17px}
@@ -22,7 +22,7 @@
 @media(max-width:700px) and (orientation:landscape){.bottom{max-height:43dvh}.action{max-width:47vw;min-height:38px;font-size:12px}.narrative{max-width:64vw}}
 @media(max-height:360px) and (orientation:landscape){.bottom{max-height:48dvh}}
 
-/* V0.3.6: compact mixed journal + actionable navigation */
+/* V0.3.7: compact mixed journal + actionable navigation */
 .travel-feed{position:absolute;z-index:3;left:calc(12px + env(safe-area-inset-left));top:clamp(79px,14dvh,108px);width:min(286px,36vw);max-height:calc(100dvh - 154px);display:flex;flex-direction:column;overflow:hidden;border:1px solid rgba(226,203,145,.31);border-radius:10px;background:rgba(11,24,25,.84);backdrop-filter:blur(9px);box-shadow:0 10px 28px rgba(0,0,0,.26)}
 .travel-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 10px;border-bottom:1px solid rgba(226,203,145,.16);color:#e7d3a9;font-size:12px}.travel-head button{font-size:11px;min-height:28px;padding:3px 7px;color:#e2d8bc;border:1px solid rgba(226,203,145,.28);border-radius:5px;background:rgba(35,54,49,.7)}
 .travel-inner{min-height:0;overflow-y:auto;padding:7px 10px 9px;scrollbar-width:thin}.travel-feed.collapsed{width:auto;max-height:none}.travel-feed.collapsed .travel-head{border-bottom:0}.travel-feed.collapsed .travel-inner{display:none}
@@ -34,7 +34,7 @@
 @media(max-width:700px) and (orientation:landscape){.travel-feed{left:calc(7px + env(safe-area-inset-left));top:52px;width:min(214px,33vw);max-height:calc(100dvh - 137px)}.travel-head{padding:4px 7px;font-size:11px}.travel-inner{padding:5px 7px}.travel-event{font-size:10px;margin-bottom:5px}.travel-target{font-size:10px;min-height:30px;padding:4px 6px}.travel-target:nth-child(n+3){display:none}.travel-journal-link{font-size:10px;margin-top:2px}}
 @media(max-height:360px) and (orientation:landscape){.travel-feed{top:46px;max-height:calc(100dvh - 113px)}.travel-target:nth-child(n+3){display:none}}
 
-/* V0.3.6: battle-log-inspired travel messages, updated as a scrolling text stream */
+/* V0.3.7: battle-log-inspired travel messages, updated as a scrolling text stream */
 .travel-feed{top:clamp(76px,13dvh,102px);width:min(362px,36vw);max-height:calc(100dvh - 166px);border-radius:5px;background:rgba(7,12,15,.78);border-color:rgba(210,204,178,.3);box-shadow:0 5px 18px rgba(0,0,0,.23)}
 .travel-head{padding:4px 7px;background:rgba(5,10,11,.8);font-size:11px;letter-spacing:.04em}.travel-head button{font-size:10px;min-height:24px;padding:2px 5px;border-radius:3px}
 .travel-inner{min-height:0;display:flex;flex-direction:column;padding:0}.travel-feed.collapsed{width:auto;max-height:none}
@@ -48,7 +48,7 @@
 @media(max-width:700px) and (orientation:landscape){.travel-feed{top:49px;width:min(252px,36vw);max-height:calc(100dvh - 120px)}.travel-head{padding:2px 5px;font-size:10px}.travel-head button{min-height:22px}.travel-log-scroll{min-height:36px;max-height:clamp(60px,18dvh,87px);padding:3px 5px}.travel-event{font-size:9px;line-height:1.22}.travel-event-time{font-size:8px}.travel-event-thought{padding-left:20px}.travel-footer{padding:3px 5px}.travel-target{font-size:9px;min-height:27px;padding:3px 5px}.travel-target:nth-child(n+3){display:none}.travel-journal-link{font-size:9px}}
 @media(max-height:360px) and (orientation:landscape){.travel-feed{top:44px;max-height:calc(100dvh - 104px)}.travel-log-scroll{max-height:48px}.travel-target:nth-child(n+3){display:none}}
 
-/* V0.3.6 — scenery-first compact transparent HUD; expanded mode remains legible */
+/* V0.3.7 — scenery-first compact transparent HUD; expanded mode remains legible */
 .travel-feed{transition:background .18s ease,box-shadow .18s ease;backdrop-filter:none}
 .travel-event-main,.travel-event-thought,.travel-target-label{text-shadow:0 1px 4px rgba(0,0,0,.97),0 0 2px #081011}
 .travel-feed.collapsed{width:min(286px,32vw);max-height:30dvh;overflow:hidden;border:0;border-radius:0;background:linear-gradient(90deg,rgba(4,10,12,.38),rgba(4,10,12,.12) 76%,transparent);box-shadow:none;backdrop-filter:none}
@@ -72,7 +72,7 @@
  .travel-feed.collapsed .travel-target{font-size:9px;min-height:24px}
 }
 
-/* V0.3.6: keep previous messages in one flowing transcript; animate new entries upward.
+/* V0.3.7: keep previous messages in one flowing transcript; animate new entries upward.
    In compact mode only the last few lines are visible, but history stays in the DOM. */
 .travel-feed.collapsed .travel-log-scroll{height:clamp(43px,12dvh,76px);max-height:none;min-height:0;flex:none;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;scroll-behavior:auto;-webkit-overflow-scrolling:touch}
 .travel-feed:not(.collapsed) .travel-log-scroll{scroll-behavior:auto}
@@ -86,14 +86,14 @@
 }
 @media(prefers-reduced-motion:reduce){.travel-feed,.travel-log-scroll{scroll-behavior:auto!important;transition:none!important}}
 
-/* V0.3.6: do not hide third-and-later events; keep a small real scroll viewport on mobile. */
+/* V0.3.7: do not hide third-and-later events; keep a small real scroll viewport on mobile. */
 .travel-feed .travel-log-scroll .travel-event{display:block}
 .travel-feed.collapsed .travel-log-scroll::-webkit-scrollbar{display:none}
 .travel-feed.collapsed .travel-log-scroll{overscroll-behavior-y:contain}
 @media(max-width:700px) and (orientation:landscape){.travel-feed .travel-log-scroll .travel-event{display:block}}
 @media(max-height:360px) and (orientation:landscape){.travel-feed .travel-log-scroll .travel-event{display:block}}
 
-/* V0.3.6 — Exactly three compact journey events; full archive remains scrollable when expanded.
+/* V0.3.7 — Exactly three compact journey events; full archive remains scrollable when expanded.
    Each row holds one objective event line and one inner-thought line. */
 .travel-feed.collapsed{max-height:42dvh}
 .travel-feed.collapsed .travel-log-scroll{
@@ -140,7 +140,7 @@
 }
 /* Keep the mobile fix: no :nth-child rules that hide later entries. */
 
-/* V0.3.6 Thumb-zone and mobile interaction improvements */
+/* V0.3.7 Thumb-zone and mobile interaction improvements */
 #app{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 button,.action,.choice,.travel-target{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 input,textarea,.panel p,.journal-list,.journey-entry{user-select:text;-webkit-user-select:text}
@@ -156,10 +156,10 @@ input,textarea,.panel p,.journal-list,.journey-entry{user-select:text;-webkit-us
 }
 @media(max-height:360px) and (orientation:landscape){.action{min-height:35px}}
 
-/* V0.3.6: horizontal swipes pan only the current 2D scene image.
+/* V0.3.7: horizontal swipes pan only the current 2D scene image.
    A small controlled zoom provides crop margins, avoiding empty edges. */
 
-/* V0.3.6 scene-first HUD: scenery visible beneath every layer. */
+/* V0.3.7 scene-first HUD: scenery visible beneath every layer. */
 #shade{background:linear-gradient(180deg,rgba(5,13,19,.36) 0%,transparent 24%,transparent 65%,rgba(5,13,19,.32) 100%)}
 .bottom{background:linear-gradient(180deg,transparent 0%,rgba(5,14,18,.12) 34%,rgba(5,13,17,.49) 100%);padding-top:10px;gap:9px}
 .narrative{text-shadow:0 1px 4px #061016,0 2px 7px #061016}
@@ -182,7 +182,7 @@ input,textarea,.panel p,.journal-list,.journey-entry{user-select:text;-webkit-us
  #dialogVeil .panel .choices{margin-top:3px}
 }
 
-/* V0.3.6 — first hybrid scene RPG slice. Backgrounds remain stationary and clickable. */
+/* V0.3.7 — first hybrid scene RPG slice. Backgrounds remain stationary and clickable. */
 .hotspot.on{opacity:.58;min-width:30px;min-height:30px}
 .hotspot.on:hover,.hotspot.on:focus-visible{opacity:1;outline:2px solid #f9e3ae}
 #sceneActors{position:absolute;z-index:2;top:19%;left:50%;width:clamp(130px,31vw,300px);height:clamp(67px,23dvh,130px);transform:translateX(-50%);display:flex;gap:3%;justify-content:center;align-items:end;pointer-events:none;opacity:0;transition:opacity .4s ease}
@@ -209,13 +209,52 @@ input,textarea,.panel p,.journal-list,.journey-entry{user-select:text;-webkit-us
  #sceneActors{top:15%;height:clamp(58px,21dvh,104px)}
 }
 @media(prefers-reduced-motion:reduce){#sceneActors{transition:none}}
+
+/* V0.3.7 | Four-person arrival choreography on the existing forest background.
+   Character graphics are temporary CSS silhouettes, not finalized portrait art. */
+#sceneActors{top:24%;height:clamp(76px,25dvh,150px);width:clamp(164px,32vw,320px);overflow:visible}
+#sceneActors .scene-figure{
+ opacity:0;transform:translateY(19px) scale(.72);transform-origin:center bottom;
+ transition:opacity .65s ease-out,transform .8s cubic-bezier(.17,.67,.26,1.06);
+ transition-delay:var(--arrival-delay,0ms);
+}
+#sceneActors.active .scene-figure{opacity:1;transform:translateY(0) scale(1)}
+#sceneActors .scene-figure::before{
+ background:linear-gradient(var(--hair,#3c3534) 0 24%,var(--skin,#c7a784) 27% 100%);
+ box-shadow:0 -3px 0 var(--hair,#3c3534);
+}
+#sceneActors .scene-figure::after{background:var(--cloak,#334e4a)}
+#sceneActors .scene-figure.speaking{
+ filter:drop-shadow(0 0 7px rgba(253,221,158,.8)) drop-shadow(0 4px 3px #0a1816);
+ transform:translateY(-3px) scale(1.06);
+}
+#sceneActors .actor-label{
+ position:absolute;z-index:2;top:-21px;left:50%;transform:translateX(-50%);
+ width:max-content;max-width:132px;padding:3px 5px;border-radius:4px;
+ border:1px solid rgba(232,205,155,.57);background:rgba(11,23,25,.85);
+ color:#f5e7c4;font-size:10px;text-shadow:0 1px 3px #000;
+ opacity:0;transition:opacity .15s;pointer-events:none;
+}
+#sceneActors .scene-figure.speaking .actor-label{opacity:1}
+#encounterCue{position:absolute;z-index:4;left:50%;top:57%;transform:translateX(-50%);width:max-content;max-width:min(75vw,500px);text-align:center;
+ padding:7px 12px;background:rgba(8,21,23,.72);border:1px solid rgba(220,193,137,.30);
+ color:#f3e8d0;border-radius:7px;font-size:12px;text-shadow:0 2px 4px #000;pointer-events:none}
+#app.encounter-pending #hotspots,#app.encounter-pending .actions,#app.encounter-pending #travelTargets{pointer-events:none}
+@media(max-width:700px) and (orientation:landscape){
+ #sceneActors{top:20%;height:clamp(62px,24dvh,105px);width:clamp(155px,31vw,250px)}
+ #sceneActors .actor-label{font-size:9px;top:-17px}
+ #encounterCue{top:56%;font-size:10px;padding:5px 8px}
+}
+@media(prefers-reduced-motion:reduce){
+ #sceneActors .scene-figure,#sceneActors .actor-label{transition:none!important}
+}
 </style>
 </head>
 <body>
 <div id="app"><canvas id="view" aria-label="第一人稱冒險場景"></canvas><div id="shade"></div>
-<header class="top"><div><div class="eyebrow">CHAPTER 01–02 · 互動原型 V0.3.6</div><div class="place" id="place">破損的馬車</div><div class="subplace" id="subplace">森林深處 · 未知的道路</div></div><nav><button class="icon" id="hintBtn" title="顯示可互動位置" aria-label="顯示可互動位置">✧</button><button class="icon" id="journalBtn" title="旅程日誌" aria-label="旅程日誌">☷</button><button class="icon" id="menuBtn" title="選單" aria-label="選單">⚙</button></nav></header>
+<header class="top"><div><div class="eyebrow">CHAPTER 01–02 · 互動原型 V0.3.7</div><div class="place" id="place">破損的馬車</div><div class="subplace" id="subplace">森林深處 · 未知的道路</div></div><nav><button class="icon" id="hintBtn" title="顯示可互動位置" aria-label="顯示可互動位置">✧</button><button class="icon" id="journalBtn" title="旅程日誌" aria-label="旅程日誌">☷</button><button class="icon" id="menuBtn" title="選單" aria-label="選單">⚙</button></nav></header>
 <div id="hotspots"></div>
-<div id="sceneActors" aria-hidden="true"><span class="scene-figure"></span><span class="scene-figure"></span><span class="scene-figure"></span><span class="scene-figure"></span></div>
+<div id="sceneActors" aria-hidden="true"></div><div id="encounterCue" class="hidden" role="status" aria-live="polite"></div>
 <section id="sceneInspection" class="hidden" role="group" aria-labelledby="sceneInspectionTitle">
  <div class="inspection-head"><h3 id="sceneInspectionTitle">現場觀察</h3><button type="button" id="sceneInspectionClose" aria-label="收起觀察卡">×</button></div>
  <p id="sceneInspectionText"></p><div class="inspection-actions" id="sceneInspectionActions"></div>
@@ -225,8 +264,8 @@ input,textarea,.panel p,.journal-list,.journey-entry{user-select:text;-webkit-us
 <div class="bottom"><div><div class="narrative" id="narrative"></div><div class="actions" id="actions"></div></div><div class="sidebar"><div class="chips"><span class="chip" id="chapterChip">第一章</span><span class="chip" id="partyChip">獨自一人</span><span class="chip level" id="hpChip">體力 16/16</span></div><button id="mapBtn">◇ 探索紀錄</button></div></div>
 <div class="veil hidden" id="dialogVeil"><section class="panel" role="dialog" aria-modal="true" aria-labelledby="dialogTitle"><div class="panel-head"><div><div class="kicker" id="dialogKicker">發現</div><h2 id="dialogTitle"></h2></div><button class="close" id="dialogClose" aria-label="關閉">×</button></div><p id="dialogText"></p><div class="choices" id="dialogChoices"></div></section></div>
 <div class="veil hidden" id="journalVeil"><section class="panel journal" role="dialog" aria-modal="true"><div class="panel-head"><div><div class="kicker">FIELD NOTES</div><h2>旅程日誌</h2></div><button class="close" id="journalClose">×</button></div><div class="journal-tabs" id="journalTabs"></div><div id="journalContent"></div><div class="line"></div><p class="meta">本版本使用瀏覽器本機儲存，並未連接《鱗片與種子》的雲端存檔。可在設定中匯出備份。</p></section></div>
-<div class="veil hidden" id="menuVeil"><section class="panel" role="dialog" aria-modal="true"><div class="panel-head"><div><div class="kicker">OPTIONS</div><h2>探索設定</h2></div><button class="close" id="menuClose">×</button></div><p id="menuStatus">遊戲會自動在本機儲存。</p><div class="choices"><button class="choice" id="soundBtn">音效：關閉</button><button class="choice" id="exportBtn">匯出存檔</button><button class="choice" id="importBtn">匯入存檔</button><button class="choice" id="restartBtn">重新開始</button></div><input id="fileInput" type="file" accept="application/json" class="hidden"><div class="line"></div><div class="note">V0.3.6 測試版本：第二章的公會、委託與人物對話是可修改的玩法草案。人物稱呼仍為佔位，主角身體來歷、復活原因及正式戰鬥方式都尚未定案。</div></section></div>
-<div class="veil" id="startVeil"><section class="panel start"><div class="stamp">A STORY OF THE UNKNOWN</div><h1 class="screen-title">殘車之後</h1><p>你在一輛被毀壞的貨運馬車裡醒來。森林靜得出奇，而你不記得自己為何來到這裡。</p><button class="choice" id="startBtn">開始新的旅程</button><button class="choice hidden" id="continueBtn">繼續旅程</button><div class="note">V0.3.6 可玩原型 · 橫式手機／電腦　｜　探索優先、調查可選　｜　不需登入及付費</div></section></div>
+<div class="veil hidden" id="menuVeil"><section class="panel" role="dialog" aria-modal="true"><div class="panel-head"><div><div class="kicker">OPTIONS</div><h2>探索設定</h2></div><button class="close" id="menuClose">×</button></div><p id="menuStatus">遊戲會自動在本機儲存。</p><div class="choices"><button class="choice" id="soundBtn">音效：關閉</button><button class="choice" id="exportBtn">匯出存檔</button><button class="choice" id="importBtn">匯入存檔</button><button class="choice" id="restartBtn">重新開始</button></div><input id="fileInput" type="file" accept="application/json" class="hidden"><div class="line"></div><div class="note">V0.3.7 測試版本：第二章的公會、委託與人物對話是可修改的玩法草案。人物稱呼仍為佔位，主角身體來歷、復活原因及正式戰鬥方式都尚未定案。</div></section></div>
+<div class="veil" id="startVeil"><section class="panel start"><div class="stamp">A STORY OF THE UNKNOWN</div><h1 class="screen-title">殘車之後</h1><p>你在一輛被毀壞的貨運馬車裡醒來。森林靜得出奇，而你不記得自己為何來到這裡。</p><button class="choice" id="startBtn">開始新的旅程</button><button class="choice hidden" id="continueBtn">繼續旅程</button><div class="note">V0.3.7 可玩原型 · 橫式手機／電腦　｜　探索優先、調查可選　｜　不需登入及付費</div></section></div>
 <div class="orientation"><div><strong>請將手機轉為橫向</strong><p>第一章與城鎮探索以橫式畫面呈現。</p>↻</div></div>
 </div>
 <script src="./assets/trail_forest_v1.js"></script>
@@ -309,7 +348,7 @@ function save(){s.savedAt=Date.now();try{localStorage.setItem(KEY,JSON.stringify
 function toast(msg){$('toast').textContent=msg;$('toast').classList.add('active');clearTimeout(toastHandle);toastHandle=setTimeout(()=>$('toast').classList.remove('active'),2400);}
 function beep(f=440){if(!s.sound)return;try{const AC=window.AudioContext||window.webkitAudioContext;const ctx=new AC(),osc=ctx.createOscillator(),gain=ctx.createGain();osc.type='sine';osc.frequency.value=f;gain.gain.setValueAtTime(.035,ctx.currentTime);gain.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.16);osc.connect(gain).connect(ctx.destination);osc.start();osc.stop(ctx.currentTime+.18);setTimeout(()=>ctx.close(),400);}catch{}}
 function note(id,msg){const first=!s.seen.includes(id);addUnique(s.seen,id);addUnique(s.notes,msg);if(first)addTravel('discovery',msg,discoveryThought[id]||'我先把這件事記下來。');save();toast('已記錄：'+msg);beep(680);}
-let lastMoveAt=0,lastActionAt=0;
+let lastMoveAt=0,lastActionAt=0,encounterPending=false,encounterTimer=null,encounterToken=0;
 // A 2D pan, not an artificial perspective rotation. 1.12x zoom allows 6% travel on either side.
 /* Per-scene camera distance: 1 = current view; >1 = camera farther away.
    The wreck panorama is the first scene with a real full-width asset. */
@@ -379,7 +418,7 @@ function refreshSceneFraming(){
 }
 function guardedAction(fn){const now=Date.now();if(now-lastActionAt<300)return;lastActionAt=now;fn?.();}
 function change(scene){
- if(!names[scene]||scene===s.scene)return;
+ if(encounterPending||!names[scene]||scene===s.scene)return;
  const now=Date.now();if(now-lastMoveAt<300)return;lastMoveAt=now;
  hideSceneInspection();hideSceneActors();
  s.scene=scene;refreshSceneFraming();
@@ -392,7 +431,75 @@ function dialog(title,text,choices,kicker='途中事件',locked=false){hideScene
 function closeDialog(){if(modal?.locked)return;modal=null;$('dialogVeil').classList.add('hidden');}
 function action(title,fn,primary=false){return{title,fn,primary};}
 function hideSceneInspection(){$('sceneInspection').classList.add('hidden');}
-function hideSceneActors(){$('sceneActors').classList.remove('active');}
+function hideSceneActors(){
+ encounterToken++;
+ if(encounterTimer!==null){clearTimeout(encounterTimer);encounterTimer=null;}
+ encounterPending=false;
+ $('app').classList.remove('encounter-pending');
+ $('sceneActors').classList.remove('active');
+ $('sceneActors').replaceChildren();
+ $('encounterCue').classList.add('hidden');
+}
+function stageEncounterActors(four,token){
+ const stage=$('sceneActors');stage.classList.remove('active');stage.replaceChildren();
+ const palettes={
+  brother:['#485d57','#47372c','#bb9874',98],
+  sister:['#555067','#352f39','#d4b494',88],
+  a:['#646343','#453a30','#c49b72',85],
+  b:['#475d48','#282f2c','#b99679',105],
+  c:['#635a4c','#654a30','#cfa783',92],
+  d:['#3e545c','#332c2a','#d8b395',100]
+ };
+ four.forEach((member,i)=>{
+  const figure=document.createElement('span');
+  figure.className='scene-figure';
+  figure.dataset.member=member.id;
+  const [cloak,hair,skin,height]=palettes[member.id]||palettes.a;
+  figure.style.setProperty('--cloak',cloak);
+  figure.style.setProperty('--hair',hair);
+  figure.style.setProperty('--skin',skin);
+  figure.style.setProperty('--arrival-delay',i*105+'ms');
+  figure.style.height=height+'%';
+  const label=document.createElement('span');label.className='actor-label';
+  label.textContent=member.name;
+  figure.appendChild(label);
+  stage.appendChild(figure);
+ });
+ requestAnimationFrame(()=>{if(token===encounterToken&&s.scene==='trail')stage.classList.add('active');});
+}
+function focusEncounterActor(id){
+ for(const actor of $('sceneActors').children)actor.classList.toggle('speaking',actor.dataset.member===id);
+}
+function beginForestEncounter(){
+ if(s.flags.rescued){change('gate');return;}
+ if(encounterPending||modal)return;
+ hideSceneInspection();
+ const four=s.party.map(i=>roster[i]);
+ const token=++encounterToken;
+ encounterPending=true;$('app').classList.add('encounter-pending');
+ stageEncounterActors(four,token);
+ const cue=$('encounterCue');cue.textContent='林間傳來腳步聲……四個身影在道路前停下。';
+ cue.classList.remove('hidden');
+ if(!s.seen.includes('forestEncounterSteps')){
+  addUnique(s.seen,'forestEncounterSteps');
+  addTravel('scene','小徑深處傳來腳步聲，四名陌生冒險者逐漸靠近。','他們會不會注意到我？');
+  save();renderFeed();
+ }
+ const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+ encounterTimer=setTimeout(()=>{
+  if(token!==encounterToken||s.scene!=='trail')return;
+  encounterTimer=null;encounterPending=false;
+  $('app').classList.remove('encounter-pending');cue.classList.add('hidden');
+  focusEncounterActor(four[0].id);
+  const who=four.map(p=>p.name).join('、');
+  dialog('有人接近了','林間傳來腳步聲。四名冒險者看見你從馬車殘骸的方向走來，停下了腳步。\n\n這次出勤的是：'+who+'。',[
+   {label:'向他們求助',fn:()=>rescueTalk(four,'help')},
+   {label:'先詢問這裡是哪裡',fn:()=>rescueTalk(four,'where')},
+   {label:'保持沉默',fn:()=>rescueTalk(four,'quiet')}
+  ],'第一章 · 相遇',true);
+ },reduce?0:1050);
+}
+
 function openSceneInspection(title,description,actions){
  const box=$('sceneInspection');
  $('sceneInspectionTitle').textContent=title;
@@ -422,8 +529,22 @@ function marks(){note('scratches','車板上有不明的深刻痕跡');dialog('�
 function light(){s.flags.lightSeen=true;note('light','空地的樹根旁有微光');dialog('樹根間的微光','你發現一件形狀奇怪的東西。它沒有立即展現任何用途，也無法確定是否安全。',[{label:'記下位置',fn:()=>note('lightMark','已在日誌記下微光所在位置')},{label:'收起碎片',fn:()=>{addUnique(s.items,'不明的微光碎片（測試物品）');s.flags.lightTaken=true;note('lightTake','取得一件來源不明的微光碎片');render();}},{label:'先不碰它',fn:()=>{}}],'未知發現');}
 function soundInForest(){if(s.flags.creatureResolved){dialog('寂靜再次降臨','那陣聲響沒有再出現。遠處的森林仍有許多你不認識的生物。',[{label:'離開',fn:()=>{}}]);return;}note('sound','林間傳來陌生生物的動靜');dialog('樹叢正在晃動','一隻陌生的林地生物從草葉後露出身影。它沒有立刻攻擊，只是警戒地注視著你。',[{label:'保持距離',fn:()=>{s.flags.creatureResolved=true;note('avoid','你選擇避開陌生生物');render();}},{label:'嘗試繞過',fn:()=>{s.flags.creatureResolved=true;note('avoid','你沒有和陌生生物發生衝突');render();}},{label:'進入戰鬥測試',fn:()=>battleStart()}],'未知遭遇');}
 function ruinLook(){note('ruin','森林裡有一座被苔蘚覆蓋的舊石門');dialog('石門的另一面','古老的門框已失去原本的功能。遠處仍可看到朦朧的空間，但暫時沒有可以安全通行的路。',[{label:'記下這座遺構',fn:()=>note('ruinMark','已記錄無名石門的位置')},{label:'返回小徑',fn:()=>change('trail')}],'特殊探索');}
-function rescue(){if(s.flags.rescued){change('gate');return;}hideSceneInspection();$('sceneActors').classList.add('active');const four=s.party.map(i=>roster[i]);const who=four.map(p=>p.name).join('、');dialog('有人接近了','林間傳來腳步聲。四名冒險者看見你從馬車殘骸的方向走來，停下了腳步。\n\n這次出勤的是：'+who+'。',[{label:'向他們求助',fn:()=>rescueTalk(four,'help')},{label:'先詢問這裡是哪裡',fn:()=>rescueTalk(four,'where')},{label:'保持沉默',fn:()=>rescueTalk(four,'quiet')}],'第一章 · 相遇',true);}
-function rescueTalk(four,tone){s.flags.rescued=true;s.flags.rescueTone=tone;addUnique(s.seen,'metFour');note('rescue','四位冒險者在森林中發現了你');const first=four[0],last=four[3];const answer=tone==='help'?'「我需要幫忙。」':tone==='where'?'「這裡是哪裡？」':'你沒有立刻回答。';dialog('陌生人的善意',answer+'\n\n'+first.name+'：「'+first.speech+'」\n'+last.name+'：「'+last.speech+'」\n\n他們沒有急著追問你的來歷，先商量帶你到城鎮休息。',[{label:'跟著他們回城',fn:()=>change('gate')}],'第一章 · 救援',true);}
+function rescue(){beginForestEncounter();}
+function rescueTalk(four,tone){
+ s.flags.rescued=true;s.flags.rescueTone=tone;
+ addUnique(s.seen,'metFour');note('rescue','四位冒險者在森林中發現了你');
+ const first=four[0],last=four[3];
+ const answer=tone==='help'?'「我需要幫忙。」':tone==='where'?'「這裡是哪裡？」':'你沒有立刻回答。';
+ focusEncounterActor(first.id);
+ dialog('陌生人的善意',answer+'\n\n'+first.name+'：「'+first.speech+'」',[
+  {label:'聽聽他們的提議',fn:()=>{
+   focusEncounterActor(last.id);
+   dialog('同行的提議',last.name+'：「'+last.speech+'」\n\n四人沒有急著追問你的身世，而是商量先帶你到城鎮休息。',[
+    {label:'跟著他們回城',fn:()=>change('gate')}
+   ],'第一章 · 救援',true);
+  }}
+ ],'第一章 · 救援',true);
+}
 function innMark(){if(!s.flags.sigilSeen){s.flags.sigilSeen=true;note('sigil','背部有一道無法解釋的紋印');}dialog('鏡中的陌生人','你在客房裡整理衣物，才注意到背後有一道奇異的紋印。\n\n你想不起它從何而來，也無法確認自己為什麼出現在馬車上。至少今晚，你暫時安全了。',[{label:'記下這個疑問',fn:()=>{s.flags.chapterDone=true;note('chapter','第一章試玩片段已完成');render();}}],'第一章 · 伏筆');}
 function morning(){if(!s.flags.rescued){toast('先前往城鎮休息。');return;}const first=!s.flags.morning;s.flags.chapterDone=true;s.flags.morning=true;if(first)note('morning','在旅店迎來異世界的第一個早晨');save();dialog('陌生的早晨','街上傳來推車經過石板路的聲音。你在旅店醒來，窗外已有行人在忙碌。\n\n店員敲了敲門：「昨天帶你回來的那幾位冒險者，有人早上來問過你的情況。不用急著決定今天做什麼，先吃點東西吧。」',[{label:'去旅店大廳',fn:()=>change('lobby')},{label:'先到街上看看',fn:()=>change('street')},{label:'再整理一下客房',fn:()=>{render();}}],'第二章 · 清晨',true);}
 function talkInnkeeper(){const first=!s.flags.innkeeperMet;s.flags.innkeeperMet=true;if(first)note('innkeeper','認識旅店工作人員');dialog('旅店的早晨','「昨晚休息得好嗎？」店員把杯子收進托盤，指向門外。\n\n「沿街走就是市集，再往前能看見公會。想先待在這裡也可以，我們不會趕你出門。」',[{label:'詢問城鎮',fn:()=>dialog('街上的日常','這裡不是每個人都會去地下城。市場、工坊、貨運和旅館同樣忙碌。公會只是其中一個工作的地方。',[{label:'知道了',fn:()=>{}}],'城鎮介紹')},{label:'謝謝，先看看四周',fn:()=>{}}],'第二章 · 旅店');}
@@ -486,8 +607,8 @@ $('travelToggle').onclick=()=>setTravelHud(s.travelHudMode==='expanded'?'compact
 $('travelOpenJournal').onclick=()=>journal('journey');
 $('journalBtn').onclick=()=>journal('journey');$('mapBtn').onclick=()=>journal('map');$('journalClose').onclick=()=>$('journalVeil').classList.add('hidden');$('hintBtn').onclick=()=>{showHints=!showHints;renderHotspots();toast(showHints?'僅顯示附近可互動位置，不影響主線':'已隱藏互動提示');};$('menuBtn').onclick=()=>{$('menuVeil').classList.remove('hidden');$('soundBtn').textContent='音效：'+(s.sound?'開啟':'關閉');};$('menuClose').onclick=()=>$('menuVeil').classList.add('hidden');$('dialogClose').onclick=closeDialog;
 $('soundBtn').onclick=()=>{s.sound=!s.sound;$('soundBtn').textContent='音效：'+(s.sound?'開啟':'關閉');save();beep(520);};
-$('restartBtn').onclick=()=>{if(!confirm('確定重新開始？目前本機存檔將被覆蓋。'))return;s=initial();refreshSceneFraming();$('menuVeil').classList.add('hidden');render();toast('已開始新的旅程');};
-$('exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify(s,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='dungeon-adventure-save-v02.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};$('importBtn').onclick=()=>$('fileInput').click();$('fileInput').onchange=async e=>{try{const text=await e.target.files[0].text(),j=JSON.parse(text);if(!validSave(j))throw Error('格式不相容');s=j;refreshSceneFraming();if(!Array.isArray(s.travelLog))s.travelLog=[];if(typeof s.feedCollapsed!=='boolean')s.feedCollapsed=false;if(!['compact','expanded'].includes(s.travelHudMode))s.travelHudMode='compact';save();render();$('menuVeil').classList.add('hidden');toast('已匯入存檔');}catch{alert('無法讀取這份存檔。');}e.target.value='';};
+$('restartBtn').onclick=()=>{if(!confirm('確定重新開始？目前本機存檔將被覆蓋。'))return;s=initial();hideSceneActors();hideSceneInspection();refreshSceneFraming();$('menuVeil').classList.add('hidden');render();toast('已開始新的旅程');};
+$('exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify(s,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='dungeon-adventure-save-v02.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};$('importBtn').onclick=()=>$('fileInput').click();$('fileInput').onchange=async e=>{try{const text=await e.target.files[0].text(),j=JSON.parse(text);if(!validSave(j))throw Error('格式不相容');s=j;hideSceneActors();hideSceneInspection();refreshSceneFraming();if(!Array.isArray(s.travelLog))s.travelLog=[];if(typeof s.feedCollapsed!=='boolean')s.feedCollapsed=false;if(!['compact','expanded'].includes(s.travelHudMode))s.travelHudMode='compact';save();render();$('menuVeil').classList.add('hidden');toast('已匯入存檔');}catch{alert('無法讀取這份存檔。');}e.target.value='';};
 $('startBtn').onclick=()=>{s=initial();refreshSceneFraming();hasSave=true;$('startVeil').classList.add('hidden');render();toast('你扶著破損車板爬到外面，開始觀察事故現場。');};if(hasSave){$('continueBtn').classList.remove('hidden');$('continueBtn').onclick=()=>{$('startVeil').classList.add('hidden');render();if(s.flags.inBattle)battleDialog('繼續尚未結束的遭遇戰。');};}
 window.addEventListener('keydown',e=>{
 if(e.metaKey||e.ctrlKey||e.altKey||e.target.matches('input,textarea,select,[contenteditable="true"]'))return;
