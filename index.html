@@ -1468,6 +1468,28 @@ input,textarea,.panel p,.journal-list,.journey-entry{user-select:text;-webkit-us
  #worldFrame{top:1.5%;bottom:2.1%;}
 }
 
+
+/* V0.6.5 — flush top and bottom frame rails with game viewport */
+/* The user wants the horizontal gold border to reach the very top and
+   bottom of the GAME canvas (below Safari's toolbar), with no extra gap.
+   Only the decorative outer frame moves; preserve inset side rails and UI. */
+#worldFrame {
+ top:0;
+ bottom:0;
+ left:5.8%;
+ right:5.8%;
+}
+/* This override follows all prior breakpoint rules, including short screens. */
+@media (max-width:950px) and (orientation:landscape) {
+ #worldFrame {top:0;bottom:0;left:5.8%;right:5.8%;}
+}
+@media (max-width:700px) and (orientation:landscape) {
+ #worldFrame {top:0;bottom:0;left:5.7%;right:5.7%;}
+}
+@media (max-height:350px) and (orientation:landscape) {
+ #worldFrame {top:0;bottom:0;}
+}
+
 </style>
 </head>
 <body>
