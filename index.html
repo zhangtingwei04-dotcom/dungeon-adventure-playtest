@@ -894,11 +894,12 @@ function explorationDaily(site){
 function collectExplorationMaterial(site,id){
  normalizeExploration();normalizeRecovery();
  if(s.scene!==site)return;
+ // Daily normalization may rebuild pending arrays, so fetch the current queue afterwards.
+ const daily=explorationDaily(site);
  const queue=s.exploration.pending[site]||[];
  const index=queue.findIndex(x=>x.id===id);
  if(index<0)return;
  const find=queue[index];
- const daily=explorationDaily(site);
  if(daily.collected>=2){toast('今天從這裡帶走的普通材料已達上限。');return;}
  daily.collected++;
  queue.splice(index,1);
