@@ -1373,6 +1373,43 @@ input,textarea,.panel p,.journal-list,.journey-entry{user-select:text;-webkit-us
 @media (max-height:350px) and (orientation:landscape) {
  #worldFrame {top:4.5%;bottom:9%;}
 }
+
+/* V0.6.3 — keep the location tab fully visible inside the newly inset
+   right ornamental rail on iPhone landscape, including safe-area clearance.
+   Its collapsed translation and exposed handle use the EXACT same width. */
+#placeDrawer {
+ --place-handle-width: 45px;
+ right: calc(6.3% + env(safe-area-inset-right, 0px));
+ transform: translateX(calc(100% - var(--place-handle-width)));
+}
+#placeDrawer.is-open {
+ transform: translateX(0);
+}
+#placeDrawerToggle {
+ flex: 0 0 var(--place-handle-width);
+ width: var(--place-handle-width);
+ min-width: var(--place-handle-width);
+ box-sizing: border-box;
+}
+#placeDrawer:not(.is-open) #placeDrawerToggle {
+ border-right: 2px solid #c29b5f;
+ border-radius: 10px;
+}
+@media (max-width: 950px) and (orientation: landscape) {
+ #placeDrawer {
+  --place-handle-width: 42px;
+  right: calc(6.4% + env(safe-area-inset-right, 0px));
+  transform: translateX(calc(100% - var(--place-handle-width)));
+ }
+ #placeDrawer.is-open {transform: translateX(0);}
+}
+@media (max-width: 700px) and (orientation: landscape) {
+ #placeDrawer {
+  --place-handle-width: 40px;
+  right: calc(6.6% + env(safe-area-inset-right, 0px));
+ }
+}
+
 </style>
 </head>
 <body>
