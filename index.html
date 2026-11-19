@@ -1349,6 +1349,30 @@ input,textarea,.panel p,.journal-list,.journey-entry{user-select:text;-webkit-us
  .travel-feather{width:14px;height:25px;bottom:4px;right:3px}
 }
 
+
+/* V0.6.2 — inset side rails for the approved wagon-frame proportions.
+   Keep vertical rail thickness unchanged; move whole left rail RIGHT and
+   right rail LEFT. Lift the horizontal rails slightly as requested.
+   Decoration stays attached to #worldFrame; no gameplay coordinate changes. */
+#worldFrame {
+ left:3.35%;
+ right:3.35%;
+ top:8.2%;
+ bottom:10.3%;
+}
+/* The interactive '地點' handle must remain inside the inset right rail. */
+#placeDrawer { right:4.15%; }
+@media (max-width:950px) and (orientation:landscape) {
+ #worldFrame {left:3.35%;right:3.35%;top:7.1%;bottom:10.3%;}
+ #placeDrawer {right:4.1%;}
+}
+@media (max-width:700px) and (orientation:landscape) {
+ #worldFrame {left:3.25%;right:3.25%;top:5%;bottom:9.5%;}
+ #placeDrawer {right:3.95%;}
+}
+@media (max-height:350px) and (orientation:landscape) {
+ #worldFrame {top:4.5%;bottom:9%;}
+}
 </style>
 </head>
 <body>
