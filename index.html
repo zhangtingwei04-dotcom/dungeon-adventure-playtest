@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no"><meta name="theme-color" content="#101b1d">
-<title>殘車之後｜第一章與城鎮 V0.4.5</title>
+<title>殘車之後｜第一章與城鎮 V0.4.6</title>
 <style>
 :root{--ink:#e9e5d5;--muted:#b7c4b5;--gold:#ddc18b;--line:rgba(224,215,176,.23);--bg:#101819;--panel:rgba(17,27,29,.96);--glass:rgba(13,26,27,.79)}*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","PingFang TC",sans-serif}button{font:inherit;touch-action:manipulation;cursor:pointer}body{overflow:hidden}#app{position:relative;width:100vw;height:100dvh;overflow:hidden;background:#101a1a}#view{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}#shade{pointer-events:none;position:absolute;inset:0;background:linear-gradient(180deg,rgba(6,15,16,.58) 0%,transparent 29%,transparent 51%,rgba(5,11,12,.87) 100%)}.top{position:absolute;top:0;left:0;right:0;padding:calc(12px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) 5px calc(16px + env(safe-area-inset-left));display:flex;justify-content:space-between;align-items:start;gap:12px;pointer-events:none}.top>div,.top>nav{pointer-events:auto}.eyebrow{font-size:10px;letter-spacing:.22em;color:#d0bc91}.place{font-family:Georgia,"Noto Serif TC",serif;font-size:clamp(19px,3.1vh,29px);letter-spacing:.1em;text-shadow:0 3px 8px #000}.subplace{color:#cdd2be;font-size:11px;margin-top:3px;max-width:61vw}.top nav{display:flex;gap:7px}.icon{width:40px;height:38px;display:grid;place-items:center;color:#e1d5b8;background:rgba(9,24,25,.71);border:1px solid var(--line);border-radius:9px;backdrop-filter:blur(9px);font-size:18px}.icon:hover,.icon:focus-visible{background:#274440;outline:1px solid var(--gold)}#toast{position:absolute;left:50%;top:18%;transform:translateX(-50%);background:rgba(9,20,22,.9);border:1px solid var(--line);border-radius:8px;padding:9px 16px;text-align:center;font-size:12px;max-width:82%;opacity:0;transition:opacity .25s;pointer-events:none;line-height:1.7}#toast.active{opacity:1}.bottom{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(180deg,transparent,rgba(5,15,17,.92) 20%);padding:18px calc(16px + env(safe-area-inset-right)) calc(13px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:end}.narrative{font-family:Georgia,"Noto Serif TC",serif;font-size:clamp(12px,1.65vw,15px);line-height:1.72;color:#e5e3d5;text-shadow:0 2px 3px #000;max-width:650px;min-height:40px;margin:0 0 8px}.actions{display:flex;flex-wrap:wrap;gap:7px}.action{color:#eee4cf;background:rgba(18,37,37,.85);border:1px solid rgba(226,200,140,.34);padding:10px 13px;border-radius:7px;font-size:12px;min-height:39px}.action.primary{background:rgba(123,96,51,.76);border-color:rgba(238,199,118,.68);font-weight:650}.action:hover,.action:focus-visible{background:#39534c;outline:1px solid var(--gold)}.sidebar{align-self:end;display:flex;flex-direction:column;align-items:end;gap:8px}.sidebar button{color:#d8c8a9;background:rgba(14,32,32,.71);border:1px solid var(--line);padding:9px 12px;border-radius:7px;font-size:12px}.sidebar button:hover{background:#2d4543}.chips{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}.chip{font-size:10px;color:#d9d0ac;padding:5px 8px;background:rgba(9,19,21,.74);border:1px solid var(--line);border-radius:40px}.hotspot{position:absolute;transform:translate(-50%,-50%);border:1px solid #f1d899;border-radius:50%;width:24px;height:24px;background:rgba(255,211,116,.22);box-shadow:0 0 0 8px rgba(255,203,102,.06),0 0 20px rgba(250,222,153,.53);transition:opacity .2s;z-index:1;opacity:0;pointer-events:none}.hotspot.on{opacity:1;pointer-events:auto}.hotspot:after{content:'+';color:#fff5d8;font-size:15px;line-height:20px}#hotspots{position:absolute;inset:0;pointer-events:none}#hotspots button{pointer-events:auto}.veil{position:absolute;inset:0;background:rgba(1,10,12,.73);backdrop-filter:blur(8px);z-index:5;display:flex;align-items:center;justify-content:center;padding:12px}.hidden{display:none!important}.panel{width:min(560px,calc(100vw - 34px));max-height:calc(100dvh - 24px);overflow:auto;background:linear-gradient(145deg,#20312f,#101b1e 65%);border:1px solid rgba(220,197,143,.39);border-radius:12px;box-shadow:0 22px 90px rgba(0,0,0,.65);padding:clamp(16px,3vw,26px)}.panel-head{display:flex;justify-content:space-between;align-items:start;gap:10px}.kicker{font-size:10px;letter-spacing:.22em;color:#c4aa7d;text-transform:uppercase}.panel h2{font-family:Georgia,"Noto Serif TC",serif;font-weight:500;font-size:clamp(23px,4vw,31px);margin:7px 0 12px;color:#f3e9d5}.panel p{font-size:13px;color:#d3d7cd;line-height:1.85;white-space:pre-line}.panel .choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:18px}.choice{border:1px solid rgba(221,195,139,.38);background:rgba(35,58,53,.72);padding:12px 13px;border-radius:8px;color:#f5ecdb;min-height:43px;text-align:left;font-size:13px}.choice:hover,.choice:focus-visible{background:#3f5a50;outline:1px solid #d1b57e}.close{background:none;border:none;color:#c7c6b9;font-size:24px;padding:0 3px}.meta{color:#aeaf9d;font-size:11px;line-height:1.7}.line{height:1px;background:var(--line);margin:15px 0}.note{background:rgba(193,163,99,.1);border-left:2px solid #c2a76e;padding:10px;font-size:12px;line-height:1.75;color:#e5dcc3}.journal{max-width:700px}.journal-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 14px}.journal-tab{font-size:12px;padding:8px 12px;background:transparent;color:var(--muted);border:1px solid var(--line);border-radius:6px}.journal-tab.selected{background:#556347;color:#fff4de}.journal-list{margin:8px 0 0;padding-left:18px;font-size:13px;line-height:2;color:#e0e2d7}.screen-title{font-family:Georgia,"Noto Serif TC",serif;font-size:clamp(32px,7vw,56px)!important;color:#f5ead2;letter-spacing:.14em;text-shadow:0 5px 18px #000;margin:4px 0 11px!important}.start{background:linear-gradient(130deg,rgba(14,33,33,.93),rgba(10,21,23,.92));width:min(530px,93vw)}.start .choice{width:100%;text-align:center;margin-top:10px}.start .note{margin-top:16px}.stamp{font-size:12px;letter-spacing:.3em;color:#ddc28e}.orientation{position:absolute;inset:0;z-index:10;display:none;place-items:center;background:#101f1e;color:#dfd2b5;padding:35px;text-align:center}.orientation strong{font-size:24px;font-weight:500}.orientation p{font-size:13px;line-height:1.8}.hp{color:#f0bca9}.level{font-variant-numeric:tabular-nums}.panel::-webkit-scrollbar{width:5px}.panel::-webkit-scrollbar-thumb{background:#827656}@media(max-width:700px) and (orientation:landscape){.top{padding-top:5px}.place{font-size:20px}.subplace{display:none}.icon{width:34px;height:32px;font-size:15px}.bottom{padding-top:8px;padding-bottom:7px}.narrative{font-size:11px;line-height:1.5;min-height:0;margin-bottom:5px;max-width:480px}.action{font-size:11px;min-height:31px;padding:7px 9px}.sidebar button{font-size:10px;padding:6px 9px}.chip{font-size:9px;padding:3px 7px}.panel{padding:14px 17px}.panel h2{font-size:23px;margin:3px 0 7px}.panel p{font-size:12px;line-height:1.65}.panel .choices{margin-top:10px}.choice{padding:8px 11px;min-height:35px;font-size:12px}.line{margin:8px 0}}@media(max-width:600px) and (orientation:portrait){.orientation{display:grid}}@media(max-height:360px) and (orientation:landscape){.top .eyebrow,.sidebar .chips{display:none}.bottom{gap:6px}.action{padding:6px 8px}.narrative{font-size:10px}}
 /* V0.2: keep the beautiful 2D scene visible and controls reachable in small landscape screens. */
@@ -11,7 +11,7 @@
 @media(max-width:700px) and (orientation:landscape){.bottom{max-height:59dvh}.action{min-height:36px}}
 @media(max-height:360px) and (orientation:landscape){.bottom{max-height:62dvh}}
 
-/* V0.4.5: One direct action; optional routes are displayed only on request. */
+/* V0.4.6: One direct action; optional routes are displayed only on request. */
 .actions{flex-wrap:nowrap;align-items:center;gap:8px}
 .action{max-width:min(51vw,290px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .action.primary{padding-left:17px;padding-right:17px}
@@ -22,7 +22,7 @@
 @media(max-width:700px) and (orientation:landscape){.bottom{max-height:43dvh}.action{max-width:47vw;min-height:38px;font-size:12px}.narrative{max-width:64vw}}
 @media(max-height:360px) and (orientation:landscape){.bottom{max-height:48dvh}}
 
-/* V0.4.5: compact mixed journal + actionable navigation */
+/* V0.4.6: compact mixed journal + actionable navigation */
 .travel-feed{position:absolute;z-index:3;left:calc(12px + env(safe-area-inset-left));top:clamp(79px,14dvh,108px);width:min(286px,36vw);max-height:calc(100dvh - 154px);display:flex;flex-direction:column;overflow:hidden;border:1px solid rgba(226,203,145,.31);border-radius:10px;background:rgba(11,24,25,.84);backdrop-filter:blur(9px);box-shadow:0 10px 28px rgba(0,0,0,.26)}
 .travel-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 10px;border-bottom:1px solid rgba(226,203,145,.16);color:#e7d3a9;font-size:12px}.travel-head button{font-size:11px;min-height:28px;padding:3px 7px;color:#e2d8bc;border:1px solid rgba(226,203,145,.28);border-radius:5px;background:rgba(35,54,49,.7)}
 .travel-inner{min-height:0;overflow-y:auto;padding:7px 10px 9px;scrollbar-width:thin}.travel-feed.collapsed{width:auto;max-height:none}.travel-feed.collapsed .travel-head{border-bottom:0}.travel-feed.collapsed .travel-inner{display:none}
@@ -34,7 +34,7 @@
 @media(max-width:700px) and (orientation:landscape){.travel-feed{left:calc(7px + env(safe-area-inset-left));top:52px;width:min(214px,33vw);max-height:calc(100dvh - 137px)}.travel-head{padding:4px 7px;font-size:11px}.travel-inner{padding:5px 7px}.travel-event{font-size:10px;margin-bottom:5px}.travel-target{font-size:10px;min-height:30px;padding:4px 6px}.travel-target:nth-child(n+3){display:none}.travel-journal-link{font-size:10px;margin-top:2px}}
 @media(max-height:360px) and (orientation:landscape){.travel-feed{top:46px;max-height:calc(100dvh - 113px)}.travel-target:nth-child(n+3){display:none}}
 
-/* V0.4.5: battle-log-inspired travel messages, updated as a scrolling text stream */
+/* V0.4.6: battle-log-inspired travel messages, updated as a scrolling text stream */
 .travel-feed{top:clamp(76px,13dvh,102px);width:min(362px,36vw);max-height:calc(100dvh - 166px);border-radius:5px;background:rgba(7,12,15,.78);border-color:rgba(210,204,178,.3);box-shadow:0 5px 18px rgba(0,0,0,.23)}
 .travel-head{padding:4px 7px;background:rgba(5,10,11,.8);font-size:11px;letter-spacing:.04em}.travel-head button{font-size:10px;min-height:24px;padding:2px 5px;border-radius:3px}
 .travel-inner{min-height:0;display:flex;flex-direction:column;padding:0}.travel-feed.collapsed{width:auto;max-height:none}
@@ -48,7 +48,7 @@
 @media(max-width:700px) and (orientation:landscape){.travel-feed{top:49px;width:min(252px,36vw);max-height:calc(100dvh - 120px)}.travel-head{padding:2px 5px;font-size:10px}.travel-head button{min-height:22px}.travel-log-scroll{min-height:36px;max-height:clamp(60px,18dvh,87px);padding:3px 5px}.travel-event{font-size:9px;line-height:1.22}.travel-event-time{font-size:8px}.travel-event-thought{padding-left:20px}.travel-footer{padding:3px 5px}.travel-target{font-size:9px;min-height:27px;padding:3px 5px}.travel-target:nth-child(n+3){display:none}.travel-journal-link{font-size:9px}}
 @media(max-height:360px) and (orientation:landscape){.travel-feed{top:44px;max-height:calc(100dvh - 104px)}.travel-log-scroll{max-height:48px}.travel-target:nth-child(n+3){display:none}}
 
-/* V0.4.5 — scenery-first compact transparent HUD; expanded mode remains legible */
+/* V0.4.6 — scenery-first compact transparent HUD; expanded mode remains legible */
 .travel-feed{transition:background .18s ease,box-shadow .18s ease;backdrop-filter:none}
 .travel-event-main,.travel-event-thought,.travel-target-label{text-shadow:0 1px 4px rgba(0,0,0,.97),0 0 2px #081011}
 .travel-feed.collapsed{width:min(286px,32vw);max-height:30dvh;overflow:hidden;border:0;border-radius:0;background:linear-gradient(90deg,rgba(4,10,12,.38),rgba(4,10,12,.12) 76%,transparent);box-shadow:none;backdrop-filter:none}
@@ -72,7 +72,7 @@
  .travel-feed.collapsed .travel-target{font-size:9px;min-height:24px}
 }
 
-/* V0.4.5: keep previous messages in one flowing transcript; animate new entries upward.
+/* V0.4.6: keep previous messages in one flowing transcript; animate new entries upward.
    In compact mode only the last few lines are visible, but history stays in the DOM. */
 .travel-feed.collapsed .travel-log-scroll{height:clamp(43px,12dvh,76px);max-height:none;min-height:0;flex:none;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;scroll-behavior:auto;-webkit-overflow-scrolling:touch}
 .travel-feed:not(.collapsed) .travel-log-scroll{scroll-behavior:auto}
@@ -86,14 +86,14 @@
 }
 @media(prefers-reduced-motion:reduce){.travel-feed,.travel-log-scroll{scroll-behavior:auto!important;transition:none!important}}
 
-/* V0.4.5: do not hide third-and-later events; keep a small real scroll viewport on mobile. */
+/* V0.4.6: do not hide third-and-later events; keep a small real scroll viewport on mobile. */
 .travel-feed .travel-log-scroll .travel-event{display:block}
 .travel-feed.collapsed .travel-log-scroll::-webkit-scrollbar{display:none}
 .travel-feed.collapsed .travel-log-scroll{overscroll-behavior-y:contain}
 @media(max-width:700px) and (orientation:landscape){.travel-feed .travel-log-scroll .travel-event{display:block}}
 @media(max-height:360px) and (orientation:landscape){.travel-feed .travel-log-scroll .travel-event{display:block}}
 
-/* V0.4.5 — Exactly three compact journey events; full archive remains scrollable when expanded.
+/* V0.4.6 — Exactly three compact journey events; full archive remains scrollable when expanded.
    Each row holds one objective event line and one inner-thought line. */
 .travel-feed.collapsed{max-height:42dvh}
 .travel-feed.collapsed .travel-log-scroll{
@@ -140,7 +140,7 @@
 }
 /* Keep the mobile fix: no :nth-child rules that hide later entries. */
 
-/* V0.4.5 Thumb-zone and mobile interaction improvements */
+/* V0.4.6 Thumb-zone and mobile interaction improvements */
 #app{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 button,.action,.choice,.travel-target{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 input,textarea,.panel p,.journal-list,.journey-entry{user-select:text;-webkit-user-select:text}
@@ -156,10 +156,10 @@ input,textarea,.panel p,.journal-list,.journey-entry{user-select:text;-webkit-us
 }
 @media(max-height:360px) and (orientation:landscape){.action{min-height:35px}}
 
-/* V0.4.5: horizontal swipes pan only the current 2D scene image.
+/* V0.4.6: horizontal swipes pan only the current 2D scene image.
    A small controlled zoom provides crop margins, avoiding empty edges. */
 
-/* V0.4.5 scene-first HUD: scenery visible beneath every layer. */
+/* V0.4.6 scene-first HUD: scenery visible beneath every layer. */
 #shade{background:linear-gradient(180deg,rgba(5,13,19,.36) 0%,transparent 24%,transparent 65%,rgba(5,13,19,.32) 100%)}
 .bottom{background:linear-gradient(180deg,transparent 0%,rgba(5,14,18,.12) 34%,rgba(5,13,17,.49) 100%);padding-top:10px;gap:9px}
 .narrative{text-shadow:0 1px 4px #061016,0 2px 7px #061016}
@@ -182,7 +182,7 @@ input,textarea,.panel p,.journal-list,.journey-entry{user-select:text;-webkit-us
  #dialogVeil .panel .choices{margin-top:3px}
 }
 
-/* V0.4.5 — first hybrid scene RPG slice. Backgrounds remain stationary and clickable. */
+/* V0.4.6 — first hybrid scene RPG slice. Backgrounds remain stationary and clickable. */
 .hotspot.on{opacity:.58;min-width:30px;min-height:30px}
 .hotspot.on:hover,.hotspot.on:focus-visible{opacity:1;outline:2px solid #f9e3ae}
 #sceneActors{position:absolute;z-index:2;top:19%;left:50%;width:clamp(130px,31vw,300px);height:clamp(67px,23dvh,130px);transform:translateX(-50%);display:flex;gap:3%;justify-content:center;align-items:end;pointer-events:none;opacity:0;transition:opacity .4s ease}
@@ -210,7 +210,7 @@ input,textarea,.panel p,.journal-list,.journey-entry{user-select:text;-webkit-us
 }
 @media(prefers-reduced-motion:reduce){#sceneActors{transition:none}}
 
-/* V0.4.5 | Four-person arrival choreography on the existing forest background.
+/* V0.4.6 | Four-person arrival choreography on the existing forest background.
    Character graphics are temporary CSS silhouettes, not finalized portrait art. */
 #sceneActors{top:24%;height:clamp(76px,25dvh,150px);width:clamp(164px,32vw,320px);overflow:visible}
 #sceneActors .scene-figure{
@@ -249,7 +249,7 @@ input,textarea,.panel p,.journal-list,.journey-entry{user-select:text;-webkit-us
  #sceneActors .scene-figure,#sceneActors .actor-label{transition:none!important}
 }
 
-/* V0.4.5: Original, editable 48×64 pixel characters, each with expressions. */
+/* V0.4.6: Original, editable 48×64 pixel characters, each with expressions. */
 #sceneActors .scene-figure::before,#sceneActors .scene-figure::after{display:none}
 #sceneActors .scene-figure{flex:0 0 22%;filter:drop-shadow(0 6px 3px rgba(2,12,13,.8))}
 #sceneActors .scene-figure canvas{display:block;width:100%;height:100%;object-fit:fill;image-rendering:pixelated;image-rendering:crisp-edges}
@@ -274,7 +274,7 @@ input,textarea,.panel p,.journal-list,.journey-entry{user-select:text;-webkit-us
 }
 @media(prefers-reduced-motion:reduce){#sceneActors.active .scene-figure canvas{animation:none}}
 
-/* V0.4.5 | route-time ledger; no real-time waiting or map teleportation. */
+/* V0.4.6 | route-time ledger; no real-time waiting or map teleportation. */
 .world-clock{display:inline-block;margin-left:8px;padding:2px 7px;border-radius:6px;border:1px solid rgba(220,197,143,.25);background:rgba(8,21,23,.5);color:#efdba9;font:600 11px/1.3 system-ui,sans-serif;white-space:nowrap;letter-spacing:0}
 .map-summary{display:flex;align-items:center;justify-content:space-between;gap:9px;background:rgba(98,120,92,.14);border:1px solid rgba(220,199,153,.25);border-radius:8px;padding:8px 10px;margin:7px 0 12px;font-size:12px}
 .map-note{font-size:11px;color:#b7c7bb;line-height:1.55;margin:8px 0}
@@ -296,7 +296,7 @@ input,textarea,.panel p,.journal-list,.journey-entry{user-select:text;-webkit-us
  .map-route-meta,.map-route-time{font-size:10px}
 }
 
-/* V0.4.5: layered atmosphere tints the art only, never buttons or NPCs */
+/* V0.4.6: layered atmosphere tints the art only, never buttons or NPCs */
 #dayTint{position:absolute;inset:0;pointer-events:none;transition:background 1.1s ease}
 #dayTint::before,#dayTint::after{content:'';position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity 1.1s ease}
 #app #view{transition:filter 1.1s ease}
@@ -333,7 +333,7 @@ input,textarea,.panel p,.journal-list,.journey-entry{user-select:text;-webkit-us
 }
 @media(prefers-reduced-motion:reduce){#app #view,#dayTint,#dayTint::before,#dayTint::after{transition:none!important}}
 
-/* V0.4.5 simple text-first exploration inventory */
+/* V0.4.6 simple text-first exploration inventory */
 .action.explore{background:rgba(24,75,55,.87);border-color:rgba(163,217,157,.58);color:#f1f9e7;font-weight:650}
 .loot-entry{border:1px solid rgba(226,201,148,.29);background:rgba(25,44,41,.65);padding:9px 10px;border-radius:8px;margin:8px 0}
 .loot-entry strong{display:block;font-size:13px;color:#f5e8d0}
@@ -343,7 +343,7 @@ input,textarea,.panel p,.journal-list,.journey-entry{user-select:text;-webkit-us
 .loot-actions button:hover,.loot-actions button:focus-visible{outline:1px solid #e5c88d}
 @media(max-width:700px) and (orientation:landscape){.action.explore{font-size:11px;max-width:37vw}.loot-entry{margin:5px 0;padding:6px 8px}}
 
-/* V0.4.5: newly found paths become permanent compact map cards. */
+/* V0.4.6: newly found paths become permanent compact map cards. */
 #sceneInspection.route-discovery{border:1px solid rgba(233,200,130,.88);background:linear-gradient(145deg,rgba(48,60,47,.96),rgba(17,38,36,.95));box-shadow:0 9px 25px #081413a0}
 #sceneInspection.route-discovery::before{content:'✧ 新路線已記入地圖';display:block;color:#f1d89f;font-size:10px;letter-spacing:.11em;margin-bottom:4px}
 .route-card{position:relative;display:flex;align-items:center;gap:10px;padding:10px;margin:6px 0;border-radius:9px;border:1px solid rgba(223,198,144,.45);background:linear-gradient(135deg,rgba(71,71,50,.38),rgba(19,44,39,.72))}
@@ -361,7 +361,7 @@ input,textarea,.panel p,.journal-list,.journey-entry{user-select:text;-webkit-us
  .route-card-minutes{font-size:9px}
 }
 
-/* V0.4.5: repeatable location exploration, reusable action and discoverable result cards. */
+/* V0.4.6: repeatable location exploration, reusable action and discoverable result cards. */
 #sceneInspection.exploration-results{top:14%;max-height:70dvh;width:min(375px,46vw);background:rgba(14,31,31,.96);border-color:rgba(214,198,147,.64)}
 #sceneInspection.exploration-results .inspection-actions{display:flex;flex-direction:column;align-items:stretch;gap:7px}
 .explore-result-card{border:1px solid rgba(222,199,147,.36);background:linear-gradient(135deg,rgba(72,76,51,.35),rgba(23,43,40,.75));border-radius:8px;padding:9px;display:flex;flex-direction:column;gap:4px}
@@ -377,12 +377,90 @@ input,textarea,.panel p,.journal-list,.journey-entry{user-select:text;-webkit-us
  .explore-result-card p,.explore-result-card .explore-result-action{font-size:10px}
  .explore-result-card .explore-result-action{min-height:29px}
 }
+
+/* V0.4.6 — a right-side compact drawer, not a replacement for the first-person world. */
+#placeDrawer{
+ position:absolute;z-index:4;right:calc(2px + env(safe-area-inset-right));
+ top:clamp(78px,17dvh,110px);bottom:clamp(76px,19dvh,128px);
+ width:min(326px,47vw);min-height:0;display:flex;align-items:stretch;
+ transform:translateX(calc(100% - 37px));transition:transform .32s cubic-bezier(.23,.76,.26,1);
+ pointer-events:none;filter:drop-shadow(0 8px 18px rgba(0,0,0,.33));
+}
+#placeDrawer.is-open{transform:translateX(0)}
+#placeDrawerToggle{
+ pointer-events:auto;align-self:center;flex:0 0 37px;height:97px;
+ display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
+ color:#f7e8c4;background:rgba(19,45,41,.96);
+ border:1px solid rgba(229,206,151,.76);border-right:0;border-radius:10px 0 0 10px;
+ font-family:inherit;font-size:13px;cursor:pointer;touch-action:pan-y;position:relative;
+}
+#placeDrawerToggle .place-drawer-vertical{writing-mode:vertical-rl;letter-spacing:.13em}
+#placeDrawerToggle .place-drawer-diamond{font-size:17px;color:#e6c486}
+#placeDrawerToggle .place-drawer-count{font-size:9px;min-width:21px;padding:2px 3px;background:#947344;color:#fff9e8;border-radius:5px;text-align:center}
+#placeDrawerToggle .place-drawer-count:empty{display:none}
+#placeDrawer.new-routes #placeDrawerToggle{animation:placeHint 2.2s ease-in-out 2}
+@keyframes placeHint{0%,100%{box-shadow:0 0 0 0 transparent}50%{box-shadow:0 0 13px rgba(251,206,112,.65)}}
+#placeDrawerPanel{
+ flex:1;min-width:0;display:flex;flex-direction:column;
+ border:1px solid rgba(228,203,142,.56);border-radius:11px 0 0 11px;
+ background:linear-gradient(145deg,rgba(30,54,48,.97),rgba(12,27,29,.98));
+ backdrop-filter:blur(10px);overflow:hidden;
+ visibility:hidden;opacity:0;pointer-events:none;
+ transition:opacity .2s ease,visibility .2s step-end;
+}
+#placeDrawer.is-open #placeDrawerPanel{visibility:visible;opacity:1;pointer-events:auto;transition:opacity .23s ease}
+.place-drawer-head{display:flex;justify-content:space-between;align-items:center;gap:6px;padding:9px 10px 8px;border-bottom:1px solid rgba(229,201,139,.22)}
+.place-drawer-head strong{font-family:Georgia,"Noto Serif TC",serif;font-size:15px;font-weight:600;color:#f0e0bf}
+.place-drawer-head span{font-size:9px;color:#b9c9b8}
+.place-drawer-head button{flex:0 0 28px;width:28px;height:28px;border-radius:6px;border:1px solid rgba(221,199,150,.38);background:#28413e;color:#f5e4c2;font-size:19px}
+#placeDrawerList{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;touch-action:pan-y;padding:8px 8px 10px}
+.place-drawer-guide{font-size:10px;line-height:1.5;color:#c8d2c4;margin:0 0 7px}
+.place-drawer-group{font-size:10px;letter-spacing:.07em;color:#d4c29b;margin:9px 0 5px;border-bottom:1px solid rgba(232,211,164,.14);padding-bottom:4px}
+.place-mini-card{border:1px solid rgba(218,197,147,.32);border-radius:9px;overflow:hidden;background:rgba(26,46,42,.86);margin-bottom:6px}
+.place-mini-card.new{border-color:#e5c585}
+.place-mini-card.expanded{background:rgba(46,65,50,.9)}
+.place-mini-card-toggle{width:100%;display:flex;gap:8px;align-items:center;text-align:left;min-height:47px;padding:7px 9px;background:transparent;border:0;color:#efe5d0}
+.place-mini-icon{width:29px;height:34px;flex:0 0 29px;display:grid;place-items:center;color:#ebd39e;border-radius:5px;background:rgba(84,90,60,.46);border:1px solid rgba(226,198,128,.25);font-size:17px}
+.place-mini-heading{min-width:0;flex:1}
+.place-mini-heading strong{display:block;font-size:12px;line-height:1.3;overflow-wrap:anywhere}
+.place-mini-heading small{display:block;color:#b9cbbd;font-size:10px;line-height:1.5;margin-top:2px}
+.place-mini-badge{color:#fff4d3;background:#967346;font-size:9px;font-weight:700;white-space:nowrap;padding:3px 5px;border-radius:4px}
+.place-mini-expand{color:#cdbb90;font-size:11px}
+.place-mini-details{padding:1px 9px 9px 46px;border-top:1px solid rgba(223,195,134,.13)}
+.place-mini-details p{margin:6px 0;font-size:10px;color:#d7ddcf;line-height:1.6}
+.place-mini-go{width:100%;min-height:33px;border:1px solid rgba(222,190,126,.57);border-radius:6px;background:#3e6050;color:#f8e8c8;font-size:11px;font-weight:650}
+.place-mini-go:focus-visible,.place-mini-card-toggle:focus-visible,#placeDrawerToggle:focus-visible{outline:2px solid #f5cc79;outline-offset:-2px}
+.place-drawer-empty{padding:16px 6px;color:#c8d1c5;font-size:11px;line-height:1.7}
+@media(max-width:700px) and (orientation:landscape){
+ #placeDrawer{top:60px;bottom:64px;width:min(290px,47vw)}
+ #placeDrawerToggle{height:78px;flex-basis:34px}
+ #placeDrawer{transform:translateX(calc(100% - 34px))}
+ #placeDrawerList{padding:5px}
+ .place-drawer-head{padding:5px 7px}
+ .place-drawer-head strong{font-size:12px}
+ .place-mini-card-toggle{min-height:40px;padding:5px 6px;gap:6px}
+ .place-mini-details{padding:1px 7px 7px 40px}
+ .place-mini-go{min-height:30px}
+}
+@media(max-height:340px) and (orientation:landscape){#placeDrawer{top:44px;bottom:51px}.place-drawer-guide{display:none}}
+@media(prefers-reduced-motion:reduce){#placeDrawer,#placeDrawerPanel,#placeDrawerToggle{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
 <div id="app"><canvas id="view" aria-label="第一人稱冒險場景"></canvas><div id="dayTint" aria-hidden="true"></div><div id="shade"></div>
-<header class="top"><div><div class="eyebrow">CHAPTER 01–02 · 互動原型 V0.4.5 <span class="world-clock" id="worldClock">第1日 16:00</span></div><div class="place" id="place">破損的馬車</div><div class="subplace" id="subplace">森林深處 · 未知的道路</div></div><nav><button class="icon" id="hintBtn" title="顯示可互動位置" aria-label="顯示可互動位置">✧</button><button class="icon" id="regionMapBtn" title="區域地圖" aria-label="區域地圖">◇</button><button class="icon" id="journalBtn" title="旅程日誌" aria-label="旅程日誌">☷</button><button class="icon" id="menuBtn" title="選單" aria-label="選單">⚙</button></nav></header>
-<div id="hotspots"></div><button type="button" id="timePreviewTag" class="hidden" aria-label="結束時段預覽並恢復遊戲時間"></button>
+<header class="top"><div><div class="eyebrow">CHAPTER 01–02 · 互動原型 V0.4.6 <span class="world-clock" id="worldClock">第1日 16:00</span></div><div class="place" id="place">破損的馬車</div><div class="subplace" id="subplace">森林深處 · 未知的道路</div></div><nav><button class="icon" id="hintBtn" title="顯示可互動位置" aria-label="顯示可互動位置">✧</button><button class="icon" id="regionMapBtn" title="區域地圖" aria-label="區域地圖">◇</button><button class="icon" id="journalBtn" title="旅程日誌" aria-label="旅程日誌">☷</button><button class="icon" id="menuBtn" title="選單" aria-label="選單">⚙</button></nav></header>
+<div id="hotspots"></div><aside id="placeDrawer" aria-label="已發現地點卡欄">
+ <button id="placeDrawerToggle" type="button" aria-controls="placeDrawerPanel" aria-expanded="false" aria-label="展開地點卡欄">
+  <span class="place-drawer-diamond" aria-hidden="true">◇</span>
+  <span class="place-drawer-vertical">地點</span>
+  <span class="place-drawer-count" id="placeDrawerCount" aria-hidden="true"></span>
+ </button>
+ <section id="placeDrawerPanel" aria-label="已發現地點" aria-hidden="true">
+  <div class="place-drawer-head"><div><strong>探索地點</strong><span id="placeDrawerSummary"></span></div><button id="placeDrawerClose" type="button" aria-label="收合地點卡欄">×</button></div>
+  <div id="placeDrawerList"></div>
+ </section>
+</aside>
+<button type="button" id="timePreviewTag" class="hidden" aria-label="結束時段預覽並恢復遊戲時間"></button>
 <div id="sceneActors" aria-hidden="true"></div><div id="encounterCue" class="hidden" role="status" aria-live="polite"></div>
 <section id="sceneInspection" class="hidden" role="group" aria-labelledby="sceneInspectionTitle">
  <div class="inspection-head"><h3 id="sceneInspectionTitle">現場觀察</h3><button type="button" id="sceneInspectionClose" aria-label="收起觀察卡">×</button></div>
@@ -393,8 +471,8 @@ input,textarea,.panel p,.journal-list,.journey-entry{user-select:text;-webkit-us
 <div class="bottom"><div><div class="narrative" id="narrative"></div><div class="actions" id="actions"></div></div><div class="sidebar"><div class="chips"><span class="chip" id="chapterChip">第一章</span><span class="chip" id="partyChip">獨自一人</span><span class="chip level" id="hpChip">體力 16/16</span></div><button id="mapBtn">◇ 探索紀錄</button></div></div>
 <div class="veil hidden" id="dialogVeil"><section class="panel" role="dialog" aria-modal="true" aria-labelledby="dialogTitle"><div class="panel-head"><div><div class="kicker" id="dialogKicker">發現</div><h2 id="dialogTitle"></h2></div><div id="dialogCharacter" aria-label="目前發言人物"><canvas id="dialogCharacterCanvas" width="48" height="64" aria-hidden="true"></canvas><span id="dialogCharacterName"></span></div><button class="close" id="dialogClose" aria-label="關閉">×</button></div><p id="dialogText"></p><div class="choices" id="dialogChoices"></div></section></div>
 <div class="veil hidden" id="journalVeil"><section class="panel journal" role="dialog" aria-modal="true"><div class="panel-head"><div><div class="kicker">FIELD NOTES</div><h2>旅程日誌</h2></div><button class="close" id="journalClose">×</button></div><div class="journal-tabs" id="journalTabs"></div><div id="journalContent"></div><div class="line"></div><p class="meta">本版本使用瀏覽器本機儲存，並未連接《鱗片與種子》的雲端存檔。可在設定中匯出備份。</p></section></div>
-<div class="veil hidden" id="menuVeil"><section class="panel" role="dialog" aria-modal="true"><div class="panel-head"><div><div class="kicker">OPTIONS</div><h2>探索設定</h2></div><button class="close" id="menuClose">×</button></div><p id="menuStatus">遊戲會自動在本機儲存。</p><div class="choices"><button class="choice" id="soundBtn">音效：關閉</button><button class="choice" id="exportBtn">匯出存檔</button><button class="choice" id="importBtn">匯入存檔</button><button class="choice" id="restartBtn">重新開始</button></div><div class="line"></div><div class="phase-preview-heading">光線預覽 · 不修改遊戲時間</div><p class="phase-preview-explain">只預覽場景光線，不會跳過事件或改動存檔。畫面右上角可結束預覽。</p><div class="choices phase-preview-options"><button class="choice" type="button" data-preview-period="dawn">清晨</button><button class="choice" type="button" data-preview-period="day">白天</button><button class="choice" type="button" data-preview-period="dusk">黃昏</button><button class="choice" type="button" data-preview-period="night">夜晚</button></div><input id="fileInput" type="file" accept="application/json" class="hidden"><div class="line"></div><div class="note">V0.4.5 測試版本：第二章的公會、委託與人物對話是可修改的玩法草案。人物稱呼仍為佔位，主角身體來歷、復活原因及正式戰鬥方式都尚未定案。</div></section></div>
-<div class="veil" id="startVeil"><section class="panel start"><div class="stamp">A STORY OF THE UNKNOWN</div><h1 class="screen-title">殘車之後</h1><p>你在一輛被毀壞的貨運馬車裡醒來。森林靜得出奇，而你不記得自己為何來到這裡。</p><button class="choice" id="startBtn">開始新的旅程</button><button class="choice hidden" id="continueBtn">繼續旅程</button><div class="note">V0.4.5 可玩原型 · 橫式手機／電腦　｜　探索優先、調查可選　｜　不需登入及付費</div></section></div>
+<div class="veil hidden" id="menuVeil"><section class="panel" role="dialog" aria-modal="true"><div class="panel-head"><div><div class="kicker">OPTIONS</div><h2>探索設定</h2></div><button class="close" id="menuClose">×</button></div><p id="menuStatus">遊戲會自動在本機儲存。</p><div class="choices"><button class="choice" id="soundBtn">音效：關閉</button><button class="choice" id="exportBtn">匯出存檔</button><button class="choice" id="importBtn">匯入存檔</button><button class="choice" id="restartBtn">重新開始</button></div><div class="line"></div><div class="phase-preview-heading">光線預覽 · 不修改遊戲時間</div><p class="phase-preview-explain">只預覽場景光線，不會跳過事件或改動存檔。畫面右上角可結束預覽。</p><div class="choices phase-preview-options"><button class="choice" type="button" data-preview-period="dawn">清晨</button><button class="choice" type="button" data-preview-period="day">白天</button><button class="choice" type="button" data-preview-period="dusk">黃昏</button><button class="choice" type="button" data-preview-period="night">夜晚</button></div><input id="fileInput" type="file" accept="application/json" class="hidden"><div class="line"></div><div class="note">V0.4.6 測試版本：第二章的公會、委託與人物對話是可修改的玩法草案。人物稱呼仍為佔位，主角身體來歷、復活原因及正式戰鬥方式都尚未定案。</div></section></div>
+<div class="veil" id="startVeil"><section class="panel start"><div class="stamp">A STORY OF THE UNKNOWN</div><h1 class="screen-title">殘車之後</h1><p>你在一輛被毀壞的貨運馬車裡醒來。森林靜得出奇，而你不記得自己為何來到這裡。</p><button class="choice" id="startBtn">開始新的旅程</button><button class="choice hidden" id="continueBtn">繼續旅程</button><div class="note">V0.4.6 可玩原型 · 橫式手機／電腦　｜　探索優先、調查可選　｜　不需登入及付費</div></section></div>
 <div class="orientation"><div><strong>請將手機轉為橫向</strong><p>第一章與城鎮探索以橫式畫面呈現。</p>↻</div></div>
 </div>
 <script src="./assets/trail_forest_v1.js"></script>
@@ -714,7 +792,7 @@ function showForestRare(id){
  }
 }
 
-/* V0.4.5: observation-first exploration, inspired by general ecological storytelling,
+/* V0.4.6: observation-first exploration, inspired by general ecological storytelling,
    with wholly original forest organisms, traces and text. Never bypass rare rolls. */
 const ECOLOGY_SITES=Object.freeze({
  clearing:{name:'林間空地',minutes:6,observation:'樹根附近的土壤比小徑潮濕，低矮葉片有新舊不同的咬痕，落葉下留著細小生物穿行的痕跡。',hypothesis:'這裡的水分和遮蔭可能吸引多種小動物。葉片的缺口無法單靠外觀確認是哪種生物造成。'},
@@ -810,7 +888,7 @@ const ROUTE_CLUES={
 function routeKey(a,b){return [a,b].sort().join('|');}
 function normalizeRouteDiscovery(){
  if(!s.routeDiscovery||typeof s.routeDiscovery!=='object'){
-  // Do not strand pre-V0.4.5 players mid-quest; they had access to all named routes.
+  // Do not strand pre-V0.4.6 players mid-quest; they had access to all named routes.
   s.routeDiscovery={known:ROUTE_TIMES.map(r=>routeKey(r.a,r.b)),searchCounts:{}};
  }
  const rd=s.routeDiscovery;
@@ -910,6 +988,7 @@ function collectExplorationMaterial(site,id){
  toast('取得 '+find.material+' ×1');
 }
 function showExplorationResults(site){
+ closePlaceDrawer();
  normalizeExploration();
  const e=s.exploration,last=e.last[site]||{},queue=e.pending[site]||[];
  const container=$('sceneInspectionActions');container.replaceChildren();
@@ -928,7 +1007,7 @@ function showExplorationResults(site){
  };
  if(last.route&&travelRoute(site,last.route)){
   const to=last.route,route=travelRoute(site,to),label=routeCardTitle(site,to);
-  card('永久路線卡',label,(ROUTE_CLUES[routeKey(site,to)]||'你辨認出一條新的通路。')+' 步行約 '+route.walk+' 分鐘。','前往新地點',()=>{hideSceneInspection();routeGo(to);});
+  card('永久路線卡',label,(ROUTE_CLUES[routeKey(site,to)]||'你辨認出一條新的通路。')+' 步行約 '+route.walk+' 分鐘。已放入右側地點卡欄。','查看右側地點卡',()=>{hideSceneInspection();setPlaceDrawer(true,to);});
  }else if(last.routeProgress){
   card('道路線索','尚未確認的路口','你注意到一條可能通往其他地點的路，但還沒有辨認完整。繼續探索有機會找到它。',null,null);
  }
@@ -980,6 +1059,158 @@ function exploreArea(){
  const feature=latest.route?'並找到新的路線卡':latest.wreckFound?'，還發現林邊舊馬車殘骸':'，留意到新的環境細節';
  addTravel('daily','在'+names[site][0]+'進行第'+count+'次探索（約10分鐘，'+gameTime(s.worldMinutes)+'）'+feature+'。','這裡還有許多可以慢慢觀察的東西。');
  save();render();showExplorationResults(site);
+}
+
+/* Persistent discovered destinations; drawer open/closed and expanded card are only UI. */
+let placeDrawerOpen=false,placeCardExpanded=null;
+const PLACE_SIGNS=Object.freeze({wreck:'◇',trail:'♧',clearing:'✿',ruin:'▣',gate:'▤',inn:'⌂',lobby:'⌂',street:'▥',guild:'✦',outskirts:'♧',home:'⌂'});
+function normalizePlaceCards(){
+ if(!Array.isArray(s.placeCardsViewed))s.placeCardsViewed=[];
+ s.placeCardsViewed=Array.from(new Set(s.placeCardsViewed.filter(x=>typeof x==='string'&&x.length<90)));
+}
+function visiblePlaceCards(){
+ normalizeRouteDiscovery();normalizePlaceCards();
+ const nodes=new Set([s.scene]);
+ for(const key of s.routeDiscovery.known){
+  const r=ROUTE_TIMES.find(edge=>routeKey(edge.a,edge.b)===key);
+  if(r){nodes.add(r.a);nodes.add(r.b);}
+ }
+ for(const id of Object.keys(s.visits||{}))if(names[id])nodes.add(id);
+ const cards=Array.from(nodes).filter(id=>names[id]).map(id=>{
+  const current=id===s.scene;
+  const adjacent=!current&&Boolean(travelRoute(s.scene,id))&&routeKnown(s.scene,id);
+  const authorized=!(id==='home'&&!s.flags.houseInvite)&&
+   !((id==='lobby'||id==='street')&&s.scene==='gate'&&!s.flags.morning);
+  const reachable=adjacent&&authorized;
+  const visited=Boolean(s.visits[id]);
+  return {id,current,adjacent,reachable,visited,new:!current&&!visited&&!s.placeCardsViewed.includes(id)};
+ });
+ cards.sort((a,b)=>{
+  const tier=x=>x.current?0:x.reachable?1:x.new?2:x.visited?3:4;
+  return tier(a)-tier(b)||Object.keys(names).indexOf(a.id)-Object.keys(names).indexOf(b.id);
+ });
+ if(s.recovery?.found){
+  cards.push({id:'site:forestWreck',current:false,adjacent:false,reachable:s.scene==='trail',visited:Boolean(s.recovery.looted),new:!s.recovery.looted&&!s.placeCardsViewed.includes('site:forestWreck'),special:true});
+ }
+ return cards;
+}
+function placeCardCount(){
+ return visiblePlaceCards().filter(x=>x.new).length;
+}
+function updatePlaceDrawerBadge(){
+ const n=placeCardCount();
+ $('placeDrawerCount').textContent=n?'NEW '+n:'';
+ $('placeDrawer').classList.toggle('new-routes',n>0&&!placeDrawerOpen);
+ const toggle=$('placeDrawerToggle');
+ toggle.setAttribute('aria-label',(placeDrawerOpen?'收合':'展開')+'地點卡欄'+(n?'，有'+n+'處未查看的新地點':''));
+ toggle.setAttribute('aria-expanded',String(placeDrawerOpen));
+}
+function setPlaceDrawer(open,expandId=null){
+ placeDrawerOpen=Boolean(open);
+ if(expandId&&placeDrawerOpen){
+  placeCardExpanded=expandId;
+  normalizePlaceCards();
+  if(!s.placeCardsViewed.includes(expandId)){s.placeCardsViewed.push(expandId);save();}
+ }
+ $('placeDrawer').classList.toggle('is-open',placeDrawerOpen);
+ $('placeDrawerPanel').setAttribute('aria-hidden',String(!placeDrawerOpen));
+ $('placeDrawerPanel').inert=!placeDrawerOpen;
+ if(placeDrawerOpen)hideSceneInspection();
+ updatePlaceDrawerBadge();
+ if(placeDrawerOpen)renderPlaceDrawer();
+}
+function closePlaceDrawer(){if(placeDrawerOpen)setPlaceDrawer(false);}
+function expandPlaceCard(id){
+ placeCardExpanded=placeCardExpanded===id?null:id;
+ if(placeCardExpanded){
+  normalizePlaceCards();
+  if(!s.placeCardsViewed.includes(id)){s.placeCardsViewed.push(id);save();}
+ }
+ renderPlaceDrawer();
+}
+function placeDrawerTravel(id){
+ const card=visiblePlaceCards().find(x=>x.id===id);
+ if(!card||!card.reachable||card.current){toast('請先沿著相連的已發現道路前往此地。');return;}
+ closePlaceDrawer();
+ if(card.special){if(s.scene==='trail')inspectOtherWreck();return;}
+ if((s.scene==='street'&&id==='outskirts')||(s.scene==='outskirts'&&id==='street')){
+  offerOutskirtsTransport(id);
+ }else{
+  routeGo(id);
+ }
+}
+function renderPlaceDrawer(){
+ updatePlaceDrawerBadge();
+ if(!placeDrawerOpen)return;
+ const cards=visiblePlaceCards(),out=$('placeDrawerList');out.replaceChildren();
+ $('placeDrawerSummary').textContent='　已記錄 '+cards.length+' 處';
+ const hint=document.createElement('p');hint.className='place-drawer-guide';
+ hint.textContent='已發現的地點會永久留下。點擊卡片查看內容；只有相鄰道路可以直接前往。';
+ out.appendChild(hint);
+ if(!cards.length){const p=document.createElement('p');p.className='place-drawer-empty';p.textContent='尚未找到新的地點。';out.appendChild(p);return;}
+ for(const card of cards){
+  const special=Boolean(card.special),id=card.id;
+  if(!special&&!names[id])continue;
+  const name=special?'林邊舊馬車殘骸':
+   (id==='gate'&&!s.flags.rescued?'前方主路（終點未明）':names[id][0]);
+  const route=card.adjacent?travelRoute(s.scene,id):null;
+  const title=card.current?'目前所在地':card.reachable?'相鄰路線':
+   card.visited?'已到訪':'已發現';
+  const article=document.createElement('article');article.className='place-mini-card';
+  if(card.new)article.classList.add('new');
+  const opened=placeCardExpanded===id;
+  if(opened)article.classList.add('expanded');
+  const toggle=document.createElement('button');toggle.className='place-mini-card-toggle';toggle.type='button';
+  toggle.setAttribute('aria-expanded',String(opened));toggle.setAttribute('aria-label',(opened?'收合':'展開')+name+'地點卡');
+  const sign=document.createElement('span');sign.className='place-mini-icon';sign.textContent=special?'▧':PLACE_SIGNS[id]||'◇';sign.setAttribute('aria-hidden','true');
+  const heading=document.createElement('span');heading.className='place-mini-heading';
+  const strong=document.createElement('strong');strong.textContent=name;
+  const info=document.createElement('small');info.textContent=title+(route?' · 步行約'+route.walk+'分鐘':'');
+  heading.append(strong,info);toggle.append(sign,heading);
+  if(card.new){const badge=document.createElement('span');badge.className='place-mini-badge';badge.textContent='NEW';toggle.appendChild(badge);}
+  const arrow=document.createElement('span');arrow.className='place-mini-expand';arrow.textContent=opened?'▴':'▾';toggle.appendChild(arrow);
+  toggle.onclick=()=>expandPlaceCard(id);
+  article.appendChild(toggle);
+  if(opened){
+   const details=document.createElement('div');details.className='place-mini-details';
+   const p=document.createElement('p');
+   if(special){
+    p.textContent='林間小徑旁的舊殘骸，與開場事故馬車不同。'+(s.recovery.looted?'可回收物已搜集完畢。':'仍可以返回檢查一次性物品。');
+   }else if(card.current){
+    p.textContent='你目前站在這裡。可以持續探索周遭，也能使用已知道路前往相連地點。';
+   }else{
+    const clue=route?ROUTE_CLUES[routeKey(s.scene,id)]:null;
+    p.textContent=(clue||names[id][1])+(card.reachable?' 這條道路已經記錄在地圖中。':' 這個地點已記錄，但不能從目前的位置直接抵達。');
+   }
+   details.appendChild(p);
+   if(card.reachable){
+    const go=document.createElement('button');go.type='button';go.className='place-mini-go';
+    go.textContent=special?'調查舊殘骸':
+     (id==='gate'&&s.scene==='trail'&&!s.flags.rescued?'沿主路前進（劇情）':
+      ((s.scene==='street'&&id==='outskirts')||(s.scene==='outskirts'&&id==='street'))?'選擇步行／馬車':'前往 · 約'+(route?.walk||0)+'分鐘');
+    go.onclick=()=>placeDrawerTravel(id);details.appendChild(go);
+   }
+   article.appendChild(details);
+  }
+  out.appendChild(article);
+ }
+}
+function setupPlaceDrawer(){
+ $('placeDrawerPanel').inert=true;
+ $('placeDrawerToggle').onclick=()=>setPlaceDrawer(!placeDrawerOpen);
+ $('placeDrawerClose').onclick=()=>setPlaceDrawer(false);
+ // Horizontal swipes of the handle or drawer can open/close it, but vertical scrolling stays native.
+ let startX=0,startY=0,tracking=false;
+ const drawer=$('placeDrawer');
+ drawer.addEventListener('touchstart',e=>{if(e.touches.length!==1)return;startX=e.touches[0].clientX;startY=e.touches[0].clientY;tracking=true;},{passive:true});
+ drawer.addEventListener('touchend',e=>{
+  if(!tracking||!e.changedTouches.length)return;tracking=false;
+  const dx=e.changedTouches[0].clientX-startX,dy=e.changedTouches[0].clientY-startY;
+  if(Math.abs(dx)>58&&Math.abs(dx)>Math.abs(dy)*1.35){
+   if(dx<0&&!placeDrawerOpen)setPlaceDrawer(true);
+   else if(dx>0&&placeDrawerOpen)setPlaceDrawer(false);
+  }
+ },{passive:true});
 }
 const roster=[{id:'brother',name:'弟弟（隊長）',speech:'先別急著起身。這裡可能還有危險。'},{id:'sister',name:'姊姊',speech:'你能聽清楚我們說話嗎？'},{id:'a',name:'夥伴甲',speech:'這輛馬車損壞得真嚴重……'},{id:'b',name:'夥伴乙',speech:'我先看看四周有沒有怪物。'},{id:'c',name:'夥伴丙',speech:'帶點水過來吧，他看起來不太好。'},{id:'d',name:'夥伴丁',speech:'我們得趕在天黑之前回城。'}];
 
@@ -1070,12 +1301,12 @@ function paintActorSprite(canvas,memberId,emotion='neutral'){
 }
 function randomSeed(){return (Date.now()^((Math.random()*4294967295)>>>0))>>>0;}
 function selectFour(seed){let a=[0,1,2,3,4,5],v=seed>>>0;for(let i=a.length-1;i>0;i--){v=(Math.imul(v,1664525)+1013904223)>>>0;let j=v%(i+1);[a[i],a[j]]=[a[j],a[i]];}return a.slice(0,4).sort((x,y)=>x-y);}
-function initial(){const seed=randomSeed();return{v:1,seed,scene:'wreck',worldMinutes:960,routeDiscovery:{known:[],searchCounts:{}},exploration:{counts:{},routeProgress:{},pending:{},daily:{},last:{}},recovery:{found:false,looted:false,items:[],parts:{}},forestEcology:{checkedDays:{},observed:{},ingredients:{},leafCollected:false},forestRare:{checkedDays:{},sighted:{},hints:{},ingredients:{},goblinGearTaken:false,rabbitHerbTaken:false},hp:16,maxHp:16,seen:[],notes:[],items:[],party:selectFour(seed),flags:{},visits:{wreck:1},savedAt:Date.now(),sound:false,feedCollapsed:false,travelHudMode:'compact',travelLog:[{type:'daily',message:'在毀壞的馬車篷內醒來，扶著斷裂木板爬到了外面。',thought:'我怎麼會在這裡？先看看四周吧。',scene:'wreck',time:Date.now()}]};}
+function initial(){const seed=randomSeed();return{v:1,seed,scene:'wreck',worldMinutes:960,routeDiscovery:{known:[],searchCounts:{}},placeCardsViewed:[],exploration:{counts:{},routeProgress:{},pending:{},daily:{},last:{}},recovery:{found:false,looted:false,items:[],parts:{}},forestEcology:{checkedDays:{},observed:{},ingredients:{},leafCollected:false},forestRare:{checkedDays:{},sighted:{},hints:{},ingredients:{},goblinGearTaken:false,rabbitHerbTaken:false},hp:16,maxHp:16,seen:[],notes:[],items:[],party:selectFour(seed),flags:{},visits:{wreck:1},savedAt:Date.now(),sound:false,feedCollapsed:false,travelHudMode:'compact',travelLog:[{type:'daily',message:'在毀壞的馬車篷內醒來，扶著斷裂木板爬到了外面。',thought:'我怎麼會在這裡？先看看四周吧。',scene:'wreck',time:Date.now()}]};}
 function validSave(j){return !!(j&&j.v===1&&names[j.scene]&&Number.isFinite(j.hp)&&Number.isFinite(j.maxHp)&&Array.isArray(j.party)&&j.party.length===4&&new Set(j.party).size===4&&j.party.every(i=>Number.isInteger(i)&&i>=0&&i<6)&&Array.isArray(j.seen)&&Array.isArray(j.notes)&&Array.isArray(j.items)&&j.flags&&typeof j.flags==='object'&&j.visits&&typeof j.visits==='object');}
 function load(){try{const j=JSON.parse(localStorage.getItem(KEY));return validSave(j)?j:null;}catch{return null;}}
 let s=load()||initial(), hasSave=!!load(),modal=null,showHints=true,journalTab='discoveries',toastHandle=null;
 if(!Array.isArray(s.travelLog))s.travelLog=[];
-normalizeGameTime();normalizeRecovery();normalizeForestRare();normalizeForestEcology();normalizeRouteDiscovery();normalizeExploration();
+normalizeGameTime();normalizeRecovery();normalizeForestRare();normalizeForestEcology();normalizeRouteDiscovery();normalizeExploration();normalizePlaceCards();
 if(typeof s.feedCollapsed!=='boolean')s.feedCollapsed=false;if(!['compact','expanded'].includes(s.travelHudMode))s.travelHudMode='compact';
 const moveThought={wreck:'一切似乎從這片殘骸開始。',trail:'沿著道路走，也許能遇見其他人。',clearing:'這裡比想像中安靜。',ruin:'這座古老建築還藏著多少故事？',gate:'終於看到有人生活的地方了。',inn:'至少現在能稍微休息。',lobby:'普通的早晨，也讓我感到安心。',street:'這個世界的人們也在過自己的日子。',guild:'或許能在這裡找到一些方向。',outskirts:'前方還有很多我不知道的地方。',home:'這裡承載著六個人一起生活的痕跡。'};
 const discoveryThought={wagon:'馬車在我醒來前就毀了。',scratches:'這些刻痕究竟是誰留下的？',light:'那道微光似乎有些奇怪。',sound:'先觀察牠會怎麼行動。',rescue:'原來這裡還有人願意幫助陌生人。',sigil:'背上的紋印……究竟代表什麼？',innkeeper:'也許能在這裡慢慢熟悉城鎮。',secondMeet:'沒想到會再見到他們。',leftbehind:'六個人都有自己的生活。',guildClerk:'公會看起來不只有打怪的工作。',roadSign:'原來這條路有人經常使用。'};
@@ -1213,6 +1444,7 @@ function refreshSceneFraming(){
 function guardedAction(fn){const now=Date.now();if(now-lastActionAt<300)return;lastActionAt=now;fn?.();}
 function change(scene,mode='walk'){
  if(encounterPending||!names[scene]||scene===s.scene)return;
+ closePlaceDrawer();
  if(travelRoute(s.scene,scene)&&!routeKnown(s.scene,scene)){toast('尚未發現這條道路，請先探索周圍。');return;}
  const duration=travelTimeFor(s.scene,scene,mode);
  if(duration===null){toast('此路線目前無法使用馬車，請選擇步行。');return;}
@@ -1226,7 +1458,7 @@ function change(scene,mode='walk'){
  addTravel('scene',(revisited?'再次回到 ':'來到 ')+names[scene][0]+'（'+(mode==='carriage'?'馬車':'步行')+'約'+duration+'分鐘，'+gameTime(s.worldMinutes)+'）。'+(revisited?'（到訪 '+s.visits[scene]+' 次）':''),revisited?'這條路漸漸熟悉了。':moveThought[scene]||'接下來看看四周。');
  save();render();beep(350);
 }
-function dialog(title,text,choices,kicker='途中事件',locked=false,speaker=null,emotion='neutral'){hideSceneInspection();renderDialogueActor(speaker,emotion);if(/旅店的早晨|陌生人的善意|熟悉的四張面孔|留守的兩名夥伴|冒險者公會櫃台|普通的邀請|普通的生活|附近的道路|街上的日常/.test(title))addTravel('talk','交談：'+title,'也許能更了解這裡的人。');modal={title,text,choices,locked};$('dialogKicker').textContent=kicker;$('dialogTitle').textContent=title;$('dialogText').textContent=text;$('dialogChoices').replaceChildren();for(const c of choices){const b=document.createElement('button');b.className='choice';b.textContent=c.label;b.addEventListener('click',()=>{modal=null;$('dialogVeil').classList.add('hidden');c.fn?.();});$('dialogChoices').appendChild(b);} $('dialogClose').classList.toggle('hidden',locked);$('dialogVeil').classList.remove('hidden');beep(540);}
+function dialog(title,text,choices,kicker='途中事件',locked=false,speaker=null,emotion='neutral'){closePlaceDrawer();hideSceneInspection();renderDialogueActor(speaker,emotion);if(/旅店的早晨|陌生人的善意|熟悉的四張面孔|留守的兩名夥伴|冒險者公會櫃台|普通的邀請|普通的生活|附近的道路|街上的日常/.test(title))addTravel('talk','交談：'+title,'也許能更了解這裡的人。');modal={title,text,choices,locked};$('dialogKicker').textContent=kicker;$('dialogTitle').textContent=title;$('dialogText').textContent=text;$('dialogChoices').replaceChildren();for(const c of choices){const b=document.createElement('button');b.className='choice';b.textContent=c.label;b.addEventListener('click',()=>{modal=null;$('dialogVeil').classList.add('hidden');c.fn?.();});$('dialogChoices').appendChild(b);} $('dialogClose').classList.toggle('hidden',locked);$('dialogVeil').classList.remove('hidden');beep(540);}
 function closeDialog(){if(modal?.locked)return;modal=null;$('dialogVeil').classList.add('hidden');renderDialogueActor(null);}
 function action(title,fn,primary=false,quick=false){return{title,fn,primary,quick};}
 function hideSceneInspection(){$('sceneInspection').classList.add('hidden');$('sceneInspection').classList.remove('route-discovery','exploration-results');}
@@ -1299,6 +1531,7 @@ function beginForestEncounter(){
 }
 
 function openSceneInspection(title,description,actions){
+ closePlaceDrawer();
  const box=$('sceneInspection');
  $('sceneInspectionTitle').textContent=title;
  $('sceneInspectionText').textContent=description;
@@ -1393,7 +1626,7 @@ function render(){if(!names[s.scene])s.scene='wreck';normalizeGameTime();$('plac
 };$('narrative').textContent=texts[s.scene];$('actions').replaceChildren();const available=entries();const primary=available.find(a=>a.primary)||available[0];
 if(primary){const b=document.createElement('button');b.className='action primary';b.textContent=primary.title;b.title='主要行動；點擊執行';b.onclick=()=>guardedAction(primary.fn);$('actions').appendChild(b);}
 const quick=available.find(a=>a.quick&&a!==primary);if(quick){const b=document.createElement('button');b.className='action explore';b.textContent=quick.title;b.onclick=()=>guardedAction(quick.fn);$('actions').appendChild(b);}
-const secondary=available.filter(a=>a!==primary&&a!==quick);if(secondary.length){const b=document.createElement('button');b.className='action more';b.textContent='查看周遭 · '+secondary.length;b.setAttribute('aria-label','查看周遭其他行動');b.onclick=()=>dialog('看看周遭','可直接點選想走的道路或想互動的物件。',secondary.map(a=>({label:a.title,fn:a.fn})),'自由探索');$('actions').appendChild(b);}renderHotspots();renderFeed();save();}
+const secondary=available.filter(a=>a!==primary&&a!==quick);if(secondary.length){const b=document.createElement('button');b.className='action more';b.textContent='查看周遭 · '+secondary.length;b.setAttribute('aria-label','查看周遭其他行動');b.onclick=()=>dialog('看看周遭','可直接點選想走的道路或想互動的物件。',secondary.map(a=>({label:a.title,fn:a.fn})),'自由探索');$('actions').appendChild(b);}renderHotspots();renderFeed();renderPlaceDrawer();save();}
 function renderHotspots(){
  const el=$('hotspots');el.replaceChildren();
  const per={wreck:[['散落貨箱',.36,.71,glance],['車輪痕跡',.45,.53,marks],['離開的林道',.85,.57,()=>change('trail'),'trail'],['探索周遭',.73,.65,exploreArea,null]],trail:[['沿小徑前進',.55,.48,rescue,'gate'],['石拱遺跡',.79,.49,()=>change('ruin'),'ruin'],['路旁舊石碑',.13,.49,inspectTrailMarker],['林間草木',.29,.59,()=>change('clearing'),'clearing'],['返回馬車',.45,.62,()=>change('wreck'),'wreck'],['探索周遭',.7,.62,exploreArea,null]],clearing:[['微光',59,69,light],['聲音',75,46,soundInForest]],ruin:[['石門',51,45,ruinLook]],inn:[['鏡子',73,43,innMark]],guild:[['公告板',69,49,guildBoard]],outskirts:[['舊路標',67,49,roadsideSign]],home:[['留守夥伴',48,59,meetHome]]};
@@ -1476,7 +1709,7 @@ function renderRouteMap(out){
  footnote.textContent='開場那輛馬車已經損毀、不能搭乘。驛站馬車只在城鎮街道與近郊間提供短程接送；其餘路線先以步行計算。';
  out.appendChild(footnote);
 }
-function journal(tab='discoveries'){$('journalVeil').classList.remove('hidden');journalTab=tab;$('journalTabs').replaceChildren();const tabs=[['journey','旅途'],['discoveries','發現'],['map','地點'],['party','相遇者'],['items','物品與材料']];for(const [key,label] of tabs){const b=document.createElement('button');b.className='journal-tab'+(tab===key?' selected':'');b.textContent=label;b.onclick=()=>journal(key);$('journalTabs').appendChild(b);}const out=$('journalContent');out.replaceChildren();if(tab==='map'){renderRouteMap(out);return;}if(tab==='items'){renderRecoveredItems(out);return;}if(tab==='journey'){const logs=(Array.isArray(s.travelLog)?s.travelLog:[]).filter(e=>e&&typeof e.message==='string').slice().reverse();for(const e of logs){const row=document.createElement('div');row.className='journey-entry';const meta=document.createElement('div');meta.className='entry-meta';meta.textContent=(Number.isFinite(e.time)?new Date(e.time).toLocaleString('zh-TW'):'旅途')+' · '+(names[e.scene]?.[0]||'旅途');const main=document.createElement('div');main.className='entry-main';main.textContent=e.message;row.append(meta,main);if(e.thought){const thought=document.createElement('div');thought.className='entry-thought';thought.textContent='「'+e.thought+'」';row.appendChild(thought);}out.appendChild(row);}if(!logs.length)out.textContent='尚未留下旅途紀錄；新的事件會自動保存。';return;}let list=[];if(tab==='discoveries')list=s.notes.length?s.notes:['目前尚無額外發現。直接往前走也能繼續冒險。'];if(tab==='party')list=s.flags.rescued?s.party.map(i=>roster[i].name+'｜'+roster[i].speech):['尚未與冒險者正式相遇。'];const ul=document.createElement('ul');ul.className='journal-list';for(const item of list){const li=document.createElement('li');li.textContent=item;ul.appendChild(li);}out.appendChild(ul);}
+function journal(tab='discoveries'){closePlaceDrawer();$('journalVeil').classList.remove('hidden');journalTab=tab;$('journalTabs').replaceChildren();const tabs=[['journey','旅途'],['discoveries','發現'],['map','地點'],['party','相遇者'],['items','物品與材料']];for(const [key,label] of tabs){const b=document.createElement('button');b.className='journal-tab'+(tab===key?' selected':'');b.textContent=label;b.onclick=()=>journal(key);$('journalTabs').appendChild(b);}const out=$('journalContent');out.replaceChildren();if(tab==='map'){renderRouteMap(out);return;}if(tab==='items'){renderRecoveredItems(out);return;}if(tab==='journey'){const logs=(Array.isArray(s.travelLog)?s.travelLog:[]).filter(e=>e&&typeof e.message==='string').slice().reverse();for(const e of logs){const row=document.createElement('div');row.className='journey-entry';const meta=document.createElement('div');meta.className='entry-meta';meta.textContent=(Number.isFinite(e.time)?new Date(e.time).toLocaleString('zh-TW'):'旅途')+' · '+(names[e.scene]?.[0]||'旅途');const main=document.createElement('div');main.className='entry-main';main.textContent=e.message;row.append(meta,main);if(e.thought){const thought=document.createElement('div');thought.className='entry-thought';thought.textContent='「'+e.thought+'」';row.appendChild(thought);}out.appendChild(row);}if(!logs.length)out.textContent='尚未留下旅途紀錄；新的事件會自動保存。';return;}let list=[];if(tab==='discoveries')list=s.notes.length?s.notes:['目前尚無額外發現。直接往前走也能繼續冒險。'];if(tab==='party')list=s.flags.rescued?s.party.map(i=>roster[i].name+'｜'+roster[i].speech):['尚未與冒險者正式相遇。'];const ul=document.createElement('ul');ul.className='journal-list';for(const item of list){const li=document.createElement('li');li.textContent=item;ul.appendChild(li);}out.appendChild(ul);}
 function setTravelHud(mode){if(!['compact','expanded'].includes(mode))return;s.travelHudMode=mode;save();renderFeed();}
 $('travelToggle').onclick=()=>setTravelHud(s.travelHudMode==='expanded'?'compact':'expanded');
 $('travelOpenJournal').onclick=()=>journal('journey');
@@ -1485,11 +1718,11 @@ for(const btn of document.querySelectorAll('[data-preview-period]'))btn.onclick=
 $('timePreviewTag').onclick=clearTimePreview;
 $('soundBtn').onclick=()=>{s.sound=!s.sound;$('soundBtn').textContent='音效：'+(s.sound?'開啟':'關閉');save();beep(520);};
 $('restartBtn').onclick=()=>{if(!confirm('確定重新開始？目前本機存檔將被覆蓋。'))return;s=initial();previewPeriod=null;hideSceneActors();hideSceneInspection();refreshSceneFraming();$('menuVeil').classList.add('hidden');render();toast('已開始新的旅程');};
-$('exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify(s,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='dungeon-adventure-save-v02.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};$('importBtn').onclick=()=>$('fileInput').click();$('fileInput').onchange=async e=>{try{const text=await e.target.files[0].text(),j=JSON.parse(text);if(!validSave(j))throw Error('格式不相容');s=j;previewPeriod=null;normalizeGameTime();normalizeRecovery();normalizeForestRare();normalizeForestEcology();normalizeRouteDiscovery();normalizeExploration();hideSceneActors();hideSceneInspection();refreshSceneFraming();if(!Array.isArray(s.travelLog))s.travelLog=[];if(typeof s.feedCollapsed!=='boolean')s.feedCollapsed=false;if(!['compact','expanded'].includes(s.travelHudMode))s.travelHudMode='compact';save();render();$('menuVeil').classList.add('hidden');toast('已匯入存檔');}catch{alert('無法讀取這份存檔。');}e.target.value='';};
+$('exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify(s,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='dungeon-adventure-save-v02.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};$('importBtn').onclick=()=>$('fileInput').click();$('fileInput').onchange=async e=>{try{const text=await e.target.files[0].text(),j=JSON.parse(text);if(!validSave(j))throw Error('格式不相容');s=j;previewPeriod=null;normalizeGameTime();normalizeRecovery();normalizeForestRare();normalizeForestEcology();normalizeRouteDiscovery();normalizeExploration();normalizePlaceCards();closePlaceDrawer();hideSceneActors();hideSceneInspection();refreshSceneFraming();if(!Array.isArray(s.travelLog))s.travelLog=[];if(typeof s.feedCollapsed!=='boolean')s.feedCollapsed=false;if(!['compact','expanded'].includes(s.travelHudMode))s.travelHudMode='compact';save();render();$('menuVeil').classList.add('hidden');toast('已匯入存檔');}catch{alert('無法讀取這份存檔。');}e.target.value='';};
 $('startBtn').onclick=()=>{s=initial();previewPeriod=null;refreshSceneFraming();hasSave=true;$('startVeil').classList.add('hidden');render();toast('你扶著破損車板爬到外面，開始觀察事故現場。');};if(hasSave){$('continueBtn').classList.remove('hidden');$('continueBtn').onclick=()=>{$('startVeil').classList.add('hidden');render();if(s.flags.inBattle)battleDialog('繼續尚未結束的遭遇戰。');};}
 window.addEventListener('keydown',e=>{
 if(e.metaKey||e.ctrlKey||e.altKey||e.target.matches('input,textarea,select,[contenteditable="true"]'))return;
-if(e.key==='Escape'){e.preventDefault();if(!$('sceneInspection').classList.contains('hidden')){hideSceneInspection();return;}if(!$('journalVeil').classList.contains('hidden'))$('journalVeil').classList.add('hidden');
+if(e.key==='Escape'){e.preventDefault();if(placeDrawerOpen){setPlaceDrawer(false);return;}if(!$('sceneInspection').classList.contains('hidden')){hideSceneInspection();return;}if(!$('journalVeil').classList.contains('hidden'))$('journalVeil').classList.add('hidden');
 else if(!$('menuVeil').classList.contains('hidden'))$('menuVeil').classList.add('hidden');
 else if(!$('dialogVeil').classList.contains('hidden'))closeDialog();
 else if($('startVeil').classList.contains('hidden'))$('menuBtn').click();return;}
@@ -1503,7 +1736,7 @@ if(e.key.toLowerCase()==='j'||e.key.toLowerCase()==='l'){e.preventDefault();if($
 if(e.key.toLowerCase()==='m'){e.preventDefault();journal('map');}
 });
 // Original procedural 2D environments, drawn locally with Canvas; no external assets or network requests.
-const can=$('view'),ctx=can.getContext('2d'),W=960,H=540;let t=0,last=0;
+setupPlaceDrawer();const can=$('view'),ctx=can.getContext('2d'),W=960,H=540;let t=0,last=0;
 const wreckPanorama=new Image();let wreckPanoramaReady=false;
 const trailForest=new Image();let trailForestReady=false;
 trailForest.onload=()=>{
