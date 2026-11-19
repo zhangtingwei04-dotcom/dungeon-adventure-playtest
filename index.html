@@ -2140,6 +2140,81 @@ html.stage-wide #app .bottom .actions{flex-wrap:nowrap!important}
  }
 }
 
+
+/* V0.7.3 — wrap full journey text without ellipsis */
+/* A travel entry can take several lines; the journal scrolls internally.
+   This deliberately overrides the old one-line ellipsis, including compact
+   journal mode. Actual messages are never shortened in JavaScript. */
+#app #travelFeed .travel-log-scroll,
+#app #travelFeed.collapsed .travel-log-scroll{
+ min-height:0!important;
+ overflow-x:hidden!important;
+ overflow-y:auto!important;
+ -webkit-overflow-scrolling:touch;
+ overscroll-behavior:contain;
+}
+#app #travelFeed .travel-event,
+#app #travelFeed.collapsed .travel-event{
+ height:auto!important;
+ min-height:0!important;
+ max-height:none!important;
+ overflow:visible!important;
+ white-space:normal!important;
+}
+#app #travelFeed .travel-event-line,
+#app #travelFeed.collapsed .travel-event-line{
+ display:flex!important;
+ align-items:flex-start!important;
+ width:100%!important;
+ min-width:0!important;
+ height:auto!important;
+ max-height:none!important;
+ overflow:visible!important;
+ white-space:normal!important;
+ gap:8px!important;
+ line-height:1.44!important;
+}
+#app #travelFeed .travel-event-time{
+ flex:0 0 42px!important;
+ padding-top:1px;
+ white-space:nowrap!important;
+}
+#app #travelFeed .travel-event-thought,
+#app #travelFeed.collapsed .travel-event-thought,
+#app #travelFeed .travel-event-main,
+#app #travelFeed.collapsed .travel-event-main{
+ display:block!important;
+ flex:1 1 0!important;
+ min-width:0!important;
+ width:auto!important;
+ height:auto!important;
+ max-height:none!important;
+ white-space:normal!important;
+ overflow:visible!important;
+ text-overflow:clip!important;
+ -webkit-line-clamp:unset!important;
+ line-clamp:unset!important;
+ overflow-wrap:anywhere!important;
+ word-break:normal!important;
+ line-height:1.48!important;
+}
+#app #travelFeed .travel-event-detail{
+ white-space:normal!important;
+ overflow-wrap:anywhere!important;
+ line-height:1.45!important;
+}
+@media (max-width:950px) and (orientation:landscape){
+ #app #travelFeed .travel-event-line,
+ #app #travelFeed.collapsed .travel-event-line{gap:5px!important;}
+ #app #travelFeed .travel-event-time{flex-basis:34px!important;}
+}
+/* The fixed reference stage uses its own fixed font sizes, but shares the
+   exact same multi-line behavior. Keep the timestamp column appropriately
+   spaced for the original 1536×707 design. */
+html.stage-locked #app #travelFeed .travel-event-time{
+ flex-basis:42px!important;
+}
+
 </style>
 </head>
 <body>
