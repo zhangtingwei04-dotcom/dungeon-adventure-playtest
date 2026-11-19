@@ -1076,6 +1076,139 @@ input,textarea,.panel p,.journal-list,.journey-entry{user-select:text;-webkit-us
  .story-ornament{flex-basis:9px}
 }
 
+
+/* V0.6-left-reference | Approved screenshot coordinates at 1536x707.
+   Left-side style only: retain the live journal, scene navigation and save logic.
+   Target layout (percent of full game viewport):
+   title 5% x 12.5%, journal x4.3% y27.1% w23.8% h34.4%,
+   divider y62.5%, narrative begins ~66%, all decorations noninteractive. */
+.top>div:first-child{width:23.95%;min-width:0;position:relative;transform:translateY(.8dvh)}
+.left-title-plaque{position:relative;width:100%;height:clamp(40px,8.35dvh,64px);overflow:visible;isolation:isolate}
+.left-title-art{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;filter:drop-shadow(0 3px 1px #061712b3)}
+.top .left-title-plaque .place{
+ position:relative;z-index:1;display:flex;align-items:center;justify-content:center;
+ width:100%;height:100%;min-height:0;max-width:none;margin:0;padding:4px 48px;
+ background:none;border:0;border-radius:0;box-shadow:none;
+ color:#f7e9c7;text-shadow:1px 2px 1px #11190d,0 3px 4px #081510;
+ font-family:Georgia,"Noto Serif TC","PingFang TC",serif;
+ font-size:clamp(20px,2.17vw,34px);font-weight:650;letter-spacing:.09em;
+ white-space:nowrap;
+}
+.top .left-title-plaque .place::before,.top .left-title-plaque .place::after{content:none!important;display:none!important}
+.top .subplace{
+ margin:clamp(4px,.85dvh,7px) 0 0;
+ padding:0 1px;max-width:100%;width:100%;
+ color:#e5d1a9;text-align:center;font-size:clamp(10px,1.11vw,14px);
+ line-height:1.3;letter-spacing:.01em;white-space:nowrap;
+ overflow:hidden;text-overflow:ellipsis;
+}
+/* Journal edge, book heading, readable continuous log and navigation footer. */
+.travel-feed,.travel-feed.collapsed,.travel-feed:not(.collapsed){
+ top:27.15%;left:4.25%;width:23.9%;height:34.35%;max-height:none;
+ border:1.5px solid rgba(167,174,132,.86);border-radius:12px;
+ background:linear-gradient(150deg,rgba(25,55,49,.96),rgba(9,32,33,.97));
+ box-shadow:inset 0 0 0 1px rgba(190,191,143,.18),0 2px 8px #061b194d;
+}
+.travel-head,.travel-feed.collapsed .travel-head{
+ flex:0 0 auto;min-height:clamp(33px,6.6dvh,46px);
+ padding:5px clamp(8px,.9vw,13px);gap:10px;
+ background:linear-gradient(105deg,rgba(37,72,60,.96),rgba(28,56,48,.96));
+ border-bottom:1px solid rgba(173,179,136,.33);
+ font-family:Georgia,"Noto Serif TC",serif;
+}
+.travel-head .travel-book{width:clamp(19px,2.1vw,29px);height:clamp(17px,3.9dvh,26px);flex:0 0 clamp(19px,2.1vw,29px)}
+.travel-head strong{font-size:clamp(12px,1.32vw,17px);font-weight:650;white-space:nowrap}
+.travel-head button,.travel-feed .travel-head button{
+ min-height:clamp(24px,4.1dvh,33px);padding:3px 9px;
+ font-size:clamp(10px,.92vw,13px);
+}
+.travel-inner,.travel-feed.collapsed .travel-inner{
+ display:flex;flex:1;flex-direction:column;min-height:0;overflow:hidden;
+}
+.travel-feed .travel-log-scroll,.travel-feed.collapsed .travel-log-scroll{
+ flex:1 1 auto;height:auto;max-height:none;min-height:0;
+ padding:7px 9px;overflow:auto;scrollbar-width:thin;
+ scrollbar-color:#a4865e transparent;
+}
+.travel-event,.travel-feed .travel-event,.travel-feed.collapsed .travel-event{
+ padding:1px 0 5px;margin:0;border:0;line-height:1.43;
+}
+.travel-feed.collapsed .travel-event-line,.travel-feed.collapsed .travel-event-thought,
+.travel-feed.collapsed .travel-event-main{
+ overflow:visible!important;max-height:none!important;
+ white-space:normal!important;-webkit-line-clamp:unset!important;line-clamp:unset!important;
+}
+.travel-feed .travel-event-line{display:block;overflow-wrap:anywhere;line-height:1.43}
+.travel-feed .travel-event-time{font-size:clamp(9px,.88vw,12px);margin-right:7px;color:#aebbb3}
+.travel-feed .travel-event-main{font-size:clamp(10px,1.03vw,14px);color:#ece6d8}
+.travel-feed .travel-event-thought{padding-left:0;margin-top:2px;font-size:clamp(10px,1.03vw,14px);color:#d6acd9;font-style:italic}
+.travel-feed .travel-footer,.travel-feed.collapsed .travel-footer{
+ flex:0 0 auto;padding:6px 9px 9px;
+ border-top:0;background:transparent;
+}
+.travel-feed .travel-targets,.travel-feed.collapsed .travel-targets{display:flex;flex-wrap:nowrap;min-width:0;gap:5px}
+.travel-feed .travel-target,.travel-feed.collapsed .travel-target{
+ min-height:clamp(32px,5.4dvh,42px);max-width:100%;font-size:clamp(10px,1.07vw,14px);
+ border:1.5px solid #be9b68;border-radius:9px;padding:5px 11px;
+ background:linear-gradient(115deg,#254338,#15382f);color:#f4dfb7;
+ overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+ box-shadow:inset 0 0 0 1px rgba(217,183,120,.25);
+}
+/* Dividing foliage and narrative as standalone, accessible text. */
+.story-panel{
+ top:62.1%;left:6.05%;width:20.95%;height:13.5%;gap:clamp(4px,.7dvh,7px);
+ overflow:visible;
+}
+.story-ornament{display:block;flex:0 0 clamp(15px,2.8dvh,23px);width:100%;height:clamp(15px,2.8dvh,23px);overflow:visible}
+.story-ornament svg{display:block;width:100%;height:100%;filter:drop-shadow(0 1px 1px #0d201b)}
+.story-ornament::before,.story-ornament::after{content:none!important}
+.story-panel .narrative{
+ padding:0 0 0 clamp(9px,1.1vw,18px)!important;
+ font-family:Georgia,"Noto Serif TC","PingFang TC",serif;
+ font-size:clamp(13px,1.44vw,20px)!important;line-height:1.44!important;
+ color:#f2ead9!important;letter-spacing:.015em;
+ overflow-y:auto!important;overscroll-behavior:contain;
+}
+/* Only left column changes under landscape size adjustments. */
+@media(max-width:950px) and (orientation:landscape){
+ .top>div:first-child{width:23.9%;transform:translateY(.7dvh)}
+ .left-title-plaque{height:clamp(37px,8dvh,54px)}
+ .top .left-title-plaque .place{font-size:clamp(19px,2.2vw,30px);padding:3px 36px}
+ .top .subplace{font-size:clamp(9px,1.12vw,12px);margin-top:3px}
+ .travel-feed,.travel-feed.collapsed,.travel-feed:not(.collapsed){top:27.2%;height:34.2%;left:4.25%;width:23.9%}
+ .travel-head,.travel-feed.collapsed .travel-head{min-height:clamp(30px,6.3dvh,40px);padding:3px 7px;gap:5px}
+ .travel-head .travel-book{width:19px;height:18px;flex-basis:19px}
+ .travel-head strong{font-size:clamp(10px,1.27vw,14px)}
+ .travel-head button,.travel-feed .travel-head button{min-height:24px;padding:3px 6px}
+ .travel-feed .travel-log-scroll,.travel-feed.collapsed .travel-log-scroll{padding:5px 7px}
+ .travel-feed .travel-footer,.travel-feed.collapsed .travel-footer{padding:4px 7px 7px}
+ .travel-feed .travel-target,.travel-feed.collapsed .travel-target{min-height:clamp(29px,5.2dvh,36px);padding:4px 7px;font-size:clamp(9px,1vw,12px)}
+ .story-panel{top:62%;left:6%;width:21%;height:13.6%}
+ .story-panel .narrative{font-size:clamp(12px,1.41vw,17px)!important;line-height:1.43!important}
+}
+@media(max-width:700px) and (orientation:landscape){
+ .left-title-plaque{height:clamp(27px,7.7dvh,42px)}
+ .top .left-title-plaque .place{font-size:clamp(13px,2.3vw,19px);padding:2px 27px}
+ .top .subplace{font-size:9px}
+ .travel-head,.travel-feed.collapsed .travel-head{min-height:24px;padding:2px 5px;gap:3px}
+ .travel-head .travel-book{height:15px;width:16px;flex-basis:16px}
+ .travel-head strong{font-size:10px}
+ .travel-head button,.travel-feed .travel-head button{font-size:9px;min-height:20px;padding:2px 4px}
+ .travel-feed .travel-event-main,.travel-feed .travel-event-thought{font-size:9px}
+ .travel-feed .travel-event-time{font-size:8px}
+ .travel-feed .travel-target,.travel-feed.collapsed .travel-target{min-height:26px;font-size:9px;padding:3px 5px}
+ .story-panel{height:14%}
+ .story-ornament{flex-basis:11px;height:11px}
+ .story-panel .narrative{font-size:10px!important;line-height:1.38!important}
+}
+@media(max-height:350px) and (orientation:landscape){
+ .travel-head,.travel-feed.collapsed .travel-head{min-height:23px}
+ .travel-feed .travel-footer,.travel-feed.collapsed .travel-footer{padding:2px 5px 4px}
+ .travel-feed .travel-target,.travel-feed.collapsed .travel-target{min-height:25px}
+ .story-panel{top:62%;height:14%}
+ .story-ornament{flex-basis:10px;height:10px}
+}
+
 </style>
 </head>
 <body>
@@ -1152,7 +1285,16 @@ input,textarea,.panel p,.journal-list,.journey-entry{user-select:text;-webkit-us
  <span class="frameEmblem" aria-hidden="true">◇</span>
  <span class="frameDivider" aria-hidden="true"></span>
 </div><section id="sceneStage" aria-label="第一人稱場景視窗"><canvas id="view" aria-label="第一人稱冒險場景"></canvas><div id="dayTint" aria-hidden="true"></div><div id="shade"></div><div id="hotspots"></div><div id="sceneActors" aria-hidden="true"></div><div id="encounterCue" class="hidden" role="status" aria-live="polite"></div></section>
-<header class="top"><div><div class="eyebrow">CHAPTER 01–02 · 互動原型 V0.5.1 <span class="world-clock" id="worldClock">第1日 16:00</span></div><div class="place" id="place">破損的馬車</div><div class="subplace" id="subplace">森林深處 · 未知的道路</div></div><nav><button class="icon" id="hintBtn" title="顯示可互動位置" aria-label="顯示可互動位置">✧</button><button class="icon" id="regionMapBtn" title="區域地圖" aria-label="區域地圖">◇</button><button class="icon" id="journalBtn" title="旅程日誌" aria-label="旅程日誌">☷</button><button class="icon" id="menuBtn" title="選單" aria-label="選單">⚙</button></nav></header>
+<header class="top"><div><div class="eyebrow">CHAPTER 01–02 · 互動原型 V0.5.1 <span class="world-clock" id="worldClock">第1日 16:00</span></div><div class="left-title-plaque"><svg class="left-title-art" viewBox="0 0 400 76" preserveAspectRatio="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+ <defs><linearGradient id="leftPlaqueFill" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0d332d"/><stop offset=".53" stop-color="#194437"/><stop offset="1" stop-color="#082a26"/></linearGradient></defs>
+ <path d="M41 6 Q29 7 24 17 L24 23 L9 38 L24 51 L24 58 Q30 70 44 70 L356 70 Q369 69 375 57 L375 52 L392 38 L375 23 L375 18 Q370 6 357 6 Z" fill="#0b2823" stroke="#493822" stroke-width="5"/>
+ <path d="M41 6 Q29 7 24 17 L24 23 L9 38 L24 51 L24 58 Q30 70 44 70 L356 70 Q369 69 375 57 L375 52 L392 38 L375 23 L375 18 Q370 6 357 6 Z" fill="url(#leftPlaqueFill)" stroke="#bf9e69" stroke-width="2.4"/>
+ <path d="M44 11 L356 11 Q366 12 369 20 M44 65 L354 65 Q365 65 370 57" fill="none" stroke="#dcb978" stroke-width="1" opacity=".62"/>
+ <g fill="#6c9654" stroke="#b4b879" stroke-width="1.2">
+ <path d="M66 40 Q43 21 46 15 Q69 21 66 40Z"/><path d="M67 44 Q51 44 49 56 Q68 55 67 44Z"/><path d="M78 44 Q80 23 93 24 Q91 38 78 44Z"/>
+ <path d="M332 40 Q353 21 354 15 Q332 21 332 40Z"/><path d="M331 45 Q348 45 351 57 Q332 55 331 45Z"/><path d="M322 44 Q320 24 306 24 Q308 39 322 44Z"/>
+ </g><g stroke="#bd9f63" stroke-width="1.25" fill="none" stroke-linecap="round"><path d="M42 49 Q73 36 103 51 M357 49 Q328 36 297 51"/></g>
+ </svg><div class="place" id="place">破損的馬車</div></div><div class="subplace" id="subplace">森林深處 · 未知的道路</div></div><nav><button class="icon" id="hintBtn" title="顯示可互動位置" aria-label="顯示可互動位置">✧</button><button class="icon" id="regionMapBtn" title="區域地圖" aria-label="區域地圖">◇</button><button class="icon" id="journalBtn" title="旅程日誌" aria-label="旅程日誌">☷</button><button class="icon" id="menuBtn" title="選單" aria-label="選單">⚙</button></nav></header>
 <aside id="placeDrawer" aria-label="已發現地點卡欄">
  <button id="placeDrawerToggle" type="button" aria-controls="placeDrawerPanel" aria-expanded="false" aria-label="展開地點卡欄">
   <span class="place-drawer-diamond" aria-hidden="true">◇</span>
@@ -1171,7 +1313,14 @@ input,textarea,.panel p,.journal-list,.journey-entry{user-select:text;-webkit-us
 </section>
 <div id="toast" role="status"></div>
 <section id="travelFeed" class="travel-feed" aria-label="生活與冒險紀錄"><div class="travel-head"><svg class="travel-book" aria-hidden="true" viewBox="0 0 28 25" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 5C10 2.6 5.1 2.3 2 3.3v16.5c4.3-1.4 8.5-.5 12 2.1V5Zm0 0c4-2.4 8.9-2.7 12-1.7v16.5c-4.3-1.4-8.5-.5-12 2.1V5Z" fill="#c5a472" stroke="#f1d39b" stroke-width="1.2"/><path d="M14 6.1v14.1M5.4 7.3c2.2-.2 4 .2 5.6 1M5.4 11c2.2-.2 4 .2 5.6 1m11.6-4.7c-2.2-.2-4 .2-5.6 1m5.6 2.7c-2.2-.2-4 .2-5.6 1" stroke="#6b5435" stroke-width="1.1" stroke-linecap="round"/></svg><strong>旅途紀錄</strong><button id="travelToggle" type="button" aria-expanded="true">收合</button></div><div class="travel-inner"><div class="travel-log-scroll" id="travelLogScroll" role="log" aria-label="旅途訊息" aria-live="polite" aria-relevant="additions"><div id="travelRecent"></div></div><div class="travel-footer"><div class="travel-target-label">目前可前往／互動</div><div class="travel-targets" id="travelTargets"></div><button class="travel-journal-link" id="travelOpenJournal" type="button">全部旅途紀錄</button></div></div></section>
-<section class="story-panel" aria-label="目前場景敘事"><div class="story-ornament" aria-hidden="true"><span>❧</span><span>✦</span><span>❧</span></div><div class="narrative" id="narrative"></div></section>
+<section class="story-panel" aria-label="目前場景敘事"><div class="story-ornament" aria-hidden="true"><svg viewBox="0 0 330 24" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+ <path d="M3 12H138 M190 12H327" stroke="#caa66d" stroke-width="1.2" fill="none" opacity=".86"/>
+ <path d="M134 12l7-3 4 3-4 3z M196 12l-7-3-4 3 4 3z" fill="#caa66d"/>
+ <path d="M164 21 Q160 10 164 2 Q168 10 164 21Z" fill="#d1ac6f" stroke="#e6c992" stroke-width=".8"/>
+ <path d="M155 17 Q144 14 146 8 Q155 9 159 17Z M173 17 Q183 14 182 8 Q173 9 169 17Z" fill="#83a05b" stroke="#c8b779" stroke-width=".9"/>
+ <path d="M150 11 Q140 10 137 5 Q146 5 152 11Z M178 11 Q188 10 191 5 Q182 5 176 11Z" fill="#aec078"/>
+ <path d="M144 15q8 6 16 3 M184 15q-8 6-16 3" fill="none" stroke="#bb955a" stroke-width="1.3"/>
+ </svg></div><div class="narrative" id="narrative"></div></section>
 <div class="bottom"><div><div class="actions" id="actions"></div></div><div class="sidebar"><div class="chips"><span class="chip" id="chapterChip">第一章</span><span class="chip" id="partyChip">獨自一人</span><span class="chip level" id="hpChip">體力 16/16</span></div><button id="mapBtn">◇ 探索紀錄</button></div></div>
 <div class="veil hidden" id="dialogVeil"><section class="panel" role="dialog" aria-modal="true" aria-labelledby="dialogTitle"><div class="panel-head"><div><div class="kicker" id="dialogKicker">發現</div><h2 id="dialogTitle"></h2></div><div id="dialogCharacter" aria-label="目前發言人物"><canvas id="dialogCharacterCanvas" width="48" height="64" aria-hidden="true"></canvas><span id="dialogCharacterName"></span></div><button class="close" id="dialogClose" aria-label="關閉">×</button></div><p id="dialogText"></p><div class="choices" id="dialogChoices"></div></section></div>
 <div class="veil hidden" id="journalVeil"><section class="panel journal" role="dialog" aria-modal="true"><div class="panel-head"><div><div class="kicker">FIELD NOTES</div><h2>旅程日誌</h2></div><button class="close" id="journalClose">×</button></div><div class="journal-tabs" id="journalTabs"></div><div id="journalContent"></div><div class="line"></div><p class="meta">本版本使用瀏覽器本機儲存，並未連接《鱗片與種子》的雲端存檔。可在設定中匯出備份。</p></section></div>
