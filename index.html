@@ -887,6 +887,55 @@ input,textarea,.panel p,.journal-list,.journey-entry{user-select:text;-webkit-us
 }
 @media(prefers-reduced-motion:reduce){.travel-feed,.bottom .action{animation:none;transition:none}}
 
+
+/* V0.5.2: reference alignment on Safari landscape without changing gameplay. */
+#app{background:radial-gradient(ellipse 72% 70% at 46% 42%,#143a30 0%,#082822 60%,#041c1b 100%)}
+#worldFrame{border-color:#c5a16f;box-shadow:0 0 0 3px #092522,0 0 0 5px #8e7650,inset 0 0 0 4px #05201d,inset 0 0 0 6px rgba(231,193,126,.42),0 10px 30px #04160f72}
+.worldFrameArt{filter:drop-shadow(0 1px 1px #0b2119)}
+.frameEmblem{display:none}
+.top .place{border-radius:11px;letter-spacing:.1em;background:linear-gradient(90deg,#103429,#23513e 56%,#10372c)}
+.travel-feed,.travel-feed.collapsed,.travel-feed:not(.collapsed){top:28.4%;height:32.1%;left:4.45%;width:23.75%;border-radius:11px;background:linear-gradient(135deg,rgba(30,64,52,.95),rgba(8,32,33,.96))}
+.travel-head,.travel-feed.collapsed .travel-head{gap:7px}
+.travel-head::before{content:none!important}
+.travel-head .travel-book{display:block;flex:0 0 22px;width:22px;height:20px;filter:drop-shadow(0 1px 1px #09201c)}
+.travel-head strong{flex:1;min-width:0;font-weight:600;text-align:left}
+.travel-feed .travel-event-main,.travel-feed .travel-event-thought{letter-spacing:.005em;line-height:1.47}
+.travel-feed .travel-log-scroll{scrollbar-color:#9e815b transparent}
+.bottom{right:8.3%;bottom:12%;height:9.4%}
+.bottom .narrative{bottom:calc(100% + 31px);left:-.15%;width:26.5%;max-height:18dvh;overflow-y:auto;overflow-x:hidden;font-size:clamp(12px,1.2vw,17px);line-height:1.65;color:#f3e8d2}
+.bottom .actions{gap:clamp(7px,.9vw,14px);align-items:center}
+.bottom .action{display:inline-flex;align-items:center;justify-content:center;gap:.48em;min-height:clamp(37px,8dvh,55px);padding:6px 13px;white-space:nowrap;font-size:clamp(12px,1.38vw,18px);font-weight:650;text-overflow:ellipsis;letter-spacing:.012em}
+.bottom .action.primary{min-width:clamp(122px,15.8vw,242px)}
+.bottom .action.explore{min-width:clamp(145px,18vw,275px)}
+.bottom .action.primary::before{content:'➜';font-size:1.12em;color:#f8e1b0}
+.bottom .action.explore::before{content:'◎';font-size:1.27em;color:#e5e7b0}
+@media(max-width:950px) and (orientation:landscape){
+ .travel-feed,.travel-feed.collapsed,.travel-feed:not(.collapsed){top:28.4%;height:32.1%}
+ .travel-head .travel-book{width:19px;height:18px;flex-basis:19px}
+ .bottom{right:8.2%;bottom:11.7%;height:9.6%}
+ .bottom .narrative{bottom:calc(100% + 17px);max-height:17.5dvh;width:27%;font-size:clamp(10px,1.2vw,13px);line-height:1.5}
+ .bottom .actions{gap:clamp(5px,.75vw,10px)}
+ .bottom .action{max-width:23vw;min-height:clamp(33px,7.6dvh,44px);font-size:clamp(11px,1.37vw,14px);padding:5px 10px}
+ .bottom .action.primary{min-width:clamp(115px,15.6vw,230px)}
+ .bottom .action.explore{min-width:clamp(140px,18vw,270px)}
+}
+@media(max-width:700px) and (orientation:landscape){
+ .travel-feed,.travel-feed.collapsed,.travel-feed:not(.collapsed){top:28.1%;height:33%}
+ .travel-head,.travel-feed.collapsed .travel-head{gap:4px}
+ .travel-head .travel-book{width:16px;height:15px;flex-basis:16px}
+ .bottom .narrative{max-height:16dvh;bottom:calc(100% + 9px);font-size:9px;line-height:1.4}
+ .bottom .actions{gap:5px}
+ .bottom .action{font-size:10px;min-height:32px;padding:5px 6px}
+ .bottom .action.primary{min-width:clamp(100px,15.5vw,135px)}
+ .bottom .action.explore{min-width:clamp(125px,18vw,159px)}
+}
+@media(max-height:460px) and (orientation:landscape){
+ .travel-feed,.travel-feed.collapsed,.travel-feed:not(.collapsed){top:27.8%;height:32.4%}
+ .bottom{bottom:10.5%}
+ .bottom .narrative{bottom:calc(100% + 9px);max-height:14dvh}
+ .bottom .action{min-height:30px}
+}
+
 </style>
 </head>
 <body>
@@ -933,6 +982,32 @@ input,textarea,.panel p,.journal-list,.journey-entry{user-select:text;-webkit-us
    <path d="M242 24 Q265 48 279 28 Q288 12 305 26 M1284 29 Q1300 48 1327 26"/>
    <path d="M99 634 C220 621 260 649 380 639 M1212 638 C1329 647 1376 627 1472 634"/>
   </g>
+
+  <!-- Additional forest vines and mushrooms, purely decorative. -->
+  <g fill="none" stroke-linecap="round">
+   <path d="M92 22 Q122 13 158 22 T233 19 M1315 18 Q1348 8 1385 21 T1497 19" stroke="#526e42" stroke-width="4"/>
+   <path d="M109 25 Q117 44 132 39 M170 24 Q186 42 204 32 M1370 20 Q1381 45 1401 39 M1432 23 Q1454 44 1475 34" stroke="#96a76d" stroke-width="2"/>
+   <path d="M49 554 Q64 579 88 571 M49 600 Q75 619 114 606 M1510 564 Q1487 588 1463 576 M1495 635 Q1463 616 1439 630" stroke="#70894c" stroke-width="3"/>
+  </g>
+  <g fill="#719657" stroke="#4e7544" stroke-width="1">
+   <path d="M125 38 Q113 36 105 49 Q119 50 125 38Z M199 34 Q213 23 226 28 Q217 41 199 34Z M1391 37 Q1380 24 1364 30 Q1374 44 1391 37Z M1453 37 Q1463 24 1478 27 Q1473 44 1453 37Z"/>
+   <path d="M79 570 Q98 552 107 559 Q106 574 79 570Z M106 610 Q123 592 138 602 Q128 616 106 610Z M1490 583 Q1473 571 1462 583 Q1471 591 1490 583Z"/>
+   <path d="M180 641 Q175 627 165 629 Q168 640 180 641Z M204 642 Q213 631 225 635 Q219 645 204 642Z M1367 643 Q1376 631 1389 637 Q1380 647 1367 643Z"/>
+  </g>
+  <g transform="translate(111 608)">
+   <path d="M2 26 Q3 5 20 4 Q37 3 40 26Z" fill="#a76b3b" stroke="#e2b981" stroke-width="1.5"/>
+   <path d="M17 26h9v20h-9z" fill="#d4b08b"/>
+   <circle cx="12" cy="17" r="2.2" fill="#f4d59c"/><circle cx="26" cy="12" r="2.8" fill="#f4d59c"/>
+  </g>
+  <g transform="translate(38 629)">
+   <path d="M0 14Q3 0 16 0Q28 0 31 14Z" fill="#93633e" stroke="#d7aa73" stroke-width="1.4"/>
+   <path d="M12 14h7v14h-7z" fill="#c6a481"/><circle cx="13" cy="7" r="2" fill="#efcd91"/>
+  </g>
+  <g fill="#8669bf" stroke="#d3b5f0" stroke-width="1.4">
+   <path d="M1454 654l9-31 14 29-10 12Z"/>
+   <path d="M1475 654l13-42 9 41-8 12Z"/>
+   <path d="M1498 655l11-29 9 29-12 11Z"/>
+  </g>
 </svg>
  <span class="frameEmblem" aria-hidden="true">◇</span>
  <span class="frameDivider" aria-hidden="true"></span>
@@ -955,7 +1030,7 @@ input,textarea,.panel p,.journal-list,.journey-entry{user-select:text;-webkit-us
  <p id="sceneInspectionText"></p><div class="inspection-actions" id="sceneInspectionActions"></div>
 </section>
 <div id="toast" role="status"></div>
-<section id="travelFeed" class="travel-feed" aria-label="生活與冒險紀錄"><div class="travel-head"><strong>旅途紀錄</strong><button id="travelToggle" type="button" aria-expanded="true">收合</button></div><div class="travel-inner"><div class="travel-log-scroll" id="travelLogScroll" role="log" aria-label="旅途訊息" aria-live="polite" aria-relevant="additions"><div id="travelRecent"></div></div><div class="travel-footer"><div class="travel-target-label">目前可前往／互動</div><div class="travel-targets" id="travelTargets"></div><button class="travel-journal-link" id="travelOpenJournal" type="button">全部旅途紀錄</button></div></div></section>
+<section id="travelFeed" class="travel-feed" aria-label="生活與冒險紀錄"><div class="travel-head"><svg class="travel-book" aria-hidden="true" viewBox="0 0 28 25" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 5C10 2.6 5.1 2.3 2 3.3v16.5c4.3-1.4 8.5-.5 12 2.1V5Zm0 0c4-2.4 8.9-2.7 12-1.7v16.5c-4.3-1.4-8.5-.5-12 2.1V5Z" fill="#c5a472" stroke="#f1d39b" stroke-width="1.2"/><path d="M14 6.1v14.1M5.4 7.3c2.2-.2 4 .2 5.6 1M5.4 11c2.2-.2 4 .2 5.6 1m11.6-4.7c-2.2-.2-4 .2-5.6 1m5.6 2.7c-2.2-.2-4 .2-5.6 1" stroke="#6b5435" stroke-width="1.1" stroke-linecap="round"/></svg><strong>旅途紀錄</strong><button id="travelToggle" type="button" aria-expanded="true">收合</button></div><div class="travel-inner"><div class="travel-log-scroll" id="travelLogScroll" role="log" aria-label="旅途訊息" aria-live="polite" aria-relevant="additions"><div id="travelRecent"></div></div><div class="travel-footer"><div class="travel-target-label">目前可前往／互動</div><div class="travel-targets" id="travelTargets"></div><button class="travel-journal-link" id="travelOpenJournal" type="button">全部旅途紀錄</button></div></div></section>
 <div class="bottom"><div><div class="narrative" id="narrative"></div><div class="actions" id="actions"></div></div><div class="sidebar"><div class="chips"><span class="chip" id="chapterChip">第一章</span><span class="chip" id="partyChip">獨自一人</span><span class="chip level" id="hpChip">體力 16/16</span></div><button id="mapBtn">◇ 探索紀錄</button></div></div>
 <div class="veil hidden" id="dialogVeil"><section class="panel" role="dialog" aria-modal="true" aria-labelledby="dialogTitle"><div class="panel-head"><div><div class="kicker" id="dialogKicker">發現</div><h2 id="dialogTitle"></h2></div><div id="dialogCharacter" aria-label="目前發言人物"><canvas id="dialogCharacterCanvas" width="48" height="64" aria-hidden="true"></canvas><span id="dialogCharacterName"></span></div><button class="close" id="dialogClose" aria-label="關閉">×</button></div><p id="dialogText"></p><div class="choices" id="dialogChoices"></div></section></div>
 <div class="veil hidden" id="journalVeil"><section class="panel journal" role="dialog" aria-modal="true"><div class="panel-head"><div><div class="kicker">FIELD NOTES</div><h2>旅程日誌</h2></div><button class="close" id="journalClose">×</button></div><div class="journal-tabs" id="journalTabs"></div><div id="journalContent"></div><div class="line"></div><p class="meta">本版本使用瀏覽器本機儲存，並未連接《鱗片與種子》的雲端存檔。可在設定中匯出備份。</p></section></div>
@@ -2123,7 +2198,7 @@ function entries(){const a={
  return filtered;
 }
 function render(){if(!names[s.scene])s.scene='wreck';normalizeGameTime();$('place').textContent=names[s.scene][0];syncTimeAtmosphere();$('partyChip').textContent=s.flags.rescued?'與冒險者相遇':'獨自探索';$('hpChip').textContent=`體力 ${s.hp}/${s.maxHp}`;$('chapterChip').textContent=s.flags.morning?'第二章 · 清晨':s.flags.chapterDone?'第一章片段完成':'第一章';const texts={
- wreck:'你從毀壞的車篷下爬出來，泥土的涼意讓意識慢慢清晰。前方是散落貨物與通往林間的道路；點選物件調查，或使用下方按鈕離開。',
+ wreck:'你從毀壞的車篷下爬出來，泥土的涼意讓你逐漸清醒。',
  trail:s.flags.rescued?'你沿著車轍走到林道，遠方的城鎮逐漸清晰。可以回望事故現場，也可以繼續前進。':'樹影遮住前方道路。你可以搜索林邊的舊物與生物痕跡，或花一點時間辨認道路，將發現的岔路逐一記入地圖。',
  clearing:'陌生的風聲、樹根間的微光。你可以接近，也可以完全不理會。',
  ruin:'古老石門默默矗立。它像是某個故事的開始，但你現在可以直接離開。',
