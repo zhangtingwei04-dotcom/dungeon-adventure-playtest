@@ -1629,6 +1629,53 @@ input,textarea,.panel p,.journal-list,.journey-entry{user-select:text;-webkit-us
  #placeDrawerToggle .place-drawer-vertical{font-size:11px}
 }
 
+
+/* V0.6.7 — independent transparent illustrations replace geometric ornaments
+   when all four assets have decoded. The original frame and game remain intact.
+   Frame bounds stay as approved: top/bottom flush; both sides inset. */
+#worldFrame .painted-ornaments{
+ position:absolute;inset:0;z-index:4;overflow:visible;
+ pointer-events:none;user-select:none;-webkit-user-select:none;
+}
+#worldFrame .ornament-image{
+ position:absolute;display:block;max-width:none;max-height:none;
+ pointer-events:none;user-select:none;opacity:0;
+ object-fit:fill;filter:drop-shadow(0 2px 3px #0616117c);
+ transition:opacity .2s ease;
+}
+#worldFrame.painted-ready .ornament-image{opacity:.95}
+#worldFrame.painted-ready .worldFrameArt .legacy-ornament{opacity:0}
+#worldFrame.painted-ready::before{display:none}
+#worldFrame .ornament-ivy{
+ left:1.4%;top:.25%;width:19%;height:12.7%;
+ filter:saturate(.84) brightness(.94) drop-shadow(0 2px 3px #06161190);
+}
+#worldFrame .ornament-snake{
+ left:39.5%;top:.25%;width:22%;height:7.7%;
+ filter:saturate(.78) brightness(.93) drop-shadow(0 2px 3px #08180ea6);
+}
+#worldFrame .ornament-mushrooms{
+ left:1.0%;bottom:.4%;width:15.2%;height:16.4%;
+ filter:saturate(.85) brightness(.94) drop-shadow(0 2px 3px #071811ba);
+}
+#worldFrame .ornament-crystals{
+ right:.1%;bottom:.6%;width:10.2%;height:15.5%;
+ filter:saturate(.83) brightness(.97) drop-shadow(0 1px 4px #091015b0);
+}
+@media(max-width:950px) and (orientation:landscape){
+ #worldFrame .ornament-ivy{top:.25%;height:13%;}
+ #worldFrame .ornament-snake{height:8.2%;}
+ #worldFrame .ornament-mushrooms{height:17%;}
+ #worldFrame .ornament-crystals{height:16%;}
+}
+@media(max-height:350px) and (orientation:landscape){
+ #worldFrame .ornament-ivy{height:12.1%;}
+ #worldFrame .ornament-snake{height:6.8%;}
+ #worldFrame .ornament-mushrooms{height:15%;}
+ #worldFrame .ornament-crystals{height:14%;}
+}
+@media(prefers-reduced-motion:reduce){#worldFrame .ornament-image{transition:none}}
+
 </style>
 </head>
 <body>
@@ -1637,26 +1684,26 @@ input,textarea,.panel p,.journal-list,.journey-entry{user-select:text;-webkit-us
   <g fill="none" stroke="#a68e4c" stroke-width="3" opacity=".72">
    <path d="M36 78 Q38 30 92 30 H686 M1516 30 H1550 Q1581 31 1580 79 V158 M36 524 V618 Q36 667 100 667 H450 M1440 667 H1528 Q1580 667 1580 606 V524"/>
    <path d="M53 109 Q53 51 107 51 H410 M1548 103 Q1548 50 1500 51 H1190 M53 576 Q53 642 106 645 H368 M1265 645 H1495 Q1549 645 1549 586" stroke-width="1.2" opacity=".5"/>
-   <path d="M742 35 C765 10 796 13 800 43 C801 57 764 60 768 42 C774 26 815 21 839 39 C850 47 830 56 828 47 C825 31 865 23 884 35"/>
+   <path class="legacy-ornament" d="M742 35 C765 10 796 13 800 43 C801 57 764 60 768 42 C774 26 815 21 839 39 C850 47 830 56 828 47 C825 31 865 23 884 35"/>
   </g>
-  <g fill="#557c3e" stroke="#8c9b5a" stroke-width="1.4">
+  <g class="legacy-ornament" fill="#557c3e" stroke="#8c9b5a" stroke-width="1.4">
    <path d="M132 37 Q117 4 92 7 Q94 31 132 37ZM150 37 Q157 3 181 7 Q178 31 150 37ZM221 38 Q205 12 181 18 Q185 40 221 38ZM1350 37 Q1335 5 1310 8 Q1310 32 1350 37ZM1408 37 Q1427 1 1450 10 Q1447 31 1408 37ZM1502 67 Q1527 37 1541 57 Q1527 75 1502 67Z"/>
    <path d="M54 562 Q12 540 18 515 Q50 518 54 562ZM56 586 Q88 551 106 566 Q93 588 56 586ZM1520 593 Q1533 559 1557 567 Q1554 588 1520 593ZM1373 645 Q1386 616 1411 625 Q1401 643 1373 645ZM219 645 Q230 622 257 630 Q251 650 219 645Z"/>
   </g>
   <g stroke="#c4ad68" stroke-width="2" fill="none" opacity=".65">
    <path d="M80 50 Q127 35 164 43 Q183 46 210 35 M1305 40 Q1336 50 1367 43 Q1408 39 1422 50 M56 551 Q72 579 51 609 M1533 549 Q1518 577 1551 619"/>
   </g>
-  <g transform="translate(64,607)">
+  <g class="legacy-ornament" transform="translate(64,607)">
    <path d="M0 27 Q3 -8 21 -4 Q40 -7 46 26Z" fill="#aa6e37" stroke="#f0c17a" stroke-width="2"/>
    <rect x="18" y="26" width="10" height="25" rx="2" fill="#c7a783"/>
    <circle cx="9" cy="16" r="2.5" fill="#f4d59c"/><circle cx="27" cy="9" r="3" fill="#f4d59c"/><circle cx="36" cy="18" r="2.5" fill="#f4d59c"/>
   </g>
-  <g transform="translate(1498,619)" fill="#8a70c3" stroke="#d2bafa" stroke-width="2">
+  <g class="legacy-ornament" transform="translate(1498,619)" fill="#8a70c3" stroke="#d2bafa" stroke-width="2">
    <path d="M0 36 L13 7 L28 35 L18 50Z"/><path d="M27 46 L39 -6 L48 43 L38 55Z"/><path d="M49 44 L69 16 L67 54 L59 58Z"/>
   </g>
  
   <!-- Fine vinework and the winding serpent are purely ornamental. -->
-  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <g class="legacy-ornament" fill="none" stroke-linecap="round" stroke-linejoin="round">
    <path d="M84 26 C142 34 178 30 226 19 S318 27 380 23 M1228 24 C1288 32 1332 19 1390 26 S1494 26 1551 21" stroke="#a4aa66" stroke-width="3" opacity=".82"/>
    <path d="M89 32 C102 64 71 77 54 106 M1511 32 C1492 74 1532 85 1547 125 M60 609 C83 585 112 626 139 636 M1458 637 C1497 619 1517 581 1541 570" stroke="#7d9a59" stroke-width="3"/>
    <path d="M665 27 C690 16 702 42 718 31 S752 15 762 30 S788 42 800 25 S822 11 840 29 S874 43 885 19 C893 7 917 14 918 27" stroke="#d6b67a" stroke-width="7"/>
@@ -1665,7 +1712,7 @@ input,textarea,.panel p,.journal-list,.journey-entry{user-select:text;-webkit-us
    <circle cx="930" cy="20" r="1.7" fill="#172721" stroke="none"/>
    <path d="M938 24 l8 2 -7 3" stroke="#cc9174" stroke-width="1"/>
   </g>
-  <g fill="#72984e" stroke="#a9ae69" stroke-width="1.2" opacity=".95">
+  <g class="legacy-ornament" fill="#72984e" stroke="#a9ae69" stroke-width="1.2" opacity=".95">
    <path d="M123 31 Q94 9 105 2 Q130 7 123 31Z M177 30 Q177 3 202 10 Q194 27 177 30Z M250 28 Q238 4 224 10 Q220 24 250 28Z"/>
    <path d="M1300 28 Q1270 2 1265 15 Q1277 30 1300 28Z M1363 26 Q1374 2 1396 9 Q1389 28 1363 26Z M1460 28 Q1468 3 1490 13 Q1479 31 1460 28Z"/>
    <path d="M66 568 Q37 549 26 558 Q33 578 66 568Z M81 598 Q105 576 121 590 Q105 609 81 598Z"/>
@@ -1682,26 +1729,32 @@ input,textarea,.panel p,.journal-list,.journey-entry{user-select:text;-webkit-us
    <path d="M109 25 Q117 44 132 39 M170 24 Q186 42 204 32 M1370 20 Q1381 45 1401 39 M1432 23 Q1454 44 1475 34" stroke="#96a76d" stroke-width="2"/>
    <path d="M49 554 Q64 579 88 571 M49 600 Q75 619 114 606 M1510 564 Q1487 588 1463 576 M1495 635 Q1463 616 1439 630" stroke="#70894c" stroke-width="3"/>
   </g>
-  <g fill="#719657" stroke="#4e7544" stroke-width="1">
+  <g class="legacy-ornament" fill="#719657" stroke="#4e7544" stroke-width="1">
    <path d="M125 38 Q113 36 105 49 Q119 50 125 38Z M199 34 Q213 23 226 28 Q217 41 199 34Z M1391 37 Q1380 24 1364 30 Q1374 44 1391 37Z M1453 37 Q1463 24 1478 27 Q1473 44 1453 37Z"/>
    <path d="M79 570 Q98 552 107 559 Q106 574 79 570Z M106 610 Q123 592 138 602 Q128 616 106 610Z M1490 583 Q1473 571 1462 583 Q1471 591 1490 583Z"/>
    <path d="M180 641 Q175 627 165 629 Q168 640 180 641Z M204 642 Q213 631 225 635 Q219 645 204 642Z M1367 643 Q1376 631 1389 637 Q1380 647 1367 643Z"/>
   </g>
-  <g transform="translate(111 608)">
+  <g class="legacy-ornament" transform="translate(111 608)">
    <path d="M2 26 Q3 5 20 4 Q37 3 40 26Z" fill="#a76b3b" stroke="#e2b981" stroke-width="1.5"/>
    <path d="M17 26h9v20h-9z" fill="#d4b08b"/>
    <circle cx="12" cy="17" r="2.2" fill="#f4d59c"/><circle cx="26" cy="12" r="2.8" fill="#f4d59c"/>
   </g>
-  <g transform="translate(38 629)">
+  <g class="legacy-ornament" transform="translate(38 629)">
    <path d="M0 14Q3 0 16 0Q28 0 31 14Z" fill="#93633e" stroke="#d7aa73" stroke-width="1.4"/>
    <path d="M12 14h7v14h-7z" fill="#c6a481"/><circle cx="13" cy="7" r="2" fill="#efcd91"/>
   </g>
-  <g fill="#8669bf" stroke="#d3b5f0" stroke-width="1.4">
+  <g class="legacy-ornament" fill="#8669bf" stroke="#d3b5f0" stroke-width="1.4">
    <path d="M1454 654l9-31 14 29-10 12Z"/>
    <path d="M1475 654l13-42 9 41-8 12Z"/>
    <path d="M1498 655l11-29 9 29-12 11Z"/>
   </g>
 </svg>
+ <div class="painted-ornaments" aria-hidden="true">
+  <img class="ornament-image ornament-ivy" id="ornament-ivy" alt="" decoding="async">
+  <img class="ornament-image ornament-snake" id="ornament-snake" alt="" decoding="async">
+  <img class="ornament-image ornament-mushrooms" id="ornament-mushrooms" alt="" decoding="async">
+  <img class="ornament-image ornament-crystals" id="ornament-crystals" alt="" decoding="async">
+ </div>
  <span class="frameEmblem" aria-hidden="true">◇</span>
  <span class="frameDivider" aria-hidden="true"></span>
 </div><section id="sceneStage" aria-label="第一人稱場景視窗"><canvas id="view" aria-label="第一人稱冒險場景"></canvas><div id="dayTint" aria-hidden="true"></div><div id="shade"></div><div id="hotspots"></div><div id="sceneActors" aria-hidden="true"></div><div id="encounterCue" class="hidden" role="status" aria-live="polite"></div></section>
@@ -1753,10 +1806,32 @@ input,textarea,.panel p,.journal-list,.journey-entry{user-select:text;-webkit-us
 <div class="veil" id="startVeil"><section class="panel start"><div class="stamp">A STORY OF THE UNKNOWN</div><h1 class="screen-title">殘車之後</h1><p>你在一輛被毀壞的貨運馬車裡醒來。森林靜得出奇，而你不記得自己為何來到這裡。</p><button class="choice" id="startBtn">開始新的旅程</button><button class="choice hidden" id="continueBtn">繼續旅程</button><div class="note">V0.5.1 可玩原型 · 橫式手機／電腦　｜　探索優先、調查可選　｜　不需登入及付費</div></section></div>
 <div class="orientation"><div><strong>請將手機轉為橫向</strong><p>第一章與城鎮探索以橫式畫面呈現。</p>↻</div></div>
 </div>
+<script src="./assets/ornaments_data.js"></script>
 <script src="./assets/approved_wagon_art_v1.js"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script>
 (()=>{'use strict';
+// Mount four independent transparent ornaments after the artwork data loads.
+ // All illustrations are visual-only and never intercept buttons or hotspots.
+ (function(){
+  const art=window.DUNGEON_ORNAMENTS;
+  if(!art||typeof art!=='object')return;
+  const keys=['ivy','snake','mushrooms','crystals'];
+  let successful=0;
+  for(const key of keys){
+   const img=document.getElementById('ornament-'+key);
+   if(!img||typeof art[key]!=='string'||!art[key].startsWith('data:image/webp;base64,'))return;
+  }
+  for(const key of keys){
+   const img=document.getElementById('ornament-'+key);
+   img.onload=()=>{
+    successful++;
+    if(successful===keys.length)document.getElementById('worldFrame')?.classList.add('painted-ready');
+   };
+   img.onerror=()=>console.warn('Decorative art unavailable:',key);
+   img.src=art[key];
+  }
+ })();
 const KEY='dungeon_adventure_ch1_v01';
 const $=id=>document.getElementById(id);
 const names={wreck:['破損的馬車','森林邊緣 · 一切從這裡開始'],trail:['林間小徑','陽光沿著舊路灑落'],clearing:['寂靜的林間空地','風聲裡混著陌生的細響'],ruin:['苔生石門','林木間的無名遺構'],gate:['城鎮入口','道路與陌生的人群'],inn:['旅店客房','一處短暫安全的地方'],lobby:['旅店大廳','晨光與麵包香氣'],street:['城鎮街道','人們各自忙碌的日常'],guild:['冒險者公會','工作、傳聞與出發前的準備'],outskirts:['近郊路口','城牆之外 · 未知尚在前方'],home:['冒險小隊的公共起居室','共同生活的六個人 · 只是普通的一天']};
