@@ -4,6 +4,13 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no"><meta name="theme-color" content="#101b1d">
 <title>殘車之後｜第一章與城鎮 V0.5.1</title>
 <style>
+/* Fixed reference-stage mode is opt-out with ?layout=fluid.
+   Designed from the user's approved 1536×707 concept reference (ratio 2.17256).
+   16:9 belongs only to the nested interactive scene canvas; using 16:9 for
+   the entire HUD would distort the approved screenshot. This style block
+   intentionally precedes original responsive CSS; stronger scoped rules
+   appended at the stylesheet end provide the actual fixed coordinates. */
+
 :root{--ink:#e9e5d5;--muted:#b7c4b5;--gold:#ddc18b;--line:rgba(224,215,176,.23);--bg:#101819;--panel:rgba(17,27,29,.96);--glass:rgba(13,26,27,.79)}*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","PingFang TC",sans-serif}button{font:inherit;touch-action:manipulation;cursor:pointer}body{overflow:hidden}#app{position:relative;width:100vw;height:100dvh;overflow:hidden;background:#101a1a}#view{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}#shade{pointer-events:none;position:absolute;inset:0;background:linear-gradient(180deg,rgba(6,15,16,.58) 0%,transparent 29%,transparent 51%,rgba(5,11,12,.87) 100%)}.top{position:absolute;top:0;left:0;right:0;padding:calc(12px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) 5px calc(16px + env(safe-area-inset-left));display:flex;justify-content:space-between;align-items:start;gap:12px;pointer-events:none}.top>div,.top>nav{pointer-events:auto}.eyebrow{font-size:10px;letter-spacing:.22em;color:#d0bc91}.place{font-family:Georgia,"Noto Serif TC",serif;font-size:clamp(19px,3.1vh,29px);letter-spacing:.1em;text-shadow:0 3px 8px #000}.subplace{color:#cdd2be;font-size:11px;margin-top:3px;max-width:61vw}.top nav{display:flex;gap:7px}.icon{width:40px;height:38px;display:grid;place-items:center;color:#e1d5b8;background:rgba(9,24,25,.71);border:1px solid var(--line);border-radius:9px;backdrop-filter:blur(9px);font-size:18px}.icon:hover,.icon:focus-visible{background:#274440;outline:1px solid var(--gold)}#toast{position:absolute;left:50%;top:18%;transform:translateX(-50%);background:rgba(9,20,22,.9);border:1px solid var(--line);border-radius:8px;padding:9px 16px;text-align:center;font-size:12px;max-width:82%;opacity:0;transition:opacity .25s;pointer-events:none;line-height:1.7}#toast.active{opacity:1}.bottom{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(180deg,transparent,rgba(5,15,17,.92) 20%);padding:18px calc(16px + env(safe-area-inset-right)) calc(13px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:end}.narrative{font-family:Georgia,"Noto Serif TC",serif;font-size:clamp(12px,1.65vw,15px);line-height:1.72;color:#e5e3d5;text-shadow:0 2px 3px #000;max-width:650px;min-height:40px;margin:0 0 8px}.actions{display:flex;flex-wrap:wrap;gap:7px}.action{color:#eee4cf;background:rgba(18,37,37,.85);border:1px solid rgba(226,200,140,.34);padding:10px 13px;border-radius:7px;font-size:12px;min-height:39px}.action.primary{background:rgba(123,96,51,.76);border-color:rgba(238,199,118,.68);font-weight:650}.action:hover,.action:focus-visible{background:#39534c;outline:1px solid var(--gold)}.sidebar{align-self:end;display:flex;flex-direction:column;align-items:end;gap:8px}.sidebar button{color:#d8c8a9;background:rgba(14,32,32,.71);border:1px solid var(--line);padding:9px 12px;border-radius:7px;font-size:12px}.sidebar button:hover{background:#2d4543}.chips{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}.chip{font-size:10px;color:#d9d0ac;padding:5px 8px;background:rgba(9,19,21,.74);border:1px solid var(--line);border-radius:40px}.hotspot{position:absolute;transform:translate(-50%,-50%);border:1px solid #f1d899;border-radius:50%;width:24px;height:24px;background:rgba(255,211,116,.22);box-shadow:0 0 0 8px rgba(255,203,102,.06),0 0 20px rgba(250,222,153,.53);transition:opacity .2s;z-index:1;opacity:0;pointer-events:none}.hotspot.on{opacity:1;pointer-events:auto}.hotspot:after{content:'+';color:#fff5d8;font-size:15px;line-height:20px}#hotspots{position:absolute;inset:0;pointer-events:none}#hotspots button{pointer-events:auto}.veil{position:absolute;inset:0;background:rgba(1,10,12,.73);backdrop-filter:blur(8px);z-index:5;display:flex;align-items:center;justify-content:center;padding:12px}.hidden{display:none!important}.panel{width:min(560px,calc(100vw - 34px));max-height:calc(100dvh - 24px);overflow:auto;background:linear-gradient(145deg,#20312f,#101b1e 65%);border:1px solid rgba(220,197,143,.39);border-radius:12px;box-shadow:0 22px 90px rgba(0,0,0,.65);padding:clamp(16px,3vw,26px)}.panel-head{display:flex;justify-content:space-between;align-items:start;gap:10px}.kicker{font-size:10px;letter-spacing:.22em;color:#c4aa7d;text-transform:uppercase}.panel h2{font-family:Georgia,"Noto Serif TC",serif;font-weight:500;font-size:clamp(23px,4vw,31px);margin:7px 0 12px;color:#f3e9d5}.panel p{font-size:13px;color:#d3d7cd;line-height:1.85;white-space:pre-line}.panel .choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:18px}.choice{border:1px solid rgba(221,195,139,.38);background:rgba(35,58,53,.72);padding:12px 13px;border-radius:8px;color:#f5ecdb;min-height:43px;text-align:left;font-size:13px}.choice:hover,.choice:focus-visible{background:#3f5a50;outline:1px solid #d1b57e}.close{background:none;border:none;color:#c7c6b9;font-size:24px;padding:0 3px}.meta{color:#aeaf9d;font-size:11px;line-height:1.7}.line{height:1px;background:var(--line);margin:15px 0}.note{background:rgba(193,163,99,.1);border-left:2px solid #c2a76e;padding:10px;font-size:12px;line-height:1.75;color:#e5dcc3}.journal{max-width:700px}.journal-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 14px}.journal-tab{font-size:12px;padding:8px 12px;background:transparent;color:var(--muted);border:1px solid var(--line);border-radius:6px}.journal-tab.selected{background:#556347;color:#fff4de}.journal-list{margin:8px 0 0;padding-left:18px;font-size:13px;line-height:2;color:#e0e2d7}.screen-title{font-family:Georgia,"Noto Serif TC",serif;font-size:clamp(32px,7vw,56px)!important;color:#f5ead2;letter-spacing:.14em;text-shadow:0 5px 18px #000;margin:4px 0 11px!important}.start{background:linear-gradient(130deg,rgba(14,33,33,.93),rgba(10,21,23,.92));width:min(530px,93vw)}.start .choice{width:100%;text-align:center;margin-top:10px}.start .note{margin-top:16px}.stamp{font-size:12px;letter-spacing:.3em;color:#ddc28e}.orientation{position:absolute;inset:0;z-index:10;display:none;place-items:center;background:#101f1e;color:#dfd2b5;padding:35px;text-align:center}.orientation strong{font-size:24px;font-weight:500}.orientation p{font-size:13px;line-height:1.8}.hp{color:#f0bca9}.level{font-variant-numeric:tabular-nums}.panel::-webkit-scrollbar{width:5px}.panel::-webkit-scrollbar-thumb{background:#827656}@media(max-width:700px) and (orientation:landscape){.top{padding-top:5px}.place{font-size:20px}.subplace{display:none}.icon{width:34px;height:32px;font-size:15px}.bottom{padding-top:8px;padding-bottom:7px}.narrative{font-size:11px;line-height:1.5;min-height:0;margin-bottom:5px;max-width:480px}.action{font-size:11px;min-height:31px;padding:7px 9px}.sidebar button{font-size:10px;padding:6px 9px}.chip{font-size:9px;padding:3px 7px}.panel{padding:14px 17px}.panel h2{font-size:23px;margin:3px 0 7px}.panel p{font-size:12px;line-height:1.65}.panel .choices{margin-top:10px}.choice{padding:8px 11px;min-height:35px;font-size:12px}.line{margin:8px 0}}@media(max-width:600px) and (orientation:portrait){.orientation{display:grid}}@media(max-height:360px) and (orientation:landscape){.top .eyebrow,.sidebar .chips{display:none}.bottom{gap:6px}.action{padding:6px 8px}.narrative{font-size:10px}}
 /* V0.2: keep the beautiful 2D scene visible and controls reachable in small landscape screens. */
 .bottom{max-height:61dvh;overflow-y:auto;scrollbar-width:thin}
@@ -1834,6 +1841,209 @@ input,textarea,.panel p,.journal-list,.journey-entry{user-select:text;-webkit-us
  .bottom .action{min-height:30px}
 }
 
+
+/* V0.7.0 | Fixed reference-stage layout. Source of truth: 1536x707.
+   Keep all current IDs and interaction logic; no fake journal content.
+   At landscape sizes, all content uses the same design coordinate system.
+   Browser/toolbars are outside the measured visible viewport. */
+html.stage-locked,html.stage-locked body{
+ margin:0;width:100%;height:100%;
+ overflow:hidden;
+ background:radial-gradient(ellipse at center,#0a2924,#031917 83%);
+}
+html.stage-locked #app{
+ position:fixed!important;inset:auto!important;
+ top:0!important;left:0!important;
+ width:1536px!important;height:707px!important;
+ min-width:1536px!important;min-height:707px!important;
+ max-width:none!important;max-height:none!important;
+ transform-origin:0 0!important;
+ transform:translate3d(var(--stage-left,0px),var(--stage-top,0px),0) scale(var(--stage-scale,1))!important;
+ overflow:hidden;
+}
+/* Keep the last confirmed gold frame inset while attaching both
+   horizontal rails to the logical stage edges. */
+html.stage-locked #worldFrame{
+ top:0!important;bottom:0!important;
+ left:89px!important;right:89px!important;
+}
+/* Left header, live travel records, and narrative are independent pieces
+   of a single fixed-coordinate left panel. */
+html.stage-locked #app .top{
+ top:88px!important;left:78px!important;right:74px!important;
+ padding:0!important;align-items:flex-start!important;
+}
+html.stage-locked #app .top>div:first-child{
+ width:367px!important;min-width:367px!important;
+ transform:translate(20px,0)!important;
+}
+html.stage-locked #app .left-title-plaque{
+ width:367px;height:65px;
+}
+html.stage-locked #app .top .left-title-plaque .place{
+ font-size:30px!important;line-height:1.2!important;
+ padding:4px 42px!important;letter-spacing:2px!important;
+}
+html.stage-locked #app .top .subplace{
+ width:367px!important;max-width:367px!important;
+ margin-top:3px!important;padding:0!important;
+ font-size:14px!important;line-height:18px!important;
+ color:#e6d3a9;
+}
+html.stage-locked #app .top nav{
+ gap:13px!important;transform:none!important;
+ margin:4px 0 0 auto!important;
+}
+html.stage-locked #app .top .icon{
+ width:60px!important;height:60px!important;
+ min-width:60px!important;min-height:60px!important;
+ border-radius:12px!important;
+}
+html.stage-locked #app .top .icon svg{
+ width:31px!important;height:31px!important;
+}
+html.stage-locked #app .travel-feed,
+html.stage-locked #app .travel-feed.collapsed,
+html.stage-locked #app .travel-feed:not(.collapsed){
+ position:absolute!important;
+ left:97px!important;top:193px!important;
+ width:338px!important;height:245px!important;
+ max-height:none!important;
+ border-radius:12px!important;
+}
+html.stage-locked #app .travel-feed .travel-head,
+html.stage-locked #app .travel-feed.collapsed .travel-head{
+ padding:6px 11px!important;min-height:46px!important;
+ gap:8px!important;
+}
+html.stage-locked #app .travel-head .travel-book{
+ width:27px!important;height:25px!important;flex-basis:27px!important;
+}
+html.stage-locked #app .travel-head strong{
+ font-size:20px!important;letter-spacing:1px!important;
+}
+html.stage-locked #app .travel-head button{
+ width:29px!important;min-height:29px!important;
+ font-size:19px!important;
+}
+html.stage-locked #app .travel-feed .travel-log-scroll,
+html.stage-locked #app .travel-feed.collapsed .travel-log-scroll{
+ padding:7px 10px!important;min-height:0!important;
+ max-height:none!important;
+}
+html.stage-locked #app .travel-feed .travel-event,
+html.stage-locked #app .travel-feed.collapsed .travel-event{
+ padding:4px 0!important;margin:0!important;
+}
+html.stage-locked #app .travel-event-time{font-size:13px!important;flex-basis:42px!important;}
+html.stage-locked #app .travel-event-main{font-size:14px!important;}
+html.stage-locked #app .travel-event-thought{font-size:16px!important;}
+html.stage-locked #app .travel-feed .travel-footer,
+html.stage-locked #app .travel-feed.collapsed .travel-footer{
+ padding:7px 10px 9px!important;
+}
+html.stage-locked #app .travel-route-tag{
+ font-size:13px!important;min-height:35px!important;
+ padding:5px 9px!important;
+}
+html.stage-locked #app .travel-feed .travel-target{
+ font-size:13px!important;min-height:37px!important;
+}
+html.stage-locked #app .travel-feather{
+ width:29px!important;height:50px!important;
+ right:7px!important;bottom:9px!important;
+}
+html.stage-locked #app .story-panel{
+ position:absolute!important;
+ top:445px!important;left:110px!important;
+ width:307px!important;height:99px!important;
+ gap:7px!important;overflow:hidden!important;
+}
+html.stage-locked #app .story-ornament{
+ flex-basis:20px!important;height:20px!important;
+}
+html.stage-locked #app .story-panel .narrative{
+ padding:0 0 0 10px!important;
+ font-size:18px!important;line-height:1.55!important;
+ text-align:left!important;max-height:none!important;
+ overflow-y:auto!important;
+}
+/* The illustrated scene is 16:9, nested inside the 1536×707 UI stage. */
+html.stage-locked #app #sceneStage{
+ top:122px!important;left:449px!important;
+ width:698px!important;height:auto!important;
+ aspect-ratio:16 / 9!important;
+}
+html.stage-locked #app #sceneStage .scene-corner{
+ width:43px!important;height:43px!important;
+}
+/* Fixed location bookmark, attached to the inner edge of the right rail. */
+html.stage-locked #app #placeDrawer{
+ top:190px!important;bottom:200px!important;
+ right:93px!important;width:326px!important;
+ --place-handle-width:61px;
+}
+html.stage-locked #app #placeDrawerToggle{
+ width:61px!important;min-width:61px!important;
+ flex-basis:61px!important;height:165px!important;
+ max-height:165px!important;
+}
+html.stage-locked #app #placeDrawerToggle .place-drawer-diamond{
+ font-size:27px!important;
+}
+html.stage-locked #app #placeDrawerToggle .place-drawer-vertical{
+ font-size:17px!important;
+}
+html.stage-locked #app #placeDrawerToggle .place-drawer-count{
+ font-size:11px!important;
+}
+/* Stable bottom row, clear of the crystal art and lower gold frame. */
+html.stage-locked #app .bottom{
+ left:80px!important;right:138px!important;
+ bottom:59px!important;height:64px!important;
+ padding:0!important;max-height:none!important;
+ overflow:visible!important;
+}
+html.stage-locked #app .bottom .actions{
+ display:flex!important;flex-wrap:nowrap!important;
+ justify-content:flex-end!important;gap:14px!important;
+}
+html.stage-locked #app .bottom .action{
+ min-height:52px!important;
+ padding:8px 14px!important;
+ font-size:18px!important;line-height:1.22!important;
+ max-width:none!important;white-space:nowrap!important;
+}
+html.stage-locked #app .bottom .action.primary{min-width:232px!important}
+html.stage-locked #app .bottom .action.explore{min-width:264px!important}
+html.stage-locked #app .bottom .action svg{
+ flex-basis:23px!important;width:23px!important;height:23px!important;
+}
+/* Keep all dialogs inside the scaled stage instead of sizing them against
+   the external phone viewport (100dvh/100vw). */
+html.stage-locked #app .veil{
+ position:absolute;inset:0!important;
+ padding:24px!important;
+}
+html.stage-locked #app .panel{
+ width:640px!important;max-width:calc(100% - 48px)!important;
+ max-height:calc(100% - 48px)!important;
+ overflow-y:auto!important;
+}
+html.stage-locked #app .panel.journal{width:740px!important}
+html.stage-locked #app .panel.start{width:620px!important}
+html.stage-locked #app .panel h2{font-size:29px!important}
+html.stage-locked #app .panel p{font-size:16px!important}
+html.stage-locked #app .panel .choice{
+ font-size:16px!important;min-height:46px!important;
+}
+html.stage-locked #app #toast{font-size:15px!important;max-width:600px!important;}
+html.stage-locked #app #sceneInspection{
+ width:340px!important;max-width:340px!important;
+}
+/* On mobile portrait do not lock the UI: existing full-screen orientation
+   prompt is preserved, without a miniature scaled modal. */
+
 </style>
 </head>
 <body>
@@ -1992,6 +2202,34 @@ input,textarea,.panel p,.journal-list,.journey-entry{user-select:text;-webkit-us
 <script src="./assets/approved_wagon_art_v1.js"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script>
+(()=>{'use strict';
+// Fixed design canvas: use the approved screenshot's exact 1536×707 ratio,
+// not 16:9 (which describes only the nested scene view), and not the
+// approximate 2.1:1 proposed in the draft. No game state changes here.
+const STAGE_WIDTH=1536, STAGE_HEIGHT=707;
+const fluidFallback=new URLSearchParams(window.location.search).get('layout')==='fluid';
+function syncDesignStage(){
+ const visual=window.visualViewport;
+ const viewportWidth=Math.max(1,visual?.width||window.innerWidth);
+ const viewportHeight=Math.max(1,visual?.height||window.innerHeight);
+ const portraitPhone=viewportWidth<viewportHeight&&viewportWidth<=700;
+ const lock=!fluidFallback&&!portraitPhone;
+ const root=document.documentElement;
+ root.classList.toggle('stage-locked',lock);
+ if(!lock){root.style.removeProperty('--stage-scale');
+  root.style.removeProperty('--stage-left');root.style.removeProperty('--stage-top');return;}
+ const scale=Math.min(viewportWidth/STAGE_WIDTH,viewportHeight/STAGE_HEIGHT);
+ const dx=(viewportWidth-STAGE_WIDTH*scale)/2+(visual?.offsetLeft||0);
+ const dy=(viewportHeight-STAGE_HEIGHT*scale)/2+(visual?.offsetTop||0);
+ root.style.setProperty('--stage-scale',String(scale));
+ root.style.setProperty('--stage-left',dx.toFixed(3)+'px');
+ root.style.setProperty('--stage-top',dy.toFixed(3)+'px');
+}
+syncDesignStage();
+window.addEventListener('resize',syncDesignStage,{passive:true});
+window.addEventListener('orientationchange',syncDesignStage,{passive:true});
+if(window.visualViewport)window.visualViewport.addEventListener('resize',syncDesignStage,{passive:true});
+})();
 (()=>{'use strict';
 // Mount four independent transparent ornaments after the artwork data loads.
  // All illustrations are visual-only and never intercept buttons or hotspots.
