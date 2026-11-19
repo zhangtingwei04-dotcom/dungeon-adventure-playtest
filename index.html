@@ -773,7 +773,7 @@ const ROUTE_SEARCH_ORDER={
  gate:['inn','street','lobby'],
  inn:['lobby'],
  lobby:['street'],
- street:['guild','outskirts','home'],
+ street:['gate','guild','outskirts','home'],
  guild:[],outskirts:[],home:[],clearing:[],ruin:[]
 };
 const ROUTE_CLUES={
@@ -1256,7 +1256,7 @@ function entries(){const a={
 }
 function render(){if(!names[s.scene])s.scene='wreck';normalizeGameTime();$('place').textContent=names[s.scene][0];syncTimeAtmosphere();$('partyChip').textContent=s.flags.rescued?'與冒險者相遇':'獨自探索';$('hpChip').textContent=`體力 ${s.hp}/${s.maxHp}`;$('chapterChip').textContent=s.flags.morning?'第二章 · 清晨':s.flags.chapterDone?'第一章片段完成':'第一章';const texts={
  wreck:'你從毀壞的車篷下爬出來，泥土的涼意讓意識慢慢清晰。前方是散落貨物與通往林間的道路；點選物件調查，或使用下方按鈕離開。',
- trail:s.flags.rescued?'你沿著車轍走到林道，遠方的城鎮逐漸清晰。可以回望事故現場，也可以繼續前進。':'沿路走離馬車，林間的古老石拱與轉彎的小徑映入眼簾。你可以慢慢探索，也能直接前進。',
+ trail:s.flags.rescued?'你沿著車轍走到林道，遠方的城鎮逐漸清晰。可以回望事故現場，也可以繼續前進。':'樹影遮住前方道路。你可以搜索林邊的舊物與生物痕跡，或花一點時間辨認道路，將發現的岔路逐一記入地圖。',
  clearing:'陌生的風聲、樹根間的微光。你可以接近，也可以完全不理會。',
  ruin:'古老石門默默矗立。它像是某個故事的開始，但你現在可以直接離開。',
  gate:s.flags.morning?'你已經知道城鎮的道路，隨時可以往來森林與市集。':'城牆在暮色下逐漸清晰。四名冒險者答應帶你到安全的地方。',
