@@ -411,7 +411,7 @@ if(primary){const b=document.createElement('button');b.className='action primary
 const secondary=available.filter(a=>a!==primary);if(secondary.length){const b=document.createElement('button');b.className='action more';b.textContent='查看周遭 · '+secondary.length;b.setAttribute('aria-label','查看周遭其他行動');b.onclick=()=>dialog('看看周遭','可直接點選想走的道路或想互動的物件。',secondary.map(a=>({label:a.title,fn:a.fn})),'自由探索');$('actions').appendChild(b);}renderHotspots();renderFeed();save();}
 function renderHotspots(){
  const el=$('hotspots');el.replaceChildren();
- const per={wreck:[['散落貨箱',.36,.71,glance],['車輪痕跡',.45,.53,marks],['離開的林道',.85,.57,()=>change('trail')]],trail:[['沿小徑前進',.55,.48,rescue],['石拱遺跡',.79,.49,()=>change('ruin')],['路旁舊石碑',.13,.49,inspectTrailMarker],['林間草木',.29,.59,()=>change('clearing')],['返回馬車',.46,.72,()=>change('wreck')]],clearing:[['微光',59,69,light],['聲音',75,46,soundInForest]],ruin:[['石門',51,45,ruinLook]],inn:[['鏡子',73,43,innMark]],guild:[['公告板',69,49,guildBoard]],outskirts:[['舊路標',67,49,roadsideSign]],home:[['留守夥伴',48,59,meetHome]]};
+ const per={wreck:[['散落貨箱',.36,.71,glance],['車輪痕跡',.45,.53,marks],['離開的林道',.85,.57,()=>change('trail')]],trail:[['沿小徑前進',.55,.48,rescue],['石拱遺跡',.79,.49,()=>change('ruin')],['路旁舊石碑',.13,.49,inspectTrailMarker],['林間草木',.29,.59,()=>change('clearing')],['返回馬車',.45,.62,()=>change('wreck')]],clearing:[['微光',59,69,light],['聲音',75,46,soundInForest]],ruin:[['石門',51,45,ruinLook]],inn:[['鏡子',73,43,innMark]],guild:[['公告板',69,49,guildBoard]],outskirts:[['舊路標',67,49,roadsideSign]],home:[['留守夥伴',48,59,meetHome]]};
  if(!showHints)return;
  const panorama=s.scene==='wreck'?wreckPanoramaCrop():s.scene==='trail'?(trailForestReady?trailIllustrationCrop():trailPanoramaCrop()):null;
  for(const [label,x,y,fn] of per[s.scene]||[]){
