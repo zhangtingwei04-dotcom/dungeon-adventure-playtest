@@ -3073,6 +3073,36 @@ html.stage-locked #app #placeDrawerPanel.is-location-tab .location-resource-note
  margin:4px 0 8px!important;text-align:center;
 }
 
+
+/* V0.8.15 — directional look button on the wreck illustration only.
+   This changes the camera view, never travel, story, world time or save data. */
+html.stage-locked #app #sceneStage .scene-look-button{
+ position:absolute!important;z-index:9!important;
+ top:50%!important;transform:translateY(-50%)!important;
+ width:51px!important;height:78px!important;min-width:51px!important;
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ padding:0!important;border:1.5px solid rgba(236,201,130,.88)!important;
+ border-radius:12px!important;color:#f9e6b2!important;
+ background:linear-gradient(120deg,rgba(8,45,34,.82),rgba(17,54,41,.68))!important;
+ box-shadow:inset 0 0 0 1px rgba(246,225,162,.23),0 2px 12px rgba(0,0,0,.46)!important;
+ backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);
+ font:normal 53px/1 Georgia,serif!important;cursor:pointer;
+ touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+ transition:background .15s,border-color .15s!important;
+}
+html.stage-locked #app #sceneLookRight{right:12px!important;}
+html.stage-locked #app #sceneLookBack{left:12px!important;}
+html.stage-locked #app #sceneStage .scene-look-button:hover,
+html.stage-locked #app #sceneStage .scene-look-button:focus-visible{
+ background:rgba(46,91,67,.93)!important;border-color:#fff0bc!important;
+ outline:2px solid rgba(254,231,172,.65);outline-offset:1px;
+}
+html.stage-locked #app #sceneStage .scene-look-button[hidden],
+#sceneStage .scene-look-button[hidden]{display:none!important;}
+@media(prefers-reduced-motion:reduce){
+ html.stage-locked #app #sceneStage .scene-look-button{transition:none!important;}
+}
+
 </style>
 </head>
 <body>
@@ -3178,7 +3208,7 @@ html.stage-locked #app #placeDrawerPanel.is-location-tab .location-resource-note
  <path d="M8 45C15 32 30 35 30 21S41 8 51 14C56 17 53 24 48 23C45 22 46 19 49 19" fill="none" stroke="#b99359" stroke-width="2" stroke-linecap="round"/>
  <path d="M17 33Q8 31 8 23Q19 23 20 31M26 26Q31 12 41 15Q37 25 26 26M14 46Q23 37 31 43Q24 49 14 46" fill="#5a8558" stroke="#b5b079" stroke-width="1.1"/>
  <circle cx="31" cy="20" r="1.5" fill="#f2d99e"/>
- </svg><canvas id="view" aria-label="第一人稱冒險場景"></canvas><div id="dayTint" aria-hidden="true"></div><div id="shade"></div><div id="hotspots"></div><div id="sceneActors" aria-hidden="true"></div><div id="encounterCue" class="hidden" role="status" aria-live="polite"></div></section>
+ </svg><canvas id="view" aria-label="第一人稱冒險場景"></canvas><div id="dayTint" aria-hidden="true"></div><div id="shade"></div><div id="hotspots"></div><div id="sceneActors" aria-hidden="true"></div><div id="encounterCue" class="hidden" role="status" aria-live="polite"></div><button id="sceneLookRight" class="scene-look-button" type="button" aria-label="向右查看馬車旁的森林" title="向右查看" hidden>›</button><button id="sceneLookBack" class="scene-look-button" type="button" aria-label="向左返回馬車視角" title="返回馬車視角" hidden>‹</button></section>
 <section id="sceneFuturePanel" aria-label="場景觀察、同行夥伴及探索紀錄">
  <div class="scene-info-column" aria-label="場景觀察">
   <div class="scene-info-heading">
@@ -4527,6 +4557,21 @@ let lastMoveAt=0,lastActionAt=0,encounterPending=false,encounterTimer=null,encou
 // A 2D pan, not an artificial perspective rotation. 1.12x zoom allows 6% travel on either side.
 /* Per-scene camera distance: 1 = current view; >1 = camera farther away.
    The wreck panorama is the first scene with a real full-width asset. */
+// In-place look state only. No route unlock, world time or save data mutation.
+let wreckLookRight=false;
+function updateWreckLookControls(){
+ const atWreck=s.scene==='wreck';
+ $('sceneLookRight').hidden=!atWreck||wreckLookRight;
+ $('sceneLookBack').hidden=!atWreck||!wreckLookRight;
+}
+function setWreckLookRight(right){
+ if(s.scene!=='wreck')return;
+ if(right&&!trailForestReady){toast('森林視角正在載入，請再試一次。');return;}
+ wreckLookRight=Boolean(right);
+ updateWreckLookControls();
+ renderHotspots();
+ sceneDraw(t);
+}
 const SCENE_VIEW_SETTINGS=Object.freeze({
  wreck:{distance:1.15},trail:{distance:1.00},clearing:{distance:1.00},
  ruin:{distance:1.00},gate:{distance:1.00},inn:{distance:1.00},
@@ -4602,7 +4647,7 @@ function change(scene,mode='walk'){
  hideSceneInspection();hideSceneActors();
  previewPeriod=null;
  s.worldMinutes+=duration;
- s.scene=scene;refreshSceneFraming();
+ s.scene=scene;wreckLookRight=false;updateWreckLookControls();refreshSceneFraming();
  s.visits[scene]=(s.visits[scene]||0)+1;addUnique(s.seen,'area:'+scene);
  const revisited=s.visits[scene]>1;
  addTravel('scene',(revisited?'再次回到 ':'來到 ')+names[scene][0]+'（'+(mode==='carriage'?'馬車':'步行')+'約'+duration+'分鐘，'+gameTime(s.worldMinutes)+'）。'+(revisited?'（到訪 '+s.visits[scene]+' 次）':''),revisited?'這條路漸漸熟悉了。':moveThought[scene]||'接下來看看四周。');
@@ -5010,9 +5055,11 @@ function render(){if(!names[s.scene])s.scene='wreck';normalizeGameTime();tickBee
 };$('narrative').textContent=texts[s.scene];$('actions').replaceChildren();const available=entries();const primary=available.find(a=>a.primary)||available[0];
 if(primary){const b=document.createElement('button');b.className='action primary';setActionVisual(b,/探索|觀察/.test(primary.title)?'explore':'route',primary.title);b.title='主要行動；點擊執行';b.onclick=()=>guardedAction(primary.fn);$('actions').appendChild(b);}
 const quick=available.find(a=>a.quick&&a!==primary);if(quick){const b=document.createElement('button');b.className='action explore';setActionVisual(b,'explore',quick.title);b.onclick=()=>guardedAction(quick.fn);$('actions').appendChild(b);}
-/* Secondary interactions are now grouped under the right-side place drawer. */renderHotspots();renderFeed();renderPlaceDrawer();renderSceneInfoBar();save();}
+/* Secondary interactions are now grouped under the right-side place drawer. */updateWreckLookControls();renderHotspots();renderFeed();renderPlaceDrawer();renderSceneInfoBar();save();}
 function renderHotspots(){
  const el=$('hotspots');el.replaceChildren();
+ // Existing wagon hotspots are only positioned for the frontal artwork.
+ if(s.scene==='wreck'&&wreckLookRight)return;
  const per={wreck:[['散落貨箱',.36,.71,glance],['車輪痕跡',.45,.53,marks],['離開的林道',.85,.57,()=>change('trail'),'trail'],['探索周遭',.73,.65,exploreArea,null]],trail:[['沿小徑前進',.55,.48,rescue,'gate'],['石拱遺跡',.79,.49,()=>change('ruin'),'ruin'],['路旁舊石碑',.13,.49,inspectTrailMarker],['林間草木',.29,.59,()=>change('clearing'),'clearing'],['返回馬車',.45,.62,()=>change('wreck'),'wreck'],['探索周遭',.7,.62,exploreArea,null]],clearing:[['微光',59,69,light],['聲音',75,46,soundInForest]],ruin:[['石門',51,45,ruinLook]],inn:[['鏡子',73,43,innMark]],guild:[['公告板',69,49,guildBoard]],outskirts:[['舊路標',67,49,roadsideSign]],home:[['留守夥伴',48,59,meetHome]]};
  if(!showHints)return;
  const panorama=s.scene==='wreck'?(approvedWreckReady?null:wreckPanoramaCrop()):s.scene==='trail'?(trailForestReady?trailIllustrationCrop():trailPanoramaCrop()):null;
@@ -5103,6 +5150,8 @@ $('travelOpenJournal').onclick=()=>journal('journey');
 $('regionMapBtn').onclick=()=>journal('map');$('journalBtn').onclick=()=>journal('journey');$('mapBtn').onclick=()=>journal('map');$('journalClose').onclick=()=>$('journalVeil').classList.add('hidden');$('hintBtn').onclick=()=>{showHints=!showHints;renderHotspots();toast(showHints?'僅顯示附近可互動位置，不影響主線':'已隱藏互動提示');};$('menuBtn').onclick=()=>{$('menuVeil').classList.remove('hidden');$('soundBtn').textContent='音效：'+(s.sound?'開啟':'關閉');};$('menuClose').onclick=()=>$('menuVeil').classList.add('hidden');$('dialogClose').onclick=closeDialog;
 for(const btn of document.querySelectorAll('[data-preview-period]'))btn.onclick=()=>selectTimePreview(btn.dataset.previewPeriod);
 $('timePreviewTag').onclick=clearTimePreview;
+$('sceneLookRight').onclick=()=>setWreckLookRight(true);
+$('sceneLookBack').onclick=()=>setWreckLookRight(false);
 $('soundBtn').onclick=()=>{s.sound=!s.sound;$('soundBtn').textContent='音效：'+(s.sound?'開啟':'關閉');save();beep(520);};
 $('restartBtn').onclick=()=>{if(!confirm('確定重新開始？目前本機存檔將被覆蓋。'))return;s=initial();previewPeriod=null;hideSceneActors();hideSceneInspection();refreshSceneFraming();$('menuVeil').classList.add('hidden');render();toast('已開始新的旅程');};
 $('exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify(s,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='dungeon-adventure-save-v02.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};$('importBtn').onclick=()=>$('fileInput').click();$('fileInput').onchange=async e=>{try{const text=await e.target.files[0].text(),j=JSON.parse(text);if(!validSave(j))throw Error('格式不相容');s=j;previewPeriod=null;normalizeGameTime();normalizeRecovery();normalizeForestRare();normalizeBeetleCare();normalizeForestEcology();normalizeRouteDiscovery();normalizeExploration();normalizePlaceCards();closePlaceDrawer();hideSceneActors();hideSceneInspection();refreshSceneFraming();if(!Array.isArray(s.travelLog))s.travelLog=[];if(typeof s.feedCollapsed!=='boolean')s.feedCollapsed=false;if(!['compact','expanded'].includes(s.travelHudMode))s.travelHudMode='compact';save();render();$('menuVeil').classList.add('hidden');toast('已匯入存檔');}catch{alert('無法讀取這份存檔。');}e.target.value='';};
@@ -5138,7 +5187,7 @@ const wreckPanorama=new Image();let wreckPanoramaReady=false;
 const trailForest=new Image();let trailForestReady=false;
 trailForest.onload=()=>{
  trailForestReady=trailForest.naturalWidth>0;
- if(s.scene==='trail'){refreshSceneFraming();renderHotspots();sceneDraw(t);}
+ if(s.scene==='trail'||(s.scene==='wreck'&&wreckLookRight)){refreshSceneFraming();renderHotspots();sceneDraw(t);}
 };
 trailForest.onerror=()=>{trailForestReady=false;console.warn('Forest trail artwork unavailable; using fallback.');};
 trailForest.decoding='async';
@@ -5191,6 +5240,15 @@ function mote(time){const r=rng(939);for(let i=0;i<29;i++){const x=(r()*960+Math
 function sceneDraw(time){
  ctx.clearRect(0,0,W,H);
  const isTrailArt=s.scene==='trail'&&trailForestReady;
+ // Alternate observation from this same stationary wagon location.
+ if(s.scene==='wreck'&&wreckLookRight&&trailForestReady){
+  const p=trailIllustrationCrop();
+  if(p){
+   ctx.fillStyle='#102820';ctx.fillRect(0,0,W,H);
+   ctx.drawImage(trailForest,p.sourceX,p.sourceY,p.cropWidth,p.cropHeight,0,0,W,H);
+   return;
+  }
+ }
  if(s.scene==='wreck'&&approvedWreckReady){
   ctx.save();ctx.imageSmoothingEnabled=false;
   // Preserve the entire approved 676×390 composition without stretching or
