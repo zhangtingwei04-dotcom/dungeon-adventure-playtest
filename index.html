@@ -5047,25 +5047,5 @@ function sceneDraw(time){
 function size(){const d=Math.min(devicePixelRatio||1,1.5);can.width=Math.floor(W*d);can.height=Math.floor(H*d);ctx.setTransform(d,0,0,d,0,0);}size();window.addEventListener('resize',()=>{size();refreshSceneFraming();renderHotspots();});refreshSceneFraming();function frame(ms){if(ms-last>68){t=ms/1000;sceneDraw(t);last=ms;}requestAnimationFrame(frame);}requestAnimationFrame(frame);render();
 })();
 </script>
-<script>
-/* Optional visible deployment probe. Never displayed in ordinary gameplay.
-   Open with ?ui-check=1 to identify exactly which HTML/CSS reached the device. */
-(function(){
- if(new URLSearchParams(window.location.search).get('ui-check')!=='1')return;
- function inspect(){
-  var ids=[['主畫框','sceneStage'],['下方三格','sceneFuturePanel'],['右側面板','placeDrawer'],['上方狀態','topGameHud']];
-  var rows=ids.map(function(e){
-   var n=document.getElementById(e[1]);if(!n)return e[0]+'：無元素';
-   return e[0]+'：x'+n.offsetLeft+' y'+n.offsetTop+' w'+n.offsetWidth+' h'+n.offsetHeight;
-  });
-  var d=document.createElement('div');
-  d.setAttribute('role','status');d.id='uiBuildCheck';
-  d.style.cssText='position:fixed;right:8px;bottom:8px;z-index:2147483647;max-width:min(360px,85vw);padding:9px 11px;color:#f5e7bd;background:rgba(7,24,23,.95);border:1px solid #d4b67a;border-radius:7px;font:12px/1.5 -apple-system,BlinkMacSystemFont,sans-serif;white-space:pre-line;pointer-events:none;box-shadow:0 2px 14px #0009';
-  d.textContent='介面驗證 fixed-0.8.11\n'+rows.join('\n');
-  document.body.appendChild(d);
- }
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',inspect,{once:true});else inspect();
-})();
-</script>
 </body>
 </html>
