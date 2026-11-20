@@ -2843,7 +2843,7 @@ html.stage-locked #app #sceneFuturePanel .scene-companion-entry>span:last-child{
    the slim three-part panel keeps precisely the central scene's width.
    Do not move the outer gold frame, left log, art or story elements. */
 html.stage-locked #app{
- --central-column-left:458px;
+ --central-column-left:388px;
  --central-column-width:680px;
  --right-column-left:1155px;
  --right-column-width:355px;
@@ -2890,6 +2890,21 @@ html.stage-locked #app #placeDrawerList{
    outside gold rail, without enlarging or relocating the lower information bar. */
 html.stage-locked #app #sceneFuturePanel{
  box-shadow:0 0 0 2px rgba(8,34,28,.82),0 0 0 4px rgba(165,139,85,.37),inset 0 0 0 1px rgba(231,198,139,.12)!important;
+}
+
+
+/* V0.8.6 — shift BOTH existing left and central columns 70 design pixels
+   left, without resizing either column or their contents.
+   The travel record starts 27px inside the stage's untouched outer border;
+   the story panel follows it, and the central scene plus 40/35/25 lower strip
+   share one unchanged position/width. The right panel remains fixed. */
+html.stage-locked #app #travelFeed,
+html.stage-locked #app #travelFeed.collapsed,
+html.stage-locked #app #travelFeed:not(.collapsed){
+ left:27px!important;
+}
+html.stage-locked #app .story-panel{
+ left:40px!important;
 }
 
 </style>
