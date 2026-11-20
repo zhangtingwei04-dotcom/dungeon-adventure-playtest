@@ -2243,6 +2243,109 @@ html.stage-locked #app #playerStatusButton:focus-visible{
  html.stage-locked #app .player-stat-fill{transition:none}
 }
 
+
+/* V0.7.8: fixed right-side location/character/equipment/inventory board.
+   The old narrow vertical bookmark is removed, but its location actions remain. */
+html.stage-locked #app #placeDrawer{
+ position:absolute!important;z-index:4!important;inset:auto!important;
+ left:1155px!important;right:auto!important;top:173px!important;
+ bottom:auto!important;width:288px!important;height:379px!important;
+ min-width:288px!important;max-width:288px!important;
+ display:flex!important;flex-direction:column!important;gap:7px!important;
+ transform:none!important;overflow:visible!important;
+ background:transparent!important;border:0!important;box-shadow:none!important;
+ transition:none!important;pointer-events:auto!important;
+}
+html.stage-locked #app #placeDrawerToggle,
+html.stage-locked #app #placeDrawerClose{display:none!important}
+html.stage-locked #app #sideInfoTabs{
+ flex:0 0 46px!important;display:grid!important;min-width:0!important;
+ grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:4px!important;
+}
+html.stage-locked #app #sideInfoTabs button{
+ min-width:0!important;min-height:44px!important;padding:5px 0!important;
+ border:1.5px solid #b69a65!important;border-radius:8px!important;
+ background:linear-gradient(130deg,#17453a,#0a302e)!important;color:#ecdcbe!important;
+ font-size:13px!important;font-family:Georgia,"Noto Serif TC",serif!important;
+ font-weight:600!important;white-space:nowrap!important;touch-action:manipulation;
+}
+html.stage-locked #app #sideInfoTabs button.selected{
+ background:linear-gradient(130deg,#94703e,#5a452b)!important;
+ color:#fff2cf!important;border-color:#f0d19c!important;
+ box-shadow:inset 0 0 0 1px #e9c386,0 0 8px #dba85744!important;
+}
+html.stage-locked #app #sideInfoTabs button:focus-visible{outline:2px solid #f9e6ae}
+html.stage-locked #app #placeDrawerPanel{
+ position:relative!important;flex:1 1 auto!important;
+ display:flex!important;flex-direction:column!important;
+ width:100%!important;min-width:0!important;max-width:none!important;
+ min-height:0!important;transform:none!important;
+ opacity:1!important;visibility:visible!important;pointer-events:auto!important;
+ overflow:hidden!important;transition:none!important;
+ border:2px solid #baa16d!important;border-radius:11px!important;
+ background:linear-gradient(150deg,#134235,#092b2b)!important;
+ box-shadow:inset 0 0 0 1px #daba8244,0 5px 15px #00140f77!important;
+}
+html.stage-locked #app #placeDrawerPanel .place-drawer-head{
+ flex:0 0 auto!important;padding:8px 8px!important;justify-content:center!important;
+ background:linear-gradient(90deg,#164037,#285242,#164037)!important;
+ border-bottom:1px solid #bca66e99!important;
+}
+html.stage-locked #app #placeDrawerPanel .place-drawer-head strong{
+ color:#f3dfb8!important;font-size:17px!important;line-height:22px!important;
+}
+html.stage-locked #app #placeDrawerPanel .place-drawer-head span{
+ color:#c2b090!important;font-size:10px!important;
+}
+html.stage-locked #app #placeDrawerList{
+ flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important;
+ overflow-x:hidden!important;width:100%!important;
+ padding:9px 10px 14px!important;box-sizing:border-box;
+ scrollbar-width:thin;scrollbar-color:#aa915f transparent;
+ overscroll-behavior:contain;touch-action:pan-y;
+}
+html.stage-locked #app .side-current-place{
+ display:flex;flex-direction:column;gap:4px;margin:0 0 9px;
+ padding:9px 10px;border:1px solid #a88f5c99;border-radius:8px;
+ background:#234c40b8;
+}
+html.stage-locked #app .side-current-place strong{font-size:16px;color:#f0e0b9}
+html.stage-locked #app .side-current-place span{font-size:12px;line-height:1.4;color:#d3d5c7}
+html.stage-locked #app .side-info-section{
+ font-size:15px;font-weight:650;color:#f0dda9;
+ border-bottom:1px solid #b69a625e;margin:4px 0 9px;padding-bottom:6px;
+}
+html.stage-locked #app .side-info-line{
+ font-size:13px;line-height:1.5;color:#e9e2cf;
+ white-space:normal;overflow-wrap:anywhere;margin:8px 0;
+}
+html.stage-locked #app .side-info-note{font-size:12px;color:#c8c9b8}
+html.stage-locked #app .side-info-emphasis{font-size:15px;color:#f2dab1}
+html.stage-locked #app .side-info-meter{
+ height:11px;width:100%;border-radius:20px;overflow:hidden;
+ border:1px solid #8f794e;background:#1b342f;
+}
+html.stage-locked #app .side-info-meter span{
+ display:block;height:100%;border-radius:20px;
+ background:linear-gradient(#e49985,#b05b5e);
+}
+html.stage-locked #app .side-equip-row{
+ display:flex;align-items:center;justify-content:space-between;
+ padding:11px 9px;margin:7px 0;border-radius:7px;
+ border:1px solid #b29b6d77;background:#102f2b;
+ font-size:14px;color:#eee0bc;
+}
+html.stage-locked #app .side-equip-row span:last-child{font-size:12px;color:#b9bdb1}
+html.stage-locked #app .side-info-aux{
+ min-height:40px;width:100%;margin-top:12px;padding:8px 10px;
+ border:1px solid #c1a66d;border-radius:8px;
+ background:#285341;color:#f1dfb9;font-size:14px;
+}
+html.stage-locked #app #placeDrawerPanel .place-mini-card-toggle,
+html.stage-locked #app #placeDrawerPanel .place-mini-go{min-height:42px!important}
+html.stage-locked #app #placeDrawerPanel .place-mini-heading strong{font-size:13px!important}
+html.stage-locked #app #placeDrawerPanel .place-drawer-guide{font-size:12px!important}
+
 </style>
 </head>
 <body>
@@ -2359,14 +2462,16 @@ html.stage-locked #app #playerStatusButton:focus-visible{
  <path d="M332 40 Q353 21 354 15 Q332 21 332 40Z"/><path d="M331 45 Q348 45 351 57 Q332 55 331 45Z"/><path d="M322 44 Q320 24 306 24 Q308 39 322 44Z"/>
  </g><g stroke="#bd9f63" stroke-width="1.25" fill="none" stroke-linecap="round"><path d="M42 49 Q73 36 103 51 M357 49 Q328 36 297 51"/></g>
  </svg><div class="place" id="place">破損的馬車</div></div><div class="subplace" id="subplace">森林深處 · 未知的道路</div></div><nav><button class="icon" id="hintBtn" title="顯示可互動位置" aria-label="顯示可互動位置"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2.5l3.8 9.7L29 16l-9.2 3.8L16 29.5l-3.8-9.7L3 16l9.2-3.8L16 2.5Z" fill="#e7c985" stroke="#f6e1aa" stroke-width="1.2"/><path d="M16 6v20M6 16h20" stroke="#fff0c6" stroke-width=".9"/></svg></button><button class="icon" id="regionMapBtn" title="區域地圖" aria-label="區域地圖"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2.5 29.5 16 16 29.5 2.5 16 16 2.5Z" fill="#193d35" stroke="#e6c994" stroke-width="2.4"/><path d="M16 8 24 16l-8 8-8-8 8-8Z" fill="none" stroke="#ad9869" stroke-width=".8"/></svg></button><button class="icon" id="journalBtn" title="旅程日誌" aria-label="旅程日誌"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="6" y="6" width="20" height="20" rx="4" fill="#233e36"/><g fill="#eddbb1"><rect x="8" y="9" width="4" height="3.5" rx="1"/><rect x="14" y="9" width="11" height="3.5" rx="1"/><rect x="8" y="15" width="4" height="3.5" rx="1"/><rect x="14" y="15" width="11" height="3.5" rx="1"/><rect x="8" y="21" width="4" height="3.5" rx="1"/><rect x="14" y="21" width="11" height="3.5" rx="1"/></g></svg></button><button class="icon" id="menuBtn" title="選單" aria-label="選單"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M13.1 2h5.8l.8 3.6c.8.3 1.5.6 2.2 1L25.4 5l4 4-1.6 3.5c.3.7.7 1.4 1 2.2L32 15.5v4.6l-3.2.8c-.3.8-.7 1.5-1 2.2l1.6 3.5-4 4-3.5-1.6-2.2 1-.8 3.6h-5.8l-.8-3.6-2.2-1-3.5 1.6-4-4L4.2 23l-1-2.2L0 20v-4.6l3.2-.8 1-2.2L2.6 9l4-4 3.5 1.6 2.2-1L13.1 2Z" transform="translate(1 1) scale(.93)" fill="#d7d0bd" stroke="#756f61" stroke-width=".8"/><circle cx="16" cy="16" r="8" fill="#526e67" stroke="#f2e8d3" stroke-width="1"/><circle cx="16" cy="16" r="4.7" fill="#1c3b35" stroke="#bcae8e" stroke-width="1"/></svg></button></nav></header>
-<aside id="placeDrawer" aria-label="已發現地點卡欄">
- <button id="placeDrawerToggle" type="button" aria-controls="placeDrawerPanel" aria-expanded="false" aria-label="展開地點卡欄">
-  <span class="place-drawer-diamond" aria-hidden="true">◇</span>
-  <span class="place-drawer-vertical" aria-hidden="true"><span>地</span><span>點</span></span>
-  <span class="place-drawer-count" id="placeDrawerCount" aria-hidden="true"></span>
- </button>
- <section id="placeDrawerPanel" aria-label="已發現地點" aria-hidden="true">
-  <div class="place-drawer-head"><div><strong>探索地點</strong><span id="placeDrawerSummary"></span></div><button id="placeDrawerClose" type="button" aria-label="收合地點卡欄">×</button></div>
+<aside id="placeDrawer" aria-label="冒險資訊切換面板">
+ <button id="placeDrawerToggle" type="button" hidden aria-controls="placeDrawerPanel" aria-expanded="true" aria-label="地點資訊"><span class="place-drawer-count" id="placeDrawerCount"></span></button>
+ <div id="sideInfoTabs" class="side-info-tabs" role="tablist" aria-label="資訊面板">
+  <button type="button" role="tab" data-info-tab="locations" aria-selected="true">◇ 地點</button>
+  <button type="button" role="tab" data-info-tab="character" aria-selected="false">♙ 角色</button>
+  <button type="button" role="tab" data-info-tab="equipment" aria-selected="false">⚔ 裝備</button>
+  <button type="button" role="tab" data-info-tab="inventory" aria-selected="false">▣ 背包</button>
+ </div>
+ <section id="placeDrawerPanel" role="tabpanel" aria-label="地點資訊" aria-hidden="false">
+  <div class="place-drawer-head"><div><strong id="sidePanelTitle">地點資訊</strong><span id="placeDrawerSummary"></span></div><button id="placeDrawerClose" hidden type="button">×</button></div>
   <div id="placeDrawerList"></div>
  </section>
 </aside>
@@ -3066,7 +3171,7 @@ function exploreArea(){
 }
 
 /* Persistent discovered destinations; drawer open/closed and expanded card are only UI. */
-let placeDrawerOpen=false,placeCardExpanded=null;
+let placeDrawerOpen=false,placeCardExpanded=null,activeSideTab='locations';
 const PLACE_SIGNS=Object.freeze({wreck:'◇',trail:'♧',clearing:'✿',ruin:'▣',gate:'▤',inn:'⌂',lobby:'⌂',street:'▥',guild:'✦',outskirts:'♧',home:'⌂'});
 function normalizePlaceCards(){
  if(!Array.isArray(s.placeCardsViewed))s.placeCardsViewed=[];
@@ -3111,21 +3216,69 @@ function updatePlaceDrawerBadge(){
  toggle.setAttribute('aria-label',(placeDrawerOpen?'收合':'展開')+'地點卡欄'+(n?'，有'+n+'處未查看的新地點':'')+(pending?'，有'+pending+'份待收取材料':''));
  toggle.setAttribute('aria-expanded',String(placeDrawerOpen));
 }
+/* Permanent right-side board; closing a dialog does not close or disable it. */
 function setPlaceDrawer(open,expandId=null){
- placeDrawerOpen=Boolean(open);
- if(expandId&&placeDrawerOpen){
-  placeCardExpanded=expandId;
-  normalizePlaceCards();
-  if(!s.placeCardsViewed.includes(expandId)){s.placeCardsViewed.push(expandId);save();}
- }
- $('placeDrawer').classList.toggle('is-open',placeDrawerOpen);
- $('placeDrawerPanel').setAttribute('aria-hidden',String(!placeDrawerOpen));
- $('placeDrawerPanel').inert=!placeDrawerOpen;
- if(placeDrawerOpen)hideSceneInspection();
- updatePlaceDrawerBadge();
- if(placeDrawerOpen)renderPlaceDrawer();
+ if(expandId){activeSideTab='locations';placeCardExpanded=expandId;}
+ renderPlaceDrawer();
 }
-function closePlaceDrawer(){if(placeDrawerOpen)setPlaceDrawer(false);}
+function closePlaceDrawer(){}
+function setActiveSideTab(tab){
+ if(!['locations','character','equipment','inventory'].includes(tab))return;
+ activeSideTab=tab;renderPlaceDrawer();$('placeDrawerList').scrollTop=0;
+}
+function sideInfoText(out,text,cls='side-info-line'){
+ const el=document.createElement('p');el.className=cls;el.textContent=text;out.appendChild(el);
+}
+function sideInfoHeading(out,text){
+ const el=document.createElement('div');el.className='side-info-section';el.textContent=text;out.appendChild(el);
+}
+function renderSideTab(tab,out){
+ if(tab==='character'){
+  sideInfoHeading(out,'角色狀態');
+  sideInfoText(out,'生命／體力　'+s.hp+' / '+s.maxHp,'side-info-emphasis');
+  const meter=document.createElement('div');meter.className='side-info-meter';
+  meter.setAttribute('role','progressbar');meter.setAttribute('aria-label','生命／體力');
+  meter.setAttribute('aria-valuemin','0');meter.setAttribute('aria-valuemax',String(s.maxHp));
+  meter.setAttribute('aria-valuenow',String(s.hp));
+  const fill=document.createElement('span');fill.style.width=Math.min(100,Math.max(0,100*s.hp/Math.max(1,s.maxHp)))+'%';
+  meter.appendChild(fill);out.appendChild(meter);
+  sideInfoText(out,'魔力 MP　未開放');
+  sideInfoText(out,'精力 SP　未開放');
+  sideInfoHeading(out,'冒險狀態');
+  sideInfoText(out,s.flags.rescued?'曾受到冒險者救援':'目前獨自探索');
+  sideInfoText(out,'角色能力與成長規則尚未正式實作。','side-info-note');return;
+ }
+ if(tab==='equipment'){
+  sideInfoHeading(out,'裝備欄');
+  for(const slot of ['武器','防具','飾品']){
+   const row=document.createElement('div');row.className='side-equip-row';
+   const name=document.createElement('span');name.textContent=slot;
+   const detail=document.createElement('span');detail.textContent='尚未裝備';
+   row.append(name,detail);out.appendChild(row);
+  }
+  sideInfoText(out,'裝備取得與穿戴功能尚未開放，不顯示虛構裝備加成。','side-info-note');return;
+ }
+ if(tab==='inventory'){
+  normalizeRecovery();normalizeForestRare();normalizeForestEcology();
+  sideInfoHeading(out,'隨身物品');
+  const names=[];
+  for(const item of s.recovery.items){
+   if(RECOVERABLE[item.id])names.push((item.known?RECOVERABLE[item.id].name:RECOVERABLE[item.id].raw)+' ×1');
+  }
+  for(const item of s.items)if(typeof item==='string')names.push(item);
+  if(s.beetle?.questAccepted&&!s.beetle.captured)names.push('通風誘捕盒 ×1');
+  if(s.beetle?.captured&&!s.beetle.terrarium)names.push('鏽殼甲蟲（採集盒）×1');
+  if(s.beetle?.terrarium)names.push('小型生態箱 ×1');
+  if(names.length)for(const name of names.slice(0,12))sideInfoText(out,name);
+  else sideInfoText(out,'尚未取得物品。','side-info-note');
+  sideInfoHeading(out,'探索材料');
+  const materials=[...Object.entries(s.recovery.parts),...Object.entries(s.forestRare.ingredients),...Object.entries(s.forestEcology.ingredients)].filter(([,n])=>Number.isFinite(n)&&n>0);
+  if(materials.length)for(const [name,n] of materials.slice(0,14))sideInfoText(out,name+' ×'+n);
+  else sideInfoText(out,'目前沒有已收取的材料。','side-info-note');
+  const btn=document.createElement('button');btn.type='button';btn.className='side-info-aux';
+  btn.textContent='完整物品與材料';btn.onclick=()=>journal('items');out.appendChild(btn);
+ }
+}
 function expandPlaceCard(id){
  placeCardExpanded=placeCardExpanded===id?null:id;
  if(placeCardExpanded){
@@ -3147,9 +3300,22 @@ function placeDrawerTravel(id){
 }
 function renderPlaceDrawer(){
  updatePlaceDrawerBadge();
- if(!placeDrawerOpen)return;
  const cards=visiblePlaceCards(),out=$('placeDrawerList');out.replaceChildren();
- $('placeDrawerSummary').textContent='　已記錄 '+cards.length+' 處';
+ const namesByTab={locations:'地點資訊',character:'角色狀態',equipment:'裝備欄',inventory:'背包'};
+ $('sidePanelTitle').textContent=namesByTab[activeSideTab];
+ $('placeDrawerSummary').textContent=activeSideTab==='locations'?' · '+cards.length+' 處':'';
+ $('placeDrawerPanel').setAttribute('aria-label',namesByTab[activeSideTab]);
+ for(const button of $('sideInfoTabs').querySelectorAll('[data-info-tab]')){
+  const selected=button.dataset.infoTab===activeSideTab;
+  button.classList.toggle('selected',selected);
+  button.setAttribute('aria-selected',String(selected));
+  button.tabIndex=selected?0:-1;
+ }
+ if(activeSideTab!=='locations'){renderSideTab(activeSideTab,out);return;}
+ const intro=document.createElement('div');intro.className='side-current-place';
+ const title=document.createElement('strong');title.textContent=names[s.scene][0];
+ const desc=document.createElement('span');desc.textContent=names[s.scene][1];
+ intro.append(title,desc);out.appendChild(intro);
  const hint=document.createElement('p');hint.className='place-drawer-guide';
  hint.textContent='地點卡、附近互動與待收取材料都集中在此。探索仍不會自動打開面板。';
  out.appendChild(hint);
@@ -3245,21 +3411,20 @@ function renderPlaceDrawer(){
  }
 }
 function setupPlaceDrawer(){
- $('placeDrawerPanel').inert=true;
- $('placeDrawerToggle').onclick=()=>setPlaceDrawer(!placeDrawerOpen);
- $('placeDrawerClose').onclick=()=>setPlaceDrawer(false);
- // Horizontal swipes of the handle or drawer can open/close it, but vertical scrolling stays native.
- let startX=0,startY=0,tracking=false;
- const drawer=$('placeDrawer');
- drawer.addEventListener('touchstart',e=>{if(e.touches.length!==1)return;startX=e.touches[0].clientX;startY=e.touches[0].clientY;tracking=true;},{passive:true});
- drawer.addEventListener('touchend',e=>{
-  if(!tracking||!e.changedTouches.length)return;tracking=false;
-  const dx=e.changedTouches[0].clientX-startX,dy=e.changedTouches[0].clientY-startY;
-  if(Math.abs(dx)>58&&Math.abs(dx)>Math.abs(dy)*1.35){
-   if(dx<0&&!placeDrawerOpen)setPlaceDrawer(true);
-   else if(dx>0&&placeDrawerOpen)setPlaceDrawer(false);
-  }
- },{passive:true});
+ const panel=$('placeDrawerPanel');
+ panel.inert=false;panel.setAttribute('aria-hidden','false');
+ $('placeDrawerToggle').onclick=()=>setActiveSideTab('locations');
+ $('placeDrawerClose').onclick=()=>setActiveSideTab('locations');
+ const tabs=Array.from($('sideInfoTabs').querySelectorAll('[data-info-tab]'));
+ tabs.forEach((button,index)=>{
+  button.onclick=()=>setActiveSideTab(button.dataset.infoTab);
+  button.onkeydown=e=>{
+   if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;
+   e.preventDefault();
+   const i=(index+(e.key==='ArrowRight'?1:tabs.length-1))%tabs.length;
+   setActiveSideTab(tabs[i].dataset.infoTab);tabs[i].focus();
+  };
+ });
 }
 const roster=[{id:'brother',name:'弟弟（隊長）',speech:'先別急著起身。這裡可能還有危險。'},{id:'sister',name:'姊姊',speech:'你能聽清楚我們說話嗎？'},{id:'a',name:'夥伴甲',speech:'這輛馬車損壞得真嚴重……'},{id:'b',name:'夥伴乙',speech:'我先看看四周有沒有怪物。'},{id:'c',name:'夥伴丙',speech:'帶點水過來吧，他看起來不太好。'},{id:'d',name:'夥伴丁',speech:'我們得趕在天黑之前回城。'}];
 
