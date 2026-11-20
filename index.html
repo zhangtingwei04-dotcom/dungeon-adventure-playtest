@@ -3588,6 +3588,42 @@ html.stage-locked #app #placeDrawerPanel .owned-gear-action{
  border:1px solid #c3a366!important;border-radius:5px!important;
  background:#2c5747!important;color:#fff0cd!important;font-size:11px!important;
 }
+
+/* Standalone tinted pixel-hair canvas. Eyes, face and equipped items are untouched. */
+html.stage-locked #app .paperdoll-stage .paperdoll-hair-canvas{
+ position:absolute;inset:0;width:100%;height:100%;
+ pointer-events:none;image-rendering:pixelated;
+}
+html.stage-locked #app .paperdoll-stage.hair-customized .paperdoll-hair-fallback{
+ display:none;
+}
+html.stage-locked #app .equip-hair-controls{
+ display:flex;align-items:center;gap:5px;width:100%;min-width:0;
+ padding:5px 1px;margin-top:3px;
+ border-top:1px solid rgba(181,160,113,.30);
+}
+html.stage-locked #app .equip-hair-title{
+ flex:none;font-size:11px;color:#f3dca6;font-weight:700;
+}
+html.stage-locked #app .equip-hair-palette{
+ display:flex;align-items:center;gap:4px;min-width:0;
+ flex:1;overflow-x:auto;padding:2px 1px;
+}
+html.stage-locked #app #placeDrawerPanel .equip-hair-swatch{
+ width:22px;min-width:22px;height:22px;min-height:22px!important;
+ padding:0!important;border-radius:5px!important;
+ border:1px solid #8f825e!important;
+ background:var(--swatch-color)!important;
+ box-shadow:inset 0 0 0 2px rgba(0,0,0,.15);
+}
+html.stage-locked #app #placeDrawerPanel .equip-hair-swatch[aria-pressed="true"]{
+ outline:2px solid #f4d184!important;outline-offset:1px;
+}
+html.stage-locked #app #placeDrawerPanel .equip-hair-picker{
+ flex:none;width:29px;height:27px;min-height:27px!important;padding:1px!important;
+ border:1px solid #c3a366!important;border-radius:5px!important;
+ background:#18372d!important;cursor:pointer;
+}
 </style>
 </head>
 <body>
@@ -4753,6 +4789,109 @@ function displayEquipmentInSlot(slotId){
 const TRAVEL_OUTFIT_IMAGE_IDS=Object.freeze({chest:'starter_tunic',legs:'starter_trousers',feet:'starter_boots',outer:'starter_cloak',bag:'enchanted_satchel'});
 // Test only. Do not save preview clothes into equipmentV1 or inventory.
 let paperDollTryOn=false;
+
+/* Hair tint belongs to the player appearance, not equipment or the source PNG.
+   Only the transparent 64×160 hair layer is recolored. Base, eyes and gear stay unchanged. */
+const HAIR_PALETTE_V1=Object.freeze([
+ {name:'灰白',hex:'#c8cbd0'},
+ {name:'銀白',hex:'#e2e7ee'},
+ {name:'深灰',hex:'#777b85'},
+ {name:'黑色',hex:'#393d47'},
+ {name:'栗棕',hex:'#9d715b'},
+ {name:'金色',hex:'#d4ac6d'},
+ {name:'淡粉',hex:'#d6a0b4'},
+ {name:'藍色',hex:'#819fd0'}
+]);
+function normalizeAppearanceV1(){
+ if(!s.appearanceV1||typeof s.appearanceV1!=='object'||Array.isArray(s.appearanceV1))s.appearanceV1={};
+ const value=s.appearanceV1.hairColor;
+ if(typeof value!=='string'||!/^#[0-9a-fA-F]{6}$/.test(value))s.appearanceV1.hairColor='#c8cbd0';
+ else s.appearanceV1.hairColor=value.toLowerCase();
+}
+let hairAtlasImage=null,hairAtlasReady=false,hairAtlasError=false;
+function paintPaperDollHair(){
+ const stages=document.querySelectorAll('.paperdoll-stage');
+ if(!stages.length)return;
+ if(!hairAtlasImage&&!hairAtlasError){
+  hairAtlasImage=new Image();
+  hairAtlasImage.onload=()=>{hairAtlasReady=true;paintPaperDollHair();};
+  hairAtlasImage.onerror=()=>{hairAtlasError=true;console.warn('Hair art unavailable; using original image.');};
+  hairAtlasImage.src=EQUIPMENT_PAPERDOLL_ATLAS_V3;
+  return;
+ }
+ if(!hairAtlasReady)return;
+ normalizeAppearanceV1();
+ try{
+  const hex=s.appearanceV1.hairColor;
+  const target=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16));
+  const work=document.createElement('canvas');work.width=64;work.height=160;
+  const ctx=work.getContext('2d',{willReadFrequently:true})||work.getContext('2d');
+  if(!ctx)return;
+  ctx.imageSmoothingEnabled=false;
+  // Hair is cell 8 of the original 9-cell atlas (each cell is 64×160).
+  ctx.drawImage(hairAtlasImage,512,0,64,160,0,0,64,160);
+  const frame=ctx.getImageData(0,0,64,160),pixels=frame.data;
+  for(let i=0;i<pixels.length;i+=4){
+   if(pixels[i+3]===0)continue;
+   const luminance=pixels[i]*0.2126+pixels[i+1]*0.7152+pixels[i+2]*0.0722;
+   // Dark pixel outlines are intentionally preserved to retain crisp pixel art.
+   if(luminance<38)continue;
+   const shade=(luminance-165)*0.92;
+   for(let c=0;c<3;c++)pixels[i+c]=Math.max(0,Math.min(255,Math.round(target[c]+shade)));
+  }
+  ctx.putImageData(frame,0,0);
+  for(const stage of stages){
+   const canvas=stage.querySelector('.paperdoll-hair-canvas');
+   if(!canvas)continue;
+   const paint=canvas.getContext('2d');
+   if(!paint)continue;
+   paint.imageSmoothingEnabled=false;
+   paint.clearRect(0,0,64,160);paint.drawImage(work,0,0);
+   stage.classList.add('hair-customized');
+  }
+ }catch(error){console.warn('Could not tint hair; keeping original hair artwork.',error);}
+}
+function setPaperDollHairColor(value,persist=true){
+ if(typeof value!=='string'||!/^#[0-9a-fA-F]{6}$/.test(value))return;
+ normalizeAppearanceV1();
+ s.appearanceV1.hairColor=value.toLowerCase();
+ const picker=document.getElementById('equipHairColorPicker');
+ if(picker&&picker.value!==s.appearanceV1.hairColor)picker.value=s.appearanceV1.hairColor;
+ for(const button of document.querySelectorAll('.equip-hair-swatch')){
+  const active=button.dataset.hairHex===s.appearanceV1.hairColor;
+  button.setAttribute('aria-pressed',String(active));
+ }
+ paintPaperDollHair();
+ if(persist)save();
+}
+function renderPaperDollHairControls(){
+ normalizeAppearanceV1();
+ const row=document.createElement('div');row.className='equip-hair-controls';
+ row.setAttribute('role','group');row.setAttribute('aria-label','紙娃娃髮色調整');
+ const title=document.createElement('span');title.className='equip-hair-title';title.textContent='髮色';
+ row.appendChild(title);
+ const palette=document.createElement('div');palette.className='equip-hair-palette';
+ for(const preset of HAIR_PALETTE_V1){
+  const button=document.createElement('button');button.type='button';
+  button.className='equip-hair-swatch';button.dataset.hairHex=preset.hex;
+  button.setAttribute('aria-label','髮色：'+preset.name);
+  button.setAttribute('title',preset.name);
+  button.setAttribute('aria-pressed',String(s.appearanceV1.hairColor===preset.hex));
+  button.style.setProperty('--swatch-color',preset.hex);
+  button.onclick=()=>setPaperDollHairColor(preset.hex,true);
+  palette.appendChild(button);
+ }
+ row.appendChild(palette);
+ const picker=document.createElement('input');picker.type='color';
+ picker.id='equipHairColorPicker';picker.className='equip-hair-picker';
+ picker.value=s.appearanceV1.hairColor;picker.title='自訂髮色';
+ picker.setAttribute('aria-label','自訂紙娃娃髮色');
+ picker.oninput=()=>setPaperDollHairColor(picker.value,false);
+ picker.onchange=()=>setPaperDollHairColor(picker.value,true);
+ row.appendChild(picker);
+ return row;
+}
+
 function equipmentGuideHTML(){
  const show=id=>paperDollTryOn||s.equipmentV1[id]===TRAVEL_OUTFIT_IMAGE_IDS[id];
  const indexes=[0];
@@ -4764,8 +4903,10 @@ function equipmentGuideHTML(){
  const layers=indexes.map(i=>'<span class="paperdoll-layer" aria-hidden="true" style="background-position:'+String(i*12.5)+'% 0"></span>').join('');
  // The approved side-bag overlay supersedes old sprite-atlas tile #6.
  const bag=show('bag')?'<span class="paperdoll-layer paperdoll-approved-bag" aria-hidden="true"></span>':'';
- const face=[7,8].map(i=>'<span class="paperdoll-layer" aria-hidden="true" style="background-position:'+String(i*12.5)+'% 0"></span>').join('');
- return '<div class="paperdoll-stage" role="img" aria-label="'+(paperDollTryOn?'主角旅行裝試穿預覽':'依實際裝備顯示的主角紙娃娃')+'">'+layers+bag+face+
+ const eyes='<span class="paperdoll-layer" aria-hidden="true" style="background-position:87.5% 0"></span>';
+ const hair='<span class="paperdoll-layer paperdoll-hair-fallback" aria-hidden="true" style="background-position:100% 0"></span>'+ 
+  '<canvas class="paperdoll-hair-canvas" width="64" height="160" aria-hidden="true"></canvas>';
+ return '<div class="paperdoll-stage" role="img" aria-label="'+(paperDollTryOn?'主角旅行裝試穿預覽':'依實際裝備顯示的主角紙娃娃')+'">'+layers+bag+eyes+hair+
  (paperDollTryOn?'<span class="paperdoll-preview-label">試穿</span>':'')+'</div>';
 }
 function setOwnedEquipmentEquipped(slotId,equip){
@@ -4853,6 +4994,7 @@ function renderEquipmentBoard(){
   board.appendChild(col);
  }
  showEquipmentDetail(equipmentSelected);
+ paintPaperDollHair();
 }
 function renderSideTab(tab,out){
  if(tab==='character'){
@@ -4930,7 +5072,8 @@ function renderSideTab(tab,out){
   const equipAction=document.createElement('button');equipAction.type='button';
   equipAction.id='equipEquipmentAction';equipAction.className='equip-action-button';
   equipAction.textContent='脫下';equipAction.hidden=true;
-  footer.append(detail,equipAction,tryOn,bag);section.append(board,footer);out.appendChild(section);
+  const hairControls=renderPaperDollHairControls();
+  footer.append(detail,equipAction,tryOn,bag);section.append(board,hairControls,footer);out.appendChild(section);
   renderEquipmentBoard();return;
  }
  if(tab==='inventory'){
@@ -5337,12 +5480,12 @@ function paintActorSprite(canvas,memberId,emotion='neutral'){
 }
 function randomSeed(){return (Date.now()^((Math.random()*4294967295)>>>0))>>>0;}
 function selectFour(seed){let a=[0,1,2,3,4,5],v=seed>>>0;for(let i=a.length-1;i>0;i--){v=(Math.imul(v,1664525)+1013904223)>>>0;let j=v%(i+1);[a[i],a[j]]=[a[j],a[i]];}return a.slice(0,4).sort((x,y)=>x-y);}
-function initial(){const seed=randomSeed();return{v:1,seed,scene:'wreck',worldMinutes:960,routeDiscovery:{known:[],searchCounts:{}},placeCardsViewed:[],exploration:{counts:{},routeProgress:{},pending:{},daily:{},last:{}},recovery:{found:false,looted:false,items:[],parts:{}},forestEcology:{checkedDays:{},observed:{},ingredients:{},leafCollected:false},forestRare:{checkedDays:{},sighted:{},hints:{},ingredients:{},beetleGearTaken:false,rabbitHerbTaken:false},beetle:{questAccepted:false,questCompleted:false,captured:false,terrarium:false,seen:false,food:72,clean:85,comfort:68,lastDay:0},wallet:{silver:1,copper:12},equipmentV1:{bag:'enchanted_satchel'},hp:16,maxHp:16,seen:[],notes:[],items:[],party:selectFour(seed),flags:{},visits:{wreck:1},savedAt:Date.now(),sound:false,feedCollapsed:false,travelHudMode:'compact',travelLog:[{type:'daily',message:'在毀壞的馬車篷內醒來，扶著斷裂木板爬到了外面。',thought:'我怎麼會在這裡？先看看四周吧。',scene:'wreck',time:Date.now()}]};}
+function initial(){const seed=randomSeed();return{v:1,seed,scene:'wreck',worldMinutes:960,routeDiscovery:{known:[],searchCounts:{}},placeCardsViewed:[],exploration:{counts:{},routeProgress:{},pending:{},daily:{},last:{}},recovery:{found:false,looted:false,items:[],parts:{}},forestEcology:{checkedDays:{},observed:{},ingredients:{},leafCollected:false},forestRare:{checkedDays:{},sighted:{},hints:{},ingredients:{},beetleGearTaken:false,rabbitHerbTaken:false},beetle:{questAccepted:false,questCompleted:false,captured:false,terrarium:false,seen:false,food:72,clean:85,comfort:68,lastDay:0},wallet:{silver:1,copper:12},equipmentV1:{bag:'enchanted_satchel'},appearanceV1:{hairColor:'#c8cbd0'},hp:16,maxHp:16,seen:[],notes:[],items:[],party:selectFour(seed),flags:{},visits:{wreck:1},savedAt:Date.now(),sound:false,feedCollapsed:false,travelHudMode:'compact',travelLog:[{type:'daily',message:'在毀壞的馬車篷內醒來，扶著斷裂木板爬到了外面。',thought:'我怎麼會在這裡？先看看四周吧。',scene:'wreck',time:Date.now()}]};}
 function validSave(j){return !!(j&&j.v===1&&names[j.scene]&&Number.isFinite(j.hp)&&Number.isFinite(j.maxHp)&&Array.isArray(j.party)&&j.party.length===4&&new Set(j.party).size===4&&j.party.every(i=>Number.isInteger(i)&&i>=0&&i<6)&&Array.isArray(j.seen)&&Array.isArray(j.notes)&&Array.isArray(j.items)&&j.flags&&typeof j.flags==='object'&&j.visits&&typeof j.visits==='object');}
 function load(){try{const j=JSON.parse(localStorage.getItem(KEY));return validSave(j)?j:null;}catch{return null;}}
 let s=load()||initial(), hasSave=!!load(),modal=null,showHints=false,journalTab='discoveries',toastHandle=null;
 let backpackView='all',equipmentSelected='bag';
-normalizeWallet();normalizeEquipmentV1();
+normalizeWallet();normalizeEquipmentV1();normalizeAppearanceV1();
 if(!Array.isArray(s.travelLog))s.travelLog=[];
 normalizeGameTime();normalizeRecovery();normalizeForestRare();normalizeBeetleCare();normalizeForestEcology();normalizeRouteDiscovery();normalizeExploration();normalizePlaceCards();
 if(typeof s.feedCollapsed!=='boolean')s.feedCollapsed=false;if(!['compact','expanded'].includes(s.travelHudMode))s.travelHudMode='compact';
