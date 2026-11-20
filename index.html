@@ -3170,6 +3170,38 @@ html.stage-locked #app #placeDrawerPanel.is-location-tab .location-preview-trave
  outline:2px solid #ffecb2;outline-offset:1px;
 }
 
+/* V0.8.19 — finger-sized invisible hit areas for preview arrows at a
+   1536x707 design scale. Visible gold buttons stay compact and the right
+   board / resource icons keep their approved layout. The extra 32px right
+   margin reserves space inside the panel for the last arrow's hit area. */
+html.stage-locked #app #placeDrawerPanel.is-location-tab .location-preview-nav{
+ position:relative!important;
+ margin-right:32px!important;
+ z-index:4!important;
+}
+html.stage-locked #app #placeDrawerPanel.is-location-tab .location-preview-arrow{
+ position:relative!important;
+ overflow:visible!important;
+ isolation:isolate;
+}
+html.stage-locked #app #placeDrawerPanel.is-location-tab .location-preview-arrow::before{
+ content:"";
+ position:absolute;
+ top:-19px;bottom:-28px;
+ z-index:1;
+ background:transparent;
+ pointer-events:auto;
+}
+html.stage-locked #app #placeDrawerPanel.is-location-tab .location-preview-arrow:first-child::before{
+ left:-48px;right:0;
+}
+html.stage-locked #app #placeDrawerPanel.is-location-tab .location-preview-arrow:last-child::before{
+ left:0;right:-43px;
+}
+html.stage-locked #app #placeDrawerPanel.is-location-tab .location-preview-travel{
+ position:relative;z-index:5;
+}
+
 </style>
 </head>
 <body>
@@ -4357,7 +4389,8 @@ function renderPlaceDrawer(){
  const positionRow=document.createElement('div');positionRow.className='location-preview-position-row';
  const position=document.createElement('span');position.className='location-preview-position';
  position.textContent='地點 '+(previewIndex+1)+' / '+cards.length+' · '+
-  (previewCard.current?'目前所在地':previewCard.reachable?'可前往 · 預覽中':'已發現 · 僅預覽');
+  (previewCard.current?'目前所在地':previewCard.reachable?'可前往 · 預覽中':'已發現 · 僅預覽')+
+  (cards.length>1?' · 可左右滑動':'');
  const canTravel=Boolean(previewCard.reachable&&!previewCard.current);
  const travelButton=document.createElement('button');travelButton.type='button';
  travelButton.className='location-preview-travel';
