@@ -4764,13 +4764,13 @@ function renderSideTab(tab,out){
   out.appendChild(note);return;
  }
  if(tab==='equipment'){
-  sideInfoHeading(out,'角色裝備');
+  sideInfoHeading(out,'裝備欄');
   const mini=document.createElement('div');mini.className='equip-compact';
-  const title=document.createElement('strong');title.textContent='人體對應裝備欄';
+  const title=document.createElement('strong');title.textContent='簡化裝備格';
   const info=document.createElement('p');
-  info.textContent='人物置中、裝備部位分列兩側。已裝備：附魔旅行側包（24 格／16 kg／減重 50%）。其他槽位暫無裝備。';
+  info.textContent='中央為簡化裝備底板，左右可點選各部位。附魔旅行側包已裝備；其他格位目前為空。';
   const action=document.createElement('button');action.className='side-info-aux';action.type='button';
-  action.textContent='開啟角色裝備圖';action.onclick=openEquipmentPanel;
+  action.textContent='開啟裝備格';action.onclick=openEquipmentPanel;
   mini.append(title,info,action);out.appendChild(mini);
   sideInfoText(out,'點擊裝備格查看對應部位。裝備物品取得與穿戴功能將在後續開放。','side-info-note');return;
  }
