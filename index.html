@@ -2560,6 +2560,13 @@ html.stage-locked #app #placeDrawerPanel .place-drawer-guide{
  font-size:13px!important;line-height:1.5!important;
 }
 
+
+/* V0.8.1a — restore unread route cue after retiring the bookmark. */
+html.stage-locked #app #sideInfoTabs button.has-unseen:not(.selected){
+ border-color:#e5c483!important;
+ box-shadow:inset 0 0 0 1px #e5c4834d,0 0 8px #d7b06d40!important;
+}
+
 </style>
 </head>
 <body>
@@ -3464,6 +3471,15 @@ function updatePlaceDrawerBadge(){
  normalizeExploration();
  const pending=(s.exploration.pending[s.scene]||[]).length;
  $('placeDrawerCount').textContent=n?'NEW '+n:(pending?'材料 '+pending:'');
+ // The old vertical badge is hidden. Put the discovery cue on the visible
+ // 地點 tab instead, so new places/materials are never silently missed.
+ const tab=$('sideInfoTabs')?.querySelector('[data-info-tab="locations"]');
+ if(tab){
+  tab.classList.toggle('has-unseen',n>0||pending>0);
+  tab.textContent=n?'◇ 地點 '+n:'◇ 地點';
+  tab.title=n?'有 '+n+' 處未查看的新地點':pending?'有 '+pending+' 份待收取材料':'地點資訊';
+  tab.setAttribute('aria-label',tab.title);
+ }
  $('placeDrawer').classList.toggle('new-routes',n>0&&!placeDrawerOpen);
  const toggle=$('placeDrawerToggle');
  toggle.setAttribute('aria-label',(placeDrawerOpen?'收合':'展開')+'地點卡欄'+(n?'，有'+n+'處未查看的新地點':'')+(pending?'，有'+pending+'份待收取材料':''));
@@ -3565,7 +3581,11 @@ function renderPlaceDrawer(){
  const cards=visiblePlaceCards(),out=$('placeDrawerList');
  // Keep location-list scroll position when a new event, item, or route causes a render.
  // Reuse the existing image element so embedded art is not decoded on every update.
- const priorScroll=out.scrollTop,retainedPreview=out.querySelector('.side-scene-preview');
+ const sameContext=out.dataset.renderedTab===activeSideTab&&out.dataset.renderedScene===s.scene;
+ const priorScroll=sameContext?out.scrollTop:0;
+ const retainedPreview=out.querySelector('.side-scene-preview');
+ out.dataset.renderedTab=activeSideTab;
+ out.dataset.renderedScene=s.scene;
  out.replaceChildren();
  const actionHost=$('placePrimaryActions');actionHost.replaceChildren();
  actionHost.hidden=activeSideTab!=='locations';
