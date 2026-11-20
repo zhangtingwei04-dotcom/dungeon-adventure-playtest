@@ -3329,6 +3329,108 @@ html.stage-locked #app #placeDrawerPanel.is-character-tab .protagonist-note{
  font-size:11px;color:#c8c6b2;margin:5px 0;line-height:1.4;
 }
 
+
+/* V0.8.22 — lightweight expression simulation on the same protagonist portrait.
+   No extra assets, no timers and no new saved stats; all controls stay in 角色. */
+html.stage-locked #app #placeDrawerPanel.is-character-tab .protagonist-portrait{
+ position:relative!important;overflow:hidden!important;
+}
+html.stage-locked #app #placeDrawerPanel.is-character-tab .protagonist-portrait img{
+ transform-origin:50% 44%;animation:protagonist-breathe 5.8s ease-in-out infinite;
+ transition:filter .26s ease,transform .26s ease!important;
+ will-change:auto;
+}
+html.stage-locked #app #placeDrawerPanel.is-character-tab .protagonist-face-layer{
+ position:absolute;inset:3px;width:calc(100% - 6px);height:calc(100% - 6px);
+ pointer-events:none;overflow:visible;
+}
+html.stage-locked #app #placeDrawerPanel.is-character-tab .protagonist-face-layer .blink-lids{
+ opacity:0;animation:protagonist-blink 7.4s linear infinite;
+}
+html.stage-locked #app #placeDrawerPanel.is-character-tab .protagonist-face-layer .tired-lids,
+html.stage-locked #app #placeDrawerPanel.is-character-tab .protagonist-face-layer .curious-brow,
+html.stage-locked #app #placeDrawerPanel.is-character-tab .protagonist-face-layer .surprised-brow,
+html.stage-locked #app #placeDrawerPanel.is-character-tab .protagonist-face-layer .surprised-mouth,
+html.stage-locked #app #placeDrawerPanel.is-character-tab .protagonist-face-layer .hurt-brow,
+html.stage-locked #app #placeDrawerPanel.is-character-tab .protagonist-face-layer .relieved-smile{
+ opacity:0;transition:opacity .22s ease;
+}
+html.stage-locked #app #placeDrawerPanel.is-character-tab .protagonist-card[data-expression="curious"] .curious-brow,
+html.stage-locked #app #placeDrawerPanel.is-character-tab .protagonist-card[data-expression="surprised"] .surprised-brow,
+html.stage-locked #app #placeDrawerPanel.is-character-tab .protagonist-card[data-expression="surprised"] .surprised-mouth,
+html.stage-locked #app #placeDrawerPanel.is-character-tab .protagonist-card[data-expression="tired"] .tired-lids,
+html.stage-locked #app #placeDrawerPanel.is-character-tab .protagonist-card[data-expression="hurt"] .hurt-brow,
+html.stage-locked #app #placeDrawerPanel.is-character-tab .protagonist-card[data-expression="relieved"] .relieved-smile{
+ opacity:1;
+}
+html.stage-locked #app #placeDrawerPanel.is-character-tab .protagonist-card[data-expression="curious"] .protagonist-portrait img{
+ filter:brightness(1.055) contrast(1.02);transform:rotate(-1deg) scale(1.035);
+ animation:none;
+}
+html.stage-locked #app #placeDrawerPanel.is-character-tab .protagonist-card[data-expression="surprised"] .protagonist-portrait img{
+ filter:brightness(1.14) contrast(1.045);transform:scale(1.065);animation:none;
+}
+html.stage-locked #app #placeDrawerPanel.is-character-tab .protagonist-card[data-expression="surprised"] .blink-lids{
+ animation:none;opacity:0;
+}
+html.stage-locked #app #placeDrawerPanel.is-character-tab .protagonist-card[data-expression="tired"] .protagonist-portrait img{
+ filter:saturate(.77) brightness(.84);animation:protagonist-breathe 8s ease-in-out infinite;
+}
+html.stage-locked #app #placeDrawerPanel.is-character-tab .protagonist-card[data-expression="hurt"] .protagonist-portrait img{
+ filter:saturate(.77) sepia(.15) brightness(.86);
+ animation:protagonist-winced 3.8s ease-in-out infinite;
+}
+html.stage-locked #app #placeDrawerPanel.is-character-tab .protagonist-card[data-expression="relieved"] .protagonist-portrait img{
+ filter:brightness(1.09) saturate(1.08);animation:protagonist-breathe 6.6s ease-in-out infinite;
+}
+html.stage-locked #app #placeDrawerPanel.is-character-tab .protagonist-emotion-heading{
+ display:flex;align-items:center;justify-content:space-between;gap:5px;
+ font-size:13px;font-weight:700;color:#f1dfa9;margin:4px 0 5px;
+}
+html.stage-locked #app #placeDrawerPanel.is-character-tab .protagonist-emotion-caption{
+ color:#bfc5ae;font-size:10px;line-height:1.3;font-weight:400;
+}
+html.stage-locked #app #placeDrawerPanel.is-character-tab .protagonist-emotions{
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;
+}
+html.stage-locked #app #placeDrawerPanel.is-character-tab .protagonist-emotion-choice{
+ min-width:0;min-height:33px;padding:4px 5px;
+ border:1px solid #9e9269!important;border-radius:7px;
+ background:linear-gradient(135deg,#163c32,#10322c)!important;
+ color:#e6d9b6!important;font:600 12px/1.35 "Noto Sans TC",sans-serif!important;
+ touch-action:manipulation;cursor:pointer;
+}
+html.stage-locked #app #placeDrawerPanel.is-character-tab .protagonist-emotion-choice[aria-pressed="true"]{
+ background:linear-gradient(135deg,#947348,#4c713e)!important;
+ border-color:#f4d99a!important;color:#fff0c8!important;
+ box-shadow:inset 0 0 0 1px #f4d99a55;
+}
+html.stage-locked #app #placeDrawerPanel.is-character-tab .protagonist-emotion-choice:focus-visible{
+ outline:2px solid #ffeab4;outline-offset:1px;
+}
+html.stage-locked #app #placeDrawerPanel.is-character-tab .protagonist-emotion-explanation{
+ margin:6px 0 4px!important;font-size:11px!important;
+ color:#d7d0b7!important;line-height:1.45!important;
+}
+@keyframes protagonist-breathe{
+ 0%,100%{transform:translateY(0) scale(1)}
+ 50%{transform:translateY(1.3px) scale(1.007)}
+}
+@keyframes protagonist-blink{
+ 0%,89%,90.6%,100%{opacity:0}
+ 89.3%,89.9%{opacity:.95}
+}
+@keyframes protagonist-winced{
+ 0%,85%,100%{transform:translateX(0)}
+ 88%,92%{transform:translateX(1px)}
+}
+@media(prefers-reduced-motion:reduce){
+ html.stage-locked #app #placeDrawerPanel.is-character-tab .protagonist-portrait img,
+ html.stage-locked #app #placeDrawerPanel.is-character-tab .protagonist-face-layer .blink-lids{
+  animation:none!important;transition:none!important;
+ }
+}
+
 </style>
 </head>
 <body>
@@ -4324,6 +4426,75 @@ const LOCATION_CARD_META=Object.freeze({
 const LOCATION_CUE_ICONS=Object.freeze([
  ['🍃','草葉與植物'],['🍄','菌菇'],['🪵','木材'],['🪨','石塊'],['💎','礦晶']
 ]);
+// Prototype visual emotions. Manual preview never affects story, save, or HP.
+let characterEmotionPreview='auto';
+const CHARACTER_EXPRESSION_LABELS=Object.freeze({
+ neutral:'平靜',curious:'疑惑',surprised:'驚訝',relieved:'安心',tired:'疲倦',hurt:'疼痛'
+});
+function autoCharacterExpression(){
+ if(s.hp<=Math.max(2,Math.floor(s.maxHp*.35)))return 'hurt';
+ if(s.flags.inBattle)return 'surprised';
+ if(s.scene==='wreck'&&!s.flags.rescued)return 'curious';
+ if(s.flags.rescued)return 'relieved';
+ return 'neutral';
+}
+function selectedCharacterExpression(){
+ return characterEmotionPreview==='auto'?autoCharacterExpression():characterEmotionPreview;
+}
+function expressionReason(mode){
+ if(mode!=='auto')return '手動預覽，不影響劇情結果與角色能力。';
+ switch(autoCharacterExpression()){
+  case 'hurt':return '目前生命較低，角色會呈現疼痛反應。';
+  case 'surprised':return '遭遇戰期間，角色會呈現緊張驚訝的反應。';
+  case 'curious':return '剛從馬車殘骸醒來，角色對四周仍感到困惑。';
+  case 'relieved':return '與其他冒險者相遇後，表情逐漸安定。';
+  default:return '目前處於相對平靜的探索狀態。';
+ }
+}
+// Eyelids and tiny mouth/brow details are aligned to the 192x256 portrait art.
+// They are deliberately subtle: full facial deformation requires dedicated art.
+function createExpressionOverlay(){
+ const svgNS='http://www.w3.org/2000/svg';
+ const overlay=document.createElementNS(svgNS,'svg');
+ overlay.setAttribute('class','protagonist-face-layer');
+ overlay.setAttribute('viewBox','0 0 192 256');
+ overlay.setAttribute('preserveAspectRatio','xMidYMid meet');
+ overlay.setAttribute('aria-hidden','true');
+ overlay.innerHTML=`
+ <defs>
+  <linearGradient id="heroLidTone" x1="0" y1="0" x2="0" y2="1">
+   <stop offset="0" stop-color="#a47770"/>
+   <stop offset=".45" stop-color="#c89b8a"/>
+   <stop offset="1" stop-color="#ca9e89"/>
+  </linearGradient>
+ </defs>
+ <g class="blink-lids">
+  <path d="M71 55 Q78 50 87 54 L87 62 Q78 64 72 61 Z" fill="url(#heroLidTone)" opacity=".97"/>
+  <path d="M92 44 Q103 40 113 42 L115 50 Q104 55 94 51 Z" fill="url(#heroLidTone)" opacity=".98"/>
+  <path d="M72 58 Q80 56 87 58 M94 48 Q103 45 113 47" fill="none" stroke="#674c4e" stroke-width="1.2" stroke-linecap="round"/>
+ </g>
+ <g class="tired-lids">
+  <path d="M71 54 Q79 51 87 53 L88 58 Q78 59 72 58 Z" fill="#ba9286" opacity=".84"/>
+  <path d="M93 43 Q105 40 113 42 L115 47 Q104 48 94 48 Z" fill="#bf9388" opacity=".85"/>
+  <path d="M73 58 Q81 56 86 58 M95 47 Q103 46 113 46" fill="none" stroke="#67494a" stroke-width=".9"/>
+ </g>
+ <g class="curious-brow" fill="none" stroke="#634d54" stroke-width="1.6" stroke-linecap="round" opacity=".78">
+  <path d="M73 49 Q79 43 87 47 M93 38 Q102 34 112 37"/>
+ </g>
+ <g class="surprised-brow" fill="none" stroke="#705358" stroke-width="1.45" stroke-linecap="round">
+  <path d="M72 47 Q79 41 87 44 M92 36 Q102 32 113 35"/>
+ </g>
+ <g class="surprised-mouth">
+  <ellipse cx="96.2" cy="76.5" rx="3.1" ry="2.6" fill="#58353d" stroke="#d8ac9b" stroke-width="1"/>
+ </g>
+ <g class="hurt-brow" fill="none" stroke="#68424a" stroke-width="1.6" stroke-linecap="round">
+  <path d="M73 48 L86 51 M94 39 L112 41 M91 77 Q96 74 102 76"/>
+ </g>
+ <g class="relieved-smile" fill="none" stroke="#795150" stroke-width="1.4" stroke-linecap="round">
+  <path d="M91 76 Q96 79.5 102 75"/>
+ </g>`;
+ return overlay;
+}
 function renderSideTab(tab,out){
  if(tab==='character'){
   const card=document.createElement('section');card.className='protagonist-card';
@@ -4334,11 +4505,13 @@ function renderSideTab(tab,out){
   const image=document.createElement('img');
   image.src=window.DUNGEON_PROTAGONIST_PORTRAIT||'';
   image.alt='銀灰髮紫色眼眸的旅人，穿深綠金紋斗篷，頸側有印記，手持古式圓形裝置';
-  image.decoding='async';image.loading='eager';photo.appendChild(image);
+  image.decoding='async';image.loading='eager';
+  const emotion=selectedCharacterExpression();card.dataset.expression=emotion;
+  photo.append(image,createExpressionOverlay());
   photo.onclick=()=>{
    const expanded=card.classList.toggle('is-expanded');
    photo.setAttribute('aria-pressed',String(expanded));
-   photo.setAttribute('aria-label',expanded?'縮小主角肖像':'放大查看主角肖像與背部紋印');
+   photo.setAttribute('aria-label',expanded?'縮小主角肖像':'放大查看主角肖像');
    photo.title=expanded?'縮小肖像':'點擊放大肖像';
   };
   const profile=document.createElement('div');profile.className='protagonist-profile';
@@ -4365,6 +4538,27 @@ function renderSideTab(tab,out){
    row.append(left,right);profile.appendChild(row);
   }
   card.append(photo,profile);out.appendChild(card);
+  const eHeading=document.createElement('div');eHeading.className='protagonist-emotion-heading';
+  const eTitle=document.createElement('span');eTitle.textContent='表情模擬';
+  const eCaption=document.createElement('span');eCaption.className='protagonist-emotion-caption';
+  eCaption.textContent=characterEmotionPreview==='auto'?'自動 · '+CHARACTER_EXPRESSION_LABELS[emotion]:'手動 · '+CHARACTER_EXPRESSION_LABELS[emotion];
+  eHeading.append(eTitle,eCaption);out.appendChild(eHeading);
+  const choiceRow=document.createElement('div');choiceRow.className='protagonist-emotions';
+  for(const [code,label] of [['auto','自動'],['neutral','平靜'],['curious','疑惑'],['surprised','驚訝'],['relieved','安心'],['tired','疲倦'],['hurt','疼痛']]){
+   const button=document.createElement('button');button.type='button';
+   button.className='protagonist-emotion-choice';button.textContent=label;
+   button.setAttribute('aria-pressed',String(characterEmotionPreview===code));
+   button.setAttribute('aria-label','預覽'+label+'表情');
+   button.onclick=()=>{
+    characterEmotionPreview=code;
+    const y=$('placeDrawerList').scrollTop;
+    renderPlaceDrawer();$('placeDrawerList').scrollTop=y;
+   };
+   choiceRow.appendChild(button);
+  }
+  out.appendChild(choiceRow);
+  const why=document.createElement('p');why.className='protagonist-emotion-explanation';
+  why.textContent=expressionReason(characterEmotionPreview);out.appendChild(why);
   const heading=document.createElement('h4');heading.className='protagonist-section-title';
   heading.textContent='背部紋印與身分線索';out.appendChild(heading);
   const lore=document.createElement('section');lore.className='protagonist-lore';
@@ -4373,7 +4567,7 @@ function renderSideTab(tab,out){
   intro.textContent='背部有一道向外延伸的深色印記，目前沒有特別發光。它與主角失去的記憶及某件遺物有關。';
   lore.append(loreTitle,intro);out.appendChild(lore);
   const note=document.createElement('p');note.className='protagonist-note';
-  note.textContent='主角肖像為第一版；遺物融合、紋印啟動與瀕死修復的能力機制尚未實作。';
+  note.textContent='目前是輕量表情模擬（眨眼、姿態與局部五官變化）；完整表情立繪、遺物啟動及瀕死修復仍待實作。';
   out.appendChild(note);return;
  }
  if(tab==='equipment'){
