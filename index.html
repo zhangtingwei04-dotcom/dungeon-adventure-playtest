@@ -3576,7 +3576,7 @@ html.stage-locked #app #placeDrawerPanel.is-character-tab .protagonist-note{
 <script src="./assets/ornaments_data.js"></script>
 <script src="./assets/approved_wagon_art_v1.js"></script>
 <script src="./assets/trail_forest_v1.js"></script>
-<script src="./assets/protagonist_portrait_v1.js"></script>
+<script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
 <script>
 (()=>{'use strict';
 // Fixed design canvas: use the approved screenshot's exact 1536×707 ratio,
@@ -4333,7 +4333,7 @@ function renderSideTab(tab,out){
   photo.setAttribute('aria-pressed','false');
   const image=document.createElement('img');
   image.src=window.DUNGEON_PROTAGONIST_PORTRAIT||'';
-  image.alt='銀灰髮、紫色眼眸的旅人回望，裸露背部有黑色圓環分支紋印，身披深色斗篷';
+  image.alt='銀灰髮紫色眼眸的旅人，穿深綠金紋斗篷，頸側有印記，手持古式圓形裝置';
   image.decoding='async';image.loading='eager';photo.appendChild(image);
   photo.onclick=()=>{
    const expanded=card.classList.toggle('is-expanded');
