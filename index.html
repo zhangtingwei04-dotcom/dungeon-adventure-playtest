@@ -4703,6 +4703,9 @@ function renderEquipmentBoard(){
 }
 function openEquipmentPanel(){
  const v=$('equipmentVeil');if(!v)return;
+ // The game uses a scaled 1536x707 stage. The equipment window must render
+ // in viewport coordinates so mobile text and touch targets stay legible.
+ if(v.parentElement!==document.body)document.body.appendChild(v);
  equipmentReturnFocus=document.activeElement;
  renderEquipmentBoard();v.classList.remove('hidden');
  $('equipmentClose').focus({preventScroll:true});
