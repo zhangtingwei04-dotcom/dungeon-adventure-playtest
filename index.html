@@ -3410,105 +3410,94 @@ html.stage-locked #app .bag-item-quantity{color:#f5d890;font-weight:750;font-siz
 
 
 
-/* V0.8 equipment: fully inline inside the right-hand equipment tab.
-   No overlay, modal, full-screen panel or replacement for the approved stage. */
-html.stage-locked #app .equip-inline{
- width:100%;min-width:0;box-sizing:border-box;
-}
+/* Equipment V2: approved silhouette-centered design stays INSIDE right-hand tab.
+   No full-screen popup and no change to the main game stage. */
+html.stage-locked #app .equip-inline{width:100%;min-width:0;box-sizing:border-box}
 html.stage-locked #app #placeDrawerPanel.is-equipment-tab #placeDrawerList{
- padding:4px 8px 5px!important;
+ padding:5px 8px 5px!important;
 }
 html.stage-locked #app .equip-inline-board{
- width:100%;min-width:0;display:grid;
- grid-template-columns:minmax(0,1fr) 51px minmax(0,1fr);
- align-items:stretch;gap:3px;
+ position:relative;display:grid;width:100%;min-width:0;
+ grid-template-columns:minmax(0,1fr) minmax(88px,30%) minmax(0,1fr);
+ gap:3px;align-items:stretch;
 }
 html.stage-locked #app .equip-side{
- min-width:0;display:flex;flex-direction:column;gap:3px;
+ display:flex;flex-direction:column;gap:3px;min-width:0;
 }
 html.stage-locked #app #placeDrawerPanel .equip-slot{
- min-width:0;width:100%;
- min-height:36px!important;height:36px!important;max-height:36px!important;
- padding:3px 5px!important;box-sizing:border-box;
- display:flex!important;align-items:center;gap:5px;
- text-align:left;border:1px solid rgba(176,152,100,.57)!important;
- border-radius:6px!important;
- color:#e9dac0!important;
- background:linear-gradient(110deg,rgba(35,58,54,.9),rgba(14,35,35,.9))!important;
- cursor:pointer;touch-action:manipulation;
+ display:flex!important;align-items:center;gap:5px;position:relative;
+ height:36px!important;min-height:36px!important;max-height:36px!important;
+ width:100%;min-width:0;padding:3px 4px!important;box-sizing:border-box;
+ border:1px solid #958562b0!important;border-radius:5px!important;
+ background:linear-gradient(145deg,#214039ec,#102c2dea)!important;
+ color:#efe4c7!important;text-align:left;touch-action:manipulation;
 }
 html.stage-locked #app #placeDrawerPanel .equip-slot.is-selected{
- border-color:#f2d28c!important;
- box-shadow:inset 0 0 0 1px #f0d18a80!important;
- background:linear-gradient(110deg,#4c6048,#173931)!important;
+ border-color:#f2d28c!important;box-shadow:inset 0 0 0 1px #d6b8738a,0 0 7px #dfbb6650!important;
+ background:linear-gradient(145deg,#506249,#173831)!important;
 }
-html.stage-locked #app #placeDrawerPanel .equip-slot.is-filled .equip-slot-symbol{
- color:#ffdda0;background:#453b29;border-color:#d6b572;
+html.stage-locked #app #placeDrawerPanel .equip-slot.is-filled{
+ border-color:#d1a863!important;background:linear-gradient(145deg,#5f5135,#263d31)!important;
 }
-html.stage-locked #app .equip-slot:focus-visible{
- outline:2px solid #f1d18a;outline-offset:1px;
-}
+html.stage-locked #app .equip-slot:focus-visible{outline:2px solid #f1d18a;outline-offset:1px}
 html.stage-locked #app .equip-slot-symbol{
- display:grid;place-items:center;flex:none;
- width:20px;height:23px;border-radius:4px;border:1px solid #8b855e;
- background:#112927;font-size:12px;line-height:1;color:#c4bd97;
+ flex:none;display:grid;place-items:center;width:22px;height:24px;
+ border:1px solid #b3a07688;border-radius:4px;background:#112826;
+ color:#ead5a5;font:600 13px/1 Georgia,serif;
 }
-html.stage-locked #app .equip-slot-words{flex:1;min-width:0}
+html.stage-locked #app .equip-slot.is-filled .equip-slot-symbol{
+ color:#ffe3a5;background:#59452c;border-color:#e0b46c;
+}
+html.stage-locked #app .equip-slot-words{min-width:0;flex:1}
 html.stage-locked #app .equip-slot-name{
- display:block;font-size:13px;line-height:1.3;font-weight:700;
- color:#f1dfbb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+ display:block;color:#f3e1b9;font-size:14px;line-height:1.2;font-weight:700;
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 html.stage-locked #app .equip-slot-status{
- display:block;font-size:9px;line-height:1.25;
- color:#b9bfb1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+ display:block;color:#d5c59b;font-size:9px;line-height:1.15;
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;
 }
-html.stage-locked #app .equip-slot.is-filled .equip-slot-status{color:#e4c67f}
+html.stage-locked #app .equip-slot-status:empty{display:none}
+/* Subtle gold human silhouette, not a character portrait or mannequin. */
 html.stage-locked #app .equip-guide{
- position:relative;min-width:0;
- border:1px solid #a89e6855;border-radius:6px;
- background:linear-gradient(180deg,rgba(49,72,59,.35),rgba(11,33,32,.55));
+ position:relative;min-width:0;overflow:hidden;
  display:flex;align-items:center;justify-content:center;
- overflow:hidden;
+ border:1px solid #aa94675c;border-radius:6px;
+ background:radial-gradient(ellipse at 50% 45%,#55705b33 0%,#233e364b 57%,#10282472 100%);
 }
-html.stage-locked #app .equip-guide-core{
- position:relative;width:100%;height:100%;
- display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
- padding:4px 2px;box-sizing:border-box;
+html.stage-locked #app .equip-guide:before{
+ content:"";position:absolute;inset:4px;border:1px solid #d2b77b26;
+ border-radius:5px;pointer-events:none;
 }
-html.stage-locked #app .equip-guide-title{
- white-space:nowrap;font-size:10px;line-height:1.1;color:#ceb781;font-weight:600;
+html.stage-locked #app .equip-figure-silhouette{
+ display:block;width:100%;height:100%;max-height:205px;overflow:visible;
+ filter:drop-shadow(0 0 3px #d7b66c44);pointer-events:none;
 }
-html.stage-locked #app .equip-guide-line{
- width:65%;height:1px;background:#a69c6a65;flex:none;
+html.stage-locked #app .equip-guide .equip-gold-body{
+ fill:#b2a57716;stroke:#cbb36d;stroke-width:1.75;
+ stroke-linejoin:round;stroke-linecap:round;opacity:.80;
 }
-html.stage-locked #app .equip-guide-part{
- display:flex;align-items:center;justify-content:center;gap:2px;
- width:100%;min-height:22px;flex:1;
+html.stage-locked #app .equip-guide .equip-gold-links{
+ fill:none;stroke:#c4a768;stroke-width:1.05;opacity:.60;
+ stroke-linejoin:round;stroke-linecap:round;
 }
-html.stage-locked #app .equip-guide-mark{
- display:grid;place-items:center;width:16px;height:19px;flex:none;
- border:1px solid #af9c6966;border-radius:4px;
- color:#e1c88d;background:#2b493e4f;font:600 10px/1 Georgia,serif;
-}
-html.stage-locked #app .equip-guide-label{
- font-size:10px;color:#adb5a0;line-height:1;
+html.stage-locked #app .equip-guide .equip-gold-dots{fill:#ddc080;opacity:.84}
+html.stage-locked #app .equip-guide .equip-ambient-rune{
+ fill:none;stroke:#d4b871;stroke-width:.7;opacity:.18;
 }
 html.stage-locked #app .equip-inline-footer{
- display:flex;align-items:center;gap:6px;
- margin-top:4px;padding:4px 0 0;border-top:1px solid #b5a07170;
+ display:flex;align-items:center;gap:6px;margin-top:4px;padding:4px 0 0;
+ border-top:1px solid #b5a07170;
 }
-html.stage-locked #app .equip-detail{
- min-width:0;flex:1;display:block;
-}
+html.stage-locked #app .equip-detail{min-width:0;flex:1;display:block}
 html.stage-locked #app .equip-detail-title{
- display:block;color:#f6dfa6;font-size:13px;font-weight:700;line-height:1.3;
+ display:block;color:#f6dfa6;font-size:13px;font-weight:700;line-height:1.25;
 }
 html.stage-locked #app .equip-detail-note{
- display:block;color:#c8cab8;font-size:10px;line-height:1.35;margin-top:3px;
+ display:block;color:#d4cbb2;font-size:10px;line-height:1.3;margin-top:2px;
 }
 html.stage-locked #app #placeDrawerPanel .equip-bag-button{
- flex:none;align-self:center;min-height:35px!important;
- padding:4px 8px!important;
+ flex:none;align-self:center;min-height:35px!important;padding:4px 8px!important;
  border:1px solid #c3a366!important;border-radius:7px!important;
  background:#2c5747!important;color:#fff0cd!important;
  font-size:12px!important;font-weight:700;white-space:nowrap;
@@ -4634,14 +4623,43 @@ function normalizeEquipmentV1(){
  }
 }
 function equipmentGuideHTML(){
- // Small static equipment diagram; no full-body character art.
- const parts=[['○','頭'],['▣','身'],['◇','手'],['▤','腿'],['⌁','足']];
- return '<div class="equip-guide-core" aria-label="簡化裝備部位示意">'+
-  '<div class="equip-guide-title">裝備部位</div><div class="equip-guide-line"></div>'+
-  parts.map(([mark,label])=>
-   '<div class="equip-guide-part"><span class="equip-guide-mark" aria-hidden="true">'+mark+
-   '</span><span class="equip-guide-label">'+label+'</span></div>').join('')+
-  '</div>';
+ // Human silhouette: warm gold lines over a muted green backing, no face or outfit.
+ // Five connector heights match the five equipment rows on each side.
+ return `<svg class="equip-figure-silhouette" viewBox="0 0 110 207"
+ xmlns="http://www.w3.org/2000/svg" role="img" aria-label="人形裝備定位剪影">
+ <circle class="equip-ambient-rune" cx="55" cy="104" r="42"/>
+ <circle class="equip-ambient-rune" cx="55" cy="104" r="33" stroke-dasharray="2 6"/>
+ <path class="equip-ambient-rune" d="M55 48 V156 M22 104 H88"/>
+ <g class="equip-gold-links">
+  <path d="M0 18 H32 L47 29 M110 18 H79 L63 29"/>
+  <path d="M0 60 H25 L39 66 M110 60 H86 L71 67"/>
+  <path d="M0 102 H20 L34 104 M110 102 H91 L76 104"/>
+  <path d="M0 145 H25 L43 143 M110 145 H87 L67 143"/>
+  <path d="M0 187 H30 L43 180 M110 187 H80 L67 180"/>
+ </g>
+ <g class="equip-gold-dots">
+  <circle cx="2" cy="18" r="2"/><circle cx="108" cy="18" r="2"/>
+  <circle cx="2" cy="60" r="2"/><circle cx="108" cy="60" r="2"/>
+  <circle cx="2" cy="102" r="2"/><circle cx="108" cy="102" r="2"/>
+  <circle cx="2" cy="145" r="2"/><circle cx="108" cy="145" r="2"/>
+  <circle cx="2" cy="187" r="2"/><circle cx="108" cy="187" r="2"/>
+ </g>
+ <ellipse class="equip-gold-body" cx="55" cy="25" rx="11" ry="14"/>
+ <path class="equip-gold-body" d="
+ M46 40 L46 47
+ Q38 48 34 53 L29 64 L23 89 L18 112
+ Q17 119 20 122 Q24 125 27 119
+ L33 98 L40 75 L42 100 L43 119
+ Q44 125 42 132 L39 151 L36 179 L33 188
+ Q31 195 37 196 L44 196 Q47 195 47 190
+ L49 161 L53 139 L57 139 L61 161 L63 190
+ Q64 196 69 196 L76 196 Q81 193 77 187
+ L74 179 L71 151 L68 132
+ Q66 124 67 119 L68 99 L70 75
+ L77 99 L83 119 Q86 125 90 122 Q93 119 91 113
+ L87 91 L82 65 L76 53 Q72 48 64 47 L64 40
+ Q56 44 46 40 Z"/>
+ </svg>`;
 }
 function showEquipmentDetail(id){
  const part=EQUIPMENT_PARTS.find(x=>x.id===id)||EQUIPMENT_PARTS[0];
@@ -4678,7 +4696,7 @@ function renderEquipmentBoard(){
    const icon=document.createElement('span');icon.className='equip-slot-symbol';icon.setAttribute('aria-hidden','true');icon.textContent=part.symbol;
    const words=document.createElement('span');words.className='equip-slot-words';
    const title=document.createElement('span');title.className='equip-slot-name';title.textContent=part.name;
-   const status=document.createElement('span');status.className='equip-slot-status';status.textContent=full?'附魔旅行側包':'尚未裝備';
+   const status=document.createElement('span');status.className='equip-slot-status';status.textContent=full?'附魔側包':'';
    words.append(title,status);btn.append(icon,words);
    btn.onclick=()=>showEquipmentDetail(part.id);
    col.appendChild(btn);
