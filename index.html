@@ -2104,6 +2104,68 @@ html.stage-locked:not(.stage-wide) #app{
  line-height:1.55;color:#d2d9cb}
 html.stage-locked #app .journal-tabs .journal-tab{min-height:40px!important;font-size:15px!important}
 
+
+/* V0.7.6 — ONLY the fixed-stage travel record text:
+   Never truncate thoughts or event descriptions with ellipsis. Let text
+   take natural rows, and scroll the log inside its existing 338×245 panel.
+   The frame, stage, scene and lower narrative coordinates are unchanged. */
+html.stage-locked #app #travelFeed .travel-inner,
+html.stage-locked #app #travelFeed.collapsed .travel-inner{
+ display:flex!important;flex-direction:column!important;
+ flex:1 1 auto!important;min-height:0!important;overflow:hidden!important;
+}
+html.stage-locked #app #travelFeed .travel-log-scroll,
+html.stage-locked #app #travelFeed.collapsed .travel-log-scroll{
+ flex:1 1 auto!important;min-height:0!important;max-height:none!important;
+ height:auto!important;overflow-x:hidden!important;overflow-y:auto!important;
+ -webkit-overflow-scrolling:touch;
+ overscroll-behavior:contain;
+}
+html.stage-locked #app #travelFeed .travel-event,
+html.stage-locked #app #travelFeed.collapsed .travel-event,
+html.stage-locked #app #travelFeed.collapsed .travel-log-scroll .travel-event{
+ display:block!important;
+ height:auto!important;min-height:0!important;max-height:none!important;
+ overflow:visible!important;white-space:normal!important;
+ padding:5px 0!important;margin:0!important;
+}
+html.stage-locked #app #travelFeed .travel-event-line,
+html.stage-locked #app #travelFeed.collapsed .travel-event-line{
+ display:flex!important;align-items:flex-start!important;
+ gap:8px!important;width:100%!important;min-width:0!important;
+ height:auto!important;min-height:0!important;max-height:none!important;
+ white-space:normal!important;overflow:visible!important;
+ line-height:1.5!important;
+}
+html.stage-locked #app #travelFeed .travel-event-time,
+html.stage-locked #app #travelFeed.collapsed .travel-event-time{
+ display:block!important;flex:0 0 42px!important;
+ min-width:42px!important;margin:0!important;padding-top:2px!important;
+ white-space:nowrap!important;line-height:1.5!important;
+}
+html.stage-locked #app #travelFeed .travel-event-thought,
+html.stage-locked #app #travelFeed.collapsed .travel-event-thought,
+html.stage-locked #app #travelFeed .travel-event-main,
+html.stage-locked #app #travelFeed.collapsed .travel-event-main{
+ display:block!important;flex:1 1 0!important;min-width:0!important;
+ width:auto!important;height:auto!important;max-height:none!important;
+ margin:0!important;padding:0!important;
+ white-space:normal!important;overflow:visible!important;
+ text-overflow:clip!important;
+ -webkit-line-clamp:unset!important;line-clamp:unset!important;
+ overflow-wrap:anywhere!important;word-break:normal!important;
+ line-height:1.5!important;
+}
+html.stage-locked #app #travelFeed .travel-footer,
+html.stage-locked #app #travelFeed.collapsed .travel-footer{
+ flex:0 0 auto!important;position:relative!important;
+}
+/* Keep objective detail in expanded mode only; the compact box continues
+   to prioritize the narrator's full thought, not a duplicate paragraph. */
+html.stage-locked #app #travelFeed.collapsed .travel-event-detail{
+ display:none!important;
+}
+
 </style>
 </head>
 <body>
