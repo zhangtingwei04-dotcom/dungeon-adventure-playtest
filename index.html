@@ -3142,6 +3142,34 @@ html.stage-locked #app #placeDrawerPanel.is-location-tab .location-resource-note
  margin:2px 0 5px!important;
 }
 
+
+/* V0.8.18 — one compact travel control inside the selected location preview.
+   Reuses placeDrawerTravel and its existing route/story access checks. */
+html.stage-locked #app #placeDrawerPanel.is-location-tab .location-preview-position-row{
+ display:flex;justify-content:space-between;align-items:center;
+ gap:5px;min-width:0;margin:1px 0 3px;
+}
+html.stage-locked #app #placeDrawerPanel.is-location-tab .location-preview-position-row .location-preview-position{
+ flex:1 1 0;min-width:0;margin:0!important;line-height:1.25!important;
+ overflow-wrap:anywhere;white-space:normal;
+}
+html.stage-locked #app #placeDrawerPanel.is-location-tab .location-preview-travel{
+ flex:0 0 auto;max-width:110px;min-width:62px;min-height:27px;
+ padding:3px 9px!important;box-sizing:border-box;
+ border:1px solid #d2b47a!important;border-radius:7px;
+ background:linear-gradient(130deg,#4d805e,#286446)!important;
+ color:#fff0cb!important;
+ font:600 12px/1.3 "Noto Sans TC",system-ui,sans-serif!important;
+ text-align:center;white-space:nowrap;cursor:pointer;touch-action:manipulation;
+}
+html.stage-locked #app #placeDrawerPanel.is-location-tab .location-preview-travel:disabled{
+ opacity:.68;background:linear-gradient(130deg,#253c33,#1a322f)!important;
+ color:#c5c6b0!important;border-color:#7e816a!important;cursor:default;
+}
+html.stage-locked #app #placeDrawerPanel.is-location-tab .location-preview-travel:not(:disabled):focus-visible{
+ outline:2px solid #ffecb2;outline-offset:1px;
+}
+
 </style>
 </head>
 <body>
@@ -4326,10 +4354,23 @@ function renderPlaceDrawer(){
   button.onclick=()=>moveLocationPreview(delta);arrows.appendChild(button);
  }
  titleRow.append(title,arrows);intro.appendChild(titleRow);
+ const positionRow=document.createElement('div');positionRow.className='location-preview-position-row';
  const position=document.createElement('span');position.className='location-preview-position';
  position.textContent='地點 '+(previewIndex+1)+' / '+cards.length+' · '+
-   (previewCard.current?'目前所在地':previewCard.new?'新發現 · 僅預覽':'已發現 · 僅預覽');
- intro.appendChild(position);
+  (previewCard.current?'目前所在地':previewCard.reachable?'可前往 · 預覽中':'已發現 · 僅預覽');
+ const canTravel=Boolean(previewCard.reachable&&!previewCard.current);
+ const travelButton=document.createElement('button');travelButton.type='button';
+ travelButton.className='location-preview-travel';
+ travelButton.disabled=!canTravel;
+ travelButton.textContent=previewCard.current?'目前位置':
+  canTravel?(special?'前往調查':'前往'):'尚不可達';
+ const route=previewCard.adjacent?travelRoute(s.scene,previewId):null;
+ travelButton.title=previewCard.current?'你已經在這個地點':
+  canTravel?(special?'調查這個已發現的殘骸':
+   (route?'沿已發現的道路前往，步行約'+route.walk+'分鐘':'前往此地，依現有路線規則')):'目前沒有可直接抵達的道路或通行權限';
+ travelButton.setAttribute('aria-label',travelButton.title);
+ if(canTravel)travelButton.onclick=()=>guardedAction(()=>placeDrawerTravel(previewId));
+ positionRow.append(position,travelButton);intro.appendChild(positionRow);
  for(const [icon,label,value] of [['◈','區域',locationMeta.area],['♟','類型',locationMeta.kind]]){
   const row=document.createElement('span');row.className='location-meta';
   const symbol=document.createElement('b');symbol.textContent=icon;
