@@ -2907,6 +2907,19 @@ html.stage-locked #app .story-panel{
  left:40px!important;
 }
 
+
+/* V0.8.7 — align the top status ribbon with the existing two outer
+   panel edges, without changing its height or the decorative world frame.
+   Left edge = travel panel x27; right edge = place panel x1510. */
+html.stage-locked #app #topGameHud{
+ left:27px!important;
+ right:26px!important;
+ width:calc(1536px - 27px - 26px)!important;
+ height:81px!important;
+ box-sizing:border-box!important;
+}
+/* The extra width goes into flexible HP/MP/SP space; titles,
+   tabs, game actions and the original 4-column header remain intact. */
 </style>
 </head>
 <body>
