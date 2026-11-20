@@ -2920,6 +2920,18 @@ html.stage-locked #app #topGameHud{
 }
 /* The extra width goes into flexible HP/MP/SP space; titles,
    tabs, game actions and the original 4-column header remain intact. */
+
+/* V0.8.8 — enlarge only the three-column strip downward. Keep its upper
+   edge at y=558, aligned with the scene width and 40/35/25 columns.
+   Additional vertical space belongs to independently scrolling contents. */
+html.stage-locked #app #sceneFuturePanel{
+ top:558px!important;
+ height:100px!important;
+}
+html.stage-locked #app #sceneFuturePanel .scene-info-scroll{
+ min-height:0!important;
+ overflow-y:auto!important;
+}
 </style>
 </head>
 <body>
