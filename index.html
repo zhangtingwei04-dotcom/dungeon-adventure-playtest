@@ -3624,6 +3624,24 @@ html.stage-locked #app #placeDrawerPanel .equip-hair-picker{
  border:1px solid #c3a366!important;border-radius:5px!important;
  background:#18372d!important;cursor:pointer;
 }
+
+/* Approved athletic paper doll sprite; transparent layers share 64×160 coordinates. */
+html.stage-locked #app .paperdoll-stage .paperdoll-new-body,
+html.stage-locked #app .paperdoll-stage .paperdoll-eyebrows-fallback,
+html.stage-locked #app .paperdoll-stage .paperdoll-brows-canvas{
+ position:absolute;inset:0;width:100%;height:100%;pointer-events:none;
+ background-repeat:no-repeat;background-position:center;
+ background-size:100% 100%;image-rendering:pixelated;
+}
+html.stage-locked #app .paperdoll-stage .paperdoll-new-body{
+ background-image:var(--paperdoll-body);z-index:0;
+}
+html.stage-locked #app .paperdoll-stage .paperdoll-eyebrows-fallback{
+ background-image:var(--paperdoll-eyebrows);
+}
+html.stage-locked #app .paperdoll-stage.brows-customized .paperdoll-eyebrows-fallback{
+ display:none;
+}
 </style>
 </head>
 <body>
@@ -4792,6 +4810,9 @@ let paperDollTryOn=false;
 
 /* Hair tint belongs to the player appearance, not equipment or the source PNG.
    Only the transparent 64×160 hair layer is recolored. Base, eyes and gear stay unchanged. */
+// Current approved protagonist: athletic upper body + unchanged face; aligned 64×160 PNG.
+const PAPERDOLL_APPROVED_BODY='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAACgCAMAAACL85puAAAAwFBMVEXUz89nNiNtYV6minyvoZwwIyGTVzlVQznSp43+4L2EPx6Hf4HBe1kAAAD92bT2yqX25NIZCgxCKyslExSJbG7NuarnpnkiDQ3stYuOdXLVl2/Ww7T2xJrs2cjprIJKNjccERPOqI41JipvVlRXREiPaFKvmYxkS02HW0Wrh2/08vJwRjK4pJjs6OlSJxiteFfLjGfinG2ISi3DrqKZcllQPUKck5WjemPOhlt2XWF4ZWiTiouqbU2vp6fYo3vPsZrnY/qSAAAAQHRSTlP/////////////////AP//////////////////////////////////////////////////////////////////1XwHFwAACGBJREFUeNrtmud22zwShukSJ9/uGuQIJsDeJNHqxXKLHdv3f1eLyiKx2cme/ZPJOY5CEQ9fDKYAdIzr3zTjL+Av4C/gL2AAYKTta4BR1T4PkONMaV0Io394N8JoG28eWRuhBWA2WDPBaBagxqA6YSCgGI+q1iahA4COAY0Eo208OrYWwp8HNE+gnWAMFfAJQIsAtRCjHsCoG2D+AcBoEAD9YcDWMbctTmgFbJcVgGMip8UJRuMinJmmM64l0sf8rDknmwG7C3dWGT17ml/88AYBSheY78X4ZRTweew+ARDm6ed7XZWpA6Btbv4mwPkNwD0XgH4DkHIBdcCyE3B1BEBiRapXZmTZBbhPpzUCH1wD3L2jZdcy3pverA7QSaQc4AWoMw5Y+L2fHY+vAK4Qeu8OpKmJvKutedwX1IUtQfO+gjJ2zF8qc49rAfq1M997KtK/3fHYjWeN5QR9nN1Ox3jSo+AypnjkNY137pNvcZblfVXZwDHgVOv3PE8vxQxnP9f4sbesrx/itxjPjjtjusRZZlzb6/7W9sYe8oBHu6Aq/xdOHo3H4VuctXEOeLM11egNxS/G4nObrMvXV0zxlPlgu6Hgvhpf2Cdmy6uzzdnZ5u4KFl/aaGbTiBsh2+TzAKAXS6Jt76VTG/BwAGDqhvkyMIMAERKgwHRmtn+BKQwBAAaPeFMrrwX07BBOncABmvQBsOxoT1ZqPZXjL3LbuhefUtwNABWBWyu08nkBmNpI81LoAiRYjbi3LDu05lYo4nga2pZSgBza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';
+const PAPERDOLL_EYEBROW_ART='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAACgBAMAAABOA3dvAAAAMFBMVEUAAABeRUZkRDdpS0AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACWbmodAAAAEHRSTlMA////AAAAAAAAAAAAAAAAAByypgAAADZJREFUeNrty7kNACAMA0CeBcgG7D8lDemgo0J3lSXbpQD8omWYx7pGpjj/xy563BYAAADAWwuQzACMHBoTrwAAAABJRU5ErkJggg==';
 const HAIR_PALETTE_V1=Object.freeze([
  {name:'灰白',hex:'#c8cbd0'},
  {name:'銀白',hex:'#e2e7ee'},
@@ -4851,6 +4872,40 @@ function paintPaperDollHair(){
   }
  }catch(error){console.warn('Could not tint hair; keeping original hair artwork.',error);}
 }
+let paperDollBrowsImage=null;
+function paintPaperDollBrows(){
+ const stages=document.querySelectorAll('.paperdoll-stage');
+ if(!stages.length)return;
+ if(!paperDollBrowsImage){
+  paperDollBrowsImage=new Image();
+  paperDollBrowsImage.onload=()=>paintPaperDollBrows();
+  paperDollBrowsImage.onerror=()=>console.warn('Eyebrow image unavailable');
+  paperDollBrowsImage.src=PAPERDOLL_EYEBROW_ART;
+  return;
+ }
+ if(!paperDollBrowsImage.complete||!paperDollBrowsImage.naturalWidth)return;
+ normalizeAppearanceV1();
+ const hex=s.appearanceV1.hairColor;
+ const target=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16));
+ const c=document.createElement('canvas');c.width=64;c.height=160;
+ const ctx=c.getContext('2d',{willReadFrequently:true})||c.getContext('2d');
+ if(!ctx)return;
+ ctx.drawImage(paperDollBrowsImage,0,0);
+ const frame=ctx.getImageData(0,0,64,160),pixels=frame.data;
+ for(let i=0;i<pixels.length;i+=4){
+  if(pixels[i+3]<1)continue;
+  const shade=pixels[i]*0.20-24;
+  for(let k=0;k<3;k++)pixels[i+k]=Math.max(0,Math.min(255,Math.round(target[k]*0.72+shade)));
+ }
+ ctx.putImageData(frame,0,0);
+ for(const stage of stages){
+  const dest=stage.querySelector('.paperdoll-brows-canvas');
+  if(!dest)continue;
+  const ctx2=dest.getContext('2d');if(!ctx2)continue;
+  ctx2.imageSmoothingEnabled=false;ctx2.clearRect(0,0,64,160);ctx2.drawImage(c,0,0);
+  stage.classList.add('brows-customized');
+ }
+}
 function setPaperDollHairColor(value,persist=true){
  if(typeof value!=='string'||!/^#[0-9a-fA-F]{6}$/.test(value))return;
  normalizeAppearanceV1();
@@ -4862,6 +4917,7 @@ function setPaperDollHairColor(value,persist=true){
   button.setAttribute('aria-pressed',String(active));
  }
  paintPaperDollHair();
+ paintPaperDollBrows();
  if(persist)save();
 }
 function renderPaperDollHairControls(){
@@ -4894,19 +4950,23 @@ function renderPaperDollHairControls(){
 
 function equipmentGuideHTML(){
  const show=id=>paperDollTryOn||s.equipmentV1[id]===TRAVEL_OUTFIT_IMAGE_IDS[id];
- const indexes=[0];
+ // Approved body has skin, neutral face and toned sleeveless shirt.
+ // Keep clothing, hair, eyes and satchel as independent transparent layers.
+ const indexes=[];
  if(show('outer'))indexes.push(1);
  if(show('legs'))indexes.push(2);
  if(show('chest'))indexes.push(3);
  if(show('feet'))indexes.push(4);
  if(show('outer'))indexes.push(5);
+ const base='<span class="paperdoll-new-body" aria-hidden="true"></span>';
  const layers=indexes.map(i=>'<span class="paperdoll-layer" aria-hidden="true" style="background-position:'+String(i*12.5)+'% 0"></span>').join('');
- // The approved side-bag overlay supersedes old sprite-atlas tile #6.
  const bag=show('bag')?'<span class="paperdoll-layer paperdoll-approved-bag" aria-hidden="true"></span>':'';
+ const eyebrow='<span class="paperdoll-eyebrows-fallback" aria-hidden="true"></span>'+
+  '<canvas class="paperdoll-brows-canvas" width="64" height="160" aria-hidden="true"></canvas>';
  const eyes='<span class="paperdoll-layer" aria-hidden="true" style="background-position:87.5% 0"></span>';
- const hair='<span class="paperdoll-layer paperdoll-hair-fallback" aria-hidden="true" style="background-position:100% 0"></span>'+ 
+ const hair='<span class="paperdoll-layer paperdoll-hair-fallback" aria-hidden="true" style="background-position:100% 0"></span>'+
   '<canvas class="paperdoll-hair-canvas" width="64" height="160" aria-hidden="true"></canvas>';
- return '<div class="paperdoll-stage" role="img" aria-label="'+(paperDollTryOn?'主角旅行裝試穿預覽':'依實際裝備顯示的主角紙娃娃')+'">'+layers+bag+eyes+hair+
+ return '<div class="paperdoll-stage" role="img" aria-label="'+(paperDollTryOn?'主角旅行裝試穿預覽':'依實際裝備顯示的主角紙娃娃')+'">'+base+layers+bag+eyebrow+eyes+hair+
  (paperDollTryOn?'<span class="paperdoll-preview-label">試穿</span>':'')+'</div>';
 }
 function setOwnedEquipmentEquipped(slotId,equip){
@@ -4968,6 +5028,8 @@ function renderEquipmentBoard(){
    try{
     f.style.setProperty('--paperdoll-atlas','url("'+EQUIPMENT_PAPERDOLL_ATLAS_V3+'")');
     f.style.setProperty('--paperdoll-bag','url("'+EQUIPMENT_APPROVED_BAG_IMAGE+'")');
+    f.style.setProperty('--paperdoll-body','url("'+PAPERDOLL_APPROVED_BODY+'")');
+    f.style.setProperty('--paperdoll-eyebrows','url("'+PAPERDOLL_EYEBROW_ART+'")');
     f.innerHTML=equipmentGuideHTML();
    }catch(err){console.error('Paper doll failed:',err);f.setAttribute('aria-label','人形暫時無法顯示');}
    board.appendChild(f);continue;
@@ -4995,6 +5057,7 @@ function renderEquipmentBoard(){
  }
  showEquipmentDetail(equipmentSelected);
  paintPaperDollHair();
+ paintPaperDollBrows();
 }
 function renderSideTab(tab,out){
  if(tab==='character'){
