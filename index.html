@@ -2846,7 +2846,7 @@ html.stage-locked #app{
  --central-column-left:388px;
  --central-column-width:680px;
  --right-column-left:1068px;
- --right-column-width:442px;
+ --right-column-width:387px;
 }
 html.stage-locked #app #sceneStage,
 html.stage-locked #app #sceneFuturePanel{
@@ -2913,8 +2913,8 @@ html.stage-locked #app .story-panel{
    Left edge = travel panel x27; right edge = place panel x1510. */
 html.stage-locked #app #topGameHud{
  left:27px!important;
- right:26px!important;
- width:calc(1536px - 27px - 26px)!important;
+ right:81px!important;
+ width:calc(1536px - 27px - 81px)!important;
  height:81px!important;
  box-sizing:border-box!important;
 }
@@ -2932,6 +2932,12 @@ html.stage-locked #app #sceneFuturePanel .scene-info-scroll{
  min-height:0!important;
  overflow-y:auto!important;
 }
+
+/* V0.8.12 — create breathing room at the right outside rail while preventing
+   overlap with the central illustration (central right x=1068). The right
+   panel now ends at x=1455, leaving 81px to the stage edge. Its original
+   vertical alignment (bottom y=545.5) and inner scrolling remain intact.
+   Keep the top HUD right edge aligned with the right panel. */
 
 /* V0.8.10 — correct target: align the bottom of the right-hand board with
    the central illustration FRAME, not the separate lower three-column strip.
