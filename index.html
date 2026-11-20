@@ -2346,6 +2346,111 @@ html.stage-locked #app #placeDrawerPanel .place-mini-go{min-height:42px!importan
 html.stage-locked #app #placeDrawerPanel .place-mini-heading strong{font-size:13px!important}
 html.stage-locked #app #placeDrawerPanel .place-drawer-guide{font-size:12px!important}
 
+
+/* V0.7.9 — approved wide top status ribbon; scene and right-side board keep
+   their original horizontal coordinates. Only the stage Y origin shifts by
+   41px so the scene sits safely BELOW the ribbon. */
+html.stage-locked #app .top{display:none!important}
+html.stage-locked #app #playerStatus{display:none!important}
+html.stage-locked #app #topGameHud{
+ position:absolute!important;z-index:5!important;
+ left:100px!important;top:59px!important;width:1338px!important;height:81px!important;
+ box-sizing:border-box!important;
+ display:grid!important;grid-template-columns:243px 340px minmax(0,1fr) 120px!important;
+ align-items:center!important;gap:10px!important;
+ border:2px solid #c1a271!important;border-radius:15px!important;
+ background:linear-gradient(125deg,rgba(12,57,43,.98),rgba(5,36,35,.99))!important;
+ box-shadow:inset 0 0 0 1px #dbc48c55,0 5px 15px #021b1777!important;
+ padding:8px 12px!important;color:#f3e4c0!important;
+ font-family:Georgia,"Noto Serif TC","PingFang TC",serif!important;
+}
+html.stage-locked #app #topGameHud .top-hud-location{
+ min-width:0;display:flex;flex-direction:column;justify-content:center;
+ gap:4px;height:100%;padding-right:9px;border-right:1px solid #b69d6899;
+}
+html.stage-locked #app #topGameHud #hudChapter{
+ font-size:12px;line-height:15px;color:#e5c48f;letter-spacing:.045em;
+}
+html.stage-locked #app #topGameHud #hudPlace{
+ font-size:23px;line-height:1.25;font-weight:650;
+ max-width:100%;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;
+ color:#f6e5c4;
+}
+html.stage-locked #app #topGameHud .top-hud-clock{
+ display:flex!important;align-items:center!important;gap:10px!important;
+ height:100%!important;padding:0 7px!important;min-width:0!important;
+ border-right:1px solid #b69d6888;
+}
+html.stage-locked #app #topGameHud .top-hud-clock-part{
+ display:flex;align-items:center;gap:6px;white-space:nowrap;
+ color:#f1e6c8;font-size:18px;
+}
+html.stage-locked #app #topGameHud .top-hud-icon{color:#e4c384;font-size:20px}
+html.stage-locked #app #topGameHud .top-hud-phase{
+ display:flex;align-items:center;gap:6px;white-space:nowrap;
+ padding:6px 9px;border-radius:8px;background:#6556325c;
+ font-size:17px;color:#f0d79e;
+}
+html.stage-locked #app #topGameHud #hudPhaseIcon{font-size:20px;color:#ffdb83}
+html.stage-locked #app #topGameHud .top-hud-resources{
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+ gap:12px!important;align-items:center;min-width:0;
+}
+html.stage-locked #app #topGameHud .top-hud-resource{min-width:0}
+html.stage-locked #app #topGameHud .top-hud-resource-line{
+ display:flex;justify-content:space-between;align-items:center;
+ gap:5px;white-space:nowrap;font-size:15px;
+ font-variant-numeric:tabular-nums;color:#f2dfbb;margin-bottom:7px;
+}
+html.stage-locked #app #topGameHud .top-hud-meter{
+ width:100%;height:13px;border:1.5px solid #947d56;box-sizing:border-box;
+ background:#24433b;border-radius:20px;overflow:hidden;
+}
+html.stage-locked #app #topGameHud #hudHPFill{
+ display:block;width:100%;height:100%;
+ background:linear-gradient(#df9985,#b35b5e);border-radius:20px;
+ transition:width .18s ease;
+}
+html.stage-locked #app #topGameHud .top-hud-disabled{
+ background:linear-gradient(#243c38,#1a302e);
+ border-color:#716e5a;
+}
+html.stage-locked #app #topGameHud .top-hud-controls{
+ display:flex;align-items:center;justify-content:flex-end;gap:7px;min-width:0;
+}
+html.stage-locked #app #topGameHud .top-hud-controls button{
+ display:grid;place-items:center;
+ width:54px;height:54px;min-width:54px;min-height:54px;
+ padding:10px;border:1.5px solid #c5a66e;border-radius:10px;
+ background:linear-gradient(145deg,#295949,#0d3835);color:#f4e4c1;
+ box-shadow:inset 0 0 0 1px #d8ba7e50;
+ cursor:pointer;touch-action:manipulation;
+}
+html.stage-locked #app #topGameHud .top-hud-controls button svg{
+ width:28px;height:28px;
+}
+html.stage-locked #app #topGameHud .top-hud-controls button:focus-visible{
+ outline:2px solid #f4db93;outline-offset:2px;
+}
+/* The illustration retains 698px width and 16:9 ratio, avoiding horizontal
+   distortion or clipping against the new permanent right-side board. */
+html.stage-locked #app #sceneStage{top:163px!important}
+html.stage-locked #app #placeDrawer{top:173px!important}
+html.stage-locked #app .side-location-shortcuts{
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;
+ margin:0 0 8px;
+}
+html.stage-locked #app .side-location-shortcuts button{
+ min-width:0;min-height:37px;line-height:1.3;
+ font-size:11px;white-space:nowrap;padding:5px 2px;
+ border:1px solid #a99367;border-radius:7px;
+ background:#254f40;color:#f0dbb8;
+}
+html.stage-locked #app .side-location-shortcuts button:focus-visible{outline:2px solid #efd18f}
+@media(prefers-reduced-motion:reduce){
+ html.stage-locked #app #hudHPFill{transition:none}
+}
+
 </style>
 </head>
 <body>
@@ -2452,6 +2557,39 @@ html.stage-locked #app #placeDrawerPanel .place-drawer-guide{font-size:12px!impo
  <path d="M17 33Q8 31 8 23Q19 23 20 31M26 26Q31 12 41 15Q37 25 26 26M14 46Q23 37 31 43Q24 49 14 46" fill="#5a8558" stroke="#b5b079" stroke-width="1.1"/>
  <circle cx="31" cy="20" r="1.5" fill="#f2d99e"/>
  </svg><canvas id="view" aria-label="第一人稱冒險場景"></canvas><div id="dayTint" aria-hidden="true"></div><div id="shade"></div><div id="hotspots"></div><div id="sceneActors" aria-hidden="true"></div><div id="encounterCue" class="hidden" role="status" aria-live="polite"></div></section>
+<section id="topGameHud" aria-label="遊戲主狀態列">
+ <div class="top-hud-location">
+  <span id="hudChapter">CHAPTER 01</span>
+  <strong id="hudPlace">破損的馬車</strong>
+ </div>
+ <div class="top-hud-clock" aria-label="遊戲時間">
+  <div class="top-hud-clock-part"><span class="top-hud-icon" aria-hidden="true">▦</span><span id="hudDay">第 1 日</span></div>
+  <div class="top-hud-clock-part"><span class="top-hud-icon" aria-hidden="true">◷</span><span id="hudClock">16:00</span></div>
+  <div class="top-hud-phase"><span id="hudPhaseIcon" aria-hidden="true">☀</span><span id="hudPhase">白天</span></div>
+ </div>
+ <div class="top-hud-resources">
+  <div class="top-hud-resource">
+   <div class="top-hud-resource-line"><span>♥ HP</span><span id="hudHPText">16/16</span></div>
+   <div class="top-hud-meter" id="hudHPMeter" role="progressbar" aria-label="生命／體力" aria-valuemin="0" aria-valuemax="16" aria-valuenow="16"><span id="hudHPFill"></span></div>
+  </div>
+  <div class="top-hud-resource">
+   <div class="top-hud-resource-line"><span>◆ MP</span><span>— / —</span></div>
+   <div class="top-hud-meter top-hud-disabled" aria-label="魔力尚未開放"></div>
+  </div>
+  <div class="top-hud-resource">
+   <div class="top-hud-resource-line"><span>ϟ SP</span><span>— / —</span></div>
+   <div class="top-hud-meter top-hud-disabled" aria-label="精力尚未開放"></div>
+  </div>
+ </div>
+ <div class="top-hud-controls">
+  <button id="hudCharacterBtn" type="button" aria-label="開啟角色狀態" title="角色狀態">
+   <svg viewBox="0 0 32 32" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="16" cy="10" r="5"/><path d="M5 28c.3-7 4.4-11 11-11s10.7 4 11 11H5Z"/></svg>
+  </button>
+  <button id="hudSettingsBtn" type="button" aria-label="開啟遊戲設定" title="遊戲設定">
+   <svg viewBox="0 0 32 32" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3h6l.8 3.1 2.2 1 3-.9 3 5-2.2 2.4v2.9l2.2 2.2-3 5-3-.8-2.2 1L19 28h-6l-.8-3.1-2.2-1-3 .9-3-5 2.1-2.3v-3L4 12l3-5 3 .9 2.2-1L13 3Z"/><circle cx="16" cy="16" r="5"/></svg>
+  </button>
+ </div>
+</section>
 <header class="top"><div><div class="eyebrow">CHAPTER 01–02 · 互動原型 V0.5.1 <span class="world-clock" id="worldClock">第1日 16:00</span></div><div class="left-title-plaque"><svg class="left-title-art" viewBox="0 0 400 76" preserveAspectRatio="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
  <defs><linearGradient id="leftPlaqueFill" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0d332d"/><stop offset=".53" stop-color="#194437"/><stop offset="1" stop-color="#082a26"/></linearGradient></defs>
  <path d="M41 6 Q29 7 24 17 L24 23 L9 38 L24 51 L24 58 Q30 70 44 70 L356 70 Q369 69 375 57 L375 52 L392 38 L375 23 L375 18 Q370 6 357 6 Z" fill="#0b2823" stroke="#493822" stroke-width="5"/>
@@ -2639,6 +2777,11 @@ function syncTimeAtmosphere(){
  const app=$('app');app.dataset.period=period;
  app.dataset.indoor=INDOOR_SCENES.has(s.scene)?'true':'false';
  $('worldClock').textContent=gameTime(s.worldMinutes)+' · '+(previewPeriod?PERIOD_NAMES[period]+'預覽':PERIOD_NAMES[period]);
+ const day=Math.floor(s.worldMinutes/1440)+1,minute=s.worldMinutes%1440;
+ $('hudDay').textContent='第 '+day+' 日';
+ $('hudClock').textContent=String(Math.floor(minute/60)).padStart(2,'0')+':'+String(minute%60).padStart(2,'0');
+ $('hudPhase').textContent=PERIOD_NAMES[period]+(previewPeriod?'預覽':'');
+ $('hudPhaseIcon').textContent=period==='night'?'☾':period==='day'?'☀':period==='dawn'?'◐':'◒';
  $('subplace').textContent=atmosphereSubtitle(s.scene,period);
  const tag=$('timePreviewTag');
  tag.classList.toggle('hidden',!previewPeriod);
@@ -3316,6 +3459,16 @@ function renderPlaceDrawer(){
  const title=document.createElement('strong');title.textContent=names[s.scene][0];
  const desc=document.createElement('span');desc.textContent=names[s.scene][1];
  intro.append(title,desc);out.appendChild(intro);
+ const shortcuts=document.createElement('div');shortcuts.className='side-location-shortcuts';
+ for(const [label,handler] of [
+  ['區域地圖',()=>journal('map')],
+  ['全部旅途',()=>journal('journey')],
+  ['互動提示',()=>$('hintBtn').click()]
+ ]){
+  const btn=document.createElement('button');btn.type='button';
+  btn.textContent=label;btn.onclick=handler;shortcuts.appendChild(btn);
+ }
+ out.appendChild(shortcuts);
  const hint=document.createElement('p');hint.className='place-drawer-guide';
  hint.textContent='地點卡、附近互動與待收取材料都集中在此。探索仍不會自動打開面板。';
  out.appendChild(hint);
@@ -3993,6 +4146,10 @@ function renderPlayerStatus(){
  const percent=Math.max(0,Math.min(100,hp/max*100));
  $('playerHpValue').textContent=hp+'/'+max;
  $('playerHpFill').style.width=percent+'%';
+ $('hudHPText').textContent=hp+'/'+max;
+ $('hudHPFill').style.width=percent+'%';
+ $('hudHPMeter').setAttribute('aria-valuemax',String(max));
+ $('hudHPMeter').setAttribute('aria-valuenow',String(hp));
  const meter=$('playerHpTrack');
  meter.setAttribute('aria-valuemax',String(max));
  meter.setAttribute('aria-valuenow',String(hp));
@@ -4004,7 +4161,7 @@ function showPlayerStatus(){
   '\n\n目前原型中的 HP 沿用既有體力數值；MP 與 SP 尚無消耗、回復或成長規則。',
   [{label:'返回探索',fn:()=>{}}],'角色資料');
 }
-function render(){if(!names[s.scene])s.scene='wreck';normalizeGameTime();tickBeetleCare();$('place').textContent=names[s.scene][0];syncTimeAtmosphere();$('partyChip').textContent=s.flags.rescued?'與冒險者相遇':'獨自探索';$('hpChip').textContent=`體力 ${s.hp}/${s.maxHp}`;renderPlayerStatus();$('chapterChip').textContent=s.flags.morning?'第二章 · 清晨':s.flags.chapterDone?'第一章片段完成':'第一章';const texts={
+function render(){if(!names[s.scene])s.scene='wreck';normalizeGameTime();tickBeetleCare();$('place').textContent=names[s.scene][0];$('hudPlace').textContent=names[s.scene][0];$('hudChapter').textContent=s.flags.morning?'CHAPTER 02':'CHAPTER 01';syncTimeAtmosphere();$('partyChip').textContent=s.flags.rescued?'與冒險者相遇':'獨自探索';$('hpChip').textContent=`體力 ${s.hp}/${s.maxHp}`;renderPlayerStatus();$('chapterChip').textContent=s.flags.morning?'第二章 · 清晨':s.flags.chapterDone?'第一章片段完成':'第一章';const texts={
  wreck:'你從毀壞的車篷下爬出來，泥土的涼意讓你逐漸清醒。',
  trail:s.flags.rescued?'你沿著車轍走到林道，遠方的城鎮逐漸清晰。可以回望事故現場，也可以繼續前進。':'樹影遮住前方道路。你可以搜索林邊的舊物與生物痕跡，或花一點時間辨認道路，將發現的岔路逐一記入地圖。',
  clearing:'陌生的風聲、樹根間的微光。你可以接近，也可以完全不理會。',
@@ -4105,6 +4262,8 @@ function renderRouteMap(out){
 function journal(tab='discoveries'){tickBeetleCare();closePlaceDrawer();$('journalVeil').classList.remove('hidden');journalTab=tab;$('journalTabs').replaceChildren();const tabs=[['journey','旅途'],['discoveries','發現'],['map','地點'],['party','相遇者'],['items','物品與材料'],['bestiary','怪物圖鑑'],['terrarium','生態箱']];for(const [key,label] of tabs){const b=document.createElement('button');b.className='journal-tab'+(tab===key?' selected':'');b.textContent=label;b.onclick=()=>journal(key);$('journalTabs').appendChild(b);}const out=$('journalContent');out.replaceChildren();if(tab==='map'){renderRouteMap(out);return;}if(tab==='items'){renderRecoveredItems(out);return;}if(tab==='bestiary'){renderCreatureBestiary(out);return;}if(tab==='terrarium'){renderRustTerrarium(out);return;}if(tab==='journey'){const logs=(Array.isArray(s.travelLog)?s.travelLog:[]).filter(e=>e&&typeof e.message==='string').slice().reverse();for(const e of logs){const row=document.createElement('div');row.className='journey-entry';const meta=document.createElement('div');meta.className='entry-meta';meta.textContent=(Number.isFinite(e.time)?new Date(e.time).toLocaleString('zh-TW'):'旅途')+' · '+(names[e.scene]?.[0]||'旅途');const main=document.createElement('div');main.className='entry-main';main.textContent=e.message;row.append(meta,main);if(e.thought){const thought=document.createElement('div');thought.className='entry-thought';thought.textContent='「'+e.thought+'」';row.appendChild(thought);}out.appendChild(row);}if(!logs.length)out.textContent='尚未留下旅途紀錄；新的事件會自動保存。';return;}let list=[];if(tab==='discoveries')list=s.notes.length?s.notes:['目前尚無額外發現。直接往前走也能繼續冒險。'];if(tab==='party')list=s.flags.rescued?s.party.map(i=>roster[i].name+'｜'+roster[i].speech):['尚未與冒險者正式相遇。'];const ul=document.createElement('ul');ul.className='journal-list';for(const item of list){const li=document.createElement('li');li.textContent=item;ul.appendChild(li);}out.appendChild(ul);}
 function setTravelHud(mode){if(!['compact','expanded'].includes(mode))return;s.travelHudMode=mode;save();renderFeed();}
 $('playerStatusButton').onclick=showPlayerStatus;
+$('hudCharacterBtn').onclick=()=>setActiveSideTab('character');
+$('hudSettingsBtn').onclick=()=>$('menuBtn').click();
 $('travelToggle').onclick=()=>setTravelHud(s.travelHudMode==='expanded'?'compact':'expanded');
 $('travelOpenJournal').onclick=()=>journal('journey');
 $('regionMapBtn').onclick=()=>journal('map');$('journalBtn').onclick=()=>journal('journey');$('mapBtn').onclick=()=>journal('map');$('journalClose').onclick=()=>$('journalVeil').classList.add('hidden');$('hintBtn').onclick=()=>{showHints=!showHints;renderHotspots();toast(showHints?'僅顯示附近可互動位置，不影響主線':'已隱藏互動提示');};$('menuBtn').onclick=()=>{$('menuVeil').classList.remove('hidden');$('soundBtn').textContent='音效：'+(s.sound?'開啟':'關閉');};$('menuClose').onclick=()=>$('menuVeil').classList.add('hidden');$('dialogClose').onclick=closeDialog;
