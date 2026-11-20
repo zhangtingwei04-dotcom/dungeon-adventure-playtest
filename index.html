@@ -3415,17 +3415,20 @@ html.stage-locked #app .bag-item-quantity{color:#f5d890;font-weight:750;font-siz
 html.stage-locked #app .equip-inline{
  width:100%;min-width:0;box-sizing:border-box;
 }
+html.stage-locked #app #placeDrawerPanel.is-equipment-tab #placeDrawerList{
+ padding:4px 8px 5px!important;
+}
 html.stage-locked #app .equip-inline-board{
  width:100%;min-width:0;display:grid;
  grid-template-columns:minmax(0,1fr) 51px minmax(0,1fr);
- align-items:stretch;gap:4px;
+ align-items:stretch;gap:3px;
 }
 html.stage-locked #app .equip-side{
- min-width:0;display:flex;flex-direction:column;gap:4px;
+ min-width:0;display:flex;flex-direction:column;gap:3px;
 }
 html.stage-locked #app #placeDrawerPanel .equip-slot{
  min-width:0;width:100%;
- min-height:40px!important;height:40px!important;max-height:40px!important;
+ min-height:36px!important;height:36px!important;max-height:36px!important;
  padding:3px 5px!important;box-sizing:border-box;
  display:flex!important;align-items:center;gap:5px;
  text-align:left;border:1px solid rgba(176,152,100,.57)!important;
@@ -3492,7 +3495,7 @@ html.stage-locked #app .equip-guide-label{
 }
 html.stage-locked #app .equip-inline-footer{
  display:flex;align-items:center;gap:6px;
- margin-top:7px;padding:6px 0 0;border-top:1px solid #b5a07170;
+ margin-top:4px;padding:4px 0 0;border-top:1px solid #b5a07170;
 }
 html.stage-locked #app .equip-detail{
  min-width:0;flex:1;display:block;
@@ -3504,8 +3507,8 @@ html.stage-locked #app .equip-detail-note{
  display:block;color:#c8cab8;font-size:10px;line-height:1.35;margin-top:3px;
 }
 html.stage-locked #app #placeDrawerPanel .equip-bag-button{
- flex:none;align-self:center;min-height:39px!important;
- padding:5px 8px!important;
+ flex:none;align-self:center;min-height:35px!important;
+ padding:4px 8px!important;
  border:1px solid #c3a366!important;border-radius:7px!important;
  background:#2c5747!important;color:#fff0cd!important;
  font-size:12px!important;font-weight:700;white-space:nowrap;
@@ -4652,10 +4655,10 @@ function showEquipmentDetail(id){
  const note=document.createElement('span');note.className='equip-detail-note';
  if(id==='bag'&&s.equipmentV1.bag==='enchanted_satchel'){
   heading.textContent='背包｜附魔旅行側包';
-  note.textContent='已裝備 · 24 格 · 內容物上限 16 kg · 附魔減重 50%（限制尚未啟用）';
+  note.textContent='24 格｜16 kg｜減重 50%（容量限制未啟用）';
  }else{
   heading.textContent=part.name+'｜空裝備格';
-  note.textContent=part.hint+'。目前沒有可穿戴的物品，後續可從背包選擇裝備。';
+  note.textContent=part.hint+'（尚未開放穿戴）';
  }
  host.append(heading,note);
 }
@@ -4836,6 +4839,7 @@ function renderPlaceDrawer(){
  $('placeDrawerPanel').setAttribute('aria-label',namesByTab[activeSideTab]);
  $('placeDrawerPanel').classList.toggle('is-location-tab',activeSideTab==='locations');
  $('placeDrawerPanel').classList.toggle('is-character-tab',activeSideTab==='character');
+ $('placeDrawerPanel').classList.toggle('is-equipment-tab',activeSideTab==='equipment');
  for(const button of $('sideInfoTabs').querySelectorAll('[data-info-tab]')){
   const selected=button.dataset.infoTab===activeSideTab;
   button.classList.toggle('selected',selected);
