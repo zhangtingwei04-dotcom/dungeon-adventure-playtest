@@ -3463,7 +3463,7 @@ html.stage-locked #app .equip-guide{
  position:relative;min-width:0;overflow:hidden;
  display:flex;align-items:center;justify-content:center;
  border:1px solid #aa94675c;border-radius:6px;
- background:radial-gradient(ellipse at 50% 45%,#55705b33 0%,#233e364b 57%,#10282472 100%);
+ background:radial-gradient(ellipse at 50% 44%,#55705b31 0%,#233e3645 57%,#10282472 100%);
 }
 html.stage-locked #app .equip-guide:before{
  content:"";position:absolute;inset:4px;border:1px solid #d2b77b26;
@@ -3471,23 +3471,23 @@ html.stage-locked #app .equip-guide:before{
 }
 html.stage-locked #app .equip-figure-silhouette{
  display:block;width:100%;height:100%;max-height:205px;overflow:visible;
- filter:drop-shadow(0 0 3px #d7b66c44);pointer-events:none;
+ filter:drop-shadow(0 0 2px #dbc27e55);pointer-events:none;
 }
 html.stage-locked #app .equip-guide .equip-gold-body{
- fill:#64846d;fill-opacity:.19;stroke:#d2b679;stroke-width:1.65;
- stroke-linejoin:round;stroke-linecap:round;stroke-opacity:.82;
+ fill:#547464;fill-opacity:.55;stroke:#d9c28c;stroke-width:1.45;
+ stroke-linejoin:round;stroke-linecap:round;stroke-opacity:.93;
 }
 html.stage-locked #app .equip-guide .equip-body-detail{
- fill:none;stroke:#c8b47b;stroke-width:.7;stroke-opacity:.26;
+ fill:none;stroke:#c8b47b;stroke-width:.75;stroke-opacity:.19;
  stroke-linejoin:round;stroke-linecap:round;
 }
 html.stage-locked #app .equip-guide .equip-gold-links{
- fill:none;stroke:#c4a768;stroke-width:1.05;opacity:.60;
+ fill:none;stroke:#c4a768;stroke-width:.95;opacity:.42;
  stroke-linejoin:round;stroke-linecap:round;
 }
-html.stage-locked #app .equip-guide .equip-gold-dots{fill:#ddc080;opacity:.84}
+html.stage-locked #app .equip-guide .equip-gold-dots{fill:#ddc080;opacity:.68}
 html.stage-locked #app .equip-guide .equip-ambient-rune{
- fill:none;stroke:#d4b871;stroke-width:.7;opacity:.18;
+ fill:none;stroke:#d4b871;stroke-width:.7;opacity:.12;
 }
 html.stage-locked #app .equip-inline-footer{
  display:flex;align-items:center;gap:6px;margin-top:4px;padding:4px 0 0;
@@ -4627,54 +4627,53 @@ function normalizeEquipmentV1(){
  }
 }
 function equipmentGuideHTML(){
- // V2.1: anatomically calmer, softly filled silhouette. Same dimensions, slots
- // and connector positions as the approved right-side panel. No character art.
+ // V2.2: grounded, readable human silhouette in the original inline equipment
+ // slot grid. Proportions are more natural; guides never cross the figure.
  return `<svg class="equip-figure-silhouette" viewBox="0 0 110 207"
- xmlns="http://www.w3.org/2000/svg" role="img" aria-label="自然站姿的人形裝備定位剪影">
- <circle class="equip-ambient-rune" cx="55" cy="104" r="42"/>
- <circle class="equip-ambient-rune" cx="55" cy="104" r="33" stroke-dasharray="2 6"/>
- <path class="equip-ambient-rune" d="M55 48 V156 M22 104 H88"/>
+ xmlns="http://www.w3.org/2000/svg" role="img" aria-label="站姿自然的人形裝備定位剪影">
+ <circle class="equip-ambient-rune" cx="55" cy="105" r="42"/>
+ <circle class="equip-ambient-rune" cx="55" cy="105" r="34" stroke-dasharray="2 7"/>
  <g class="equip-gold-links">
-  <path d="M0 18 H32 L47 29 M110 18 H79 L63 29"/>
-  <path d="M0 60 H25 L39 64 M110 60 H85 L71 64"/>
-  <path d="M0 102 H20 L33 103 M110 102 H90 L77 103"/>
-  <path d="M0 145 H25 L43 145 M110 145 H85 L67 145"/>
-  <path d="M0 187 H30 L43 185 M110 187 H80 L67 185"/>
+  <path d="M1 18 H29 L42 27 M109 18 H81 L68 27"/>
+  <path d="M1 60 H29 L34 63 M109 60 H81 L76 63"/>
+  <path d="M1 102 H17 L20 105 M109 102 H93 L90 105"/>
+  <path d="M1 145 H31 L39 146 M109 145 H79 L71 146"/>
+  <path d="M1 187 H29 L37 187 M109 187 H81 L73 187"/>
  </g>
  <g class="equip-gold-dots">
-  <circle cx="2" cy="18" r="2"/><circle cx="108" cy="18" r="2"/>
-  <circle cx="2" cy="60" r="2"/><circle cx="108" cy="60" r="2"/>
-  <circle cx="2" cy="102" r="2"/><circle cx="108" cy="102" r="2"/>
-  <circle cx="2" cy="145" r="2"/><circle cx="108" cy="145" r="2"/>
-  <circle cx="2" cy="187" r="2"/><circle cx="108" cy="187" r="2"/>
+  <circle cx="2" cy="18" r="1.7"/><circle cx="108" cy="18" r="1.7"/>
+  <circle cx="2" cy="60" r="1.7"/><circle cx="108" cy="60" r="1.7"/>
+  <circle cx="2" cy="102" r="1.7"/><circle cx="108" cy="102" r="1.7"/>
+  <circle cx="2" cy="145" r="1.7"/><circle cx="108" cy="145" r="1.7"/>
+  <circle cx="2" cy="187" r="1.7"/><circle cx="108" cy="187" r="1.7"/>
  </g>
  <g class="equip-gold-body">
-  <!-- Head with natural jaw and a short neck, no eyes or facial detail. -->
-  <path d="M55 11 C62 11 66 17 65 26 C64 34 60 39 55 40
-   C50 39 46 34 45 26 C44 17 48 11 55 11Z"/>
-  <path d="M50 38 L50 45 Q55 49 60 45 L60 38"/>
-  <!-- Gentle shoulder slope, curved waist and a slightly wider hip. -->
-  <path d="M48 46 Q42 46 39 49 C35 53 34 61 35 70
-   L39 83 C40 96 42 110 43 125 Q54 132 67 125
-   C68 111 70 96 71 83 L75 70 C76 61 75 53 71 49
-   Q67 46 62 46 Q55 51 48 46Z"/>
-  <!-- Relaxed arms, subtle elbow bend and hands beside the hips. -->
-  <path d="M39 50 Q35 52 33 59 C31 67 30 76 29 82
-   L25 101 Q22 111 23 117 Q25 121 28 119
-   Q31 117 32 109 L35 91 Q38 78 41 69Z"/>
-  <path d="M71 50 Q75 52 77 59 C79 67 80 76 81 82
-   L85 101 Q88 111 87 117 Q85 121 82 119
-   Q79 117 78 109 L75 91 Q72 78 69 69Z"/>
-  <!-- Legs: a small natural gap, rounded knees and grounded feet. -->
-  <path d="M44 126 Q42 133 41 145 L39 169
-   Q38 180 36 188 Q34 195 40 197 L47 197
-   Q51 197 51 192 L52 174 L54 150 Q55 136 53 128Z"/>
-  <path d="M66 126 Q68 133 69 145 L71 169
-   Q72 180 74 188 Q76 195 70 197 L63 197
-   Q59 197 59 192 L58 174 L56 150 Q55 136 57 128Z"/>
+  <!-- Arms slightly apart from the body; hands end naturally at upper thigh. -->
+  <path d="M39 51 C34 51 31 57 30 67 L26 88 L21 108
+   Q18 120 21 126 Q24 133 28 130 Q31 128 33 120
+   L37 98 L42 69 Q44 55 39 51Z"/>
+  <path d="M71 51 C76 51 79 57 80 67 L84 88 L89 108
+   Q92 120 89 126 Q86 133 82 130 Q79 128 77 120
+   L73 98 L68 69 Q66 55 71 51Z"/>
+  <!-- Balanced legs and boots; no crossed or stick-like lines. -->
+  <path d="M43 118 C41 128 40 142 39 156 L38 180
+   Q37 187 36 192 Q35 198 41 199 L47 199
+   Q52 199 52 194 L53 166 L55 144 L55 120Z"/>
+  <path d="M67 118 C69 128 70 142 71 156 L72 180
+   Q73 187 74 192 Q75 198 69 199 L63 199
+   Q58 199 58 194 L57 166 L55 144 L55 120Z"/>
+  <!-- Single calm shoulder/torso/hip mass; gently tapered waist. -->
+  <path d="M49 48 Q43 47 39 50 C34 54 34 63 36 74
+   Q38 84 40 94 Q41 104 42 118 Q55 126 68 118
+   Q69 104 70 94 Q72 84 74 74 C76 63 76 54 71 50
+   Q67 47 61 48 Q55 53 49 48Z"/>
+  <path d="M51 40 L51 48 Q55 52 59 48 L59 40Z"/>
+  <!-- Face-free, rounded head; recognizable at small mobile sizes. -->
+  <path d="M55 13 C62 13 66 19 66 27 C66 35 62 42 55 43
+   C48 42 44 35 44 27 C44 19 48 13 55 13Z"/>
  </g>
- <path class="equip-body-detail" d="M44 86 Q43 104 45 117 M66 86 Q67 104 65 117
- M41 145 Q39 156 40 163 M69 145 Q71 156 70 163"/>
+ <path class="equip-body-detail" d="M44 82 Q44 98 45 108
+ M66 82 Q66 98 65 108 M40 161 Q40 167 40 172 M70 161 Q70 167 70 172"/>
  </svg>`;
 }
 function showEquipmentDetail(id){
