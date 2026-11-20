@@ -3719,7 +3719,7 @@ function renderRouteMap(out){
  if(nextHiddenRoute(s.scene)){const u=document.createElement('p');u.className='map-undiscovered';u.textContent='附近還有未確認的道路。使用常駐「探索周遭」行動，便可能逐步發現新地點卡。';out.appendChild(u);}
  if(s.recovery.found){const p=document.createElement('p');p.className='map-note';p.textContent='已發現探索點：林邊舊馬車殘骸（'+(s.recovery.looted?'已搜集':'待搜集')+'）。這不是開場的事故馬車。';out.appendChild(p);}
  normalizeForestRare();
- if(s.forestRare.hints.goblin||s.forestRare.sighted.goblin){const p=document.createElement('p');p.className='map-note';p.textContent='林邊殘骸：曾發現小型金屬搬運痕跡；黃昏與夜晚可以留意。';out.appendChild(p);}
+ if(s.forestRare.hints.beetle||s.forestRare.sighted.beetle||s.beetle.questAccepted){const p=document.createElement('p');p.className='map-note';p.textContent='林邊殘骸：鏽殼甲蟲可能在黃昏與夜間活動；雜貨商委託提供安全誘捕盒。';out.appendChild(p);}
  if(s.forestRare.hints.rabbit||s.forestRare.sighted.rabbit){const p=document.createElement('p');p.className='map-note';p.textContent='舊石門：曾出現不尋常的長耳腳印；清晨與黃昏可能有活動。';out.appendChild(p);}
  normalizeForestEcology();
  for(const site of Object.keys(s.forestEcology.observed)){
