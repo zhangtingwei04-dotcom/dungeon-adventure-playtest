@@ -2824,6 +2824,17 @@ html.stage-locked #app #sceneFuturePanel .scene-info-empty{
    extra box inside the legacy portrait layout. */
 html:not(.stage-locked) #sceneFuturePanel{display:none!important}
 
+
+/* Compact the strip so ambient sound labels remain visible on its first
+   screen, while long newly observed descriptions still scroll vertically. */
+html.stage-locked #app #sceneFuturePanel{padding:4px 2px!important}
+html.stage-locked #app #sceneFuturePanel .scene-info-heading{flex-basis:20px!important}
+html.stage-locked #app #sceneFuturePanel .scene-info-senses{padding-top:2px!important}
+html.stage-locked #app #sceneFuturePanel .scene-companion-entry>span:last-child{
+ color:#eee1c7!important;font-size:15.5px!important;
+ font-weight:500!important;letter-spacing:0!important;
+}
+
 </style>
 </head>
 <body>
@@ -4635,17 +4646,17 @@ function showPlayerStatus(){
 /* Observed information is derived from the existing scene/time and saved
    exploration results. No hidden clue is displayed before discovery. */
 const SCENE_SENSE_NOTES=Object.freeze({
- wreck:{text:'林間傳來輕微的鳥鳴，空氣潮濕而清新。',senses:['♪ 鳥鳴','〰 潮濕']},
- trail:{text:'林間小徑仍可聽見鳥鳴，樹影隨著風輕輕搖動。',senses:['♪ 鳥鳴','〰 微風']},
- clearing:{text:'空地周圍的樹葉隨風擺動，土壤帶著潮氣。',senses:['〰 微風','◌ 潮濕']},
- ruin:{text:'苔蘚依附石縫，古老石門旁顯得安靜。',senses:['◌ 苔蘚','〰 寂靜']},
- gate:{text:'城門附近有行人往來，守衛正留意道路。',senses:['♪ 人聲','◇ 道路']},
- inn:{text:'房內十分安靜，偶爾傳來走廊的腳步聲。',senses:['♪ 腳步','◌ 室內']},
- lobby:{text:'旅店大廳傳來杯盤碰撞聲與輕聲交談。',senses:['♪ 人聲','◌ 麵包香']},
- street:{text:'街上有商販的招呼聲，人們各自忙碌。',senses:['♪ 市聲','〰 微風']},
- guild:{text:'公會裡有人交換路況消息，公告板旁不時有人停留。',senses:['♪ 交談','◇ 公告']},
- outskirts:{text:'城牆外的風吹過草叢，遠方傳來鳥鳴。',senses:['♪ 鳥鳴','〰 微風']},
- home:{text:'公共起居室裡留著日常生活的痕跡。',senses:['◌ 居家','♪ 細響']}
+ wreck:{text:'林間有鳥鳴，空氣潮濕。',senses:['♪ 鳥鳴','〰 潮濕']},
+ trail:{text:'林間有鳥鳴與微風。',senses:['♪ 鳥鳴','〰 微風']},
+ clearing:{text:'草葉輕搖，泥土潮濕。',senses:['〰 微風','◌ 潮濕']},
+ ruin:{text:'石縫長著苔蘚，四周安靜。',senses:['◌ 苔蘚','〰 寂靜']},
+ gate:{text:'行人往來，守衛留意道路。',senses:['♪ 人聲','◇ 道路']},
+ inn:{text:'房內安靜，走廊偶有腳步聲。',senses:['♪ 腳步','◌ 室內']},
+ lobby:{text:'大廳有杯盤聲與輕聲交談。',senses:['♪ 人聲','◌ 麵包香']},
+ street:{text:'街上有商販聲，人們忙碌。',senses:['♪ 市聲','〰 微風']},
+ guild:{text:'公會裡正有人討論路況。',senses:['♪ 交談','◇ 公告']},
+ outskirts:{text:'城外有風吹草叢與鳥鳴。',senses:['♪ 鳥鳴','〰 微風']},
+ home:{text:'起居室裡留著生活痕跡。',senses:['◌ 居家','♪ 細響']}
 });
 function currentRealCompanions(){
  // The randomly selected rescue party is NOT a permanent follower party.
