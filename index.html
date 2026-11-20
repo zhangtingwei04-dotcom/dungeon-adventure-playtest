@@ -3118,6 +3118,30 @@ html.stage-locked #app #placeDrawerPanel.is-location-tab .location-scene-placeho
  font-size:38px;line-height:1;
 }
 
+/* V0.8.17 — fit the location preview header and all five cue icons in the
+   existing fixed-height right panel, without moving its approved borders. */
+html.stage-locked #app #placeDrawerPanel.is-location-tab .location-hero .side-scene-preview{
+ height:73px!important;
+}
+html.stage-locked #app #placeDrawerPanel.is-location-tab .location-hero .location-scene-placeholder{
+ height:73px!important;
+}
+html.stage-locked #app #placeDrawerPanel.is-location-tab .location-summary-description{
+ margin:5px 0!important;line-height:1.36!important;
+}
+html.stage-locked #app #placeDrawerPanel.is-location-tab .location-resource-heading{
+ margin:3px 0 5px!important;
+}
+html.stage-locked #app #placeDrawerPanel.is-location-tab .location-resource-tile{
+ height:40px!important;
+}
+html.stage-locked #app #placeDrawerPanel.is-location-tab .location-resource-icon{
+ font-size:25px!important;
+}
+html.stage-locked #app #placeDrawerPanel.is-location-tab .location-resource-note{
+ margin:2px 0 5px!important;
+}
+
 </style>
 </head>
 <body>
@@ -4331,7 +4355,7 @@ function renderPlaceDrawer(){
  }
  resourceSection.appendChild(resourceGrid);
  const resourceNote=document.createElement('p');resourceNote.className='location-resource-note';
- resourceNote.textContent='圖示為環境線索，實際採集以探索結果為準。';
+ resourceNote.textContent=previewCard.current?'圖示為環境線索，實際採集以探索結果為準。':'這只是預覽；下方行動仍在目前所在地執行。';
  resourceSection.appendChild(resourceNote);out.appendChild(resourceSection);
  const shortcuts=document.createElement('div');shortcuts.className='side-location-shortcuts';
  for(const [label,handler] of [
