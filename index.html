@@ -2567,6 +2567,37 @@ html.stage-locked #app #sideInfoTabs button.has-unseen:not(.selected){
  box-shadow:inset 0 0 0 1px #e5c4834d,0 0 8px #d7b06d40!important;
 }
 
+
+/* V0.8.1b — thumbnail beside the current location description, rather than
+   pushing secondary location actions below the visible scroller. */
+html.stage-locked #app .side-current-summary{
+ display:block;margin:0 0 8px;min-width:0;
+}
+html.stage-locked #app .side-current-summary.has-image{
+ display:grid;grid-template-columns:minmax(0,1fr) 108px;
+ align-items:stretch;gap:6px;
+}
+html.stage-locked #app .side-current-summary .side-current-place{
+ min-width:0;margin:0;box-sizing:border-box;
+ padding:8px!important;justify-content:center;
+}
+html.stage-locked #app .side-current-summary .side-current-place strong{
+ font-size:15px;line-height:1.3;overflow-wrap:anywhere;
+}
+html.stage-locked #app .side-current-summary .side-current-place span{
+ font-size:12px;line-height:1.35;overflow-wrap:anywhere;
+}
+html.stage-locked #app .side-current-summary .side-scene-preview{
+ min-width:0;margin:0;padding:3px;justify-content:center;
+}
+html.stage-locked #app .side-current-summary .side-scene-preview img{
+ height:71px!important;width:100%;object-fit:contain;
+}
+html.stage-locked #app .side-current-summary .side-scene-preview figcaption{
+ font-size:10px;line-height:1.2;padding:2px 0 1px;
+ text-align:center;
+}
+
 </style>
 </head>
 <body>
@@ -3615,12 +3646,14 @@ function renderPlaceDrawer(){
   button.onclick=()=>guardedAction(item.fn);
   actionHost.appendChild(button);
  }
+ const summary=document.createElement('div');summary.className='side-current-summary';
  const intro=document.createElement('div');intro.className='side-current-place';
  const title=document.createElement('strong');title.textContent=names[s.scene][0];
  const desc=document.createElement('span');desc.textContent=names[s.scene][1];
- intro.append(title,desc);out.appendChild(intro);
+ intro.append(title,desc);summary.appendChild(intro);
  const previewSrc=currentLocationImage();
  if(previewSrc){
+  summary.classList.add('has-image');
   const preview=retainedPreview?.dataset.scene===s.scene?retainedPreview:document.createElement('figure');
   if(!preview.classList.contains('side-scene-preview')){
    preview.className='side-scene-preview';preview.dataset.scene=s.scene;
@@ -3629,11 +3662,12 @@ function renderPlaceDrawer(){
    picture.alt=names[s.scene][0]+'的場景預覽';
    picture.src=previewSrc;
    const caption=document.createElement('figcaption');
-   caption.textContent='目前所在地 · 現有場景素材';
+   caption.textContent='場景預覽';
    preview.append(picture,caption);
   }
-  out.appendChild(preview);
+  summary.appendChild(preview);
  }
+ out.appendChild(summary);
  const shortcuts=document.createElement('div');shortcuts.className='side-location-shortcuts';
  for(const [label,handler] of [
   ['區域地圖',()=>journal('map')],
