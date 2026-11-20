@@ -3409,86 +3409,110 @@ html.stage-locked #app .bag-item-name{font-size:13px;line-height:1.4;color:#f1e6
 html.stage-locked #app .bag-item-quantity{color:#f5d890;font-weight:750;font-size:13px;white-space:nowrap;font-variant-numeric:tabular-nums;}
 
 
-/* Character-centered equipment paper-doll panel, optimized for landscape touch screens. */
-#equipmentVeil{z-index:18;backdrop-filter:blur(5px);background:rgba(7,16,16,.87);padding:7px}
+/* Compact equipment panel: no character portrait, only a small schematic guide.
+   On mobile it is rendered at viewport scale (outside the scaled stage). */
+#equipmentVeil{z-index:18;backdrop-filter:blur(4px);background:rgba(7,16,16,.78);padding:8px}
 #equipmentVeil .equip-dialog{
  display:flex;flex-direction:column;gap:5px;
- width:min(830px,96vw);max-height:calc(100dvh - 12px);overflow:hidden;
- border:1px solid #b9a06b;border-radius:13px;
- background:radial-gradient(ellipse at 50% 40%,#294840 0%,#162d2c 48%,#0d1b20 100%);
- box-shadow:0 15px 55px rgba(0,0,0,.85);padding:9px 14px 9px;
+ width:min(730px,94vw);height:min(357px,calc(100dvh - 20px));
+ max-height:calc(100dvh - 16px);overflow:hidden;
+ border:1px solid #b9a06b;border-radius:12px;
+ background:radial-gradient(ellipse at 50% 45%,#243e38 0%,#142c2a 48%,#0d1b20 100%);
+ box-shadow:0 14px 46px rgba(0,0,0,.80);padding:9px 12px;
 }
-.equip-header{display:flex;align-items:center;justify-content:space-between;gap:10px;flex:none}
+.equip-header{display:flex;align-items:center;justify-content:space-between;gap:10px;flex:none;min-height:29px}
 .equip-heading{display:flex;align-items:baseline;gap:10px;min-width:0}
-.equip-heading h2{font:600 clamp(17px,3vw,24px)/1.2 Georgia,"Noto Serif TC",serif;color:#f4dfb1;margin:0}
-.equip-heading span{font:10px/1.2 Georgia,serif;letter-spacing:.18em;color:#b49f77}
+.equip-heading h2{font:600 19px/1.2 Georgia,"Noto Serif TC",serif;color:#f4dfb1;margin:0}
+.equip-heading span{font:10px/1.2 Georgia,serif;letter-spacing:.17em;color:#b49f77}
 #equipmentVeil .equip-close{
- flex:none;min-width:42px;min-height:37px;border:1px solid #c6a874;border-radius:8px;
- background:rgba(66,64,48,.56);color:#fff1d5;font-size:22px;line-height:1;
+ flex:none;min-width:37px;min-height:32px;border:1px solid #c6a874;border-radius:8px;
+ background:rgba(66,64,48,.56);color:#fff1d5;font-size:20px;line-height:1;
 }
-.equip-board{display:grid;grid-template-columns:minmax(105px,1fr) minmax(132px,1.14fr) minmax(105px,1fr);align-items:stretch;gap:7px;min-height:0;flex:1;overflow:auto}
-.equip-side{display:flex;flex-direction:column;justify-content:space-around;gap:4px;padding:1px 0}
+.equip-board{
+ display:grid;grid-template-columns:minmax(144px,1fr) minmax(125px,.75fr) minmax(144px,1fr);
+ align-items:stretch;gap:8px;min-height:0;flex:1;overflow:auto;
+}
+.equip-side{display:flex;flex-direction:column;justify-content:space-around;gap:5px;padding:1px 0;min-height:0}
 .equip-slot{
- width:100%;min-height:43px;max-height:64px;display:grid;grid-template-columns:27px minmax(0,1fr);
- align-items:center;gap:5px;text-align:left;padding:5px 7px;border-radius:8px;
- color:#e9dac0;background:linear-gradient(110deg,rgba(35,58,54,.94),rgba(14,35,35,.94));
- border:1px solid rgba(176,152,100,.58);cursor:pointer;touch-action:manipulation;
+ width:100%;min-height:39px;max-height:46px;display:grid;grid-template-columns:25px minmax(0,1fr);
+ align-items:center;gap:7px;text-align:left;padding:5px 7px;border-radius:7px;
+ color:#e9dac0;background:linear-gradient(110deg,rgba(35,58,54,.88),rgba(14,35,35,.88));
+ border:1px solid rgba(176,152,100,.53);cursor:pointer;touch-action:manipulation;
 }
 .equip-slot.is-selected{border-color:#f2d28c;box-shadow:inset 0 0 0 1px #f0d18a80,0 0 9px #d9bb7850;background:linear-gradient(110deg,#4c6048,#173931)}
 .equip-slot:focus-visible,#equipmentVeil .equip-close:focus-visible,.equip-footer-action:focus-visible{outline:2px solid #f1d18a;outline-offset:2px}
 .equip-slot-symbol{
- width:26px;height:27px;display:grid;place-items:center;flex:none;
+ width:24px;height:25px;display:grid;place-items:center;
  border:1px solid #8b855e;border-radius:5px;background:#112927;
- font-size:16px;color:#aaac93;line-height:1;
+ font-size:14px;color:#aaac93;line-height:1;
 }
 .equip-slot.is-filled .equip-slot-symbol{color:#ffdda0;background:#453b29;border-color:#d6b572}
 .equip-slot-words{min-width:0}
 .equip-slot-name{display:block;font-size:12px;line-height:1.25;font-weight:650;color:#f1dfbb}
-.equip-slot-status{display:block;font-size:10px;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#b9bfb1;margin-top:3px}
+.equip-slot-status{display:block;font-size:10px;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#b9bfb1;margin-top:2px}
 .equip-slot.is-filled .equip-slot-status{color:#e4c67f}
-.equip-figure{
- position:relative;min-width:0;min-height:230px;overflow:hidden;display:flex;align-items:center;justify-content:center;
- border-radius:80px 80px 18px 18px;
- background:radial-gradient(ellipse at 50% 42%,#506e5647,transparent 60%);
+/* The central frame never contains a person or full-size image. */
+.equip-guide{
+ position:relative;display:flex;align-items:center;justify-content:center;
+ min-width:0;min-height:0;overflow:hidden;
+ border:1px solid #a89e6850;border-radius:9px;
+ background:linear-gradient(180deg,rgba(49,72,59,.25),rgba(11,33,32,.46));
 }
-.equip-figure:before{content:"";position:absolute;inset:4px 14px;border:1px solid #a89e6850;border-radius:95px 95px 10px 10px;pointer-events:none}
-.equip-figure:after{content:"";position:absolute;width:55%;height:11px;border-radius:50%;background:#0007;bottom:4px;filter:blur(5px)}
-.equip-figure svg{height:100%;max-height:308px;min-height:212px;width:100%;max-width:215px;object-fit:contain;position:relative;z-index:1;filter:drop-shadow(0 4px 6px #020b0b88)}
-.equip-footer{flex:none;min-height:58px;display:flex;align-items:center;justify-content:space-between;gap:10px;border-top:1px solid #b5a07170;padding-top:7px}
+.equip-guide:before,.equip-guide:after{
+ content:"";position:absolute;pointer-events:none;inset:10px;border:1px solid #aa97643b;border-radius:6px;
+}
+.equip-guide:after{inset:18px;border-color:#aa976425}
+.equip-guide-core{
+ position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+ width:68%;height:69%;max-height:204px;max-width:145px;min-width:85px;gap:7px;
+}
+.equip-guide-title{color:#d4be88;font:600 11px/1.25 "Noto Serif TC",serif;letter-spacing:.1em;white-space:nowrap}
+.equip-guide-line{width:65%;height:1px;background:linear-gradient(90deg,transparent,#a69c6a90,transparent)}
+.equip-guide-part{width:100%;display:flex;align-items:center;justify-content:center;gap:5px;min-height:24px;flex:1}
+.equip-guide-mark{
+ display:grid;place-items:center;width:27px;height:24px;border:1px solid #af9c6966;
+ border-radius:5px;color:#e1c88d;background:#2b493e4f;font:600 12px/1 Georgia,serif;
+}
+.equip-guide-label{color:#abb6a4;min-width:22px;font:10px/1.2 "Noto Sans TC",sans-serif}
+.equip-footer{flex:none;min-height:51px;display:flex;align-items:center;justify-content:space-between;gap:10px;border-top:1px solid #b5a07170;padding-top:5px}
 .equip-detail{min-width:0;flex:1}
-.equip-detail-title{display:block;color:#f6dfa6;font:700 13px/1.35 "Noto Serif TC",serif}
-.equip-detail-note{display:block;color:#c8cab8;font-size:11px;line-height:1.4;margin-top:3px}
+.equip-detail-title{display:block;color:#f6dfa6;font:700 12px/1.3 "Noto Serif TC",serif}
+.equip-detail-note{display:block;color:#c8cab8;font-size:10px;line-height:1.35;margin-top:2px}
 .equip-footer-action{
- border:1px solid #c3a366;border-radius:8px;min-height:39px;padding:5px 12px;flex:none;
+ border:1px solid #c3a366;border-radius:8px;min-height:37px;padding:5px 11px;flex:none;
  background:linear-gradient(130deg,#48684b,#24483e);color:#fff0cd;font-size:12px;font-weight:700;
 }
 html.stage-locked #app .equip-compact{margin-top:7px;padding:11px;border:1px solid #b6a17188;border-radius:8px;background:#152e2a}
 html.stage-locked #app .equip-compact p{font-size:12px;line-height:1.6;color:#d7d3bd;margin:8px 0}
 html.stage-locked #app .equip-compact strong{color:#e9d29c;font-size:13px}
 @media(max-height:480px) and (orientation:landscape){
- #equipmentVeil .equip-dialog{width:min(830px,96vw);height:calc(100dvh - 8px);max-height:calc(100dvh - 8px);padding:6px 11px;gap:3px}
- .equip-header{min-height:30px}
+ #equipmentVeil .equip-dialog{
+  width:min(730px,94vw);height:min(357px,calc(100dvh - 18px));
+  max-height:calc(100dvh - 14px);padding:7px 11px;gap:3px
+ }
+ .equip-header{min-height:29px}
  .equip-heading h2{font-size:18px}
  #equipmentVeil .equip-close{min-height:30px}
- .equip-board{min-height:0;gap:5px}
- .equip-slot{min-height:40px;max-height:44px;padding:3px 5px;gap:4px}
+ .equip-board{gap:6px}
+ .equip-slot{min-height:38px;max-height:43px;padding:4px 6px}
  .equip-slot-name{font-size:11px}
  .equip-slot-status{font-size:9px;margin-top:1px}
- .equip-figure{min-height:210px}
- .equip-figure svg{min-height:194px;max-height:270px}
- .equip-footer{min-height:45px;padding-top:5px}
- .equip-footer-action{min-height:36px}
+ .equip-guide-core{height:70%;gap:4px}
+ .equip-guide-part{min-height:22px}
+ .equip-footer{min-height:44px;padding-top:4px}
+ .equip-footer-action{min-height:34px}
 }
 @media(max-width:580px){
- #equipmentVeil .equip-dialog{padding:7px}
- .equip-board{grid-template-columns:minmax(83px,1fr) minmax(105px,1.05fr) minmax(83px,1fr);gap:4px}
- .equip-slot{padding:3px;grid-template-columns:22px minmax(0,1fr);gap:3px}
- .equip-slot-symbol{width:22px;height:25px;font-size:12px}
- .equip-slot-name{font-size:11px}
+ #equipmentVeil .equip-dialog{padding:6px}
+ .equip-board{grid-template-columns:minmax(79px,1fr) minmax(75px,.7fr) minmax(79px,1fr);gap:4px}
+ .equip-slot{padding:3px;grid-template-columns:20px minmax(0,1fr);gap:3px}
+ .equip-slot-symbol{width:20px;height:23px;font-size:11px}
+ .equip-slot-name{font-size:10px}
  .equip-slot-status{font-size:9px}
  .equip-heading span{display:none}
+ .equip-guide-core{width:76%;gap:3px}
+ .equip-guide-mark{width:22px}
 }
-
 </style>
 </head>
 <body>
@@ -4616,46 +4640,15 @@ function normalizeEquipmentV1(){
   }
  }
 }
-function equipmentHeroSVG(){
- return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 188 340" role="img" aria-label="銀灰髮、紫色眼睛、深綠斗篷的主角，全身立姿">
- <defs>
-  <linearGradient id="equipCape" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#577568"/><stop offset=".55" stop-color="#294a41"/><stop offset="1" stop-color="#192d2c"/></linearGradient>
-  <linearGradient id="equipCoat" x1="0" x2="1"><stop stop-color="#d9d4c1"/><stop offset=".55" stop-color="#f2e5d5"/><stop offset="1" stop-color="#b9b19e"/></linearGradient>
-  <linearGradient id="equipHair" x1="0" x2="1"><stop stop-color="#e0e2e8"/><stop offset=".5" stop-color="#a2aab5"/><stop offset="1" stop-color="#656f83"/></linearGradient>
- </defs>
- <ellipse cx="95" cy="326" rx="50" ry="6" fill="#04100d" opacity=".44"/>
- <!-- Dark-green long overcoat and fluttering cloak, with gold trim. -->
- <path d="M66 87 Q48 87 39 106 L17 280 Q35 289 62 275 L83 193 L109 193 L134 278 Q157 290 173 273 L149 105 Q143 85 119 84Z" fill="url(#equipCape)" stroke="#b59e69" stroke-width="1.6"/>
- <path d="M47 113 Q32 180 27 267 M139 111 Q155 183 159 268" fill="none" stroke="#ad9566" stroke-width="2" opacity=".76"/>
- <!-- legs -->
- <path d="M76 204 L71 303 L91 304 L96 237 L102 305 L122 303 L115 202Z" fill="#4c514d" stroke="#242e31" stroke-width="2"/>
- <path d="M71 289 L67 316 Q72 325 94 320 L94 298 L87 291Z M104 297 L104 320 Q129 324 136 317 L122 289Z" fill="#41352e" stroke="#b59a72" stroke-width="1.6"/>
- <path d="M69 314 Q83 316 94 313 M104 313 Q122 315 134 313" stroke="#d0ab75" stroke-width="1.4"/>
- <!-- arms and tunic -->
- <path d="M68 87 L52 98 L30 171 L43 178 L73 125Z M123 86 L138 96 L159 172 L145 179 L117 126Z" fill="url(#equipCoat)" stroke="#716d59" stroke-width="1.7"/>
- <path d="M71 84 L118 83 L130 202 Q98 215 59 202Z" fill="url(#equipCoat)" stroke="#716b5a" stroke-width="2"/>
- <path d="M70 92 L93 124 L116 92 M91 126 L91 194" fill="none" stroke="#b69d68" stroke-width="2.1"/>
- <path d="M65 176 L123 176 L119 185 L66 185Z" fill="#694d35" stroke="#322e29" stroke-width="2"/>
- <rect x="85" y="173" width="17" height="13" rx="2" fill="#bea16a" stroke="#e1cb8f" stroke-width="1.5"/>
- <path d="M36 168 L32 188 Q34 195 42 192 L48 174Z M144 173 L147 193 Q156 196 158 188 L153 168Z" fill="#e1bda6" stroke="#8e7560" stroke-width="1.4"/>
- <!-- Satchel strap crossing chest and the bag at the left hip. -->
- <path d="M115 88 Q91 116 73 147 Q63 165 59 189" fill="none" stroke="#8e633f" stroke-width="10"/>
- <path d="M115 88 Q91 116 73 147 Q63 165 59 189" fill="none" stroke="#d1a470" stroke-width="2.1" stroke-dasharray="4 7"/>
- <path d="M44 191 Q48 183 70 188 L87 199 L82 243 Q62 249 42 237Z" fill="#70543e" stroke="#d0ab74" stroke-width="2.2"/>
- <path d="M44 196 L85 203 L80 221 Q61 228 42 218Z" fill="#8a6747" stroke="#d8b178" stroke-width="1.6"/>
- <rect x="59" y="210" width="12" height="8" rx="2" fill="#c9a36e" stroke="#efd8a6"/>
- <!-- neck -->
- <path d="M82 73 L83 90 L104 92 L106 74Z" fill="#d7b49f"/>
- <!-- face -->
- <path d="M68 44 Q67 19 95 18 Q124 21 122 47 L119 65 Q115 85 95 88 Q73 85 70 68Z" fill="#e7c7b0" stroke="#907968" stroke-width="1.6"/>
- <path d="M75 56 Q83 52 89 56 M101 56 Q108 52 115 56" stroke="#7e699b" stroke-width="2.8" stroke-linecap="round"/>
- <path d="M96 58 L94 68 L99 69 M88 77 Q96 81 103 77" stroke="#9b7d70" fill="none" stroke-width="1.1"/>
- <!-- distinctive silver layered hair -->
- <path d="M65 52 Q60 21 80 12 Q105 2 124 24 Q131 38 121 57 L116 41 L101 36 L88 42 L71 61Z" fill="url(#equipHair)" stroke="#7b7f8c" stroke-width="1.7"/>
- <path d="M75 20 Q68 35 78 48 Q84 37 99 30 Q91 45 104 45 Q110 34 117 36" fill="none" stroke="#e8e9e8" stroke-width="3" opacity=".7"/>
- <path d="M69 43 Q58 74 68 91 L79 79 M120 44 Q131 70 119 94 L109 79" fill="url(#equipHair)" stroke="#8e96a3" stroke-width="1.4"/>
- <path d="M133 109 L138 197 L142 197" stroke="#c5a773" stroke-width="2" opacity=".8"/>
- </svg>`;
+function equipmentGuideHTML(){
+ // Small static equipment diagram; no full-body character art.
+ const parts=[['○','頭'],['▣','身'],['◇','手'],['▤','腿'],['⌁','足']];
+ return '<div class="equip-guide-core" aria-label="簡化裝備部位示意">'+
+  '<div class="equip-guide-title">裝備部位</div><div class="equip-guide-line"></div>'+
+  parts.map(([mark,label])=>
+   '<div class="equip-guide-part"><span class="equip-guide-mark" aria-hidden="true">'+mark+
+   '</span><span class="equip-guide-label">'+label+'</span></div>').join('')+
+  '</div>';
 }
 function showEquipmentDetail(id){
  const part=EQUIPMENT_PARTS.find(x=>x.id===id)||EQUIPMENT_PARTS[0];
@@ -4681,8 +4674,8 @@ function renderEquipmentBoard(){
  const board=$('equipmentBoard');board.replaceChildren();
  for(const side of ['left','center','right']){
   if(side==='center'){
-   const f=document.createElement('div');f.className='equip-figure';
-   f.innerHTML=equipmentHeroSVG();board.appendChild(f);continue;
+   const f=document.createElement('div');f.className='equip-guide';
+   f.innerHTML=equipmentGuideHTML();board.appendChild(f);continue;
   }
   const col=document.createElement('div');col.className='equip-side';
   for(const part of EQUIPMENT_PARTS.filter(x=>x.side===side)){
