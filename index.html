@@ -2077,6 +2077,33 @@ html.stage-locked:not(.stage-wide) #app{
  transform:translate3d(var(--stage-left,0px),var(--stage-top,0px),0) scale(var(--stage-scale,1))!important;
 }
 
+
+/* V0.7.5: beetle care lives only in the existing journal popup.
+   This does not modify the approved 1536×707 stage or its HUD anchors. */
+#journalContent .rust-care-card{border:1px solid rgba(218,190,137,.5);
+ border-radius:12px;background:linear-gradient(155deg,#2b3628,#102622);
+ padding:18px 20px;margin:12px 0 6px;display:grid;gap:16px;max-width:100%;box-sizing:border-box}
+#journalContent .rust-care-stat{display:grid;gap:6px;min-width:0}
+#journalContent .rust-care-stat-head{display:flex;align-items:center;justify-content:space-between;
+ gap:12px;color:#f1e6ca;font-size:17px}
+#journalContent .rust-care-stat-head span{font-variant-numeric:tabular-nums;white-space:nowrap;color:#e9d2a2}
+#journalContent .rust-care-track{background:#122b29;border-radius:15px;height:13px;overflow:hidden;
+ border:1px solid rgba(218,190,137,.35)}
+#journalContent .rust-care-fill{display:block;height:100%;background:#7fa987;border-radius:15px}
+#journalContent .rust-care-fill.medium{background:#caaa6b}
+#journalContent .rust-care-fill.low{background:#bb7563}
+#journalContent .rust-care-status{margin:0!important;color:#e9d7b2;font-size:16px!important}
+#journalContent .rust-care-buttons{display:flex;flex-wrap:wrap;gap:10px}
+#journalContent .rust-care-buttons button{color:#f9e9c7;border-radius:8px;
+ border:1px solid rgba(234,205,152,.55);background:linear-gradient(150deg,#42614e,#243f38);
+ padding:10px 13px;min-height:46px;font-size:16px}
+#journalContent .rust-bestiary-entry{border:1px solid rgba(221,192,143,.3);
+ border-radius:9px;padding:12px 15px;margin:10px 0;background:rgba(24,43,39,.7)}
+#journalContent .rust-bestiary-entry strong{color:#f0dfbd;font-size:17px}
+#journalContent .rust-bestiary-entry p{margin:7px 0 0;font-size:15px;
+ line-height:1.55;color:#d2d9cb}
+html.stage-locked #app .journal-tabs .journal-tab{min-height:40px!important;font-size:15px!important}
+
 </style>
 </head>
 <body>
@@ -2497,110 +2524,122 @@ function renderRecoveredItems(out){
  }
 }
 
-/* Fixed-forest exceptional fauna. Unlike a repeatable loot table, each location
-   gets one eligibility roll per in-game day. Low odds; no forced combat. */
+/* Forest organisms: the former metal collector becomes a rust-shell beetle.
+   Rare encounters stay optional; the merchant job has a reliable capture path. */
 const FOREST_RARE=Object.freeze({
- goblin:{name:'拾鐵小妖',site:'trail',chance:.02,minutes:8},
+ beetle:{name:'鏽殼甲蟲',site:'trail',chance:.02,minutes:8},
  rabbit:{name:'月紋兔',site:'ruin',chance:.015,minutes:8}
 });
 function normalizeForestRare(){
  if(!s.forestRare||typeof s.forestRare!=='object')s.forestRare={};
  const r=s.forestRare;
- if(!r.checkedDays||typeof r.checkedDays!=='object')r.checkedDays={};
- if(!r.sighted||typeof r.sighted!=='object')r.sighted={};
- if(!r.hints||typeof r.hints!=='object')r.hints={};
- if(!r.ingredients||typeof r.ingredients!=='object')r.ingredients={};
- r.goblinGearTaken=!!r.goblinGearTaken;
+ for(const key of ['checkedDays','sighted','hints','ingredients'])
+  if(!r[key]||typeof r[key]!=='object'||Array.isArray(r[key]))r[key]={};
+ // Migrate the old metal-collector slot without deleting old discoveries.
+ if(r.checkedDays.beetle===undefined&&Number.isFinite(r.checkedDays.goblin))
+  r.checkedDays.beetle=r.checkedDays.goblin;
+ if(r.sighted.beetle===undefined&&r.sighted.goblin)r.sighted.beetle=true;
+ if(r.hints.beetle===undefined&&r.hints.goblin)r.hints.beetle=true;
+ r.beetleGearTaken=!!(r.beetleGearTaken||r.goblinGearTaken);
  r.rabbitHerbTaken=!!r.rabbitHerbTaken;
+}
+function normalizeBeetleCare(){
+ if(!s.beetle||typeof s.beetle!=='object'||Array.isArray(s.beetle))s.beetle={};
+ const b=s.beetle;
+ for(const key of ['questAccepted','questCompleted','captured','terrarium','seen'])b[key]=!!b[key];
+ b.seen=b.seen||!!s.forestRare?.sighted?.beetle;
+ for(const [key,fallback] of [['food',72],['clean',85],['comfort',68]])
+  b[key]=Number.isFinite(b[key])?Math.min(100,Math.max(0,Math.round(b[key]))):fallback;
+ const day=Math.floor(Math.max(0,Number(s.worldMinutes)||0)/1440);
+ b.lastDay=Number.isFinite(b.lastDay)?Math.max(0,Math.min(day,Math.floor(b.lastDay))):day;
+ if(b.questCompleted)b.questAccepted=true;
+ if(b.terrarium)b.questCompleted=true;
+}
+function tickBeetleCare(){
+ normalizeBeetleCare();
+ const b=s.beetle,day=Math.floor(Math.max(0,s.worldMinutes||0)/1440);
+ const elapsed=Math.min(7,Math.max(0,day-b.lastDay));
+ if(!elapsed)return;
+ b.lastDay=day;
+ // The player is not penalized by real-world offline time.
+ if(b.captured&&b.terrarium){
+  b.food=Math.max(0,b.food-12*elapsed);
+  b.clean=Math.max(0,b.clean-8*elapsed);
+  b.comfort=Math.max(0,b.comfort-6*elapsed);
+ }
+ save();
 }
 function rareEligible(id){
  const phase=periodForMinutes(s.worldMinutes);
- return id==='goblin'?(s.recovery.found&&(phase==='dusk'||phase==='night')):
- id==='rabbit'?(phase==='dawn'||phase==='dusk'):false;
+ return id==='beetle'?(s.recovery.found&&(phase==='dusk'||phase==='night')):
+  id==='rabbit'?(phase==='dawn'||phase==='dusk'):false;
 }
 function forestRareCheck(id){
- const spec=FOREST_RARE[id];
- if(!spec||s.scene!==spec.site)return;
- normalizeForestRare();
+ const spec=FOREST_RARE[id];if(!spec||s.scene!==spec.site)return;
+ normalizeForestRare();normalizeBeetleCare();
  const day=Math.floor(s.worldMinutes/1440)+1;
- if(s.forestRare.checkedDays[id]===day){
-  toast('今天已查看過這裡的異常痕跡。明天可以再試。');return;
- }
- // The check itself takes time, regardless of whether the animal appears.
+ if(s.forestRare.checkedDays[id]===day){toast('今天已觀察過這裡，明天再來看看。');return;}
  recoveryTime(spec.minutes);
- const checkedDay=Math.floor(s.worldMinutes/1440)+1;
- s.forestRare.checkedDays[id]=checkedDay;
- const eligible=rareEligible(id);
- const roll=eligible?Math.random():1;
+ s.forestRare.checkedDays[id]=Math.floor(s.worldMinutes/1440)+1;
+ const eligible=rareEligible(id),roll=eligible?Math.random():1;
  save();render();
  if(!eligible){
-  const why=id==='goblin'?(s.recovery.found?'這類痕跡似乎只有黃昏或夜裡更容易辨認。':'你還沒有發現藏在林邊的舊馬車殘骸。'):
-  '這一帶的異常腳印似乎在清晨或黃昏更值得留意。';
-  if(!s.forestRare.hints[id])s.forestRare.hints[id]=true;
-  addTravel('daily','查看周圍約'+spec.minutes+'分鐘，沒有發現異常生物。','先記住環境與時間，別急著追。');
-  save();
-  dialog('森林觀察｜未發現',why+'\n\n這次搜尋耗時 '+spec.minutes+' 分鐘，不會阻礙繼續探索。',[
-   {label:'先去其他地方看看',fn:()=>{}}
-  ],'低機率遭遇');
-  return;
+  s.forestRare.hints[id]=true;
+  const why=id==='beetle'?'金屬拖痕在黃昏或夜間較容易辨認。':'長耳生物的足印在清晨或黃昏更容易觀察。';
+  addTravel('daily','在周圍觀察約'+spec.minutes+'分鐘，沒有看見稀有生物。','先記住環境和時間。');
+  dialog('森林觀察｜未發現',why,[{label:'記下線索',fn:()=>{}}],'稀有觀察');return;
  }
  if(roll>=spec.chance){
   if(!s.forestRare.hints[id]){
    s.forestRare.hints[id]=true;
-   note('rareHint'+id,id==='goblin'?'林邊殘骸旁留下細小的搬運痕跡':'石門附近出現了不尋常的長耳腳印');
+   note('rareHint'+id,id==='beetle'?'在舊車輪附近找到細小金屬拖痕':'在石門附近找到長耳小動物腳印');
   }
-  addTravel('daily','留意周遭約'+spec.minutes+'分鐘，只發現模糊的痕跡。','或許換個日子還有機會遇見。');
-  save();
-  dialog('森林觀察｜留下的痕跡',id==='goblin'?
-  '舊馬車旁的鐵片似乎被小東西移動過，但這次沒有看清是誰。':
-  '石門附近有一排小小腳印，卻不見留下腳印的生物。',[
-   {label:'記住這個地點',fn:()=>{}}
-  ],'稀有事件前兆');
-  return;
+  addTravel('daily','花了'+spec.minutes+'分鐘觀察，只找到模糊的活動痕跡。','改天也許有機會遇見。');
+  dialog('森林觀察｜留下的痕跡',
+   id==='beetle'?'車輪附近有薄薄的鏽屑和小小的甲殼壓痕。':'石門旁有長耳生物的小腳印，牠已經離開。',
+   [{label:'記下這個地點',fn:()=>{}}],'稀有觀察');return;
  }
  s.forestRare.sighted[id]=true;
- save();
- showForestRare(id);
+ if(id==='beetle')s.beetle.seen=true;
+ save();showForestRare(id);
 }
 function showForestRare(id){
- if(id==='goblin'){
-  addTravel('discovery','在舊馬車附近遇見拾鐵小妖。','它把金屬零件藏在身後，看起來比想像中還警覺。');
-  dialog('稀有遭遇｜拾鐵小妖',
-  '半塌的車輪後探出一個矮小身影，正努力拖著比自己還大的金屬扣。牠突然停下，盯著你看。\n\n你不必立刻戰鬥，也可以先觀察。',[
-    {label:'保持距離，記錄牠的動作',fn:()=>{
-      note('rareGoblin','觀察到拾鐵小妖會收集廢棄金屬');
-      toast('已記錄特殊生物：拾鐵小妖');
-    }},
-    {label:'靠近檢查牠留下的物件',fn:()=>{
-      normalizeForestRare();
-      if(!s.forestRare.goblinGearTaken){
-       s.forestRare.goblinGearTaken=true;
-       s.recovery.parts['彎齒小齒輪']=(s.recovery.parts['彎齒小齒輪']||0)+1;
-       addTravel('discovery','拾鐵小妖逃入草叢後，你在泥土上撿到彎齒小齒輪 ×1。','先保留下來，看看是否有特殊用途。');
-       save();toast('取得：彎齒小齒輪 ×1');
-      }else toast('這附近沒有新的齒輪。');
-    }},
-    {label:'不驚動牠，慢慢離開',fn:()=>{}}
-  ],'林邊極稀有生物');
+ if(id==='beetle'){
+  addTravel('discovery','在林邊舊馬車附近遇見鏽殼甲蟲。','牠正在搬運一小塊金屬，發現我後停下了。');
+  const choices=[
+   {label:'保持距離觀察',fn:()=>{
+    s.beetle.seen=true;note('rareBeetle','鏽殼甲蟲會收集金屬碎片保護背甲');
+   }},
+   {label:'檢查牠留下的零件',fn:()=>{
+    normalizeForestRare();
+    if(s.forestRare.beetleGearTaken){toast('沒有新的零件。');return;}
+    s.forestRare.beetleGearTaken=true;
+    s.recovery.parts['彎齒小齒輪']=(s.recovery.parts['彎齒小齒輪']||0)+1;
+    note('beetleGear','在鏽殼甲蟲活動區找到彎齒小齒輪');
+    save();
+   }}
+  ];
+  if(s.beetle.questAccepted&&!s.beetle.captured)
+   choices.push({label:'使用誘捕盒安全捕捉',fn:captureRustBeetle});
+  choices.push({label:'安靜離開',fn:()=>{}});
+  dialog('稀有遭遇｜鏽殼甲蟲',
+   '一隻小型甲蟲從舊車輪後爬出，背甲覆著鏽色金屬薄片。牠警戒地盯著你，但沒有主動攻擊。',
+   choices,'未知生物遭遇');
  }else if(id==='rabbit'){
-  addTravel('discovery','石門附近出現了月紋兔。','耳緣帶著淡淡銀光，牠似乎在尋找某種嫩芽。');
+  addTravel('discovery','石門附近出現了月紋兔。','牠似乎正在尋找某種嫩芽。');
   dialog('稀有遭遇｜月紋兔',
-  '石門下的苔草輕輕晃動。一隻有著長耳與月牙形淡紋的小兔停在石縫旁。\n\n牠沒有攻擊意圖，似乎正在尋找特別的植物。',[
-    {label:'安靜觀察並記錄',fn:()=>{
-      note('rareRabbit','在石門附近觀察到月紋兔與特殊植物的活動');
-      toast('已記錄特殊生物：月紋兔');
-    }},
+   '石門下的苔草輕輕晃動。一隻有著長耳與月牙形淡紋的小兔停在石縫旁。\n\n牠沒有攻擊意圖，似乎正在尋找特別的植物。',[
+    {label:'安靜觀察並記錄',fn:()=>{note('rareRabbit','觀察到月紋兔在石門附近尋找植物');}},
     {label:'查看牠離開後的草叢',fn:()=>{
-      normalizeForestRare();
-      if(!s.forestRare.rabbitHerbTaken){
-       s.forestRare.rabbitHerbTaken=true;
-       s.forestRare.ingredients['月露嫩芽']=(s.forestRare.ingredients['月露嫩芽']||0)+1;
-       addTravel('discovery','月紋兔躍入草叢後，你發現並採集了月露嫩芽 ×1。','這似乎是罕見食材，先留著，還不能直接烹調。');
-       save();toast('取得特殊食材：月露嫩芽 ×1');
-      }else toast('這裡沒有新的嫩芽可採。');
+     normalizeForestRare();
+     if(s.forestRare.rabbitHerbTaken){toast('這附近沒有新的嫩芽。');return;}
+     s.forestRare.rabbitHerbTaken=true;
+     s.forestRare.ingredients['月露嫩芽']=(s.forestRare.ingredients['月露嫩芽']||0)+1;
+     addTravel('discovery','在月紋兔離開後找到月露嫩芽 ×1。','尚未確認是否可食用。');
+     save();toast('取得：月露嫩芽 ×1');
     }},
-    {label:'不打擾牠，離開石門',fn:()=>{}}
-  ],'石門極稀有生物');
+    {label:'不打擾牠',fn:()=>{}}
+   ],'未知生物遭遇');
  }
 }
 
@@ -3135,12 +3174,12 @@ function paintActorSprite(canvas,memberId,emotion='neutral'){
 }
 function randomSeed(){return (Date.now()^((Math.random()*4294967295)>>>0))>>>0;}
 function selectFour(seed){let a=[0,1,2,3,4,5],v=seed>>>0;for(let i=a.length-1;i>0;i--){v=(Math.imul(v,1664525)+1013904223)>>>0;let j=v%(i+1);[a[i],a[j]]=[a[j],a[i]];}return a.slice(0,4).sort((x,y)=>x-y);}
-function initial(){const seed=randomSeed();return{v:1,seed,scene:'wreck',worldMinutes:960,routeDiscovery:{known:[],searchCounts:{}},placeCardsViewed:[],exploration:{counts:{},routeProgress:{},pending:{},daily:{},last:{}},recovery:{found:false,looted:false,items:[],parts:{}},forestEcology:{checkedDays:{},observed:{},ingredients:{},leafCollected:false},forestRare:{checkedDays:{},sighted:{},hints:{},ingredients:{},goblinGearTaken:false,rabbitHerbTaken:false},hp:16,maxHp:16,seen:[],notes:[],items:[],party:selectFour(seed),flags:{},visits:{wreck:1},savedAt:Date.now(),sound:false,feedCollapsed:false,travelHudMode:'compact',travelLog:[{type:'daily',message:'在毀壞的馬車篷內醒來，扶著斷裂木板爬到了外面。',thought:'我怎麼會在這裡？先看看四周吧。',scene:'wreck',time:Date.now()}]};}
+function initial(){const seed=randomSeed();return{v:1,seed,scene:'wreck',worldMinutes:960,routeDiscovery:{known:[],searchCounts:{}},placeCardsViewed:[],exploration:{counts:{},routeProgress:{},pending:{},daily:{},last:{}},recovery:{found:false,looted:false,items:[],parts:{}},forestEcology:{checkedDays:{},observed:{},ingredients:{},leafCollected:false},forestRare:{checkedDays:{},sighted:{},hints:{},ingredients:{},beetleGearTaken:false,rabbitHerbTaken:false},beetle:{questAccepted:false,questCompleted:false,captured:false,terrarium:false,seen:false,food:72,clean:85,comfort:68,lastDay:0},hp:16,maxHp:16,seen:[],notes:[],items:[],party:selectFour(seed),flags:{},visits:{wreck:1},savedAt:Date.now(),sound:false,feedCollapsed:false,travelHudMode:'compact',travelLog:[{type:'daily',message:'在毀壞的馬車篷內醒來，扶著斷裂木板爬到了外面。',thought:'我怎麼會在這裡？先看看四周吧。',scene:'wreck',time:Date.now()}]};}
 function validSave(j){return !!(j&&j.v===1&&names[j.scene]&&Number.isFinite(j.hp)&&Number.isFinite(j.maxHp)&&Array.isArray(j.party)&&j.party.length===4&&new Set(j.party).size===4&&j.party.every(i=>Number.isInteger(i)&&i>=0&&i<6)&&Array.isArray(j.seen)&&Array.isArray(j.notes)&&Array.isArray(j.items)&&j.flags&&typeof j.flags==='object'&&j.visits&&typeof j.visits==='object');}
 function load(){try{const j=JSON.parse(localStorage.getItem(KEY));return validSave(j)?j:null;}catch{return null;}}
 let s=load()||initial(), hasSave=!!load(),modal=null,showHints=false,journalTab='discoveries',toastHandle=null;
 if(!Array.isArray(s.travelLog))s.travelLog=[];
-normalizeGameTime();normalizeRecovery();normalizeForestRare();normalizeForestEcology();normalizeRouteDiscovery();normalizeExploration();normalizePlaceCards();
+normalizeGameTime();normalizeRecovery();normalizeForestRare();normalizeBeetleCare();normalizeForestEcology();normalizeRouteDiscovery();normalizeExploration();normalizePlaceCards();
 if(typeof s.feedCollapsed!=='boolean')s.feedCollapsed=false;if(!['compact','expanded'].includes(s.travelHudMode))s.travelHudMode='compact';
 const moveThought={wreck:'一切似乎從這片殘骸開始。',trail:'沿著道路走，也許能遇見其他人。',clearing:'這裡比想像中安靜。',ruin:'這座古老建築還藏著多少故事？',gate:'終於看到有人生活的地方了。',inn:'至少現在能稍微休息。',lobby:'普通的早晨，也讓我感到安心。',street:'這個世界的人們也在過自己的日子。',guild:'或許能在這裡找到一些方向。',outskirts:'前方還有很多我不知道的地方。',home:'這裡承載著六個人一起生活的痕跡。'};
 const discoveryThought={wagon:'馬車在我醒來前就毀了。',scratches:'這些刻痕究竟是誰留下的？',light:'那道微光似乎有些奇怪。',sound:'先觀察牠會怎麼行動。',rescue:'原來這裡還有人願意幫助陌生人。',sigil:'背上的紋印……究竟代表什麼？',innkeeper:'也許能在這裡慢慢熟悉城鎮。',secondMeet:'沒想到會再見到他們。',leftbehind:'六個人都有自己的生活。',guildClerk:'公會看起來不只有打怪的工作。',roadSign:'原來這條路有人經常使用。'};
@@ -3442,6 +3481,134 @@ function morning(){if(!s.flags.rescued){toast('先前往城鎮休息。');return
 function talkInnkeeper(){const first=!s.flags.innkeeperMet;s.flags.innkeeperMet=true;if(first)note('innkeeper','認識旅店工作人員');dialog('旅店的早晨','「昨晚休息得好嗎？」店員把杯子收進托盤，指向門外。\n\n「沿街走就是市集，再往前能看見公會。想先待在這裡也可以，我們不會趕你出門。」',[{label:'詢問城鎮',fn:()=>dialog('街上的日常','這裡不是每個人都會去地下城。市場、工坊、貨運和旅館同樣忙碌。公會只是其中一個工作的地方。',[{label:'知道了',fn:()=>{}}],'城鎮介紹')},{label:'謝謝，先看看四周',fn:()=>{}}],'第二章 · 旅店');}
 function meetRescuers(){if(!s.flags.rescued){toast('你還沒遇見他們。');return;}const namesFour=s.party.map(i=>roster[i].name),who=namesFour.join('、');const old=s.flags.rescueTone;const memory=old==='quiet'?'「昨天你一句話都不說，我們還擔心你是不是太不舒服。」':old==='where'?'「昨天你最先問這是哪裡。現在至少知道城鎮的方向了吧。」':'「昨天你主動向我們求助。能看到你安全走出旅店就好。」';s.flags.rescuersMetAgain=true;note('secondMeet','在城鎮再次遇見昨天的救援者');dialog('熟悉的四張面孔','街口有人向你招手。是昨天出勤的四人：'+who+'。\n\n'+namesFour[0]+'：'+memory+'\n\n他們並沒有要求你加入隊伍，只是問你接下來有什麼打算。',[{label:'詢問附近可以去哪裡',fn:()=>dialog('附近的道路','「公會有路況紀錄，城外近郊也能散步。沒準備好前不用往深處走。」',[{label:'記下建議',fn:()=>note('roadTip','得知城外近郊有較安全的道路')}],'冒險者的建議')},{label:'有機會可以去拜訪嗎？',fn:()=>{s.flags.houseInvite=true;note('houseInvite','獲得拜訪小隊公共起居室的邀請');dialog('普通的邀請','「可以，但我們住處不大。大家都在時來坐坐就好，不必客氣。」\n\n你已能從城鎮街道前往他們的公共起居室。',[{label:'知道了',fn:()=>render()}],'日常對話');}},{label:'道謝後先離開',fn:()=>{}}],'第二章 · 再會');}
 function meetHome(){const left=[0,1,2,3,4,5].filter(i=>!s.party.includes(i)).map(i=>roster[i].name);if(!s.flags.homeMet){s.flags.homeMet=true;note('leftbehind','認識昨天留守的兩名小隊成員');}dialog('留守的兩名夥伴','公共起居室裡有修補過的桌椅、堆放整齊的裝備，以及一張寫滿採買事項的紙。\n\n昨天留守的兩人是：'+left.join('、')+'。\n\n「我們聽說昨天救回一個人。原來就是你啊。」\n\n他們仍有自己的事情要做，沒有把你當成必須立刻加入的隊員。',[{label:'聊聊他們的日常',fn:()=>dialog('普通的生活','「房租不是小事，所以我們一起分攤住處。有人外出工作，也要有人整理物資。至於誰比較會煮飯，那可是另一回事。」',[{label:'原來如此',fn:()=>{}}],'日常對話')},{label:'不打擾他們',fn:()=>{}}],'第二章 · 初次見面');}
+/* One optional merchant quest, with non-combat capture and a three-stat home. */
+function beetleMerchant(){
+ normalizeBeetleCare();const b=s.beetle;
+ if(!b.questAccepted){
+  dialog('雜貨商的委託｜失蹤的扣件',
+   '林邊舊馬車附近的金屬扣件常被不明生物搬走。雜貨商希望你查明原因，使用通風誘捕盒安全捕捉一隻。\n\n他只需要觀察報告；甲蟲可由玩家留下，完成後還會贈送一個小型生態箱。',[
+   {label:'接受委託，領取誘捕盒',fn:()=>{
+    b.questAccepted=true;
+    note('beetleQuest','接受雜貨商委託，調查失蹤的金屬扣件');
+    render();
+    dialog('取得通風誘捕盒',
+     '前往林間小徑，先搜尋舊馬車殘骸，再使用誘捕盒。商人提供的誘餌可以穩定完成任務，不需要等待稀有遭遇。',
+     [{label:'記下委託',fn:()=>{}}],'商人委託');
+   }},
+   {label:'暫時不接',fn:()=>{}}
+  ],'商人委託');return;
+ }
+ if(!b.captured){
+  dialog('雜貨商的委託｜調查中',
+   '「先找到林邊的舊馬車殘骸。小心設置誘捕盒，別讓那個小生命受到傷害。」',[
+   {label:'查看怪物圖鑑',fn:()=>journal('bestiary')},{label:'離開',fn:()=>{}}
+  ],'商人委託');return;
+ }
+ if(!b.questCompleted){
+  dialog('雜貨商的委託｜回報',
+   '「原來是會收集金屬的小甲蟲。謝謝你帶來觀察紀錄！牠留給你照顧，我答應的生態箱現在就交給你。」',[
+   {label:'交付報告，領取生態箱',fn:()=>{
+    b.questCompleted=true;b.terrarium=true;b.lastDay=Math.floor(s.worldMinutes/1440);
+    note('beetleTerrarium','完成雜貨商委託，取得小型生態箱');
+    save();render();
+    dialog('小型生態箱已取得',
+     '鏽殼甲蟲已安全安置。請到「旅程日誌 → 生態箱」查看飽食度、清潔度、舒適度。',
+     [{label:'查看生態箱',fn:()=>journal('terrarium')},{label:'繼續冒險',fn:()=>{}}],'任務完成');
+   }},
+   {label:'晚點再回報',fn:()=>{}}
+  ],'商人委託');return;
+ }
+ dialog('雜貨商｜委託完成',
+  '「牠還好嗎？以後看到未知生物，記得先觀察再決定怎麼做。」',[
+   {label:'查看生態箱',fn:()=>journal('terrarium')},{label:'離開',fn:()=>{}}
+  ],'城鎮生活');
+}
+function captureRustBeetle(){
+ normalizeBeetleCare();const b=s.beetle;
+ if(!b.questAccepted){toast('請先領取商人的誘捕盒。');return;}
+ if(b.captured){toast('已捕獲一隻鏽殼甲蟲。');return;}
+ if(s.scene!=='trail'||!s.recovery.found){toast('先找到林邊的舊馬車殘骸。');return;}
+ recoveryTime(10);
+ b.captured=true;b.seen=true;b.lastDay=Math.floor(s.worldMinutes/1440);
+ normalizeForestRare();s.forestRare.sighted.beetle=true;
+ addTravel('discovery','使用誘捕盒安全捕獲一隻鏽殼甲蟲（10分鐘）。','牠收集金屬似乎只是為了保護自己。');
+ note('caughtBeetle','在林邊舊馬車附近安全捕獲鏽殼甲蟲');
+ save();render();
+ dialog('成功捕獲鏽殼甲蟲',
+  '你利用一小片金屬引導甲蟲爬進通風誘捕盒，沒有發生戰鬥。\n\n回城向雜貨商回報，就能取得正式的生態箱。',
+  [{label:'記下成果',fn:()=>{}}],'安全捕捉');
+}
+function careRustBeetle(kind){
+ tickBeetleCare();const b=s.beetle;
+ if(!b.captured||!b.terrarium)return;
+ const actions={
+  feed:['food',25,'餵食'],clean:['clean',30,'清理'],
+  comfort:['comfort',20,'整理環境']
+ };
+ const op=actions[kind];if(!op)return;
+ recoveryTime(10);tickBeetleCare();
+ b[op[0]]=Math.min(100,b[op[0]]+op[1]);
+ addTravel('daily','已為鏽殼甲蟲'+op[2]+'（10分鐘）。','牠看起來適應了這裡。');
+ save();render();journal('terrarium');toast(op[2]+'完成');
+}
+function renderRustTerrarium(out){
+ tickBeetleCare();const b=s.beetle;
+ const title=document.createElement('div');title.className='map-section';
+ title.textContent='鏽殼甲蟲｜小型生態箱';out.appendChild(title);
+ const p=document.createElement('p');p.className='map-note';
+ if(!b.questAccepted)p.textContent='尚未取得生態箱。前往城鎮街道向雜貨商打聽相關委託。';
+ else if(!b.captured)p.textContent='已領取誘捕盒。先在林間小徑尋找舊馬車殘骸，再進行安全捕捉。';
+ else if(!b.terrarium)p.textContent='甲蟲暫時安置於通風採集盒。請回城向雜貨商回報以領取生態箱。';
+ else p.textContent='已飼養 ×1｜只需注意三項數值。離線不會扣數值，也沒有離線死亡。';
+ out.appendChild(p);
+ if(!b.captured||!b.terrarium)return;
+ const card=document.createElement('div');card.className='rust-care-card';
+ for(const [key,label] of [['food','飽食度'],['clean','清潔度'],['comfort','舒適度']]){
+  const stat=document.createElement('div');stat.className='rust-care-stat';
+  const head=document.createElement('div');head.className='rust-care-stat-head';
+  const name=document.createElement('strong');name.textContent=label;
+  const val=document.createElement('span');val.textContent=b[key]+' / 100';
+  head.append(name,val);
+  const track=document.createElement('div');track.className='rust-care-track';
+  track.setAttribute('role','progressbar');track.setAttribute('aria-label',label);
+  track.setAttribute('aria-valuemin','0');track.setAttribute('aria-valuemax','100');
+  track.setAttribute('aria-valuenow',String(b[key]));
+  const fill=document.createElement('span');fill.className='rust-care-fill'+(b[key]<25?' low':b[key]<50?' medium':'');
+  fill.style.width=b[key]+'%';track.appendChild(fill);
+  stat.append(head,track);card.appendChild(stat);
+ }
+ const status=document.createElement('p');status.className='rust-care-status';
+ const min=Math.min(b.food,b.clean,b.comfort);
+ status.textContent=min<25?'目前需要照顧':min<50?'狀態稍低':'狀態穩定';
+ card.appendChild(status);
+ const controls=document.createElement('div');controls.className='rust-care-buttons';
+ for(const [kind,label] of [['feed','餵食 · 10分鐘'],['clean','清理 · 10分鐘'],['comfort','整理環境 · 10分鐘']]){
+  const btn=document.createElement('button');btn.type='button';btn.textContent=label;
+  btn.onclick=()=>careRustBeetle(kind);controls.appendChild(btn);
+ }
+ card.appendChild(controls);out.appendChild(card);
+}
+function renderCreatureBestiary(out){
+ normalizeForestRare();normalizeBeetleCare();
+ const p=document.createElement('p');p.className='map-note';
+ p.textContent='怪物是人類對未知生物的通稱。以下只記錄玩家已發現的線索，不預設牠們是敵人。';
+ out.appendChild(p);
+ for(const entry of [
+  {found:s.beetle.seen||s.beetle.questAccepted,name:'鏽殼甲蟲',
+   description:s.beetle.captured?'已捕獲｜背甲會附著金屬碎片，通常不主動攻擊。':
+    s.beetle.seen?'已目擊｜林邊舊馬車附近的金屬收集者。':
+    '商人線索｜金屬扣件不明原因被搬走。'},
+  {found:!!s.forestRare.sighted.rabbit,name:'月紋兔',
+   description:'已目擊｜石門附近的長耳生物，會尋找特殊植物。'},
+  {found:!!s.flags.creatureResolved||s.seen.includes('sound'),name:'陌生林地生物',
+   description:'初步觀察｜對陌生人保持警戒，不一定主動攻擊。'}
+ ]){
+  const row=document.createElement('div');row.className='rust-bestiary-entry';
+  const strong=document.createElement('strong');strong.textContent=entry.found?entry.name:'未確認生物';
+  const desc=document.createElement('p');desc.textContent=entry.found?entry.description:'尚未取得足夠的目擊紀錄。';
+  row.append(strong,desc);out.appendChild(row);
+ }
+}
 function guildClerk(){if(!s.flags.guildClerkMet){s.flags.guildClerkMet=true;note('guildClerk','與公會櫃台人員交談');}dialog('冒險者公會櫃台','「第一次來？我們有工作情報、外出路線和怪物目擊記錄。不是每個委託都需要戰鬥。」\n\n櫃台人員沒有要求你馬上登記成冒險者，也不追問你的身世。',[{label:'看看今日委託',fn:guildBoard},{label:'詢問前往近郊的路',fn:()=>dialog('道路指引','「城門外有一處近郊路口。你可以先去認識環境，再考慮深入未知地帶。」',[{label:'記住方向',fn:()=>note('nearRoad','知道通往近郊路口的方向')}],'公會情報')},{label:'先離開櫃台',fn:()=>{}}],'第二章 · 公會');}
 function guildBoard(){const offers='公告板上有幾張委託：搬運市場物資、替工坊確認送貨時間，以及「確認近郊路標的狀況」。這些都是普通人的工作，不是所有任務都要討伐怪物。';const choices=[];if(!s.flags.roadJobAccepted&&!s.flags.roadJobDone){choices.push({label:'接下確認近郊路標的委託',fn:()=>{s.flags.roadJobAccepted=true;note('roadQuest','接受確認城外近郊路標的委託');render();}});}if(s.flags.roadJobAccepted&&!s.flags.roadSignSeen)choices.push({label:'檢查自己的委託進度',fn:()=>dialog('目前委託','前往近郊路口，確認路標有沒有損壞。這只是可選的小型委託。',[{label:'了解',fn:()=>{}}],'委託紀錄')});if(s.flags.roadJobAccepted&&s.flags.roadSignSeen&&!s.flags.roadJobDone)choices.push({label:'回報近郊路標狀況',fn:()=>{s.flags.roadJobDone=true;note('roadJobDone','向公會完成一次近郊路況回報');dialog('工作完成','櫃台記下你的回報，點了點頭。\n\n「辛苦了。這些日常路況對其他旅人很有幫助。」\n\n你完成了第一個自願承接的小委託。報酬與貨幣系統尚未在原型實作。',[{label:'繼續冒險',fn:()=>render()}],'委託完成',true);}});if(s.flags.roadJobDone)choices.push({label:'查看已完成的委託',fn:()=>toast('已完成：近郊路標狀況確認')});choices.push({label:'先不接工作',fn:()=>{}});dialog('今日的委託',offers,choices,'公會公告板');}
 function roadsideSign(){if(!s.flags.roadSignSeen){s.flags.roadSignSeen=true;note('roadSign','發現近郊路口的舊路標');}dialog('霧中的舊路標','斑駁的木製路標仍站在岔路旁，箭頭有些鬆動，但路面本身可以通行。\n\n你可以記住它的狀況，也可以什麼都不做、繼續欣賞遠方的山林。',[{label:'記下這條路',fn:()=>note('roadMark','已記錄城外近郊路線')},{label:'返回城鎮',fn:()=>change('street')},{label:'再待一會兒',fn:()=>render()}],'近郊探索');}
@@ -3452,13 +3619,13 @@ function battleDialog(text){const m=s.flags.monsterHp||0;const choices=[];if(m>0
 function battleTurn(kind){if(kind==='retreat'){s.flags.inBattle=false;s.flags.creatureResolved=true;note('retreat','你選擇脫離戰鬥');render();return;}let text='';let damage=0;if(kind==='attack'){damage=4+(s.seed+s.hp+s.flags.monsterHp)%3;s.flags.monsterHp=Math.max(0,s.flags.monsterHp-damage);text=`你擊中對方，造成 ${damage} 點傷害。`; }else{text='你穩住腳步，準備防禦。';}addTravel('combat',text,'下一步得保持警覺。');if(s.flags.monsterHp<=0){s.flags.creatureResolved=true;s.flags.inBattle=false;note('victory','你完成一次陌生生物遭遇戰');s.flags.battles=(s.flags.battles||0)+1;dialog('戰鬥結束',text+'\n\n生物後退，消失在草叢深處。你留下了少量關於牠行動方式的記憶。',[{label:'繼續探索',fn:()=>render()}],'戰鬥結果',true);save();return;}const hit=kind==='guard'?1:3;s.hp=Math.max(0,s.hp-hit);text+=`\n對方反擊，你受到 ${hit} 點傷害。`;addTravel('combat',`對方反擊，你受到 ${hit} 點傷害。`,'不能大意。');if(s.hp===0){s.flags.inBattle=false;s.flags.creatureResolved=true;s.hp=5;note('defeat','你在林間體力不支，稍後重新站起');dialog('暫時失去意識','你在林間倒下。過了一段時間才再次醒來，身體虛弱。\n\n這是原型的安全失敗處理，並不代表主角的「活遺物」能力已經覺醒。',[{label:'返回小徑',fn:()=>change('trail')}],'測試規則',true);}else{battleDialog(text);}save();}
 function entries(){const a={
  wreck:[routeAction('沿著道路離開','trail',()=>change('trail'),true),action('查看倒塌貨箱',glance),action('查看車輪痕跡',marks)],
- trail:[routeAction(s.flags.rescued?'前往城鎮':'沿道路繼續前進','gate',rescue,true),action(s.recovery.found?'調查舊馬車殘骸':'搜索林邊 · 12分鐘',searchForest,false,true),...(s.recovery.found?[action('留意廢車旁的異樣動靜 · 8分鐘',()=>forestRareCheck('goblin'))]:[]),routeAction('進入林間空地','clearing',()=>change('clearing')),routeAction('走近舊石門','ruin',()=>change('ruin')),action('查看路旁舊石碑',inspectTrailMarker),routeAction('返回馬車','wreck',()=>change('wreck'))],
+ trail:[routeAction(s.flags.rescued?'前往城鎮':'沿道路繼續前進','gate',rescue,true),action(s.recovery.found?'調查舊馬車殘骸':'搜索林邊 · 12分鐘',searchForest,false,true),...(s.recovery.found?[action('留意甲蟲活動痕跡 · 8分鐘',()=>forestRareCheck('beetle'))]:[]),...(s.recovery.found&&s.beetle.questAccepted&&!s.beetle.captured?[action('設置甲蟲誘捕盒 · 10分鐘',captureRustBeetle)]:[]),routeAction('進入林間空地','clearing',()=>change('clearing')),routeAction('走近舊石門','ruin',()=>change('ruin')),action('查看路旁舊石碑',inspectTrailMarker),routeAction('返回馬車','wreck',()=>change('wreck'))],
  clearing:[routeAction('返回小徑','trail',()=>change('trail'),true),action('觀察空地生態 · 6分鐘',()=>observeForestEcology('clearing'),false,true),...(!s.flags.lightTaken?[action('查看樹根旁的微光',light)]:[]),action('留意林間聲響',soundInForest)],
  ruin:[routeAction('返回小徑','trail',()=>change('trail'),true),action('觀察石門生態 · 6分鐘',()=>observeForestEcology('ruin'),false,true),action('看看古老石門',ruinLook),action('觀察石門旁的長耳腳印 · 8分鐘',()=>forestRareCheck('rabbit'))],
  gate:[routeAction('前往旅店',s.flags.morning?'lobby':'inn',()=>change(s.flags.morning?'lobby':'inn'),true),...(s.flags.morning?[routeAction('走進城鎮街道','street',()=>change('street'))]:[]),routeAction('返回森林','trail',()=>change('trail')),action('問問冒險者',()=>dialog('四名冒險者','他們告訴你，這座城鎮有旅店、公會與來往的旅人。其他兩名夥伴今天留在住處。你們仍是剛認識的陌生人。',[{label:'道謝',fn:()=>{}}],'簡短對話'))],
  inn:[...(s.flags.morning?[routeAction('前往旅店大廳','lobby',()=>change('lobby'),true)]:[action('迎接新的早晨',morning,true)]),action(s.flags.sigilSeen?'再看看鏡子':'整理衣物與鏡子',innMark),action('休息片刻',rest),routeAction('返回城鎮入口','gate',()=>change('gate'))],
  lobby:[routeAction('走出旅店','street',()=>change('street'),true),action('與旅店工作人員交談',talkInnkeeper),routeAction('回到客房','inn',()=>change('inn'))],
- street:[routeAction('進入冒險者公會','guild',()=>change('guild'),true),routeAction('前往城外近郊','outskirts',()=>offerOutskirtsTransport('outskirts')),action('與救援者再次交談',meetRescuers),...(s.flags.houseInvite?[routeAction('拜訪小隊的公共起居室','home',()=>change('home'))]:[]),routeAction('返回旅店','lobby',()=>change('lobby')),routeAction('往城門走','gate',()=>change('gate'))],
+ street:[routeAction('進入冒險者公會','guild',()=>change('guild'),true),routeAction('前往城外近郊','outskirts',()=>offerOutskirtsTransport('outskirts')),action('與救援者再次交談',meetRescuers),action('向雜貨商詢問甲蟲委託',beetleMerchant),...(s.flags.houseInvite?[routeAction('拜訪小隊的公共起居室','home',()=>change('home'))]:[]),routeAction('返回旅店','lobby',()=>change('lobby')),routeAction('往城門走','gate',()=>change('gate'))],
  guild:[action('與公會櫃台交談',guildClerk,true),action('查看今日委託',guildBoard),routeAction('返回城鎮街道','street',()=>change('street'))],
  outskirts:[routeAction('返回城鎮街道','street',()=>offerOutskirtsTransport('street'),true),action('看看路口的舊路標',roadsideSign),action('眺望遠處的林地',countryside)],
  home:[routeAction('回到城鎮街道','street',()=>change('street'),true),action('與昨天留守的兩人聊天',meetHome),action('看看公共空間',()=>dialog('一起生活的地方','牆邊掛著修補過的旅行斗篷，桌上則是輪流採買的清單。這裡是六位冒險者自己生活的地方，並不是主角自動入住的房間。',[{label:'不打擾了',fn:()=>{}}],'生活角落'))]
@@ -3477,7 +3644,7 @@ function setActionVisual(button,kind,label){
  const title=document.createElement('span');title.className='action-title';title.textContent=label;
  button.appendChild(title);
 }
-function render(){if(!names[s.scene])s.scene='wreck';normalizeGameTime();$('place').textContent=names[s.scene][0];syncTimeAtmosphere();$('partyChip').textContent=s.flags.rescued?'與冒險者相遇':'獨自探索';$('hpChip').textContent=`體力 ${s.hp}/${s.maxHp}`;$('chapterChip').textContent=s.flags.morning?'第二章 · 清晨':s.flags.chapterDone?'第一章片段完成':'第一章';const texts={
+function render(){if(!names[s.scene])s.scene='wreck';normalizeGameTime();tickBeetleCare();$('place').textContent=names[s.scene][0];syncTimeAtmosphere();$('partyChip').textContent=s.flags.rescued?'與冒險者相遇':'獨自探索';$('hpChip').textContent=`體力 ${s.hp}/${s.maxHp}`;$('chapterChip').textContent=s.flags.morning?'第二章 · 清晨':s.flags.chapterDone?'第一章片段完成':'第一章';const texts={
  wreck:'你從毀壞的車篷下爬出來，泥土的涼意讓你逐漸清醒。',
  trail:s.flags.rescued?'你沿著車轍走到林道，遠方的城鎮逐漸清晰。可以回望事故現場，也可以繼續前進。':'樹影遮住前方道路。你可以搜索林邊的舊物與生物痕跡，或花一點時間辨認道路，將發現的岔路逐一記入地圖。',
  clearing:'陌生的風聲、樹根間的微光。你可以接近，也可以完全不理會。',
@@ -3575,7 +3742,7 @@ function renderRouteMap(out){
  footnote.textContent='開場那輛馬車已經損毀、不能搭乘。驛站馬車只在城鎮街道與近郊間提供短程接送；其餘路線先以步行計算。';
  out.appendChild(footnote);
 }
-function journal(tab='discoveries'){closePlaceDrawer();$('journalVeil').classList.remove('hidden');journalTab=tab;$('journalTabs').replaceChildren();const tabs=[['journey','旅途'],['discoveries','發現'],['map','地點'],['party','相遇者'],['items','物品與材料']];for(const [key,label] of tabs){const b=document.createElement('button');b.className='journal-tab'+(tab===key?' selected':'');b.textContent=label;b.onclick=()=>journal(key);$('journalTabs').appendChild(b);}const out=$('journalContent');out.replaceChildren();if(tab==='map'){renderRouteMap(out);return;}if(tab==='items'){renderRecoveredItems(out);return;}if(tab==='journey'){const logs=(Array.isArray(s.travelLog)?s.travelLog:[]).filter(e=>e&&typeof e.message==='string').slice().reverse();for(const e of logs){const row=document.createElement('div');row.className='journey-entry';const meta=document.createElement('div');meta.className='entry-meta';meta.textContent=(Number.isFinite(e.time)?new Date(e.time).toLocaleString('zh-TW'):'旅途')+' · '+(names[e.scene]?.[0]||'旅途');const main=document.createElement('div');main.className='entry-main';main.textContent=e.message;row.append(meta,main);if(e.thought){const thought=document.createElement('div');thought.className='entry-thought';thought.textContent='「'+e.thought+'」';row.appendChild(thought);}out.appendChild(row);}if(!logs.length)out.textContent='尚未留下旅途紀錄；新的事件會自動保存。';return;}let list=[];if(tab==='discoveries')list=s.notes.length?s.notes:['目前尚無額外發現。直接往前走也能繼續冒險。'];if(tab==='party')list=s.flags.rescued?s.party.map(i=>roster[i].name+'｜'+roster[i].speech):['尚未與冒險者正式相遇。'];const ul=document.createElement('ul');ul.className='journal-list';for(const item of list){const li=document.createElement('li');li.textContent=item;ul.appendChild(li);}out.appendChild(ul);}
+function journal(tab='discoveries'){tickBeetleCare();closePlaceDrawer();$('journalVeil').classList.remove('hidden');journalTab=tab;$('journalTabs').replaceChildren();const tabs=[['journey','旅途'],['discoveries','發現'],['map','地點'],['party','相遇者'],['items','物品與材料'],['bestiary','怪物圖鑑'],['terrarium','生態箱']];for(const [key,label] of tabs){const b=document.createElement('button');b.className='journal-tab'+(tab===key?' selected':'');b.textContent=label;b.onclick=()=>journal(key);$('journalTabs').appendChild(b);}const out=$('journalContent');out.replaceChildren();if(tab==='map'){renderRouteMap(out);return;}if(tab==='items'){renderRecoveredItems(out);return;}if(tab==='bestiary'){renderCreatureBestiary(out);return;}if(tab==='terrarium'){renderRustTerrarium(out);return;}if(tab==='journey'){const logs=(Array.isArray(s.travelLog)?s.travelLog:[]).filter(e=>e&&typeof e.message==='string').slice().reverse();for(const e of logs){const row=document.createElement('div');row.className='journey-entry';const meta=document.createElement('div');meta.className='entry-meta';meta.textContent=(Number.isFinite(e.time)?new Date(e.time).toLocaleString('zh-TW'):'旅途')+' · '+(names[e.scene]?.[0]||'旅途');const main=document.createElement('div');main.className='entry-main';main.textContent=e.message;row.append(meta,main);if(e.thought){const thought=document.createElement('div');thought.className='entry-thought';thought.textContent='「'+e.thought+'」';row.appendChild(thought);}out.appendChild(row);}if(!logs.length)out.textContent='尚未留下旅途紀錄；新的事件會自動保存。';return;}let list=[];if(tab==='discoveries')list=s.notes.length?s.notes:['目前尚無額外發現。直接往前走也能繼續冒險。'];if(tab==='party')list=s.flags.rescued?s.party.map(i=>roster[i].name+'｜'+roster[i].speech):['尚未與冒險者正式相遇。'];const ul=document.createElement('ul');ul.className='journal-list';for(const item of list){const li=document.createElement('li');li.textContent=item;ul.appendChild(li);}out.appendChild(ul);}
 function setTravelHud(mode){if(!['compact','expanded'].includes(mode))return;s.travelHudMode=mode;save();renderFeed();}
 $('travelToggle').onclick=()=>setTravelHud(s.travelHudMode==='expanded'?'compact':'expanded');
 $('travelOpenJournal').onclick=()=>journal('journey');
@@ -3584,7 +3751,7 @@ for(const btn of document.querySelectorAll('[data-preview-period]'))btn.onclick=
 $('timePreviewTag').onclick=clearTimePreview;
 $('soundBtn').onclick=()=>{s.sound=!s.sound;$('soundBtn').textContent='音效：'+(s.sound?'開啟':'關閉');save();beep(520);};
 $('restartBtn').onclick=()=>{if(!confirm('確定重新開始？目前本機存檔將被覆蓋。'))return;s=initial();previewPeriod=null;hideSceneActors();hideSceneInspection();refreshSceneFraming();$('menuVeil').classList.add('hidden');render();toast('已開始新的旅程');};
-$('exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify(s,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='dungeon-adventure-save-v02.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};$('importBtn').onclick=()=>$('fileInput').click();$('fileInput').onchange=async e=>{try{const text=await e.target.files[0].text(),j=JSON.parse(text);if(!validSave(j))throw Error('格式不相容');s=j;previewPeriod=null;normalizeGameTime();normalizeRecovery();normalizeForestRare();normalizeForestEcology();normalizeRouteDiscovery();normalizeExploration();normalizePlaceCards();closePlaceDrawer();hideSceneActors();hideSceneInspection();refreshSceneFraming();if(!Array.isArray(s.travelLog))s.travelLog=[];if(typeof s.feedCollapsed!=='boolean')s.feedCollapsed=false;if(!['compact','expanded'].includes(s.travelHudMode))s.travelHudMode='compact';save();render();$('menuVeil').classList.add('hidden');toast('已匯入存檔');}catch{alert('無法讀取這份存檔。');}e.target.value='';};
+$('exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify(s,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='dungeon-adventure-save-v02.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};$('importBtn').onclick=()=>$('fileInput').click();$('fileInput').onchange=async e=>{try{const text=await e.target.files[0].text(),j=JSON.parse(text);if(!validSave(j))throw Error('格式不相容');s=j;previewPeriod=null;normalizeGameTime();normalizeRecovery();normalizeForestRare();normalizeBeetleCare();normalizeForestEcology();normalizeRouteDiscovery();normalizeExploration();normalizePlaceCards();closePlaceDrawer();hideSceneActors();hideSceneInspection();refreshSceneFraming();if(!Array.isArray(s.travelLog))s.travelLog=[];if(typeof s.feedCollapsed!=='boolean')s.feedCollapsed=false;if(!['compact','expanded'].includes(s.travelHudMode))s.travelHudMode='compact';save();render();$('menuVeil').classList.add('hidden');toast('已匯入存檔');}catch{alert('無法讀取這份存檔。');}e.target.value='';};
 $('startBtn').onclick=()=>{s=initial();previewPeriod=null;refreshSceneFraming();hasSave=true;$('startVeil').classList.add('hidden');render();toast('你扶著破損車板爬到外面，開始觀察事故現場。');};if(hasSave){$('continueBtn').classList.remove('hidden');$('continueBtn').onclick=()=>{$('startVeil').classList.add('hidden');render();if(s.flags.inBattle)battleDialog('繼續尚未結束的遭遇戰。');};}
 window.addEventListener('keydown',e=>{
 if(e.metaKey||e.ctrlKey||e.altKey||e.target.matches('input,textarea,select,[contenteditable="true"]'))return;
