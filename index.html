@@ -2956,6 +2956,123 @@ html.stage-locked #app #travelFeed.collapsed,
 html.stage-locked #app #travelFeed:not(.collapsed){
  top:163px!important;
 }
+
+/* V0.8.14 — right-side location information based on user's illustrated reference.
+   All modifications are scoped to the location tab; other HUD is unchanged. */
+html.stage-locked #app #placeDrawerPanel.is-location-tab{
+ background:linear-gradient(145deg,#104032,#082d2b 78%)!important;
+}
+html.stage-locked #app #placeDrawerPanel.is-location-tab .place-drawer-head{
+ flex:0 0 35px!important;display:flex!important;align-items:center!important;
+ padding:3px 8px!important;background:linear-gradient(90deg,#0a302a,#28513d,#0a302a)!important;
+ border-bottom:1px solid #b9a06b!important;
+}
+html.stage-locked #app #placeDrawerPanel.is-location-tab .place-drawer-head>div{
+ width:100%;display:flex;align-items:center;justify-content:center;gap:13px;
+}
+html.stage-locked #app #placeDrawerPanel.is-location-tab .place-drawer-head>div:before,
+html.stage-locked #app #placeDrawerPanel.is-location-tab .place-drawer-head>div:after{
+ content:'❧';font:24px/1 Georgia,serif;color:#a6b76d;
+}
+html.stage-locked #app #placeDrawerPanel.is-location-tab .place-drawer-head>div:after{
+ transform:scaleX(-1);
+}
+html.stage-locked #app #placeDrawerPanel.is-location-tab .place-drawer-head strong{
+ font-size:19px!important;color:#f6e9c9!important;letter-spacing:.04em;
+}
+html.stage-locked #app #placeDrawerPanel.is-location-tab #placeDrawerSummary{
+ display:none!important;
+}
+html.stage-locked #app #placeDrawerPanel.is-location-tab #placeDrawerList{
+ order:1;flex:1 1 0!important;padding:7px 11px 12px!important;
+ overflow-y:auto!important;min-height:0!important;
+}
+html.stage-locked #app #placeDrawerPanel.is-location-tab #placePrimaryActions{
+ order:2;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ gap:6px!important;flex:0 0 auto!important;
+ padding:6px 8px!important;border:0!important;
+ border-top:1px solid #b5996366!important;background:#0b3029!important;
+}
+html.stage-locked #app #placeDrawerPanel.is-location-tab #placePrimaryActions[hidden]{
+ display:none!important;
+}
+html.stage-locked #app #placeDrawerPanel.is-location-tab #placePrimaryActions .side-main-action{
+ min-height:40px!important;padding:5px 6px!important;font-size:12px!important;
+ line-height:1.17!important;gap:3px!important;
+}
+html.stage-locked #app #placeDrawerPanel.is-location-tab #placePrimaryActions .side-main-action svg{
+ width:15px!important;height:15px!important;flex:0 0 15px!important;
+}
+html.stage-locked #app #placeDrawerPanel.is-location-tab .side-current-summary.location-reference-card{
+ display:block!important;margin:0 0 4px!important;min-width:0!important;
+}
+html.stage-locked #app #placeDrawerPanel.is-location-tab .location-hero{
+ display:grid;grid-template-columns:91px minmax(0,1fr);
+ gap:9px;align-items:center;min-width:0;
+}
+html.stage-locked #app #placeDrawerPanel.is-location-tab .location-hero.no-image{
+ grid-template-columns:1fr;
+}
+html.stage-locked #app #placeDrawerPanel.is-location-tab .location-hero .side-scene-preview{
+ display:block!important;width:91px!important;height:83px!important;margin:0!important;
+ padding:3px!important;background:#123b2d!important;
+ border:1.5px solid #c6a468!important;border-radius:9px!important;overflow:hidden!important;
+}
+html.stage-locked #app #placeDrawerPanel.is-location-tab .location-hero .side-scene-preview img{
+ width:100%!important;height:100%!important;object-fit:cover!important;
+ border-radius:5px!important;image-rendering:auto!important;
+}
+html.stage-locked #app #placeDrawerPanel.is-location-tab .location-hero .side-scene-preview figcaption{
+ display:none!important;
+}
+html.stage-locked #app #placeDrawerPanel.is-location-tab .location-hero .side-current-place{
+ display:flex!important;flex-direction:column!important;justify-content:center!important;
+ gap:3px!important;margin:0!important;padding:0!important;min-width:0!important;
+ border:0!important;background:transparent!important;
+}
+html.stage-locked #app #placeDrawerPanel.is-location-tab .location-hero .side-current-place strong{
+ font-size:19px!important;color:#f3e2bb!important;line-height:1.22!important;
+ border-bottom:1px solid #b9996c66!important;padding-bottom:4px!important;
+}
+html.stage-locked #app #placeDrawerPanel.is-location-tab .location-meta{
+ font-size:13px!important;line-height:1.3!important;color:#e4d8b8!important;
+}
+html.stage-locked #app #placeDrawerPanel.is-location-tab .location-meta b{
+ color:#ebc47e;margin-right:5px;
+}
+html.stage-locked #app #placeDrawerPanel.is-location-tab .location-summary-description{
+ margin:8px 0!important;padding:0 2px!important;font-size:14px!important;
+ line-height:1.42!important;color:#eee3ce!important;overflow-wrap:anywhere;
+}
+html.stage-locked #app #placeDrawerPanel.is-location-tab .location-resource-heading{
+ display:flex;align-items:center;gap:6px;margin:6px 0 7px;
+ color:#e9d6a5;font:600 14px/1.3 Georgia,"Noto Serif TC",serif;
+ white-space:nowrap;text-align:center;
+}
+html.stage-locked #app #placeDrawerPanel.is-location-tab .location-resource-heading:before,
+html.stage-locked #app #placeDrawerPanel.is-location-tab .location-resource-heading:after{
+ content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,#b9a36d);
+}
+html.stage-locked #app #placeDrawerPanel.is-location-tab .location-resource-heading:after{
+ transform:rotate(180deg);
+}
+html.stage-locked #app #placeDrawerPanel.is-location-tab .location-resource-grid{
+ display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;
+}
+html.stage-locked #app #placeDrawerPanel.is-location-tab .location-resource-tile{
+ display:flex;align-items:center;justify-content:center;height:47px;min-width:0;
+ border:1.4px solid #b59b68;border-radius:8px;
+ background:linear-gradient(150deg,#16463a,#082c27);
+ box-shadow:inset 0 0 0 1px #dbb97f33;
+}
+html.stage-locked #app #placeDrawerPanel.is-location-tab .location-resource-icon{
+ font-size:28px;line-height:1;filter:drop-shadow(0 2px 1px #041a18);
+}
+html.stage-locked #app #placeDrawerPanel.is-location-tab .location-resource-note{
+ color:#c0bead!important;font-size:10px!important;line-height:1.25!important;
+ margin:4px 0 8px!important;text-align:center;
+}
+
 </style>
 </head>
 <body>
@@ -3933,6 +4050,23 @@ function currentLocationImage(){
   return window.TRAIL_FOREST_DATA_URL;
  return null;
 }
+// Visual location descriptions; never change the game's actual exploration rewards.
+const LOCATION_CARD_META=Object.freeze({
+ wreck:{area:'森林邊緣',kind:'事件地點',description:'一輛破損的馬車倒在林間，車篷撕裂、木材腐朽；附近仍可能找到一些可用的物品。'},
+ trail:{area:'森林內部',kind:'林間道路',description:'陽光穿過林冠灑落在舊路上，樹根與落葉之間留著動物活動的痕跡。'},
+ clearing:{area:'森林內部',kind:'自然地點',description:'樹冠在這裡稍微開展，草葉與泥地留下不同生物活動過的線索。'},
+ ruin:{area:'森林遺構',kind:'調查地點',description:'古老石門藏在苔蘚與樹影間，風化的石面仍留下尚未解讀的痕跡。'},
+ gate:{area:'城鎮邊界',kind:'城鎮入口',description:'守門人和旅人往返於城鎮與郊外，道路的消息仍有待逐步確認。'},
+ inn:{area:'城鎮內部',kind:'休息地點',description:'客房能讓旅人整理行囊與休息，並不是可以任意收取物品的場所。'},
+ lobby:{area:'城鎮內部',kind:'公共空間',description:'旅客在這裡休息交談，日常話語中偶爾藏著道路與城鎮的消息。'},
+ street:{area:'城鎮內部',kind:'街道',description:'商販和居民各自忙著生活，貨物與人群沿街道穿梭。'},
+ guild:{area:'城鎮內部',kind:'公共設施',description:'冒險者公會整理委託消息，公告板上有尚待確認的情報。'},
+ outskirts:{area:'城鎮近郊',kind:'道路地點',description:'道路漸漸遠離城牆，草叢與石塊之間能觀察到近郊環境的變化。'},
+ home:{area:'城鎮內部',kind:'受邀空間',description:'冒險小隊共用的起居室，保留著成員共同生活的日常痕跡。'}
+});
+const LOCATION_CUE_ICONS=Object.freeze([
+ ['🍃','草葉與植物'],['🍄','菌菇'],['🪵','木材'],['🪨','石塊'],['💎','礦晶']
+]);
 function renderSideTab(tab,out){
  if(tab==='character'){
   sideInfoHeading(out,'角色狀態');
@@ -4018,6 +4152,7 @@ function renderPlaceDrawer(){
  $('placeDrawerSummary').textContent=activeSideTab==='locations'?String(cards.length)+' 處':'';
  $('placeDrawerSummary').setAttribute('aria-label',activeSideTab==='locations'?'已記錄 '+cards.length+' 處地點':'');
  $('placeDrawerPanel').setAttribute('aria-label',namesByTab[activeSideTab]);
+ $('placeDrawerPanel').classList.toggle('is-location-tab',activeSideTab==='locations');
  for(const button of $('sideInfoTabs').querySelectorAll('[data-info-tab]')){
   const selected=button.dataset.infoTab===activeSideTab;
   button.classList.toggle('selected',selected);
@@ -4039,28 +4174,51 @@ function renderPlaceDrawer(){
   button.onclick=()=>guardedAction(item.fn);
   actionHost.appendChild(button);
  }
- const summary=document.createElement('div');summary.className='side-current-summary';
- const intro=document.createElement('div');intro.className='side-current-place';
- const title=document.createElement('strong');title.textContent=names[s.scene][0];
- const desc=document.createElement('span');desc.textContent=names[s.scene][1];
- intro.append(title,desc);summary.appendChild(intro);
- const previewSrc=currentLocationImage();
+ const locationMeta=LOCATION_CARD_META[s.scene]||{area:'未知區域',kind:'探索地點',description:names[s.scene][1]};
+ const summary=document.createElement('section');summary.className='side-current-summary location-reference-card';
+ const hero=document.createElement('div');hero.className='location-hero';
+ const previewSrc=s.scene==='wreck'&&typeof window.TRAIL_FOREST_DATA_URL==='string'
+  ?window.TRAIL_FOREST_DATA_URL:currentLocationImage();
  if(previewSrc){
   summary.classList.add('has-image');
   const preview=retainedPreview?.dataset.scene===s.scene?retainedPreview:document.createElement('figure');
-  if(!preview.classList.contains('side-scene-preview')){
-   preview.className='side-scene-preview';preview.dataset.scene=s.scene;
-   const picture=document.createElement('img');
-   picture.loading='lazy';picture.decoding='async';
-   picture.alt=names[s.scene][0]+'的場景預覽';
-   picture.src=previewSrc;
-   const caption=document.createElement('figcaption');
-   caption.textContent='場景預覽';
+  if(!preview.classList.contains('side-scene-preview')||!preview.querySelector('img')){
+   preview.replaceChildren();preview.className='side-scene-preview';preview.dataset.scene=s.scene;
+   const picture=document.createElement('img');picture.loading='lazy';picture.decoding='async';
+   picture.alt=names[s.scene][0]+'附近的場景預覽';picture.src=previewSrc;
+   const caption=document.createElement('figcaption');caption.textContent='場景預覽';
    preview.append(picture,caption);
   }
-  summary.appendChild(preview);
+  hero.appendChild(preview);
+ }else hero.classList.add('no-image');
+ const intro=document.createElement('div');intro.className='side-current-place';
+ const title=document.createElement('strong');title.textContent=names[s.scene][0];intro.appendChild(title);
+ for(const [icon,label,value] of [['◈','區域',locationMeta.area],['♟','類型',locationMeta.kind]]){
+  const row=document.createElement('span');row.className='location-meta';
+  const symbol=document.createElement('b');symbol.textContent=icon;
+  row.append(symbol,document.createTextNode(label+'：'+value));intro.appendChild(row);
  }
+ hero.appendChild(intro);summary.appendChild(hero);
+ const description=document.createElement('p');description.className='location-summary-description';
+ description.textContent=locationMeta.description;summary.appendChild(description);
  out.appendChild(summary);
+ const resourceSection=document.createElement('section');resourceSection.className='location-resource-section';
+ resourceSection.setAttribute('aria-label','環境與探索線索');
+ const resourceTitle=document.createElement('div');resourceTitle.className='location-resource-heading';
+ resourceTitle.textContent='可採集 · 可調查';resourceSection.appendChild(resourceTitle);
+ const resourceGrid=document.createElement('div');resourceGrid.className='location-resource-grid';
+ for(const [icon,label] of LOCATION_CUE_ICONS){
+  const tile=document.createElement('div');tile.className='location-resource-tile';
+  tile.title=label+'（環境圖示，實際取得依探索結果）';
+  tile.setAttribute('role','img');tile.setAttribute('aria-label',tile.title);
+  const symbol=document.createElement('span');symbol.className='location-resource-icon';
+  symbol.textContent=icon;symbol.setAttribute('aria-hidden','true');
+  tile.appendChild(symbol);resourceGrid.appendChild(tile);
+ }
+ resourceSection.appendChild(resourceGrid);
+ const resourceNote=document.createElement('p');resourceNote.className='location-resource-note';
+ resourceNote.textContent='圖示為環境線索，實際採集以探索結果為準。';
+ resourceSection.appendChild(resourceNote);out.appendChild(resourceSection);
  const shortcuts=document.createElement('div');shortcuts.className='side-location-shortcuts';
  for(const [label,handler] of [
   ['區域地圖',()=>journal('map')],
