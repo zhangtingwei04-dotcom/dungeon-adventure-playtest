@@ -2947,6 +2947,15 @@ html.stage-locked #app #placeDrawer{
  top:173px!important;
  height:372.5px!important;
 }
+
+/* V0.8.13 — align the travel record's top border with the central scene frame.
+   Only its y coordinate changes: 193px to 163px. Width, height, contents,
+   collapsed state, and independent scrolling remain unchanged. */
+html.stage-locked #app #travelFeed,
+html.stage-locked #app #travelFeed.collapsed,
+html.stage-locked #app #travelFeed:not(.collapsed){
+ top:163px!important;
+}
 </style>
 </head>
 <body>
