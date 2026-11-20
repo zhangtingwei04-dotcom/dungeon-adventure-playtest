@@ -3509,6 +3509,14 @@ html.stage-locked #app #placeDrawerPanel .equip-bag-button{
 html.stage-locked #app #placeDrawerPanel .equip-bag-button:focus-visible{
  outline:2px solid #f1d18a;outline-offset:1px;
 }
+
+/* Equipment V3: real transparent PNG art, fitted to the existing inline slot.
+   Kept separate from background, labels and equipment interactions. */
+html.stage-locked #app .equip-guide .equip-figure-image{
+ display:block;width:auto;max-width:96%;height:100%;max-height:205px;
+ object-fit:contain;image-rendering:auto;pointer-events:none;user-select:none;
+ filter:drop-shadow(0 0 2px rgba(226,196,129,.23));
+}
 </style>
 </head>
 <body>
@@ -4626,55 +4634,12 @@ function normalizeEquipmentV1(){
   }
  }
 }
+// Rendered artwork, not a procedural SVG. Transparent 89x216 PNG sourced from
+// the approved gold-line silhouette concept; bundled to work in one-file Pages deployment.
+const EQUIPMENT_FIGURE_PNG_V3='data:image/png;base64,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';
 function equipmentGuideHTML(){
- // V2.2: grounded, readable human silhouette in the original inline equipment
- // slot grid. Proportions are more natural; guides never cross the figure.
- return `<svg class="equip-figure-silhouette" viewBox="0 0 110 207"
- xmlns="http://www.w3.org/2000/svg" role="img" aria-label="站姿自然的人形裝備定位剪影">
- <circle class="equip-ambient-rune" cx="55" cy="105" r="42"/>
- <circle class="equip-ambient-rune" cx="55" cy="105" r="34" stroke-dasharray="2 7"/>
- <g class="equip-gold-links">
-  <path d="M1 18 H29 L42 27 M109 18 H81 L68 27"/>
-  <path d="M1 60 H29 L34 63 M109 60 H81 L76 63"/>
-  <path d="M1 102 H17 L20 105 M109 102 H93 L90 105"/>
-  <path d="M1 145 H31 L39 146 M109 145 H79 L71 146"/>
-  <path d="M1 187 H29 L37 187 M109 187 H81 L73 187"/>
- </g>
- <g class="equip-gold-dots">
-  <circle cx="2" cy="18" r="1.7"/><circle cx="108" cy="18" r="1.7"/>
-  <circle cx="2" cy="60" r="1.7"/><circle cx="108" cy="60" r="1.7"/>
-  <circle cx="2" cy="102" r="1.7"/><circle cx="108" cy="102" r="1.7"/>
-  <circle cx="2" cy="145" r="1.7"/><circle cx="108" cy="145" r="1.7"/>
-  <circle cx="2" cy="187" r="1.7"/><circle cx="108" cy="187" r="1.7"/>
- </g>
- <g class="equip-gold-body">
-  <!-- Arms slightly apart from the body; hands end naturally at upper thigh. -->
-  <path d="M39 51 C34 51 31 57 30 67 L26 88 L21 108
-   Q18 120 21 126 Q24 133 28 130 Q31 128 33 120
-   L37 98 L42 69 Q44 55 39 51Z"/>
-  <path d="M71 51 C76 51 79 57 80 67 L84 88 L89 108
-   Q92 120 89 126 Q86 133 82 130 Q79 128 77 120
-   L73 98 L68 69 Q66 55 71 51Z"/>
-  <!-- Balanced legs and boots; no crossed or stick-like lines. -->
-  <path d="M43 118 C41 128 40 142 39 156 L38 180
-   Q37 187 36 192 Q35 198 41 199 L47 199
-   Q52 199 52 194 L53 166 L55 144 L55 120Z"/>
-  <path d="M67 118 C69 128 70 142 71 156 L72 180
-   Q73 187 74 192 Q75 198 69 199 L63 199
-   Q58 199 58 194 L57 166 L55 144 L55 120Z"/>
-  <!-- Single calm shoulder/torso/hip mass; gently tapered waist. -->
-  <path d="M49 48 Q43 47 39 50 C34 54 34 63 36 74
-   Q38 84 40 94 Q41 104 42 118 Q55 126 68 118
-   Q69 104 70 94 Q72 84 74 74 C76 63 76 54 71 50
-   Q67 47 61 48 Q55 53 49 48Z"/>
-  <path d="M51 40 L51 48 Q55 52 59 48 L59 40Z"/>
-  <!-- Face-free, rounded head; recognizable at small mobile sizes. -->
-  <path d="M55 13 C62 13 66 19 66 27 C66 35 62 42 55 43
-   C48 42 44 35 44 27 C44 19 48 13 55 13Z"/>
- </g>
- <path class="equip-body-detail" d="M44 82 Q44 98 45 108
- M66 82 Q66 98 65 108 M40 161 Q40 167 40 172 M70 161 Q70 167 70 172"/>
- </svg>`;
+ return `<img class="equip-figure-image" src="${EQUIPMENT_FIGURE_PNG_V3}"
+  alt="金色自然站姿人形剪影" draggable="false" width="89" height="216">`;
 }
 function showEquipmentDetail(id){
  const part=EQUIPMENT_PARTS.find(x=>x.id===id)||EQUIPMENT_PARTS[0];
