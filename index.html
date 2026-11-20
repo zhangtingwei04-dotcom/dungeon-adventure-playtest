@@ -2836,6 +2836,9 @@ html.stage-locked #app #sceneFuturePanel .scene-companion-entry>span:last-child{
 }
 
 
+/* V0.8.5 — extend ONLY the permanent right-side panel to the inner right rail.
+   x=1155, width=355, right edge=1510 (26 stage px reserved for outside ornament).
+   The four tabs and content inherit exactly that same width. */
 /* V0.8.4 — align the existing right-hand tabs and panel on the SAME edges;
    the slim three-part panel keeps precisely the central scene's width.
    Do not move the outer gold frame, left log, art or story elements. */
@@ -2843,7 +2846,7 @@ html.stage-locked #app{
  --central-column-left:458px;
  --central-column-width:680px;
  --right-column-left:1155px;
- --right-column-width:310px;
+ --right-column-width:355px;
 }
 html.stage-locked #app #sceneStage,
 html.stage-locked #app #sceneFuturePanel{
