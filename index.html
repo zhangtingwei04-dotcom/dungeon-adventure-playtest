@@ -2542,6 +2542,20 @@ function normalizeForestRare(){
  if(r.hints.beetle===undefined&&r.hints.goblin)r.hints.beetle=true;
  r.beetleGearTaken=!!(r.beetleGearTaken||r.goblinGearTaken);
  r.rabbitHerbTaken=!!r.rabbitHerbTaken;
+ if(!r.rustBeetleMigrated){
+  // Keep historical entries, but retire the former creature name.
+  const rename=x=>typeof x==='string'?x.replaceAll('拾鐵小妖','鏽殼甲蟲'):x;
+  if(Array.isArray(s.notes))s.notes=s.notes.map(rename);
+  if(Array.isArray(s.travelLog))for(const event of s.travelLog){
+   if(event&&typeof event==='object'){
+    event.message=rename(event.message);
+    event.thought=rename(event.thought);
+   }
+  }
+  if(Array.isArray(s.seen)&&s.seen.includes('rareGoblin')&&!s.seen.includes('rareBeetle'))
+   s.seen.push('rareBeetle');
+  r.rustBeetleMigrated=true;
+ }
 }
 function normalizeBeetleCare(){
  if(!s.beetle||typeof s.beetle!=='object'||Array.isArray(s.beetle))s.beetle={};
