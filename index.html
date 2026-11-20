@@ -3474,8 +3474,12 @@ html.stage-locked #app .equip-figure-silhouette{
  filter:drop-shadow(0 0 3px #d7b66c44);pointer-events:none;
 }
 html.stage-locked #app .equip-guide .equip-gold-body{
- fill:#b2a57716;stroke:#cbb36d;stroke-width:1.75;
- stroke-linejoin:round;stroke-linecap:round;opacity:.80;
+ fill:#64846d;fill-opacity:.19;stroke:#d2b679;stroke-width:1.65;
+ stroke-linejoin:round;stroke-linecap:round;stroke-opacity:.82;
+}
+html.stage-locked #app .equip-guide .equip-body-detail{
+ fill:none;stroke:#c8b47b;stroke-width:.7;stroke-opacity:.26;
+ stroke-linejoin:round;stroke-linecap:round;
 }
 html.stage-locked #app .equip-guide .equip-gold-links{
  fill:none;stroke:#c4a768;stroke-width:1.05;opacity:.60;
@@ -4623,19 +4627,19 @@ function normalizeEquipmentV1(){
  }
 }
 function equipmentGuideHTML(){
- // Human silhouette: warm gold lines over a muted green backing, no face or outfit.
- // Five connector heights match the five equipment rows on each side.
+ // V2.1: anatomically calmer, softly filled silhouette. Same dimensions, slots
+ // and connector positions as the approved right-side panel. No character art.
  return `<svg class="equip-figure-silhouette" viewBox="0 0 110 207"
- xmlns="http://www.w3.org/2000/svg" role="img" aria-label="人形裝備定位剪影">
+ xmlns="http://www.w3.org/2000/svg" role="img" aria-label="自然站姿的人形裝備定位剪影">
  <circle class="equip-ambient-rune" cx="55" cy="104" r="42"/>
  <circle class="equip-ambient-rune" cx="55" cy="104" r="33" stroke-dasharray="2 6"/>
  <path class="equip-ambient-rune" d="M55 48 V156 M22 104 H88"/>
  <g class="equip-gold-links">
   <path d="M0 18 H32 L47 29 M110 18 H79 L63 29"/>
-  <path d="M0 60 H25 L39 66 M110 60 H86 L71 67"/>
-  <path d="M0 102 H20 L34 104 M110 102 H91 L76 104"/>
-  <path d="M0 145 H25 L43 143 M110 145 H87 L67 143"/>
-  <path d="M0 187 H30 L43 180 M110 187 H80 L67 180"/>
+  <path d="M0 60 H25 L39 64 M110 60 H85 L71 64"/>
+  <path d="M0 102 H20 L33 103 M110 102 H90 L77 103"/>
+  <path d="M0 145 H25 L43 145 M110 145 H85 L67 145"/>
+  <path d="M0 187 H30 L43 185 M110 187 H80 L67 185"/>
  </g>
  <g class="equip-gold-dots">
   <circle cx="2" cy="18" r="2"/><circle cx="108" cy="18" r="2"/>
@@ -4644,21 +4648,33 @@ function equipmentGuideHTML(){
   <circle cx="2" cy="145" r="2"/><circle cx="108" cy="145" r="2"/>
   <circle cx="2" cy="187" r="2"/><circle cx="108" cy="187" r="2"/>
  </g>
- <ellipse class="equip-gold-body" cx="55" cy="25" rx="11" ry="14"/>
- <path class="equip-gold-body" d="
- M46 40 L46 47
- Q38 48 34 53 L29 64 L23 89 L18 112
- Q17 119 20 122 Q24 125 27 119
- L33 98 L40 75 L42 100 L43 119
- Q44 125 42 132 L39 151 L36 179 L33 188
- Q31 195 37 196 L44 196 Q47 195 47 190
- L49 161 L53 139 L57 139 L61 161 L63 190
- Q64 196 69 196 L76 196 Q81 193 77 187
- L74 179 L71 151 L68 132
- Q66 124 67 119 L68 99 L70 75
- L77 99 L83 119 Q86 125 90 122 Q93 119 91 113
- L87 91 L82 65 L76 53 Q72 48 64 47 L64 40
- Q56 44 46 40 Z"/>
+ <g class="equip-gold-body">
+  <!-- Head with natural jaw and a short neck, no eyes or facial detail. -->
+  <path d="M55 11 C62 11 66 17 65 26 C64 34 60 39 55 40
+   C50 39 46 34 45 26 C44 17 48 11 55 11Z"/>
+  <path d="M50 38 L50 45 Q55 49 60 45 L60 38"/>
+  <!-- Gentle shoulder slope, curved waist and a slightly wider hip. -->
+  <path d="M48 46 Q42 46 39 49 C35 53 34 61 35 70
+   L39 83 C40 96 42 110 43 125 Q54 132 67 125
+   C68 111 70 96 71 83 L75 70 C76 61 75 53 71 49
+   Q67 46 62 46 Q55 51 48 46Z"/>
+  <!-- Relaxed arms, subtle elbow bend and hands beside the hips. -->
+  <path d="M39 50 Q35 52 33 59 C31 67 30 76 29 82
+   L25 101 Q22 111 23 117 Q25 121 28 119
+   Q31 117 32 109 L35 91 Q38 78 41 69Z"/>
+  <path d="M71 50 Q75 52 77 59 C79 67 80 76 81 82
+   L85 101 Q88 111 87 117 Q85 121 82 119
+   Q79 117 78 109 L75 91 Q72 78 69 69Z"/>
+  <!-- Legs: a small natural gap, rounded knees and grounded feet. -->
+  <path d="M44 126 Q42 133 41 145 L39 169
+   Q38 180 36 188 Q34 195 40 197 L47 197
+   Q51 197 51 192 L52 174 L54 150 Q55 136 53 128Z"/>
+  <path d="M66 126 Q68 133 69 145 L71 169
+   Q72 180 74 188 Q76 195 70 197 L63 197
+   Q59 197 59 192 L58 174 L56 150 Q55 136 57 128Z"/>
+ </g>
+ <path class="equip-body-detail" d="M44 86 Q43 104 45 117 M66 86 Q67 104 65 117
+ M41 145 Q39 156 40 163 M69 145 Q71 156 70 163"/>
  </svg>`;
 }
 function showEquipmentDetail(id){
