@@ -3409,109 +3409,109 @@ html.stage-locked #app .bag-item-name{font-size:13px;line-height:1.4;color:#f1e6
 html.stage-locked #app .bag-item-quantity{color:#f5d890;font-weight:750;font-size:13px;white-space:nowrap;font-variant-numeric:tabular-nums;}
 
 
-/* Compact equipment panel: no character portrait, only a small schematic guide.
-   On mobile it is rendered at viewport scale (outside the scaled stage). */
-#equipmentVeil{z-index:18;backdrop-filter:blur(4px);background:rgba(7,16,16,.78);padding:8px}
-#equipmentVeil .equip-dialog{
- display:flex;flex-direction:column;gap:5px;
- width:min(730px,94vw);height:min(357px,calc(100dvh - 20px));
- max-height:calc(100dvh - 16px);overflow:hidden;
- border:1px solid #b9a06b;border-radius:12px;
- background:radial-gradient(ellipse at 50% 45%,#243e38 0%,#142c2a 48%,#0d1b20 100%);
- box-shadow:0 14px 46px rgba(0,0,0,.80);padding:9px 12px;
+
+/* V0.8 equipment: fully inline inside the right-hand equipment tab.
+   No overlay, modal, full-screen panel or replacement for the approved stage. */
+html.stage-locked #app .equip-inline{
+ width:100%;min-width:0;box-sizing:border-box;
 }
-.equip-header{display:flex;align-items:center;justify-content:space-between;gap:10px;flex:none;min-height:29px}
-.equip-heading{display:flex;align-items:baseline;gap:10px;min-width:0}
-.equip-heading h2{font:600 19px/1.2 Georgia,"Noto Serif TC",serif;color:#f4dfb1;margin:0}
-.equip-heading span{font:10px/1.2 Georgia,serif;letter-spacing:.17em;color:#b49f77}
-#equipmentVeil .equip-close{
- flex:none;min-width:37px;min-height:32px;border:1px solid #c6a874;border-radius:8px;
- background:rgba(66,64,48,.56);color:#fff1d5;font-size:20px;line-height:1;
+html.stage-locked #app .equip-inline-board{
+ width:100%;min-width:0;display:grid;
+ grid-template-columns:minmax(0,1fr) 51px minmax(0,1fr);
+ align-items:stretch;gap:4px;
 }
-.equip-board{
- display:grid;grid-template-columns:minmax(144px,1fr) minmax(125px,.75fr) minmax(144px,1fr);
- align-items:stretch;gap:8px;min-height:0;flex:1;overflow:auto;
+html.stage-locked #app .equip-side{
+ min-width:0;display:flex;flex-direction:column;gap:4px;
 }
-.equip-side{display:flex;flex-direction:column;justify-content:space-around;gap:5px;padding:1px 0;min-height:0}
-.equip-slot{
- width:100%;min-height:39px;max-height:46px;display:grid;grid-template-columns:25px minmax(0,1fr);
- align-items:center;gap:7px;text-align:left;padding:5px 7px;border-radius:7px;
- color:#e9dac0;background:linear-gradient(110deg,rgba(35,58,54,.88),rgba(14,35,35,.88));
- border:1px solid rgba(176,152,100,.53);cursor:pointer;touch-action:manipulation;
+html.stage-locked #app #placeDrawerPanel .equip-slot{
+ min-width:0;width:100%;
+ min-height:40px!important;height:40px!important;max-height:40px!important;
+ padding:3px 5px!important;box-sizing:border-box;
+ display:flex!important;align-items:center;gap:5px;
+ text-align:left;border:1px solid rgba(176,152,100,.57)!important;
+ border-radius:6px!important;
+ color:#e9dac0!important;
+ background:linear-gradient(110deg,rgba(35,58,54,.9),rgba(14,35,35,.9))!important;
+ cursor:pointer;touch-action:manipulation;
 }
-.equip-slot.is-selected{border-color:#f2d28c;box-shadow:inset 0 0 0 1px #f0d18a80,0 0 9px #d9bb7850;background:linear-gradient(110deg,#4c6048,#173931)}
-.equip-slot:focus-visible,#equipmentVeil .equip-close:focus-visible,.equip-footer-action:focus-visible{outline:2px solid #f1d18a;outline-offset:2px}
-.equip-slot-symbol{
- width:24px;height:25px;display:grid;place-items:center;
- border:1px solid #8b855e;border-radius:5px;background:#112927;
- font-size:14px;color:#aaac93;line-height:1;
+html.stage-locked #app #placeDrawerPanel .equip-slot.is-selected{
+ border-color:#f2d28c!important;
+ box-shadow:inset 0 0 0 1px #f0d18a80!important;
+ background:linear-gradient(110deg,#4c6048,#173931)!important;
 }
-.equip-slot.is-filled .equip-slot-symbol{color:#ffdda0;background:#453b29;border-color:#d6b572}
-.equip-slot-words{min-width:0}
-.equip-slot-name{display:block;font-size:12px;line-height:1.25;font-weight:650;color:#f1dfbb}
-.equip-slot-status{display:block;font-size:10px;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#b9bfb1;margin-top:2px}
-.equip-slot.is-filled .equip-slot-status{color:#e4c67f}
-/* The central frame never contains a person or full-size image. */
-.equip-guide{
- position:relative;display:flex;align-items:center;justify-content:center;
- min-width:0;min-height:0;overflow:hidden;
- border:1px solid #a89e6850;border-radius:9px;
- background:linear-gradient(180deg,rgba(49,72,59,.25),rgba(11,33,32,.46));
+html.stage-locked #app #placeDrawerPanel .equip-slot.is-filled .equip-slot-symbol{
+ color:#ffdda0;background:#453b29;border-color:#d6b572;
 }
-.equip-guide:before,.equip-guide:after{
- content:"";position:absolute;pointer-events:none;inset:10px;border:1px solid #aa97643b;border-radius:6px;
+html.stage-locked #app .equip-slot:focus-visible{
+ outline:2px solid #f1d18a;outline-offset:1px;
 }
-.equip-guide:after{inset:18px;border-color:#aa976425}
-.equip-guide-core{
- position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
- width:68%;height:69%;max-height:204px;max-width:145px;min-width:85px;gap:7px;
+html.stage-locked #app .equip-slot-symbol{
+ display:grid;place-items:center;flex:none;
+ width:20px;height:23px;border-radius:4px;border:1px solid #8b855e;
+ background:#112927;font-size:12px;line-height:1;color:#c4bd97;
 }
-.equip-guide-title{color:#d4be88;font:600 11px/1.25 "Noto Serif TC",serif;letter-spacing:.1em;white-space:nowrap}
-.equip-guide-line{width:65%;height:1px;background:linear-gradient(90deg,transparent,#a69c6a90,transparent)}
-.equip-guide-part{width:100%;display:flex;align-items:center;justify-content:center;gap:5px;min-height:24px;flex:1}
-.equip-guide-mark{
- display:grid;place-items:center;width:27px;height:24px;border:1px solid #af9c6966;
- border-radius:5px;color:#e1c88d;background:#2b493e4f;font:600 12px/1 Georgia,serif;
+html.stage-locked #app .equip-slot-words{flex:1;min-width:0}
+html.stage-locked #app .equip-slot-name{
+ display:block;font-size:13px;line-height:1.3;font-weight:700;
+ color:#f1dfbb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
-.equip-guide-label{color:#abb6a4;min-width:22px;font:10px/1.2 "Noto Sans TC",sans-serif}
-.equip-footer{flex:none;min-height:51px;display:flex;align-items:center;justify-content:space-between;gap:10px;border-top:1px solid #b5a07170;padding-top:5px}
-.equip-detail{min-width:0;flex:1}
-.equip-detail-title{display:block;color:#f6dfa6;font:700 12px/1.3 "Noto Serif TC",serif}
-.equip-detail-note{display:block;color:#c8cab8;font-size:10px;line-height:1.35;margin-top:2px}
-.equip-footer-action{
- border:1px solid #c3a366;border-radius:8px;min-height:37px;padding:5px 11px;flex:none;
- background:linear-gradient(130deg,#48684b,#24483e);color:#fff0cd;font-size:12px;font-weight:700;
+html.stage-locked #app .equip-slot-status{
+ display:block;font-size:9px;line-height:1.25;
+ color:#b9bfb1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
-html.stage-locked #app .equip-compact{margin-top:7px;padding:11px;border:1px solid #b6a17188;border-radius:8px;background:#152e2a}
-html.stage-locked #app .equip-compact p{font-size:12px;line-height:1.6;color:#d7d3bd;margin:8px 0}
-html.stage-locked #app .equip-compact strong{color:#e9d29c;font-size:13px}
-@media(max-height:480px) and (orientation:landscape){
- #equipmentVeil .equip-dialog{
-  width:min(730px,94vw);height:min(357px,calc(100dvh - 18px));
-  max-height:calc(100dvh - 14px);padding:7px 11px;gap:3px
- }
- .equip-header{min-height:29px}
- .equip-heading h2{font-size:18px}
- #equipmentVeil .equip-close{min-height:30px}
- .equip-board{gap:6px}
- .equip-slot{min-height:38px;max-height:43px;padding:4px 6px}
- .equip-slot-name{font-size:11px}
- .equip-slot-status{font-size:9px;margin-top:1px}
- .equip-guide-core{height:70%;gap:4px}
- .equip-guide-part{min-height:22px}
- .equip-footer{min-height:44px;padding-top:4px}
- .equip-footer-action{min-height:34px}
+html.stage-locked #app .equip-slot.is-filled .equip-slot-status{color:#e4c67f}
+html.stage-locked #app .equip-guide{
+ position:relative;min-width:0;
+ border:1px solid #a89e6855;border-radius:6px;
+ background:linear-gradient(180deg,rgba(49,72,59,.35),rgba(11,33,32,.55));
+ display:flex;align-items:center;justify-content:center;
+ overflow:hidden;
 }
-@media(max-width:580px){
- #equipmentVeil .equip-dialog{padding:6px}
- .equip-board{grid-template-columns:minmax(79px,1fr) minmax(75px,.7fr) minmax(79px,1fr);gap:4px}
- .equip-slot{padding:3px;grid-template-columns:20px minmax(0,1fr);gap:3px}
- .equip-slot-symbol{width:20px;height:23px;font-size:11px}
- .equip-slot-name{font-size:10px}
- .equip-slot-status{font-size:9px}
- .equip-heading span{display:none}
- .equip-guide-core{width:76%;gap:3px}
- .equip-guide-mark{width:22px}
+html.stage-locked #app .equip-guide-core{
+ position:relative;width:100%;height:100%;
+ display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
+ padding:4px 2px;box-sizing:border-box;
+}
+html.stage-locked #app .equip-guide-title{
+ white-space:nowrap;font-size:10px;line-height:1.1;color:#ceb781;font-weight:600;
+}
+html.stage-locked #app .equip-guide-line{
+ width:65%;height:1px;background:#a69c6a65;flex:none;
+}
+html.stage-locked #app .equip-guide-part{
+ display:flex;align-items:center;justify-content:center;gap:2px;
+ width:100%;min-height:22px;flex:1;
+}
+html.stage-locked #app .equip-guide-mark{
+ display:grid;place-items:center;width:16px;height:19px;flex:none;
+ border:1px solid #af9c6966;border-radius:4px;
+ color:#e1c88d;background:#2b493e4f;font:600 10px/1 Georgia,serif;
+}
+html.stage-locked #app .equip-guide-label{
+ font-size:10px;color:#adb5a0;line-height:1;
+}
+html.stage-locked #app .equip-inline-footer{
+ display:flex;align-items:center;gap:6px;
+ margin-top:7px;padding:6px 0 0;border-top:1px solid #b5a07170;
+}
+html.stage-locked #app .equip-detail{
+ min-width:0;flex:1;display:block;
+}
+html.stage-locked #app .equip-detail-title{
+ display:block;color:#f6dfa6;font-size:13px;font-weight:700;line-height:1.3;
+}
+html.stage-locked #app .equip-detail-note{
+ display:block;color:#c8cab8;font-size:10px;line-height:1.35;margin-top:3px;
+}
+html.stage-locked #app #placeDrawerPanel .equip-bag-button{
+ flex:none;align-self:center;min-height:39px!important;
+ padding:5px 8px!important;
+ border:1px solid #c3a366!important;border-radius:7px!important;
+ background:#2c5747!important;color:#fff0cd!important;
+ font-size:12px!important;font-weight:700;white-space:nowrap;
+}
+html.stage-locked #app #placeDrawerPanel .equip-bag-button:focus-visible{
+ outline:2px solid #f1d18a;outline-offset:1px;
 }
 </style>
 </head>
@@ -3753,15 +3753,6 @@ html.stage-locked #app .equip-compact strong{color:#e9d29c;font-size:13px}
 <div class="bottom"><div><div class="actions" id="actions"></div></div><div class="sidebar"><div class="chips"><span class="chip" id="chapterChip">第一章</span><span class="chip" id="partyChip">獨自一人</span><span class="chip level" id="hpChip">體力 16/16</span></div><button id="mapBtn">◇ 探索紀錄</button></div></div>
 <div class="veil hidden" id="dialogVeil"><section class="panel" role="dialog" aria-modal="true" aria-labelledby="dialogTitle"><div class="panel-head"><div><div class="kicker" id="dialogKicker">發現</div><h2 id="dialogTitle"></h2></div><div id="dialogCharacter" aria-label="目前發言人物"><canvas id="dialogCharacterCanvas" width="48" height="64" aria-hidden="true"></canvas><span id="dialogCharacterName"></span></div><button class="close" id="dialogClose" aria-label="關閉">×</button></div><p id="dialogText"></p><div class="choices" id="dialogChoices"></div></section></div>
 <div class="veil hidden" id="journalVeil"><section class="panel journal" role="dialog" aria-modal="true"><div class="panel-head"><div><div class="kicker">FIELD NOTES</div><h2>旅程日誌</h2></div><button class="close" id="journalClose">×</button></div><div class="journal-tabs" id="journalTabs"></div><div id="journalContent"></div><div class="line"></div><p class="meta">本版本使用瀏覽器本機儲存，並未連接《鱗片與種子》的雲端存檔。可在設定中匯出備份。</p></section></div>
-<div class="veil hidden" id="equipmentVeil">
- <section class="equip-dialog" role="dialog" aria-modal="true" aria-labelledby="equipmentDialogTitle">
-  <header class="equip-header"><div class="equip-heading"><h2 id="equipmentDialogTitle">角色裝備</h2><span>EQUIPMENT · CHARACTER</span></div>
-   <button class="equip-close" id="equipmentClose" type="button" aria-label="關閉裝備畫面">×</button></header>
-  <div class="equip-board" id="equipmentBoard"></div>
-  <footer class="equip-footer"><div class="equip-detail" id="equipmentDetail" role="status" aria-live="polite"></div>
-   <button class="equip-footer-action" type="button" id="equipmentToBag">查看背包</button></footer>
- </section>
-</div>
 <div class="veil hidden" id="menuVeil"><section class="panel" role="dialog" aria-modal="true"><div class="panel-head"><div><div class="kicker">OPTIONS</div><h2>探索設定</h2></div><button class="close" id="menuClose">×</button></div><p id="menuStatus">遊戲會自動在本機儲存。</p><div class="choices"><button class="choice" id="soundBtn">音效：關閉</button><button class="choice" id="exportBtn">匯出存檔</button><button class="choice" id="importBtn">匯入存檔</button><button class="choice" id="restartBtn">重新開始</button></div><div class="line"></div><div class="phase-preview-heading">光線預覽 · 不修改遊戲時間</div><p class="phase-preview-explain">只預覽場景光線，不會跳過事件或改動存檔。畫面右上角可結束預覽。</p><div class="choices phase-preview-options"><button class="choice" type="button" data-preview-period="dawn">清晨</button><button class="choice" type="button" data-preview-period="day">白天</button><button class="choice" type="button" data-preview-period="dusk">黃昏</button><button class="choice" type="button" data-preview-period="night">夜晚</button></div><input id="fileInput" type="file" accept="application/json" class="hidden"><div class="line"></div><div class="note">V0.5.1 測試版本：第二章的公會、委託與人物對話是可修改的玩法草案。人物稱呼仍為佔位，主角身體來歷、復活原因及正式戰鬥方式都尚未定案。</div></section></div>
 <div class="veil" id="startVeil"><section class="panel start"><div class="stamp">A STORY OF THE UNKNOWN</div><h1 class="screen-title">殘車之後</h1><p>你在一輛被毀壞的貨運馬車裡醒來。森林靜得出奇，而你不記得自己為何來到這裡。</p><button class="choice" id="startBtn">開始新的旅程</button><button class="choice hidden" id="continueBtn">繼續旅程</button><div class="note">V0.5.1 可玩原型 · 橫式手機／電腦　｜　探索優先、調查可選　｜　不需登入及付費</div></section></div>
 <div class="orientation"><div><strong>請將手機轉為橫向</strong><p>第一章與城鎮探索以橫式畫面呈現。</p>↻</div></div>
@@ -4484,7 +4475,6 @@ function closePlaceDrawer(){}
 function setActiveSideTab(tab){
  if(!['locations','character','equipment','inventory'].includes(tab))return;
  activeSideTab=tab;renderPlaceDrawer();$('placeDrawerList').scrollTop=0;
- if(tab==='equipment')openEquipmentPanel();
 }
 function sideInfoText(out,text,cls='side-info-line'){
  const el=document.createElement('p');el.className=cls;el.textContent=text;out.appendChild(el);
@@ -4694,21 +4684,6 @@ function renderEquipmentBoard(){
  }
  showEquipmentDetail(equipmentSelected);
 }
-function openEquipmentPanel(){
- const v=$('equipmentVeil');if(!v)return;
- // The game uses a scaled 1536x707 stage. The equipment window must render
- // in viewport coordinates so mobile text and touch targets stay legible.
- if(v.parentElement!==document.body)document.body.appendChild(v);
- equipmentReturnFocus=document.activeElement;
- renderEquipmentBoard();v.classList.remove('hidden');
- $('equipmentClose').focus({preventScroll:true});
-}
-function closeEquipmentPanel(){
- const v=$('equipmentVeil');if(!v||v.classList.contains('hidden'))return;
- v.classList.add('hidden');
- if(equipmentReturnFocus&&equipmentReturnFocus.isConnected)equipmentReturnFocus.focus({preventScroll:true});
- equipmentReturnFocus=null;
-}
 
 function renderSideTab(tab,out){
  if(tab==='character'){
@@ -4764,15 +4739,22 @@ function renderSideTab(tab,out){
   out.appendChild(note);return;
  }
  if(tab==='equipment'){
-  sideInfoHeading(out,'裝備欄');
-  const mini=document.createElement('div');mini.className='equip-compact';
-  const title=document.createElement('strong');title.textContent='簡化裝備格';
-  const info=document.createElement('p');
-  info.textContent='中央為簡化裝備底板，左右可點選各部位。附魔旅行側包已裝備；其他格位目前為空。';
-  const action=document.createElement('button');action.className='side-info-aux';action.type='button';
-  action.textContent='開啟裝備格';action.onclick=openEquipmentPanel;
-  mini.append(title,info,action);out.appendChild(mini);
-  sideInfoText(out,'點擊裝備格查看對應部位。裝備物品取得與穿戴功能將在後續開放。','side-info-note');return;
+  // Inline presentation: same right-hand tab as the other adventure information.
+  const section=document.createElement('section');section.className='equip-inline';
+  section.setAttribute('aria-label','裝備配置');
+  const board=document.createElement('div');board.id='equipmentBoard';
+  board.className='equip-inline-board';board.setAttribute('role','group');
+  board.setAttribute('aria-label','裝備部位與對應空格');
+  const footer=document.createElement('div');footer.className='equip-inline-footer';
+  const detail=document.createElement('div');detail.id='equipmentDetail';
+  detail.className='equip-detail';detail.setAttribute('role','status');
+  detail.setAttribute('aria-live','polite');
+  const bag=document.createElement('button');bag.type='button';
+  bag.className='equip-bag-button';bag.textContent='背包';
+  bag.setAttribute('aria-label','切換到背包欄位');
+  bag.onclick=()=>setActiveSideTab('inventory');
+  footer.append(detail,bag);section.append(board,footer);out.appendChild(section);
+  renderEquipmentBoard();return;
  }
  if(tab==='inventory'){
   renderWalletPanel(out);
@@ -5181,7 +5163,7 @@ function initial(){const seed=randomSeed();return{v:1,seed,scene:'wreck',worldMi
 function validSave(j){return !!(j&&j.v===1&&names[j.scene]&&Number.isFinite(j.hp)&&Number.isFinite(j.maxHp)&&Array.isArray(j.party)&&j.party.length===4&&new Set(j.party).size===4&&j.party.every(i=>Number.isInteger(i)&&i>=0&&i<6)&&Array.isArray(j.seen)&&Array.isArray(j.notes)&&Array.isArray(j.items)&&j.flags&&typeof j.flags==='object'&&j.visits&&typeof j.visits==='object');}
 function load(){try{const j=JSON.parse(localStorage.getItem(KEY));return validSave(j)?j:null;}catch{return null;}}
 let s=load()||initial(), hasSave=!!load(),modal=null,showHints=false,journalTab='discoveries',toastHandle=null;
-let backpackView='all',equipmentSelected='bag',equipmentReturnFocus=null;
+let backpackView='all',equipmentSelected='bag';
 normalizeWallet();normalizeEquipmentV1();
 if(!Array.isArray(s.travelLog))s.travelLog=[];
 normalizeGameTime();normalizeRecovery();normalizeForestRare();normalizeBeetleCare();normalizeForestEcology();normalizeRouteDiscovery();normalizeExploration();normalizePlaceCards();
@@ -5905,10 +5887,7 @@ $('hudCharacterBtn').onclick=()=>setActiveSideTab('character');
 $('hudSettingsBtn').onclick=()=>$('menuBtn').click();
 $('travelToggle').onclick=()=>setTravelHud(s.travelHudMode==='expanded'?'compact':'expanded');
 $('travelOpenJournal').onclick=()=>journal('journey');
-$('regionMapBtn').onclick=()=>journal('map');$('equipmentClose').onclick=closeEquipmentPanel;
-$('equipmentToBag').onclick=()=>{closeEquipmentPanel();setActiveSideTab('inventory');};
-$('equipmentVeil').addEventListener('click',event=>{if(event.target===$('equipmentVeil'))closeEquipmentPanel();});
-$('journalBtn').onclick=()=>journal('journey');$('mapBtn').onclick=()=>journal('map');$('journalClose').onclick=()=>$('journalVeil').classList.add('hidden');$('hintBtn').onclick=()=>{showHints=!showHints;renderHotspots();toast(showHints?'僅顯示附近可互動位置，不影響主線':'已隱藏互動提示');};$('menuBtn').onclick=()=>{$('menuVeil').classList.remove('hidden');$('soundBtn').textContent='音效：'+(s.sound?'開啟':'關閉');};$('menuClose').onclick=()=>$('menuVeil').classList.add('hidden');$('dialogClose').onclick=closeDialog;
+$('regionMapBtn').onclick=()=>journal('map');$('journalBtn').onclick=()=>journal('journey');$('mapBtn').onclick=()=>journal('map');$('journalClose').onclick=()=>$('journalVeil').classList.add('hidden');$('hintBtn').onclick=()=>{showHints=!showHints;renderHotspots();toast(showHints?'僅顯示附近可互動位置，不影響主線':'已隱藏互動提示');};$('menuBtn').onclick=()=>{$('menuVeil').classList.remove('hidden');$('soundBtn').textContent='音效：'+(s.sound?'開啟':'關閉');};$('menuClose').onclick=()=>$('menuVeil').classList.add('hidden');$('dialogClose').onclick=closeDialog;
 for(const btn of document.querySelectorAll('[data-preview-period]'))btn.onclick=()=>selectTimePreview(btn.dataset.previewPeriod);
 $('timePreviewTag').onclick=clearTimePreview;
 $('sceneDialogueNext').onclick=e=>{e.stopPropagation();nextSceneDialogue();};
@@ -5918,7 +5897,6 @@ $('restartBtn').onclick=()=>{if(!confirm('確定重新開始？目前本機存�
 $('exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify(s,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='dungeon-adventure-save-v02.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};$('importBtn').onclick=()=>$('fileInput').click();$('fileInput').onchange=async e=>{try{const text=await e.target.files[0].text(),j=JSON.parse(text);if(!validSave(j))throw Error('格式不相容');s=j;previewPeriod=null;normalizeGameTime();normalizeRecovery();normalizeForestRare();normalizeBeetleCare();normalizeForestEcology();normalizeRouteDiscovery();normalizeExploration();normalizePlaceCards();closePlaceDrawer();hideSceneActors();hideSceneInspection();refreshSceneFraming();if(!Array.isArray(s.travelLog))s.travelLog=[];if(typeof s.feedCollapsed!=='boolean')s.feedCollapsed=false;if(!['compact','expanded'].includes(s.travelHudMode))s.travelHudMode='compact';save();render();$('menuVeil').classList.add('hidden');toast('已匯入存檔');}catch{alert('無法讀取這份存檔。');}e.target.value='';};
 $('startBtn').onclick=()=>{closeSceneDialogue();s=initial();previewPeriod=null;refreshSceneFraming();hasSave=true;$('startVeil').classList.add('hidden');render();openWreckIntroduction();};if(hasSave){$('continueBtn').classList.remove('hidden');$('continueBtn').onclick=()=>{$('startVeil').classList.add('hidden');render();if(s.flags.inBattle)battleDialog('繼續尚未結束的遭遇戰。');else openWreckIntroduction();};}
 window.addEventListener('keydown',e=>{
-if(e.key==='Escape'&&!$('equipmentVeil').classList.contains('hidden')){e.preventDefault();closeEquipmentPanel();return;}
 if(e.metaKey||e.ctrlKey||e.altKey||e.target.matches('input,textarea,select,[contenteditable="true"]'))return;
 if(sceneDialogueState.open){
   if(e.key==='Enter'||e.key===' '||e.key==='ArrowRight'){e.preventDefault();nextSceneDialogue();return;}
