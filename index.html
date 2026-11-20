@@ -3431,6 +3431,18 @@ html.stage-locked #app #placeDrawerPanel.is-character-tab .protagonist-emotion-e
  }
 }
 
+
+/* V0.8.23 — larger touch targets and swipe-to-preview on the portrait. */
+html.stage-locked #app #placeDrawerPanel.is-character-tab .protagonist-emotion-choice{
+ min-height:55px!important;font-size:14px!important;padding:7px 5px!important;
+}
+html.stage-locked #app #placeDrawerPanel.is-character-tab .protagonist-portrait{
+ touch-action:pan-y!important;
+}
+html.stage-locked #app #placeDrawerPanel.is-character-tab .protagonist-emotion-caption{
+ font-size:11px!important;
+}
+
 </style>
 </head>
 <body>
@@ -4508,7 +4520,28 @@ function renderSideTab(tab,out){
   image.decoding='async';image.loading='eager';
   const emotion=selectedCharacterExpression();card.dataset.expression=emotion;
   photo.append(image,createExpressionOverlay());
+  let touchStart=null,justSwiped=false;
+  photo.addEventListener('touchstart',event=>{
+   if(event.touches.length!==1)return;
+   touchStart={x:event.touches[0].clientX,y:event.touches[0].clientY};
+  },{passive:true});
+  photo.addEventListener('touchend',event=>{
+   if(!touchStart||event.changedTouches.length!==1)return;
+   const dx=event.changedTouches[0].clientX-touchStart.x;
+   const dy=event.changedTouches[0].clientY-touchStart.y;
+   touchStart=null;
+   if(Math.abs(dx)<32||Math.abs(dx)<Math.abs(dy)*1.35)return;
+   justSwiped=true;
+   const modes=Object.keys(CHARACTER_EXPRESSION_LABELS);
+   const current=selectedCharacterExpression();
+   const index=Math.max(0,modes.indexOf(current));
+   characterEmotionPreview=modes[(index+(dx<0?1:-1)+modes.length)%modes.length];
+   const y=$('placeDrawerList').scrollTop;
+   renderPlaceDrawer();$('placeDrawerList').scrollTop=y;
+  },{passive:true});
+  photo.addEventListener('touchcancel',()=>{touchStart=null;},{passive:true});
   photo.onclick=()=>{
+   if(justSwiped){justSwiped=false;return;}
    const expanded=card.classList.toggle('is-expanded');
    photo.setAttribute('aria-pressed',String(expanded));
    photo.setAttribute('aria-label',expanded?'縮小主角肖像':'放大查看主角肖像');
@@ -4541,7 +4574,7 @@ function renderSideTab(tab,out){
   const eHeading=document.createElement('div');eHeading.className='protagonist-emotion-heading';
   const eTitle=document.createElement('span');eTitle.textContent='表情模擬';
   const eCaption=document.createElement('span');eCaption.className='protagonist-emotion-caption';
-  eCaption.textContent=characterEmotionPreview==='auto'?'自動 · '+CHARACTER_EXPRESSION_LABELS[emotion]:'手動 · '+CHARACTER_EXPRESSION_LABELS[emotion];
+  eCaption.textContent=(characterEmotionPreview==='auto'?'自動 · ':'手動 · ')+CHARACTER_EXPRESSION_LABELS[emotion]+' · 肖像可左右滑動';
   eHeading.append(eTitle,eCaption);out.appendChild(eHeading);
   const choiceRow=document.createElement('div');choiceRow.className='protagonist-emotions';
   for(const [code,label] of [['auto','自動'],['neutral','平靜'],['curious','疑惑'],['surprised','驚訝'],['relieved','安心'],['tired','疲倦'],['hurt','疼痛']]){
