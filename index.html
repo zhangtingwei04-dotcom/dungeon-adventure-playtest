@@ -2724,6 +2724,106 @@ html.stage-locked #app #topGameHud .top-hud-meter{
 }
 /* All adjustments remain inside the fixed stage; outer frame is untouched. */
 
+
+/* V0.8.3 — user-approved slim, three-column strip ONLY.
+   Stage coordinates match the original reserved central module; the outer
+   frame, ornamental artwork, and left/right layout are unchanged. */
+html.stage-locked #app #sceneFuturePanel{
+ top:558px!important;left:458px!important;
+ width:680px!important;height:76px!important;
+ padding:7px 2px!important;
+ display:grid!important;
+ grid-template-columns:minmax(0,40fr) minmax(0,35fr) minmax(0,25fr)!important;
+ align-items:stretch!important;gap:0!important;
+ pointer-events:auto!important;
+ overflow:hidden!important;
+ border:1.5px solid rgba(207,175,112,.72)!important;
+ background:linear-gradient(135deg,rgba(10,46,38,.88),rgba(7,35,32,.90))!important;
+}
+html.stage-locked #app #sceneFuturePanel .scene-info-column{
+ display:flex!important;flex-direction:column!important;
+ min-width:0!important;min-height:0!important;
+ box-sizing:border-box!important;
+ padding:0 9px!important;
+ overflow:hidden!important;
+}
+html.stage-locked #app #sceneFuturePanel .scene-info-column:not(:last-child){
+ border-right:1px solid rgba(207,175,112,.68)!important;
+}
+html.stage-locked #app #sceneFuturePanel .scene-info-heading{
+ display:flex!important;align-items:center!important;
+ flex:0 0 22px!important;min-width:0!important;gap:5px!important;
+ white-space:nowrap!important;overflow:hidden!important;
+ color:#ecd3a1!important;line-height:1.1!important;
+}
+html.stage-locked #app #sceneFuturePanel .scene-info-heading svg{
+ display:block!important;flex:0 0 19px!important;
+ width:19px!important;height:19px!important;
+ color:#e2c98e!important;
+}
+html.stage-locked #app #sceneFuturePanel .scene-info-heading strong{
+ font-size:18px!important;font-weight:700!important;
+ letter-spacing:.01em!important;
+ overflow:hidden!important;text-overflow:ellipsis!important;
+}
+html.stage-locked #app #sceneFuturePanel .scene-info-heading .scene-info-count{
+ margin-left:auto!important;flex:none!important;
+ color:#d8c8ac!important;font-size:15px!important;
+ font-weight:500!important;letter-spacing:0!important;
+}
+html.stage-locked #app #sceneFuturePanel .scene-info-scroll{
+ flex:1 1 0!important;min-height:0!important;min-width:0!important;
+ padding:2px 2px 2px 0!important;
+ overflow-x:hidden!important;overflow-y:auto!important;
+ overscroll-behavior:contain!important;
+ -webkit-overflow-scrolling:touch!important;
+ touch-action:pan-y!important;
+ scrollbar-width:thin;scrollbar-color:rgba(202,171,104,.55) transparent;
+}
+html.stage-locked #app #sceneFuturePanel .scene-info-scroll::-webkit-scrollbar{width:4px}
+html.stage-locked #app #sceneFuturePanel .scene-info-scroll::-webkit-scrollbar-thumb{
+ border-radius:4px;background:rgba(202,171,104,.55)
+}
+html.stage-locked #app #sceneFuturePanel .scene-info-description,
+html.stage-locked #app #sceneFuturePanel .scene-info-empty,
+html.stage-locked #app #sceneFuturePanel .scene-clue-entry,
+html.stage-locked #app #sceneFuturePanel .scene-companion-entry{
+ color:#eee1c7!important;font-size:15.5px!important;
+ line-height:1.32!important;letter-spacing:0!important;
+ overflow-wrap:anywhere!important;margin:0!important;
+}
+html.stage-locked #app #sceneFuturePanel .scene-info-senses{
+ display:flex!important;align-items:center!important;gap:12px!important;
+ flex-wrap:wrap!important;
+ padding-top:5px!important;padding-bottom:2px!important;
+}
+html.stage-locked #app #sceneFuturePanel .scene-info-senses span{
+ font-size:15px!important;line-height:1.25!important;
+ color:#c8c2a9!important;letter-spacing:0!important;
+ padding:0!important;border:0!important;
+ background:none!important;border-radius:0!important;
+}
+html.stage-locked #app #sceneFuturePanel .scene-companion-entry{
+ display:flex!important;gap:6px!important;align-items:center!important;
+ margin:0 0 5px!important;
+}
+html.stage-locked #app #sceneFuturePanel .scene-companion-avatar{
+ flex:0 0 24px!important;width:24px!important;height:24px!important;
+ border:1px solid rgba(180,152,91,.5)!important;
+ background:rgba(37,82,65,.5)!important;border-radius:5px!important;
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ font-size:16px!important;color:#d5c39a!important;
+}
+html.stage-locked #app #sceneFuturePanel .scene-clue-entry{
+ padding:1px 0 5px!important;
+}
+html.stage-locked #app #sceneFuturePanel .scene-info-empty{
+ color:#cfc7b6!important;
+}
+/* Mobile portrait is not the fixed landscape design; avoid an unpositioned
+   extra box inside the legacy portrait layout. */
+html:not(.stage-locked) #sceneFuturePanel{display:none!important}
+
 </style>
 </head>
 <body>
@@ -2830,8 +2930,36 @@ html.stage-locked #app #topGameHud .top-hud-meter{
  <path d="M17 33Q8 31 8 23Q19 23 20 31M26 26Q31 12 41 15Q37 25 26 26M14 46Q23 37 31 43Q24 49 14 46" fill="#5a8558" stroke="#b5b079" stroke-width="1.1"/>
  <circle cx="31" cy="20" r="1.5" fill="#f2d99e"/>
  </svg><canvas id="view" aria-label="第一人稱冒險場景"></canvas><div id="dayTint" aria-hidden="true"></div><div id="shade"></div><div id="hotspots"></div><div id="sceneActors" aria-hidden="true"></div><div id="encounterCue" class="hidden" role="status" aria-live="polite"></div></section>
-<section id="sceneFuturePanel" aria-label="中央場景下方的未來功能預留區">
- <span aria-hidden="true">預留功能區</span>
+<section id="sceneFuturePanel" aria-label="場景觀察、同行夥伴及探索紀錄">
+ <div class="scene-info-column" aria-label="場景觀察">
+  <div class="scene-info-heading">
+   <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2.5 12s3.5-5.5 9.5-5.5 9.5 5.5 9.5 5.5-3.5 5.5-9.5 5.5S2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="2.8"/></svg>
+   <strong>場景觀察</strong>
+  </div>
+  <div class="scene-info-scroll" id="sceneObservationScroll" tabindex="0" aria-label="場景觀察內容，可上下滑動">
+   <p class="scene-info-description" id="sceneObservationText">森林裡傳來輕微的鳥鳴，空氣潮濕而清新。</p>
+   <div class="scene-info-senses" id="sceneSenses" aria-label="環境感知"><span>♪ 鳥鳴</span><span>〰 潮濕</span></div>
+  </div>
+ </div>
+ <div class="scene-info-column" aria-label="同行夥伴">
+  <div class="scene-info-heading">
+   <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="7.5" r="3.1"/><path d="M2.5 21v-2c0-3.4 2.6-5.7 6.5-5.7s6.5 2.3 6.5 5.7v2"/><path d="M17 4.6a3 3 0 0 1 0 6M18 14c2.5.5 3.5 2.2 3.5 4.4V21"/></svg>
+   <strong>同行夥伴</strong>
+   <span class="scene-info-count" id="scenePartyCount">0人</span>
+  </div>
+  <div class="scene-info-scroll" id="sceneCompanionScroll" tabindex="0" aria-label="同行夥伴清單，可上下滑動">
+   <p class="scene-info-empty">獨自探索</p>
+  </div>
+ </div>
+ <div class="scene-info-column" aria-label="探索紀錄">
+  <div class="scene-info-heading">
+   <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>
+   <strong>探索紀錄</strong>
+  </div>
+  <div class="scene-info-scroll" id="sceneClueScroll" tabindex="0" aria-label="已發現線索，可上下滑動">
+   <p class="scene-info-empty">尚無已記錄線索</p>
+  </div>
+ </div>
 </section>
 <section id="topGameHud" aria-label="遊戲主狀態列">
  <div class="top-hud-location">
@@ -4503,6 +4631,80 @@ function showPlayerStatus(){
   '\n\n目前原型中的 HP 沿用既有體力數值；MP 與 SP 尚無消耗、回復或成長規則。',
   [{label:'返回探索',fn:()=>{}}],'角色資料');
 }
+
+/* Observed information is derived from the existing scene/time and saved
+   exploration results. No hidden clue is displayed before discovery. */
+const SCENE_SENSE_NOTES=Object.freeze({
+ wreck:{text:'林間傳來輕微的鳥鳴，空氣潮濕而清新。',senses:['♪ 鳥鳴','〰 潮濕']},
+ trail:{text:'林間小徑仍可聽見鳥鳴，樹影隨著風輕輕搖動。',senses:['♪ 鳥鳴','〰 微風']},
+ clearing:{text:'空地周圍的樹葉隨風擺動，土壤帶著潮氣。',senses:['〰 微風','◌ 潮濕']},
+ ruin:{text:'苔蘚依附石縫，古老石門旁顯得安靜。',senses:['◌ 苔蘚','〰 寂靜']},
+ gate:{text:'城門附近有行人往來，守衛正留意道路。',senses:['♪ 人聲','◇ 道路']},
+ inn:{text:'房內十分安靜，偶爾傳來走廊的腳步聲。',senses:['♪ 腳步','◌ 室內']},
+ lobby:{text:'旅店大廳傳來杯盤碰撞聲與輕聲交談。',senses:['♪ 人聲','◌ 麵包香']},
+ street:{text:'街上有商販的招呼聲，人們各自忙碌。',senses:['♪ 市聲','〰 微風']},
+ guild:{text:'公會裡有人交換路況消息，公告板旁不時有人停留。',senses:['♪ 交談','◇ 公告']},
+ outskirts:{text:'城牆外的風吹過草叢，遠方傳來鳥鳴。',senses:['♪ 鳥鳴','〰 微風']},
+ home:{text:'公共起居室裡留著日常生活的痕跡。',senses:['◌ 居家','♪ 細響']}
+});
+function currentRealCompanions(){
+ // The randomly selected rescue party is NOT a permanent follower party.
+ // Only the forest-to-town escort actually accompanies the player for now.
+ if(!s.flags.morning&&s.flags.rescued&&(s.scene==='trail'||s.scene==='gate')){
+  return s.party.map(i=>roster[i]).filter(Boolean);
+ }
+ return [];
+}
+function renderSceneInfoBar(){
+ const panel=$('sceneFuturePanel');
+ if(!panel)return;
+ const observation=$('sceneObservationScroll'),companions=$('sceneCompanionScroll'),clues=$('sceneClueScroll');
+ const lastScrolls=[observation,companions,clues].map(node=>node.scrollTop);
+ const previousScene=panel.dataset.scene;
+ const defaultScene=SCENE_SENSE_NOTES[s.scene]||{text:names[s.scene]?.[1]||'',senses:[]};
+ const last=s.exploration?.last?.[s.scene];
+ $('sceneObservationText').textContent=typeof last?.observation==='string'&&last.observation?
+  last.observation:defaultScene.text;
+ const senseRoot=$('sceneSenses');
+ senseRoot.replaceChildren();
+ for(const label of defaultScene.senses){
+  const el=document.createElement('span');el.textContent=label;senseRoot.appendChild(el);
+ }
+ if(periodForMinutes(s.worldMinutes)==='night'&&(s.scene==='wreck'||s.scene==='trail'||s.scene==='clearing')){
+  senseRoot.replaceChildren();
+  for(const value of ['◌ 夜色','〰 林風']){
+   const el=document.createElement('span');el.textContent=value;senseRoot.appendChild(el);
+  }
+ }
+ const party=currentRealCompanions();
+ $('scenePartyCount').textContent=party.length+'人';
+ companions.replaceChildren();
+ if(!party.length){
+  const el=document.createElement('p');el.className='scene-info-empty';el.textContent='獨自探索';companions.appendChild(el);
+ }else{
+  for(const member of party){
+   const row=document.createElement('div');row.className='scene-companion-entry';
+   const avatar=document.createElement('span');avatar.className='scene-companion-avatar';avatar.textContent='♙';avatar.setAttribute('aria-hidden','true');
+   const label=document.createElement('span');label.textContent=member.name;
+   row.append(avatar,label);companions.appendChild(row);
+  }
+ }
+ clues.replaceChildren();
+ const notes=Array.isArray(s.notes)?s.notes.filter(x=>typeof x==='string'):[];
+ if(!notes.length){
+  const el=document.createElement('p');el.className='scene-info-empty';el.textContent='尚無已記錄線索';clues.appendChild(el);
+ }else{
+  const count=document.createElement('p');count.className='scene-clue-entry';count.textContent='已記錄 '+notes.length+' 項';
+  clues.appendChild(count);
+  for(const note of notes.slice().reverse()){
+   const el=document.createElement('p');el.className='scene-clue-entry';el.textContent=note;
+   clues.appendChild(el);
+  }
+ }
+ panel.dataset.scene=s.scene;
+ [observation,companions,clues].forEach((node,i)=>{node.scrollTop=previousScene===s.scene?lastScrolls[i]:0;});
+}
+
 function render(){if(!names[s.scene])s.scene='wreck';normalizeGameTime();tickBeetleCare();$('place').textContent=names[s.scene][0];$('hudPlace').textContent=names[s.scene][0];$('hudChapter').textContent=s.flags.morning?'CHAPTER 02':'CHAPTER 01';syncTimeAtmosphere();$('partyChip').textContent=s.flags.rescued?'與冒險者相遇':'獨自探索';$('hpChip').textContent=`體力 ${s.hp}/${s.maxHp}`;renderPlayerStatus();$('chapterChip').textContent=s.flags.morning?'第二章 · 清晨':s.flags.chapterDone?'第一章片段完成':'第一章';const texts={
  wreck:'你從毀壞的車篷下爬出來，泥土的涼意讓你逐漸清醒。',
  trail:s.flags.rescued?'你沿著車轍走到林道，遠方的城鎮逐漸清晰。可以回望事故現場，也可以繼續前進。':'樹影遮住前方道路。你可以搜索林邊的舊物與生物痕跡，或花一點時間辨認道路，將發現的岔路逐一記入地圖。',
@@ -4518,7 +4720,7 @@ function render(){if(!names[s.scene])s.scene='wreck';normalizeGameTime();tickBee
 };$('narrative').textContent=texts[s.scene];$('actions').replaceChildren();const available=entries();const primary=available.find(a=>a.primary)||available[0];
 if(primary){const b=document.createElement('button');b.className='action primary';setActionVisual(b,/探索|觀察/.test(primary.title)?'explore':'route',primary.title);b.title='主要行動；點擊執行';b.onclick=()=>guardedAction(primary.fn);$('actions').appendChild(b);}
 const quick=available.find(a=>a.quick&&a!==primary);if(quick){const b=document.createElement('button');b.className='action explore';setActionVisual(b,'explore',quick.title);b.onclick=()=>guardedAction(quick.fn);$('actions').appendChild(b);}
-/* Secondary interactions are now grouped under the right-side place drawer. */renderHotspots();renderFeed();renderPlaceDrawer();save();}
+/* Secondary interactions are now grouped under the right-side place drawer. */renderHotspots();renderFeed();renderPlaceDrawer();renderSceneInfoBar();save();}
 function renderHotspots(){
  const el=$('hotspots');el.replaceChildren();
  const per={wreck:[['散落貨箱',.36,.71,glance],['車輪痕跡',.45,.53,marks],['離開的林道',.85,.57,()=>change('trail'),'trail'],['探索周遭',.73,.65,exploreArea,null]],trail:[['沿小徑前進',.55,.48,rescue,'gate'],['石拱遺跡',.79,.49,()=>change('ruin'),'ruin'],['路旁舊石碑',.13,.49,inspectTrailMarker],['林間草木',.29,.59,()=>change('clearing'),'clearing'],['返回馬車',.45,.62,()=>change('wreck'),'wreck'],['探索周遭',.7,.62,exploreArea,null]],clearing:[['微光',59,69,light],['聲音',75,46,soundInForest]],ruin:[['石門',51,45,ruinLook]],inn:[['鏡子',73,43,innMark]],guild:[['公告板',69,49,guildBoard]],outskirts:[['舊路標',67,49,roadsideSign]],home:[['留守夥伴',48,59,meetHome]]};
