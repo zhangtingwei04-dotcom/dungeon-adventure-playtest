@@ -2835,6 +2835,60 @@ html.stage-locked #app #sceneFuturePanel .scene-companion-entry>span:last-child{
  font-weight:500!important;letter-spacing:0!important;
 }
 
+
+/* V0.8.4 — align the existing right-hand tabs and panel on the SAME edges;
+   the slim three-part panel keeps precisely the central scene's width.
+   Do not move the outer gold frame, left log, art or story elements. */
+html.stage-locked #app{
+ --central-column-left:458px;
+ --central-column-width:680px;
+ --right-column-left:1155px;
+ --right-column-width:310px;
+}
+html.stage-locked #app #sceneStage,
+html.stage-locked #app #sceneFuturePanel{
+ box-sizing:border-box!important;
+ left:var(--central-column-left)!important;
+ width:var(--central-column-width)!important;
+}
+html.stage-locked #app #placeDrawer{
+ box-sizing:border-box!important;
+ left:var(--right-column-left)!important;
+ width:var(--right-column-width)!important;
+ min-width:var(--right-column-width)!important;
+ max-width:var(--right-column-width)!important;
+ right:auto!important;
+ align-items:stretch!important;
+}
+html.stage-locked #app #sideInfoTabs,
+html.stage-locked #app #placeDrawerPanel{
+ box-sizing:border-box!important;
+ align-self:stretch!important;
+ width:100%!important;
+ min-width:0!important;max-width:100%!important;
+ margin-left:0!important;margin-right:0!important;
+ transform:none!important;
+}
+html.stage-locked #app #sideInfoTabs{
+ display:grid!important;
+ grid-template-columns:repeat(4,minmax(0,1fr))!important;
+ justify-items:stretch!important;
+}
+html.stage-locked #app #sideInfoTabs button{
+ width:100%!important;max-width:100%!important;
+ box-sizing:border-box!important;
+}
+/* The nested location content respects the same right edge while retaining
+   its independent scrolling and protected padding around the last item. */
+html.stage-locked #app #placeDrawerList{
+ min-width:0!important;max-width:100%!important;
+}
+/* A subdued optical outline visually matches the central image's existing
+   outside gold rail, without enlarging or relocating the lower information bar. */
+html.stage-locked #app #sceneFuturePanel{
+ box-shadow:0 0 0 2px rgba(8,34,28,.82),0 0 0 4px rgba(165,139,85,.37),inset 0 0 0 1px rgba(231,198,139,.12)!important;
+}
+
 </style>
 </head>
 <body>
