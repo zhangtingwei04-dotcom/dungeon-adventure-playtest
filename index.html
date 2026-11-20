@@ -2933,12 +2933,13 @@ html.stage-locked #app #sceneFuturePanel .scene-info-scroll{
  overflow-y:auto!important;
 }
 
-/* V0.8.9 — lower the bottom edge of the full right-hand panel to the same
-   y=658 line as the central three-column strip. Keep top at y=173 and
-   left/right edges unchanged; tabs and inner content stay flex-scrollable. */
+/* V0.8.10 — correct target: align the bottom of the right-hand board with
+   the central illustration FRAME, not the separate lower three-column strip.
+   Image: y=163 + 680*(9/16)=545.5; right board y=173 + 372.5=545.5.
+   The four tabs, widths and independently scrollable content are preserved. */
 html.stage-locked #app #placeDrawer{
  top:173px!important;
- height:485px!important;
+ height:372.5px!important;
 }
 </style>
 </head>
