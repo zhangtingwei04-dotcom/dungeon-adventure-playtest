@@ -3408,6 +3408,87 @@ html.stage-locked #app .bag-item{
 html.stage-locked #app .bag-item-name{font-size:13px;line-height:1.4;color:#f1e6c8;overflow-wrap:anywhere;min-width:0;flex:1;}
 html.stage-locked #app .bag-item-quantity{color:#f5d890;font-weight:750;font-size:13px;white-space:nowrap;font-variant-numeric:tabular-nums;}
 
+
+/* Character-centered equipment paper-doll panel, optimized for landscape touch screens. */
+#equipmentVeil{z-index:18;backdrop-filter:blur(5px);background:rgba(7,16,16,.87);padding:7px}
+#equipmentVeil .equip-dialog{
+ display:flex;flex-direction:column;gap:5px;
+ width:min(830px,96vw);max-height:calc(100dvh - 12px);overflow:hidden;
+ border:1px solid #b9a06b;border-radius:13px;
+ background:radial-gradient(ellipse at 50% 40%,#294840 0%,#162d2c 48%,#0d1b20 100%);
+ box-shadow:0 15px 55px rgba(0,0,0,.85);padding:9px 14px 9px;
+}
+.equip-header{display:flex;align-items:center;justify-content:space-between;gap:10px;flex:none}
+.equip-heading{display:flex;align-items:baseline;gap:10px;min-width:0}
+.equip-heading h2{font:600 clamp(17px,3vw,24px)/1.2 Georgia,"Noto Serif TC",serif;color:#f4dfb1;margin:0}
+.equip-heading span{font:10px/1.2 Georgia,serif;letter-spacing:.18em;color:#b49f77}
+#equipmentVeil .equip-close{
+ flex:none;min-width:42px;min-height:37px;border:1px solid #c6a874;border-radius:8px;
+ background:rgba(66,64,48,.56);color:#fff1d5;font-size:22px;line-height:1;
+}
+.equip-board{display:grid;grid-template-columns:minmax(105px,1fr) minmax(132px,1.14fr) minmax(105px,1fr);align-items:stretch;gap:7px;min-height:0;flex:1;overflow:auto}
+.equip-side{display:flex;flex-direction:column;justify-content:space-around;gap:4px;padding:1px 0}
+.equip-slot{
+ width:100%;min-height:43px;max-height:64px;display:grid;grid-template-columns:27px minmax(0,1fr);
+ align-items:center;gap:5px;text-align:left;padding:5px 7px;border-radius:8px;
+ color:#e9dac0;background:linear-gradient(110deg,rgba(35,58,54,.94),rgba(14,35,35,.94));
+ border:1px solid rgba(176,152,100,.58);cursor:pointer;touch-action:manipulation;
+}
+.equip-slot.is-selected{border-color:#f2d28c;box-shadow:inset 0 0 0 1px #f0d18a80,0 0 9px #d9bb7850;background:linear-gradient(110deg,#4c6048,#173931)}
+.equip-slot:focus-visible,#equipmentVeil .equip-close:focus-visible,.equip-footer-action:focus-visible{outline:2px solid #f1d18a;outline-offset:2px}
+.equip-slot-symbol{
+ width:26px;height:27px;display:grid;place-items:center;flex:none;
+ border:1px solid #8b855e;border-radius:5px;background:#112927;
+ font-size:16px;color:#aaac93;line-height:1;
+}
+.equip-slot.is-filled .equip-slot-symbol{color:#ffdda0;background:#453b29;border-color:#d6b572}
+.equip-slot-words{min-width:0}
+.equip-slot-name{display:block;font-size:12px;line-height:1.25;font-weight:650;color:#f1dfbb}
+.equip-slot-status{display:block;font-size:10px;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#b9bfb1;margin-top:3px}
+.equip-slot.is-filled .equip-slot-status{color:#e4c67f}
+.equip-figure{
+ position:relative;min-width:0;min-height:230px;overflow:hidden;display:flex;align-items:center;justify-content:center;
+ border-radius:80px 80px 18px 18px;
+ background:radial-gradient(ellipse at 50% 42%,#506e5647,transparent 60%);
+}
+.equip-figure:before{content:"";position:absolute;inset:4px 14px;border:1px solid #a89e6850;border-radius:95px 95px 10px 10px;pointer-events:none}
+.equip-figure:after{content:"";position:absolute;width:55%;height:11px;border-radius:50%;background:#0007;bottom:4px;filter:blur(5px)}
+.equip-figure svg{height:100%;max-height:308px;min-height:212px;width:100%;max-width:215px;object-fit:contain;position:relative;z-index:1;filter:drop-shadow(0 4px 6px #020b0b88)}
+.equip-footer{flex:none;min-height:58px;display:flex;align-items:center;justify-content:space-between;gap:10px;border-top:1px solid #b5a07170;padding-top:7px}
+.equip-detail{min-width:0;flex:1}
+.equip-detail-title{display:block;color:#f6dfa6;font:700 13px/1.35 "Noto Serif TC",serif}
+.equip-detail-note{display:block;color:#c8cab8;font-size:11px;line-height:1.4;margin-top:3px}
+.equip-footer-action{
+ border:1px solid #c3a366;border-radius:8px;min-height:39px;padding:5px 12px;flex:none;
+ background:linear-gradient(130deg,#48684b,#24483e);color:#fff0cd;font-size:12px;font-weight:700;
+}
+html.stage-locked #app .equip-compact{margin-top:7px;padding:11px;border:1px solid #b6a17188;border-radius:8px;background:#152e2a}
+html.stage-locked #app .equip-compact p{font-size:12px;line-height:1.6;color:#d7d3bd;margin:8px 0}
+html.stage-locked #app .equip-compact strong{color:#e9d29c;font-size:13px}
+@media(max-height:480px) and (orientation:landscape){
+ #equipmentVeil .equip-dialog{width:min(830px,96vw);height:calc(100dvh - 8px);max-height:calc(100dvh - 8px);padding:6px 11px;gap:3px}
+ .equip-header{min-height:30px}
+ .equip-heading h2{font-size:18px}
+ #equipmentVeil .equip-close{min-height:30px}
+ .equip-board{min-height:0;gap:5px}
+ .equip-slot{min-height:40px;max-height:44px;padding:3px 5px;gap:4px}
+ .equip-slot-name{font-size:11px}
+ .equip-slot-status{font-size:9px;margin-top:1px}
+ .equip-figure{min-height:210px}
+ .equip-figure svg{min-height:194px;max-height:270px}
+ .equip-footer{min-height:45px;padding-top:5px}
+ .equip-footer-action{min-height:36px}
+}
+@media(max-width:580px){
+ #equipmentVeil .equip-dialog{padding:7px}
+ .equip-board{grid-template-columns:minmax(83px,1fr) minmax(105px,1.05fr) minmax(83px,1fr);gap:4px}
+ .equip-slot{padding:3px;grid-template-columns:22px minmax(0,1fr);gap:3px}
+ .equip-slot-symbol{width:22px;height:25px;font-size:12px}
+ .equip-slot-name{font-size:11px}
+ .equip-slot-status{font-size:9px}
+ .equip-heading span{display:none}
+}
+
 </style>
 </head>
 <body>
@@ -3648,6 +3729,15 @@ html.stage-locked #app .bag-item-quantity{color:#f5d890;font-weight:750;font-siz
 <div class="bottom"><div><div class="actions" id="actions"></div></div><div class="sidebar"><div class="chips"><span class="chip" id="chapterChip">第一章</span><span class="chip" id="partyChip">獨自一人</span><span class="chip level" id="hpChip">體力 16/16</span></div><button id="mapBtn">◇ 探索紀錄</button></div></div>
 <div class="veil hidden" id="dialogVeil"><section class="panel" role="dialog" aria-modal="true" aria-labelledby="dialogTitle"><div class="panel-head"><div><div class="kicker" id="dialogKicker">發現</div><h2 id="dialogTitle"></h2></div><div id="dialogCharacter" aria-label="目前發言人物"><canvas id="dialogCharacterCanvas" width="48" height="64" aria-hidden="true"></canvas><span id="dialogCharacterName"></span></div><button class="close" id="dialogClose" aria-label="關閉">×</button></div><p id="dialogText"></p><div class="choices" id="dialogChoices"></div></section></div>
 <div class="veil hidden" id="journalVeil"><section class="panel journal" role="dialog" aria-modal="true"><div class="panel-head"><div><div class="kicker">FIELD NOTES</div><h2>旅程日誌</h2></div><button class="close" id="journalClose">×</button></div><div class="journal-tabs" id="journalTabs"></div><div id="journalContent"></div><div class="line"></div><p class="meta">本版本使用瀏覽器本機儲存，並未連接《鱗片與種子》的雲端存檔。可在設定中匯出備份。</p></section></div>
+<div class="veil hidden" id="equipmentVeil">
+ <section class="equip-dialog" role="dialog" aria-modal="true" aria-labelledby="equipmentDialogTitle">
+  <header class="equip-header"><div class="equip-heading"><h2 id="equipmentDialogTitle">角色裝備</h2><span>EQUIPMENT · CHARACTER</span></div>
+   <button class="equip-close" id="equipmentClose" type="button" aria-label="關閉裝備畫面">×</button></header>
+  <div class="equip-board" id="equipmentBoard"></div>
+  <footer class="equip-footer"><div class="equip-detail" id="equipmentDetail" role="status" aria-live="polite"></div>
+   <button class="equip-footer-action" type="button" id="equipmentToBag">查看背包</button></footer>
+ </section>
+</div>
 <div class="veil hidden" id="menuVeil"><section class="panel" role="dialog" aria-modal="true"><div class="panel-head"><div><div class="kicker">OPTIONS</div><h2>探索設定</h2></div><button class="close" id="menuClose">×</button></div><p id="menuStatus">遊戲會自動在本機儲存。</p><div class="choices"><button class="choice" id="soundBtn">音效：關閉</button><button class="choice" id="exportBtn">匯出存檔</button><button class="choice" id="importBtn">匯入存檔</button><button class="choice" id="restartBtn">重新開始</button></div><div class="line"></div><div class="phase-preview-heading">光線預覽 · 不修改遊戲時間</div><p class="phase-preview-explain">只預覽場景光線，不會跳過事件或改動存檔。畫面右上角可結束預覽。</p><div class="choices phase-preview-options"><button class="choice" type="button" data-preview-period="dawn">清晨</button><button class="choice" type="button" data-preview-period="day">白天</button><button class="choice" type="button" data-preview-period="dusk">黃昏</button><button class="choice" type="button" data-preview-period="night">夜晚</button></div><input id="fileInput" type="file" accept="application/json" class="hidden"><div class="line"></div><div class="note">V0.5.1 測試版本：第二章的公會、委託與人物對話是可修改的玩法草案。人物稱呼仍為佔位，主角身體來歷、復活原因及正式戰鬥方式都尚未定案。</div></section></div>
 <div class="veil" id="startVeil"><section class="panel start"><div class="stamp">A STORY OF THE UNKNOWN</div><h1 class="screen-title">殘車之後</h1><p>你在一輛被毀壞的貨運馬車裡醒來。森林靜得出奇，而你不記得自己為何來到這裡。</p><button class="choice" id="startBtn">開始新的旅程</button><button class="choice hidden" id="continueBtn">繼續旅程</button><div class="note">V0.5.1 可玩原型 · 橫式手機／電腦　｜　探索優先、調查可選　｜　不需登入及付費</div></section></div>
 <div class="orientation"><div><strong>請將手機轉為橫向</strong><p>第一章與城鎮探索以橫式畫面呈現。</p>↻</div></div>
@@ -4370,6 +4460,7 @@ function closePlaceDrawer(){}
 function setActiveSideTab(tab){
  if(!['locations','character','equipment','inventory'].includes(tab))return;
  activeSideTab=tab;renderPlaceDrawer();$('placeDrawerList').scrollTop=0;
+ if(tab==='equipment')openEquipmentPanel();
 }
 function sideInfoText(out,text,cls='side-info-line'){
  const el=document.createElement('p');el.className=cls;el.textContent=text;out.appendChild(el);
@@ -4498,6 +4589,131 @@ function renderBackpackPanel(out){
  foot.textContent='既有探索物品與材料會自動顯示於背包，無需重新搜集；目前不會限制拾取數量。';
  out.appendChild(foot);
 }
+
+/* Equipment diagram V1: preserved save state; no imaginary bonus or wearable loot.
+   Only the approved enchanted starter satchel is equipped by default. */
+const EQUIPMENT_PARTS=Object.freeze([
+ {id:'head',name:'頭部',symbol:'♜',side:'left',hint:'帽子、頭盔等頭部裝備'},
+ {id:'chest',name:'上身',symbol:'♧',side:'left',hint:'上衣、護甲等軀幹裝備'},
+ {id:'main',name:'主武器',symbol:'⚔',side:'left',hint:'主要持用的武器'},
+ {id:'legs',name:'下裝',symbol:'▤',side:'left',hint:'褲裝及其他腿部裝備'},
+ {id:'feet',name:'鞋子',symbol:'⌁',side:'left',hint:'靴子與鞋類裝備'},
+ {id:'neck',name:'飾品',symbol:'◇',side:'right',hint:'項鍊、護符與飾品'},
+ {id:'outer',name:'外衣',symbol:'✧',side:'right',hint:'披風、外套與外層裝備'},
+ {id:'offhand',name:'副手',symbol:'◈',side:'right',hint:'副手裝備或盾牌'},
+ {id:'hands',name:'手部',symbol:'✋',side:'right',hint:'護手或手套'},
+ {id:'bag',name:'背包',symbol:'▣',side:'right',hint:'可替換的旅行背包'}
+]);
+function normalizeEquipmentV1(){
+ if(!s.equipmentV1||typeof s.equipmentV1!=='object'||Array.isArray(s.equipmentV1))s.equipmentV1={};
+ // Preserve known saved slot data but do not trust unsupported IDs or fake equipment.
+ if(s.equipmentV1.bag===undefined)s.equipmentV1.bag='enchanted_satchel';
+ for(const part of EQUIPMENT_PARTS){
+  if(part.id==='bag'){
+   if(!['enchanted_satchel',null].includes(s.equipmentV1.bag))s.equipmentV1.bag='enchanted_satchel';
+  }else if(s.equipmentV1[part.id]!==null){
+   s.equipmentV1[part.id]=null; // No obtainable equippable catalog exists yet.
+  }
+ }
+}
+function equipmentHeroSVG(){
+ return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 188 340" role="img" aria-label="銀灰髮、紫色眼睛、深綠斗篷的主角，全身立姿">
+ <defs>
+  <linearGradient id="equipCape" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#577568"/><stop offset=".55" stop-color="#294a41"/><stop offset="1" stop-color="#192d2c"/></linearGradient>
+  <linearGradient id="equipCoat" x1="0" x2="1"><stop stop-color="#d9d4c1"/><stop offset=".55" stop-color="#f2e5d5"/><stop offset="1" stop-color="#b9b19e"/></linearGradient>
+  <linearGradient id="equipHair" x1="0" x2="1"><stop stop-color="#e0e2e8"/><stop offset=".5" stop-color="#a2aab5"/><stop offset="1" stop-color="#656f83"/></linearGradient>
+ </defs>
+ <ellipse cx="95" cy="326" rx="50" ry="6" fill="#04100d" opacity=".44"/>
+ <!-- Dark-green long overcoat and fluttering cloak, with gold trim. -->
+ <path d="M66 87 Q48 87 39 106 L17 280 Q35 289 62 275 L83 193 L109 193 L134 278 Q157 290 173 273 L149 105 Q143 85 119 84Z" fill="url(#equipCape)" stroke="#b59e69" stroke-width="1.6"/>
+ <path d="M47 113 Q32 180 27 267 M139 111 Q155 183 159 268" fill="none" stroke="#ad9566" stroke-width="2" opacity=".76"/>
+ <!-- legs -->
+ <path d="M76 204 L71 303 L91 304 L96 237 L102 305 L122 303 L115 202Z" fill="#4c514d" stroke="#242e31" stroke-width="2"/>
+ <path d="M71 289 L67 316 Q72 325 94 320 L94 298 L87 291Z M104 297 L104 320 Q129 324 136 317 L122 289Z" fill="#41352e" stroke="#b59a72" stroke-width="1.6"/>
+ <path d="M69 314 Q83 316 94 313 M104 313 Q122 315 134 313" stroke="#d0ab75" stroke-width="1.4"/>
+ <!-- arms and tunic -->
+ <path d="M68 87 L52 98 L30 171 L43 178 L73 125Z M123 86 L138 96 L159 172 L145 179 L117 126Z" fill="url(#equipCoat)" stroke="#716d59" stroke-width="1.7"/>
+ <path d="M71 84 L118 83 L130 202 Q98 215 59 202Z" fill="url(#equipCoat)" stroke="#716b5a" stroke-width="2"/>
+ <path d="M70 92 L93 124 L116 92 M91 126 L91 194" fill="none" stroke="#b69d68" stroke-width="2.1"/>
+ <path d="M65 176 L123 176 L119 185 L66 185Z" fill="#694d35" stroke="#322e29" stroke-width="2"/>
+ <rect x="85" y="173" width="17" height="13" rx="2" fill="#bea16a" stroke="#e1cb8f" stroke-width="1.5"/>
+ <path d="M36 168 L32 188 Q34 195 42 192 L48 174Z M144 173 L147 193 Q156 196 158 188 L153 168Z" fill="#e1bda6" stroke="#8e7560" stroke-width="1.4"/>
+ <!-- Satchel strap crossing chest and the bag at the left hip. -->
+ <path d="M115 88 Q91 116 73 147 Q63 165 59 189" fill="none" stroke="#8e633f" stroke-width="10"/>
+ <path d="M115 88 Q91 116 73 147 Q63 165 59 189" fill="none" stroke="#d1a470" stroke-width="2.1" stroke-dasharray="4 7"/>
+ <path d="M44 191 Q48 183 70 188 L87 199 L82 243 Q62 249 42 237Z" fill="#70543e" stroke="#d0ab74" stroke-width="2.2"/>
+ <path d="M44 196 L85 203 L80 221 Q61 228 42 218Z" fill="#8a6747" stroke="#d8b178" stroke-width="1.6"/>
+ <rect x="59" y="210" width="12" height="8" rx="2" fill="#c9a36e" stroke="#efd8a6"/>
+ <!-- neck -->
+ <path d="M82 73 L83 90 L104 92 L106 74Z" fill="#d7b49f"/>
+ <!-- face -->
+ <path d="M68 44 Q67 19 95 18 Q124 21 122 47 L119 65 Q115 85 95 88 Q73 85 70 68Z" fill="#e7c7b0" stroke="#907968" stroke-width="1.6"/>
+ <path d="M75 56 Q83 52 89 56 M101 56 Q108 52 115 56" stroke="#7e699b" stroke-width="2.8" stroke-linecap="round"/>
+ <path d="M96 58 L94 68 L99 69 M88 77 Q96 81 103 77" stroke="#9b7d70" fill="none" stroke-width="1.1"/>
+ <!-- distinctive silver layered hair -->
+ <path d="M65 52 Q60 21 80 12 Q105 2 124 24 Q131 38 121 57 L116 41 L101 36 L88 42 L71 61Z" fill="url(#equipHair)" stroke="#7b7f8c" stroke-width="1.7"/>
+ <path d="M75 20 Q68 35 78 48 Q84 37 99 30 Q91 45 104 45 Q110 34 117 36" fill="none" stroke="#e8e9e8" stroke-width="3" opacity=".7"/>
+ <path d="M69 43 Q58 74 68 91 L79 79 M120 44 Q131 70 119 94 L109 79" fill="url(#equipHair)" stroke="#8e96a3" stroke-width="1.4"/>
+ <path d="M133 109 L138 197 L142 197" stroke="#c5a773" stroke-width="2" opacity=".8"/>
+ </svg>`;
+}
+function showEquipmentDetail(id){
+ const part=EQUIPMENT_PARTS.find(x=>x.id===id)||EQUIPMENT_PARTS[0];
+ equipmentSelected=part.id;
+ for(const b of $('equipmentBoard').querySelectorAll('.equip-slot')){
+  const pressed=b.dataset.equipPart===id;b.classList.toggle('is-selected',pressed);
+  b.setAttribute('aria-pressed',String(pressed));
+ }
+ const host=$('equipmentDetail');host.replaceChildren();
+ const heading=document.createElement('strong');heading.className='equip-detail-title';
+ const note=document.createElement('span');note.className='equip-detail-note';
+ if(id==='bag'&&s.equipmentV1.bag==='enchanted_satchel'){
+  heading.textContent='背包｜附魔旅行側包';
+  note.textContent='已裝備 · 24 格 · 內容物上限 16 kg · 附魔減重 50%（限制尚未啟用）';
+ }else{
+  heading.textContent=part.name+'｜空裝備格';
+  note.textContent=part.hint+'。目前沒有可穿戴的物品，後續可從背包選擇裝備。';
+ }
+ host.append(heading,note);
+}
+function renderEquipmentBoard(){
+ normalizeEquipmentV1();
+ const board=$('equipmentBoard');board.replaceChildren();
+ for(const side of ['left','center','right']){
+  if(side==='center'){
+   const f=document.createElement('div');f.className='equip-figure';
+   f.innerHTML=equipmentHeroSVG();board.appendChild(f);continue;
+  }
+  const col=document.createElement('div');col.className='equip-side';
+  for(const part of EQUIPMENT_PARTS.filter(x=>x.side===side)){
+   const full=part.id==='bag'&&s.equipmentV1.bag==='enchanted_satchel';
+   const btn=document.createElement('button');btn.type='button';btn.className='equip-slot'+(full?' is-filled':'');
+   btn.dataset.equipPart=part.id;btn.setAttribute('aria-label',part.name+'：'+(full?'附魔旅行側包':'空裝備格'));
+   const icon=document.createElement('span');icon.className='equip-slot-symbol';icon.setAttribute('aria-hidden','true');icon.textContent=part.symbol;
+   const words=document.createElement('span');words.className='equip-slot-words';
+   const title=document.createElement('span');title.className='equip-slot-name';title.textContent=part.name;
+   const status=document.createElement('span');status.className='equip-slot-status';status.textContent=full?'附魔旅行側包':'尚未裝備';
+   words.append(title,status);btn.append(icon,words);
+   btn.onclick=()=>showEquipmentDetail(part.id);
+   col.appendChild(btn);
+  }
+  board.appendChild(col);
+ }
+ showEquipmentDetail(equipmentSelected);
+}
+function openEquipmentPanel(){
+ const v=$('equipmentVeil');if(!v)return;
+ equipmentReturnFocus=document.activeElement;
+ renderEquipmentBoard();v.classList.remove('hidden');
+ $('equipmentClose').focus({preventScroll:true});
+}
+function closeEquipmentPanel(){
+ const v=$('equipmentVeil');if(!v||v.classList.contains('hidden'))return;
+ v.classList.add('hidden');
+ if(equipmentReturnFocus&&equipmentReturnFocus.isConnected)equipmentReturnFocus.focus({preventScroll:true});
+ equipmentReturnFocus=null;
+}
+
 function renderSideTab(tab,out){
  if(tab==='character'){
   const card=document.createElement('section');card.className='protagonist-card';
@@ -4552,14 +4768,15 @@ function renderSideTab(tab,out){
   out.appendChild(note);return;
  }
  if(tab==='equipment'){
-  sideInfoHeading(out,'裝備欄');
-  for(const slot of ['武器','防具','飾品']){
-   const row=document.createElement('div');row.className='side-equip-row';
-   const name=document.createElement('span');name.textContent=slot;
-   const detail=document.createElement('span');detail.textContent='尚未裝備';
-   row.append(name,detail);out.appendChild(row);
-  }
-  sideInfoText(out,'裝備取得與穿戴功能尚未開放，不顯示虛構裝備加成。','side-info-note');return;
+  sideInfoHeading(out,'角色裝備');
+  const mini=document.createElement('div');mini.className='equip-compact';
+  const title=document.createElement('strong');title.textContent='人體對應裝備欄';
+  const info=document.createElement('p');
+  info.textContent='人物置中、裝備部位分列兩側。已裝備：附魔旅行側包（24 格／16 kg／減重 50%）。其他槽位暫無裝備。';
+  const action=document.createElement('button');action.className='side-info-aux';action.type='button';
+  action.textContent='開啟角色裝備圖';action.onclick=openEquipmentPanel;
+  mini.append(title,info,action);out.appendChild(mini);
+  sideInfoText(out,'點擊裝備格查看對應部位。裝備物品取得與穿戴功能將在後續開放。','side-info-note');return;
  }
  if(tab==='inventory'){
   renderWalletPanel(out);
@@ -4964,12 +5181,12 @@ function paintActorSprite(canvas,memberId,emotion='neutral'){
 }
 function randomSeed(){return (Date.now()^((Math.random()*4294967295)>>>0))>>>0;}
 function selectFour(seed){let a=[0,1,2,3,4,5],v=seed>>>0;for(let i=a.length-1;i>0;i--){v=(Math.imul(v,1664525)+1013904223)>>>0;let j=v%(i+1);[a[i],a[j]]=[a[j],a[i]];}return a.slice(0,4).sort((x,y)=>x-y);}
-function initial(){const seed=randomSeed();return{v:1,seed,scene:'wreck',worldMinutes:960,routeDiscovery:{known:[],searchCounts:{}},placeCardsViewed:[],exploration:{counts:{},routeProgress:{},pending:{},daily:{},last:{}},recovery:{found:false,looted:false,items:[],parts:{}},forestEcology:{checkedDays:{},observed:{},ingredients:{},leafCollected:false},forestRare:{checkedDays:{},sighted:{},hints:{},ingredients:{},beetleGearTaken:false,rabbitHerbTaken:false},beetle:{questAccepted:false,questCompleted:false,captured:false,terrarium:false,seen:false,food:72,clean:85,comfort:68,lastDay:0},wallet:{silver:1,copper:12},hp:16,maxHp:16,seen:[],notes:[],items:[],party:selectFour(seed),flags:{},visits:{wreck:1},savedAt:Date.now(),sound:false,feedCollapsed:false,travelHudMode:'compact',travelLog:[{type:'daily',message:'在毀壞的馬車篷內醒來，扶著斷裂木板爬到了外面。',thought:'我怎麼會在這裡？先看看四周吧。',scene:'wreck',time:Date.now()}]};}
+function initial(){const seed=randomSeed();return{v:1,seed,scene:'wreck',worldMinutes:960,routeDiscovery:{known:[],searchCounts:{}},placeCardsViewed:[],exploration:{counts:{},routeProgress:{},pending:{},daily:{},last:{}},recovery:{found:false,looted:false,items:[],parts:{}},forestEcology:{checkedDays:{},observed:{},ingredients:{},leafCollected:false},forestRare:{checkedDays:{},sighted:{},hints:{},ingredients:{},beetleGearTaken:false,rabbitHerbTaken:false},beetle:{questAccepted:false,questCompleted:false,captured:false,terrarium:false,seen:false,food:72,clean:85,comfort:68,lastDay:0},wallet:{silver:1,copper:12},equipmentV1:{bag:'enchanted_satchel'},hp:16,maxHp:16,seen:[],notes:[],items:[],party:selectFour(seed),flags:{},visits:{wreck:1},savedAt:Date.now(),sound:false,feedCollapsed:false,travelHudMode:'compact',travelLog:[{type:'daily',message:'在毀壞的馬車篷內醒來，扶著斷裂木板爬到了外面。',thought:'我怎麼會在這裡？先看看四周吧。',scene:'wreck',time:Date.now()}]};}
 function validSave(j){return !!(j&&j.v===1&&names[j.scene]&&Number.isFinite(j.hp)&&Number.isFinite(j.maxHp)&&Array.isArray(j.party)&&j.party.length===4&&new Set(j.party).size===4&&j.party.every(i=>Number.isInteger(i)&&i>=0&&i<6)&&Array.isArray(j.seen)&&Array.isArray(j.notes)&&Array.isArray(j.items)&&j.flags&&typeof j.flags==='object'&&j.visits&&typeof j.visits==='object');}
 function load(){try{const j=JSON.parse(localStorage.getItem(KEY));return validSave(j)?j:null;}catch{return null;}}
 let s=load()||initial(), hasSave=!!load(),modal=null,showHints=false,journalTab='discoveries',toastHandle=null;
-let backpackView='all';
-normalizeWallet();
+let backpackView='all',equipmentSelected='bag',equipmentReturnFocus=null;
+normalizeWallet();normalizeEquipmentV1();
 if(!Array.isArray(s.travelLog))s.travelLog=[];
 normalizeGameTime();normalizeRecovery();normalizeForestRare();normalizeBeetleCare();normalizeForestEcology();normalizeRouteDiscovery();normalizeExploration();normalizePlaceCards();
 if(typeof s.feedCollapsed!=='boolean')s.feedCollapsed=false;if(!['compact','expanded'].includes(s.travelHudMode))s.travelHudMode='compact';
@@ -5692,7 +5909,10 @@ $('hudCharacterBtn').onclick=()=>setActiveSideTab('character');
 $('hudSettingsBtn').onclick=()=>$('menuBtn').click();
 $('travelToggle').onclick=()=>setTravelHud(s.travelHudMode==='expanded'?'compact':'expanded');
 $('travelOpenJournal').onclick=()=>journal('journey');
-$('regionMapBtn').onclick=()=>journal('map');$('journalBtn').onclick=()=>journal('journey');$('mapBtn').onclick=()=>journal('map');$('journalClose').onclick=()=>$('journalVeil').classList.add('hidden');$('hintBtn').onclick=()=>{showHints=!showHints;renderHotspots();toast(showHints?'僅顯示附近可互動位置，不影響主線':'已隱藏互動提示');};$('menuBtn').onclick=()=>{$('menuVeil').classList.remove('hidden');$('soundBtn').textContent='音效：'+(s.sound?'開啟':'關閉');};$('menuClose').onclick=()=>$('menuVeil').classList.add('hidden');$('dialogClose').onclick=closeDialog;
+$('regionMapBtn').onclick=()=>journal('map');$('equipmentClose').onclick=closeEquipmentPanel;
+$('equipmentToBag').onclick=()=>{closeEquipmentPanel();setActiveSideTab('inventory');};
+$('equipmentVeil').addEventListener('click',event=>{if(event.target===$('equipmentVeil'))closeEquipmentPanel();});
+$('journalBtn').onclick=()=>journal('journey');$('mapBtn').onclick=()=>journal('map');$('journalClose').onclick=()=>$('journalVeil').classList.add('hidden');$('hintBtn').onclick=()=>{showHints=!showHints;renderHotspots();toast(showHints?'僅顯示附近可互動位置，不影響主線':'已隱藏互動提示');};$('menuBtn').onclick=()=>{$('menuVeil').classList.remove('hidden');$('soundBtn').textContent='音效：'+(s.sound?'開啟':'關閉');};$('menuClose').onclick=()=>$('menuVeil').classList.add('hidden');$('dialogClose').onclick=closeDialog;
 for(const btn of document.querySelectorAll('[data-preview-period]'))btn.onclick=()=>selectTimePreview(btn.dataset.previewPeriod);
 $('timePreviewTag').onclick=clearTimePreview;
 $('sceneDialogueNext').onclick=e=>{e.stopPropagation();nextSceneDialogue();};
@@ -5702,6 +5922,7 @@ $('restartBtn').onclick=()=>{if(!confirm('確定重新開始？目前本機存�
 $('exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify(s,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='dungeon-adventure-save-v02.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};$('importBtn').onclick=()=>$('fileInput').click();$('fileInput').onchange=async e=>{try{const text=await e.target.files[0].text(),j=JSON.parse(text);if(!validSave(j))throw Error('格式不相容');s=j;previewPeriod=null;normalizeGameTime();normalizeRecovery();normalizeForestRare();normalizeBeetleCare();normalizeForestEcology();normalizeRouteDiscovery();normalizeExploration();normalizePlaceCards();closePlaceDrawer();hideSceneActors();hideSceneInspection();refreshSceneFraming();if(!Array.isArray(s.travelLog))s.travelLog=[];if(typeof s.feedCollapsed!=='boolean')s.feedCollapsed=false;if(!['compact','expanded'].includes(s.travelHudMode))s.travelHudMode='compact';save();render();$('menuVeil').classList.add('hidden');toast('已匯入存檔');}catch{alert('無法讀取這份存檔。');}e.target.value='';};
 $('startBtn').onclick=()=>{closeSceneDialogue();s=initial();previewPeriod=null;refreshSceneFraming();hasSave=true;$('startVeil').classList.add('hidden');render();openWreckIntroduction();};if(hasSave){$('continueBtn').classList.remove('hidden');$('continueBtn').onclick=()=>{$('startVeil').classList.add('hidden');render();if(s.flags.inBattle)battleDialog('繼續尚未結束的遭遇戰。');else openWreckIntroduction();};}
 window.addEventListener('keydown',e=>{
+if(e.key==='Escape'&&!$('equipmentVeil').classList.contains('hidden')){e.preventDefault();closeEquipmentPanel();return;}
 if(e.metaKey||e.ctrlKey||e.altKey||e.target.matches('input,textarea,select,[contenteditable="true"]'))return;
 if(sceneDialogueState.open){
   if(e.key==='Enter'||e.key===' '||e.key==='ArrowRight'){e.preventDefault();nextSceneDialogue();return;}
