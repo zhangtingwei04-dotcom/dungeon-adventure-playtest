@@ -3529,12 +3529,24 @@ html.stage-locked #app .equip-guide .paperdoll-stage{
 html.stage-locked #app .equip-guide .paperdoll-layer{
  display:block;position:absolute;inset:0;pointer-events:none;
  background-image:var(--paperdoll-atlas);
- background-repeat:no-repeat;background-size:300% 100%;
+ background-repeat:no-repeat;background-size:900% 100%;
  image-rendering:pixelated;
 }
 html.stage-locked #app .equip-guide .paperdoll-base{background-position:0% 0%}
 html.stage-locked #app .equip-guide .paperdoll-eyes{background-position:50% 0%}
 html.stage-locked #app .equip-guide .paperdoll-hair{background-position:100% 0%}
+
+/* Temporary visual try-on preview; gear is never granted or persisted. */
+html.stage-locked #app .equip-guide .paperdoll-preview-label{
+ position:absolute;left:50%;bottom:2px;transform:translateX(-50%);
+ background:rgba(29,47,39,.93);border:1px solid #c1a06c;border-radius:3px;
+ color:#f7ddaa;font-size:9px;padding:1px 3px;white-space:nowrap;
+}
+html.stage-locked #app #placeDrawerPanel .equip-try-on-button{
+ flex:none;align-self:center;min-height:30px!important;padding:3px 5px!important;
+ border:1px solid #c3a366!important;border-radius:6px!important;
+ background:#245044!important;color:#fff0cd!important;font-size:11px!important;
+}
 </style>
 </head>
 <body>
@@ -4647,21 +4659,34 @@ function normalizeEquipmentV1(){
  for(const part of EQUIPMENT_PARTS){
   if(part.id==='bag'){
    if(!['enchanted_satchel',null].includes(s.equipmentV1.bag))s.equipmentV1.bag='enchanted_satchel';
+  }else if(['chest','legs','feet','outer'].includes(part.id)){
+   const supported=TRAVEL_OUTFIT_IMAGE_IDS[part.id];
+   if(s.equipmentV1[part.id]!==supported)s.equipmentV1[part.id]=null;
   }else if(s.equipmentV1[part.id]!==null){
-   s.equipmentV1[part.id]=null; // No obtainable equippable catalog exists yet.
+   s.equipmentV1[part.id]=null; // Other gear has no approved artwork/catalog yet.
   }
  }
 }
 // Rendered artwork, not a procedural SVG. Transparent 89x216 PNG sourced from
 // the approved gold-line silhouette concept; bundled to work in one-file Pages deployment.
-// Verified three-layer paper doll atlas: 192×160, 64×160 per layer (body, eyes, hair).
-// Each layer has its own CSS surface; the compact shared atlas prevents misaligned downloads.
-const EQUIPMENT_PAPERDOLL_ATLAS_V2='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAACgCAMAAABt9pNvAAABgFBMVEUAAAD717P35tANAwYQBAgnGBvOua/p18vXw7lvVVSDaWvcx8KPdnQ3JipMNjT6x5j+47uvmJPxy6jvt4nhzMZ7Y2aNaFL36eJZRUlrRzblrYWwiGtkTE24opmag4TCq6ejiom7pqJ0XWInFhfLl3FDLCqEXUfMqYssGieXcVuodldOPEPmqHpbQTceEBVJJBiUfIS0lHrcpHmYg3f+9e06Ix54Uz5gPS2kaVF7Y1amfGLAjWkhDg80GUhFHRFkNHmHVDnZtZbknWwYBSMtHiE6JyRDKB1GLCZDIFJXM2NmMx6XXKavl7T/8NseEhUhCzE3JENLH15bLnFiLH1yQ4t7bYWESS6DVpWBapCrZT+ljLG+s7LJnoDW0NPzsHz/0Z8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA1mR8VAAAAgHRSTlMA//+A/////////////////////////////////////////4D//////////////////////////////////////////4CAgID///////+A//////////////////////8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEEfXxgAAAyoSURBVHja7Z0Hd6O4FoANqoAoAmPj2Lg7juP0ZLI7bXtvr/f2///FuxIQO07sZN7ZzIh3ck+KwUxGH7dLImk0nuVZnuVZnuX/TxCupKbj9zNHaHEQQjUEwH4mJG0y1syDwK+rDQXS8zhvNvvkl3ra0cT3e4wBhPTr6gnoRAxps8mFP6nj6LUdkZR6TSoO6ufJfiHEFyOPSh/VzYX9IfVABsMxdiiXB7XKCQg5w5xC/GFNznM3GA9S3+kLMSa10AM6SN1BE6LPYDSSo9GIpj3hpFJJmpnsC6gwEeSnnDU9yqlwXSFc0c/TLJX9sZsKKR3ybj+UFPKe7rwzgbrBd3OZ0wHYEKXc82juuq7juJCY6QhoHPxOo7cLeS8MyM9FLwjgtrtpmnIb1OB5YEp0CMdyoGjAp1Py+OHDyK1CNMN7yLwDpoQOOGNt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';
+// Nine aligned 64x160 pixel layers packed into one tested 576x160 PNG.
+const EQUIPMENT_PAPERDOLL_ATLAS_V3='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAkAAAACgCAMAAADTnyOvAAABgFBMVEUAAAD21rImHSEpTD4ULip4UzdVQjj35tDOrGYNAwZKNC4QBAgnGBs9MjDOua+Qakvp18vXw7lvVVSDaWvcx8KPdnQ3Jir6x5j+47uvmJPwy6jvt4nhzMZ7Y2ZrRzb36eKsiGxZRUmmeE7lrYXx04xkTE24opmXc1Sag4S6lGfCq6ejiom7pqJ0XWInFhfLl3Gch3BDLCqEXUfMqYuZoV1OPEPmqHpgP4r/8NOlfO7cwp4eEBVJJBiUfIT+9e06Ix5gPS2kaVF7Y1amfGLAjWkhDg80GUjoyP9FHRFkNHmHVDnZtZbknWwYBSMtHiE6JyRDKB1GLCZDIFJXM2NmMx6XXKavl7QeEhUhCzE3JENLH15bLnFiLH1yQ4t7bYWESS6DVpWBapCrZT+ljLG+s7LJnoDW0NPzsHwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAN7DRbAAAAgHRSTlMA//////////+A////////////////////////////////////////////////gP////////////////////////////////////////+AgICA//////+A/////////////////////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIw5A6gAABQOSURBVHja7Z0He+LG2obRYFv1DBo1EEIYsCmm2MaOvbvxliS7yUlOcnr5em///x980wSiSAhnrSAxT9ZeNBD7Qtz7vGVGo0pFSEhISEhISEhISEhISEhISKi4UvVI4lwIPYMfr2u5VJaqquJ8CO0p3eu6PmyZZmugaZ44H0LPiWGa7zgItVoj4+/E+RDaX9ee1zdNDJHviUxI6DkupD65E9hqIde7FmdDaF96aBwzQui0oAtEJi20nzwmw3OnDvQ9AZDQXim0N4EO1ngy0y2IfCB6QkJ7RC9rMoC4/jJbCA1sbTYOPWvkujND+JDQbnxAaI9buPoaT6f+dDqFYd+1Qp8o7IpcSCg5bNEQpXohMlsORNC1bde13dEg7Ib+aGaHru9bxn4/1GASZ/conMe6VlXVswf+AI5xDIMQOQ4c2LZtWbbrQzjF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';
+const TRAVEL_OUTFIT_IMAGE_IDS=Object.freeze({chest:'starter_tunic',legs:'starter_trousers',feet:'starter_boots',outer:'starter_cloak',bag:'enchanted_satchel'});
+// Test only. Do not save preview clothes into equipmentV1 or inventory.
+let paperDollTryOn=false;
 function equipmentGuideHTML(){
- return '<div class="paperdoll-stage" role="img" aria-label="主角紙娃娃：基礎身體、紫色眼睛及銀灰色頭髮">'+
-  '<span class="paperdoll-layer paperdoll-base" aria-hidden="true"></span>'+
-  '<span class="paperdoll-layer paperdoll-eyes" aria-hidden="true"></span>'+
-  '<span class="paperdoll-layer paperdoll-hair" aria-hidden="true"></span></div>';
+ const show=id=>paperDollTryOn||s.equipmentV1[id]===TRAVEL_OUTFIT_IMAGE_IDS[id];
+ const indexes=[0];
+ if(show('outer'))indexes.push(1);
+ if(show('legs'))indexes.push(2);
+ if(show('chest'))indexes.push(3);
+ if(show('feet'))indexes.push(4);
+ if(show('outer'))indexes.push(5);
+ if(show('bag'))indexes.push(6);
+ indexes.push(7,8);
+ const layers=indexes.map(i=>'<span class="paperdoll-layer" aria-hidden="true" style="background-position:'+String(i*12.5)+'% 0"></span>').join('');
+ return '<div class="paperdoll-stage" role="img" aria-label="'+(paperDollTryOn?'主角旅行裝試穿預覽':'依已裝備物品顯示的主角紙娃娃')+'">'+
+ layers+(paperDollTryOn?'<span class="paperdoll-preview-label">試穿</span>':'')+'</div>';
 }
 function showEquipmentDetail(id){
  const part=EQUIPMENT_PARTS.find(x=>x.id===id)||EQUIPMENT_PARTS[0];
@@ -4689,7 +4714,7 @@ function renderEquipmentBoard(){
   if(side==='center'){
    const f=document.createElement('div');f.className='equip-guide';
    // Keep all ten slots visible even if the optional art fails to render.
-   f.style.setProperty('--paperdoll-atlas','url("'+EQUIPMENT_PAPERDOLL_ATLAS_V2+'")');
+   f.style.setProperty('--paperdoll-atlas','url("'+EQUIPMENT_PAPERDOLL_ATLAS_V3+'")');
    try{f.innerHTML=equipmentGuideHTML();}
    catch(err){console.error('Equipment figure failed:',err);f.setAttribute('aria-label','裝備人形預覽暫時無法顯示');}
    board.appendChild(f);continue;
@@ -4780,7 +4805,12 @@ function renderSideTab(tab,out){
   bag.className='equip-bag-button';bag.textContent='背包';
   bag.setAttribute('aria-label','切換到背包欄位');
   bag.onclick=()=>setActiveSideTab('inventory');
-  footer.append(detail,bag);section.append(board,footer);out.appendChild(section);
+  const tryOn=document.createElement('button');tryOn.type='button';
+  tryOn.className='equip-try-on-button';tryOn.textContent=paperDollTryOn?'還原':'試穿';
+  tryOn.setAttribute('aria-pressed',String(paperDollTryOn));
+  tryOn.setAttribute('aria-label',paperDollTryOn?'退出旅行裝試穿，顯示實際已穿戴裝備':'預覽整套旅行裝，不會更改或儲存裝備');
+  tryOn.onclick=()=>{paperDollTryOn=!paperDollTryOn;renderPlaceDrawer();};
+  footer.append(detail,tryOn,bag);section.append(board,footer);out.appendChild(section);
   renderEquipmentBoard();return;
  }
  if(tab==='inventory'){
