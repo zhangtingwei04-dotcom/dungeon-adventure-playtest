@@ -3729,6 +3729,7 @@ html.stage-locked #app .paperdoll-stage .paperdoll-female-eye-motion-canvas{
  position:absolute;inset:0;width:100%;height:100%;pointer-events:none;
  image-rendering:pixelated;z-index:5;
 }
+html.stage-locked #app .paperdoll-stage .paperdoll-female-mouth-motion-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;image-rendering:pixelated;z-index:5}
 /* Keep the tiny facial-status effect visible above sprite layers. */
 html.stage-locked #app .paperdoll-stage .paperdoll-condition-canvas{z-index:6}
 html.stage-locked #app .paperdoll-stage.skin-tinted .male-base,
@@ -3994,6 +3995,7 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <script src="./assets/expression_motion.js?v=2.16"></script>
 <script src="./assets/female_head_v1.js?v=1"></script>
 <script src="./assets/female_eye_motion_v1.js?v=1"></script>
+<script src="./assets/female_mouth_motion_v1.js?v=1"></script>
 <script>
 (()=>{'use strict';
 // Fixed design canvas: use the approved screenshot's exact 1536×707 ratio,
@@ -5030,6 +5032,7 @@ function paperDollBodyCondition(){
 /* Four HP-linked facial loops; the same controller also works for NPCs. */
 const paperDollMotionActor=window.DungeonExpressionMotion?.createActor({id:'player',status:'healthy',blink:true})||null;
 let paperDollMotionFrame=null,paperDollMotionLastKey='',paperDollEmotionPreview=null,paperDollMotionEnabled=true;
+let paperDollFemaleTalkPreview=false;
 function paperDollMotionStatus(){
  // The existing four-state appearance preview must animate too, without changing HP.
  const id=paperDollBodyCondition().id;
@@ -5059,6 +5062,7 @@ function tickPaperDollMotion(force=false){
   paperDollRestPreview.sleep,paperDollRestPreview.vitality,
   s.appearanceV1?.gender==='female'&&paperDollMotionEnabled?
    (window.DungeonFemaleEyeMotionV1?.gaze(performance.now())||'center'):'no-gaze',
+  paperDollFemaleTalkPreview&&s.appearanceV1?.gender==='female'?Math.floor(performance.now()/170):'no-talk',
   restAnimating?Math.floor(performance.now()/160):'rest-idle'
  ].join('|');
  if(!force&&signature===paperDollMotionLastKey)return false;
@@ -5073,6 +5077,7 @@ function tickPaperDollMotion(force=false){
   paintPaperDollBrows();
   paintPaperDollEyes();
   paintPaperDollFemaleEyes();
+  paintPaperDollFemaleMouth();
   paintPaperDollPhysicalCondition();
  }
  paintNpcDreamPreview();
@@ -5092,6 +5097,20 @@ function paintPaperDollFemaleEyes(){
   motion.render(stage,{closed,blink,gaze});
 }
 window.addEventListener("dungeon-female-eyes-ready",paintPaperDollFemaleEyes);
+/* Independent female mouth animation follows HP, selected expression and dreams. */
+function paintPaperDollFemaleMouth(){
+ const motion=window.DungeonFemaleMouthMotionV1;if(!motion)return;
+ const unconscious=currentPaperDollAbnormalStates().includes('unconscious');
+ const part=paperDollMotionFrame?.parts?.mouth||'original';
+ let pose='neutral';
+ if(part==='smile'||part==='happy')pose='smile';
+ else if(part==='surprised')pose='surprised';
+ else if(part==='shy')pose='shy';
+ else if(part==='angry')pose='frown';
+ if(['nightmare_mild','nightmare_severe'].includes(paperDollRestPreview.sleep))pose='frown';
+ for(const stage of document.querySelectorAll('.paperdoll-stage.paperdoll-female'))
+  motion.render(stage,{pose,unconscious,talking:paperDollFemaleTalkPreview&&paperDollRestPreview.sleep==='awake',time:performance.now()});
+}
 // One small visible-only tick; NPCs can sample their actors from the scene update loop.
 setInterval(()=>{if(!document.hidden)tickPaperDollMotion();},75);
 
@@ -5400,10 +5419,19 @@ function renderPaperDollExpressionControls(){
   option.selected=(paperDollEmotionPreview||'auto')===id;emotionSelect.appendChild(option);
  }
  emotionSelect.onchange=()=>{paperDollEmotionPreview=emotionSelect.value==='auto'?null:emotionSelect.value;paperDollMotionLastKey='';tickPaperDollMotion(true);};
- motion.appendChild(emotionSelect);row.appendChild(motion);
+ motion.appendChild(emotionSelect);
+ if(s.appearanceV1?.gender==='female'){
+  const speechLabel=document.createElement('label');speechLabel.className='paperdoll-customizer-field';
+  const speechCheck=document.createElement('input');speechCheck.type='checkbox';speechCheck.checked=paperDollFemaleTalkPreview;
+  speechCheck.setAttribute('aria-label','女性角色嘴巴說話試演');
+  speechCheck.onchange=()=>{paperDollFemaleTalkPreview=speechCheck.checked;paperDollMotionLastKey='';tickPaperDollMotion(true);};
+  speechLabel.append(speechCheck,document.createTextNode(' 嘴巴說話試演（不改存檔）'));
+  motion.appendChild(speechLabel);
+ }
+ row.appendChild(motion);
  if(s.appearanceV1?.gender==='female'){
   const limit=document.createElement('span');limit.className='paperdoll-expression-note';
-  limit.textContent='女性版先保留原五官，另外疊加汗水與異常特效；女性專用表情素材稍後製作。';
+  limit.textContent='女性紫色眼睛可眨眼、轉動；嘴型支援平靜、微笑、驚訝及說話試演。';
   row.appendChild(limit);
  }
  return row;
@@ -5647,7 +5675,7 @@ function equipmentGuideHTML(sceneMode='equipment'){
   '<canvas class="paperdoll-eyes-canvas" width="64" height="160" aria-hidden="true"></canvas>'+
   (s.appearanceV1?.gender==='female'&&FEMALE_REPLACEMENT_HEAD_LAYERS?
    '<canvas class="paperdoll-female-eye-motion-canvas" width="64" height="160" aria-hidden="true"></canvas>':'');
- const mouth=s.appearanceV1?.gender==='male'?maleTemplateLayer(character.layers.mouth,'paperdoll-mouth'):'';
+ const mouth=s.appearanceV1?.gender==='male'?maleTemplateLayer(character.layers.mouth,'paperdoll-mouth'):(s.appearanceV1?.gender==='female'&&FEMALE_REPLACEMENT_HEAD_LAYERS?'<canvas class="paperdoll-female-mouth-motion-canvas" width="64" height="160" aria-hidden="true"></canvas>':'');
  const healthMarks='<canvas class="paperdoll-condition-canvas" width="64" height="160" aria-hidden="true"></canvas>';
  const hair=maleTemplateLayer(character.layers.hair,'paperdoll-hair-fallback')+
   '<canvas class="paperdoll-hair-canvas" width="64" height="160" aria-hidden="true"></canvas>';
@@ -5779,6 +5807,7 @@ function renderEquipmentBoard(){
  paintPaperDollBrows();
  paintPaperDollEyes();
  paintPaperDollFemaleEyes();
+ paintPaperDollFemaleMouth();
  paintPaperDollSkin();
  paintPaperDollPhysicalCondition();
  paintNpcDreamPreview();
