@@ -92,11 +92,11 @@
   * and the HP-critical purple spiral. Four black-pixel spiral frames rotate
   * on a pale eye base. The rest of the face remains unchanged.
   */
- const BLACK_SPIRAL_FRAMES=Object.freeze([
-  [[-1,-1],[0,-1],[1,-1],[1,0],[0,1],[-1,1],[-1,0],[0,0]],
-  [[1,-1],[1,0],[1,1],[0,1],[-1,0],[-1,-1],[0,-1],[0,0]],
-  [[1,1],[0,1],[-1,1],[-1,0],[0,-1],[1,-1],[1,0],[0,0]],
-  [[-1,1],[-1,0],[-1,-1],[0,-1],[1,0],[1,1],[0,1],[0,0]]
+ /* Four rotated 5x5 spirals with a black 1-pixel LINE, not a black
+  * square. Use pale eye whites only within a tiny rounded pixel oval.
+  */
+ const BLACK_SPIRAL_PATH=Object.freeze([
+  [-1,-2],[0,-2],[1,-2],[2,-1],[2,0],[1,1],[0,1],[0,0]
  ]);
  function drawUnconsciousEyes(ctx,time=clock(),layout){
   if(!ctx)return;
@@ -104,21 +104,19 @@
   const y0=Number.isFinite(layout?.y)?layout.y:0;
   const centers=Array.isArray(layout?.eyeCenters)?layout.eyeCenters:[[25,36],[39,36]];
   const phase=posMod(Math.floor((Number(time)||0)/210),4);
-  const form=BLACK_SPIRAL_FRAMES[phase];
   for(const [ex,ey] of centers){
    const x=Math.round(x0+ex),y=Math.round(y0+ey);
-   // Only the tiny iris region is masked; no large square across the face.
-   ctx.fillStyle='#e8dfd9';ctx.fillRect(x-1,y-1,3,3);
-   // Opaque nearly-black line remains distinct from the purple low-HP eyes.
-   for(let i=0;i<form.length;i++){
-    const [dx,dy]=form[i];
-    ctx.fillStyle=i===7?'#121318':'#17151a';
-    ctx.fillRect(x+dx,y+dy,1,1);
+   // Compact rounded white eye, with the face outline undisturbed.
+   ctx.fillStyle='#f1e8e3';
+   ctx.fillRect(x-1,y-2,3,1);
+   ctx.fillRect(x-2,y-1,5,3);
+   ctx.fillRect(x-1,y+2,3,1);
+   for(const [dx,dy] of BLACK_SPIRAL_PATH){
+    let rx=dx,ry=dy;
+    for(let i=0;i<phase;i++){const old=rx;rx=-ry;ry=old;}
+    ctx.fillStyle='#121317';
+    ctx.fillRect(x+rx,y+ry,1,1);
    }
-   // One pale pixel preserves the visible spiral's hollow opening.
-   ctx.fillStyle='#f9f6f0';
-   const light=[[-1,0],[0,-1],[1,0],[0,1]][phase];
-   ctx.fillRect(x+light[0],y+light[1],1,1);
   }
  }
  const ABNORMAL_LABELS=Object.freeze({
@@ -298,6 +296,6 @@
   });
  }
  root.DungeonExpressionMotion=Object.freeze({
-  version:'2.10.0',poses:POSES,statuses:STATUS_PRESETS,abnormalLabels:ABNORMAL_LABELS,drawSpiralEye,drawFaceSweat,drawUnconsciousEyes,drawAbnormalEffects,createActor
+  version:'2.10.1',poses:POSES,statuses:STATUS_PRESETS,abnormalLabels:ABNORMAL_LABELS,drawSpiralEye,drawFaceSweat,drawUnconsciousEyes,drawAbnormalEffects,createActor
  });
 })(window);
