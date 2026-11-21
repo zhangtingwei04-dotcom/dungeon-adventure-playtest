@@ -3977,7 +3977,7 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <script src="./assets/approved_wagon_art_v1.js"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
-<script src="./assets/expression_motion.js?v=2.12.1"></script>
+<script src="./assets/expression_motion.js?v=2.13"></script>
 <script>
 (()=>{'use strict';
 // Fixed design canvas: use the approved screenshot's exact 1536×707 ratio,
@@ -4964,6 +4964,15 @@ function paperDollLayers(){
 
 /* Physical expression v1 uses the EXISTING HP and maxHp; no fictitious meters. */
 let paperDollPhysicalPreview=null,paperDollPhysicalPreviewOpen=false;
+/* Sleep and SP prototype values: session-only, no save schema changes. */
+let paperDollRestPreview={sleep:'awake',vitality:'normal'};
+let paperDollRestPreviewOpen=false;
+const REST_SP_TEST_VALUES=Object.freeze({high:100,normal:70,low:25});
+function restPreviewLabel(){
+ return '睡眠：'+window.DungeonExpressionMotion.restSleep[paperDollRestPreview.sleep]+
+        '｜活力：'+window.DungeonExpressionMotion.restVitality[paperDollRestPreview.vitality];
+}
+
 /* HP chooses facial expressions. Abnormal states are ONLY effect layers. */
 const PAPERDOLL_BODY_CONDITIONS=Object.freeze({
  normal:{name:'開心',note:'睜眼微笑，偶爾輕眨眼',parts:{brows:'original',eyes:'original',mouth:'smile'}},
@@ -5000,16 +5009,24 @@ function tickPaperDollMotion(force=false){
  paperDollMotionActor.setExpressionOverride(paperDollEmotionPreview);
  paperDollMotionActor.setBlink(paperDollMotionEnabled);
  const frame=paperDollMotionActor.sample();
- // Shared facial-priority rule: unconscious replaces both eyes and mouth,
- // regardless of selected expression or HP; other conditions are unaffected.
- window.DungeonExpressionMotion.applyAbnormalFacePriority(frame,currentPaperDollAbnormalStates());
+ // Sleeping is a light visual preview: eyes closed, never an illness.
+ // Unconscious black eyes override sleep and all expressions.
+ const abnormalStates=currentPaperDollAbnormalStates();
+ if(paperDollRestPreview.sleep==='sleeping'&&!abnormalStates.includes('unconscious')){
+  frame.parts.eyes='eyesClosed';frame.blink=false;
+  frame.effects.blink=false;frame.effects.circleEyes=false;
+ }
+ window.DungeonExpressionMotion.applyAbnormalFacePriority(frame,abnormalStates);
+ const restAnimating=paperDollRestPreview.sleep!=='awake'||paperDollRestPreview.vitality!=='normal';
  const signature=[
   frame.status,...['brows','eyes','mouth'].map(k=>frame.parts[k]),
   frame.effects.blink?'blink':'open',
   frame.effects.sweat?frame.effects.sweatPhase:'no-sweat',
   frame.effects.circleEyes?frame.effects.circlePhase:'no-circle',
-  currentPaperDollAbnormalStates().join(','),
-  currentPaperDollAbnormalStates().length?Math.floor(performance.now()/160):'no-abnormal'
+  abnormalStates.join(','),
+  abnormalStates.length?Math.floor(performance.now()/160):'no-abnormal',
+  paperDollRestPreview.sleep,paperDollRestPreview.vitality,
+  restAnimating?Math.floor(performance.now()/160):'rest-idle'
  ].join('|');
  if(!force&&signature===paperDollMotionLastKey)return false;
  paperDollMotionFrame=frame;paperDollMotionLastKey=signature;
@@ -5323,6 +5340,40 @@ function renderPaperDollExpressionControls(){
  }
  return row;
 }
+function renderPaperDollRestControls(){
+ const panel=document.createElement('div');panel.className='paperdoll-abnormal-row';
+ const details=document.createElement('details');details.className='paperdoll-physical-preview';
+ details.open=paperDollRestPreviewOpen;
+ details.addEventListener('toggle',()=>paperDollRestPreviewOpen=details.open);
+ const summary=document.createElement('summary');
+ summary.textContent='睡眠與活力測試｜'+restPreviewLabel();
+ details.appendChild(summary);
+ const note=document.createElement('p');note.className='paperdoll-expression-note';
+ note.textContent='僅測試紙娃娃動態與 SP 示意數值，不會寫入存檔、扣血、限制探索或影響實際異常。';
+ details.appendChild(note);
+ for(const [kind,title,values] of [
+  ['sleep','睡眠狀態',window.DungeonExpressionMotion.restSleep],
+  ['vitality','活力狀態',window.DungeonExpressionMotion.restVitality]
+ ]){
+  const label=document.createElement('label');label.className='paperdoll-customizer-field';
+  const name=document.createElement('span');name.textContent=title;label.appendChild(name);
+  const select=document.createElement('select');select.className='paperdoll-choice-select';
+  select.setAttribute('aria-label','測試'+title);
+  for(const [id,caption] of Object.entries(values)){
+   const opt=document.createElement('option');opt.value=id;opt.textContent=caption;
+   opt.selected=paperDollRestPreview[kind]===id;select.appendChild(opt);
+  }
+  select.onchange=()=>{
+   paperDollRestPreview[kind]=select.value;
+   paperDollRestPreviewOpen=true;
+   paperDollMotionLastKey='';
+   renderPlayerStatus();
+   renderPlaceDrawer();
+  };
+  label.appendChild(select);details.appendChild(label);
+ }
+ panel.appendChild(details);return panel;
+}
 function renderPaperDollAbnormalControls(){
  const row=document.createElement('div');row.className='paperdoll-abnormal-row';
  const details=document.createElement('details');details.open=paperDollAbnormalPreviewOpen;
@@ -5560,6 +5611,9 @@ function paintPaperDollPhysicalCondition(){
   const ctx=canvas.getContext('2d');if(!ctx)continue;
   ctx.imageSmoothingEnabled=false;
   ctx.clearRect(0,0,64,160);
+  // Independent overlays: sleep and SP are session-only tests.
+  if(!abnormal.includes('unconscious'))
+   window.DungeonExpressionMotion.drawRestEffects(ctx,paperDollRestPreview,t);
   // HP condition motion is independent from all abnormal effects.
   if(effects?.sweat)window.DungeonExpressionMotion.drawFaceSweat(ctx,frame.status,effects.sweatPhase);
   if(effects?.circleEyes&&!abnormal.includes('unconscious')&&!stage.classList.contains('paperdoll-female')){
@@ -5643,7 +5697,7 @@ function renderSideTab(tab,out){
   const chapter=document.createElement('div');chapter.className='protagonist-subtitle';
   chapter.textContent='第一章 · 破損的馬車';profile.appendChild(chapter);
   const state=document.createElement('div');state.className='protagonist-status-tag';
-  state.textContent=s.flags.rescued?'清醒 · 已受救援':'清醒 · 獨自探索';profile.appendChild(state);
+  state.textContent=paperDollRestPreview.sleep==='sleeping'?'睡著（預覽）':paperDollRestPreview.sleep==='drowsy'?'想睡（預覽）':s.flags.rescued?'清醒 · 已受救援':'清醒 · 獨自探索';profile.appendChild(state);
   const hp=document.createElement('div');hp.className='protagonist-stat';
   const hpName=document.createElement('span');hpName.textContent='♥ HP';
   const hpNum=document.createElement('strong');hpNum.textContent=s.hp+' / '+s.maxHp;
@@ -5654,7 +5708,8 @@ function renderSideTab(tab,out){
   meter.setAttribute('aria-valuenow',String(s.hp));
   const fill=document.createElement('span');fill.style.width=Math.min(100,Math.max(0,100*s.hp/Math.max(1,s.maxHp)))+'%';
   meter.appendChild(fill);profile.appendChild(meter);
-  for(const [label,value] of [['◆ MP','未開放'],['ϟ SP','未開放']]){
+  const spTest=REST_SP_TEST_VALUES[paperDollRestPreview.vitality];
+  for(const [label,value] of [['◆ MP','未開放'],['ϟ SP（測試）',spTest+' / 100'],['睡眠（測試）',window.DungeonExpressionMotion.restSleep[paperDollRestPreview.sleep]]]){
    const row=document.createElement('div');row.className='protagonist-stat';
    const left=document.createElement('span');left.textContent=label;
    const right=document.createElement('strong');right.textContent=value;
@@ -5699,9 +5754,10 @@ function renderSideTab(tab,out){
   const genderControls=renderPaperDollGenderControls();
   const eyeControls=renderPaperDollEyeControls();
   const expressionControls=renderPaperDollExpressionControls();
+  const restControls=renderPaperDollRestControls();
   const abnormalControls=renderPaperDollAbnormalControls();
   const appearanceControls=renderPaperDollAppearanceControls();
-  footer.append(detail,equipAction,tryOn,bag);section.append(board,genderControls,hairControls,eyeControls,expressionControls,abnormalControls,appearanceControls,footer);out.appendChild(section);
+  footer.append(detail,equipAction,tryOn,bag);section.append(board,genderControls,hairControls,eyeControls,expressionControls,restControls,abnormalControls,appearanceControls,footer);out.appendChild(section);
   renderEquipmentBoard();return;
  }
  if(tab==='inventory'){
@@ -6653,8 +6709,10 @@ function renderPlayerStatus(){
 function showPlayerStatus(){
  dialog('玩家狀態',
   '生命／體力（HP）：'+s.hp+' / '+s.maxHp+
-  '\n\n魔力（MP）：未開放\n精力（SP）：未開放'+
-  '\n\n目前原型中的 HP 沿用既有體力數值；MP 與 SP 尚無消耗、回復或成長規則。',
+  '\n\n魔力（MP）：未開放'+
+  '\n活力（SP 測試）：'+REST_SP_TEST_VALUES[paperDollRestPreview.vitality]+' / 100'+
+  '\n睡眠（測試）：'+window.DungeonExpressionMotion.restSleep[paperDollRestPreview.sleep]+
+  '\n\n目前活力和睡眠僅供視覺測試，不寫入存檔，也不會限制遊戲行動。',
   [{label:'返回探索',fn:()=>{}}],'角色資料');
 }
 
