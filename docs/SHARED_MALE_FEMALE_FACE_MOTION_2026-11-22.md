@@ -90,3 +90,10 @@
 - 角色的 **neutral / happy / surprised / frown / shy / talkSmall / talkOpen** 其他造型沒有重畫。另修正 `index.html` 的嘴型選擇映射：男性 `happy` 使用先前已建立的獨立開心嘴型，不再被 `smile` 取代；女性仍維持原設定。
 - `assets/female_mouth_motion_v1.js` 版本提升至 3.5，`index.html` 更新 `?v=8` 重新載入。男性頭 V8d、頭位、原生新眼睛、獨立頭髮 V8、脖子與裝備皆不修改。
 - 重新讀回 GitHub main 後，測試像素渲染的 5 個位置、沒有下唇像素、`neutral` 不變、`happy` 與 `smile` 不同、女性原本繪圖函式保留及 JavaScript 語法，均通過。未完成實機視覺驗收。
+
+## 男性微笑左右對稱修正（2026-11-22）
+
+- 使用者要求男性微笑左右皆有嘴角上揚，不要單側微笑。將男性 `malePoseFrame('smile')` 改為軸線 x=31.5 的**左右完全鏡像**形狀：左右上揚嘴角為 (29,44)、(34,44)，平緩嘴線為 (30..33,45)；兩側對應像素顏色相同。
+- 仍採暖棕色閉嘴輕笑，沒有下唇、牙齒或粉色唇彩；男角中性嘴型、開心、驚訝、說話等其他動畫不改。女角沿用原本嘴型。
+- 表情模組升級 `DungeonFemaleMouthMotionV1` v3.6；`index.html` 與 `male-smile-preview.html` 引用 `female_mouth_motion_v1.js?v=9`。
+- 已重新取回 GitHub main；逐點驗證左右嘴角高度、顏色及中心對稱，並驗證中性與女性原有口型不變、沒有下唇像素及 JS 語法通過。iPhone 實際視覺待確認。
