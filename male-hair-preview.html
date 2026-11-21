@@ -20,7 +20,7 @@ a{color:#f3dba9}button{border:1px solid #ae9566;border-radius:5px;background:#31
 </head>
 <body>
 <main>
-<h1>男性新頭與新透明髮型 V8b</h1>
+<h1>男性新頭 V8c｜短平嘴與脖子位置</h1>
 <p>此頁直接載入正式遊戲的 64×160 頭部與髮型素材。左邊沒有頭髮，右邊加上透明髮型；兩張頭部圖片完全相同。沒有使用舊髮 V7。</p>
 <div id="check" class="check" role="status">正在確認素材…</div>
 <div class="grid">
@@ -30,8 +30,8 @@ a{color:#f3dba9}button{border:1px solid #ae9566;border-radius:5px;background:#31
 <p class="small">正常遊戲的頭部和髮型也都沿用同一張 64×160 像素座標。若上方沒有出現 V8b，代表頁面或部署尚未讀到新檔案。</p>
 <p><button id="reload" type="button">重新核對素材</button> <a href="./?hair-art=v8b-20261122">回到正式遊戲（重新要求新版頁面）</a></p>
 </main>
-<script src="./assets/male_new_head_v8.js?v=3"></script>
-<script src="./assets/male_hair_v8.js?v=3"></script>
+<script src="./assets/male_new_head_v8.js?v=4"></script>
+<script src="./assets/male_hair_v8.js?v=4"></script>
 <script>
 (()=>{
  'use strict';
@@ -39,11 +39,11 @@ a{color:#f3dba9}button{border:1px solid #ae9566;border-radius:5px;background:#31
  const head=window.DUNGEON_MALE_SHARED_FACE_V5,hair=window.DUNGEON_MALE_HAIR_V8;
  if(!(typeof head==='string'&&head.startsWith('data:image/png;base64,'))||
     !(typeof hair==='string'&&hair.startsWith('data:image/png;base64,'))){
-  check.textContent='缺少新版頭部或頭髮素材：目前不是完整 V8b，請回報此訊息。';
+  check.textContent='缺少新版頭部或頭髮素材：目前不是完整 V8c，請回報此訊息。';
   return;
  }
  let ready=0;let failed=false;
- function done(){if(++ready===3&&!failed)check.textContent='載入成功：男性新頭＋獨立透明髮型 V8b（未使用 V7）';}
+ function done(){if(++ready===3&&!failed)check.textContent='載入成功：男性新頭＋獨立透明髮型 V8c（未使用 V7）';}
  for(const img of document.querySelectorAll('img.head')){
   img.onload=()=>img.naturalWidth===64&&img.naturalHeight===160?done():check.textContent='頭部尺寸錯誤';
   img.onerror=()=>{failed=true;check.textContent='男性頭部 PNG 載入失敗'};
