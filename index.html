@@ -4005,6 +4005,7 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <script src="./assets/female_head_v1.js?v=1"></script>
 <script src="./assets/female_parts_v2.js?v=4"></script>
 <script src="./assets/male_round_face_v4.js?v=2"></script>
+<script src="./assets/male_shared_female_face_v5.js?v=1"></script>
 <script src="./assets/female_eye_motion_v1.js?v=2"></script>
 <script src="./assets/female_mouth_motion_v1.js?v=3"></script>
 <script>
@@ -5012,12 +5013,27 @@ const FEMALE_REPLACEMENT_HEAD_LAYERS=FEMALE_SPLIT_READY?
 const MALE_ROUND_HEAD_LAYERS=typeof window.DUNGEON_MALE_ROUND_FACE_V4==='string'&&
  window.DUNGEON_MALE_ROUND_FACE_V4.startsWith('data:image/png;base64,')?
  Object.freeze({...PAPERDOLL_SEPARATE_LAYERS,face:window.DUNGEON_MALE_ROUND_FACE_V4}):null;
+function isMaleSharedFaceReady(){
+ return s.appearanceV1?.gender==='male'&&
+  typeof window.DUNGEON_MALE_SHARED_FACE_V5==='string'&&
+  window.DUNGEON_MALE_SHARED_FACE_V5.startsWith('data:image/png;base64,');
+}
 function paperDollLayers(){
  const gender=s.appearanceV1?.gender==='female'?'female':'male';
  if(gender==='female'&&FEMALE_REPLACEMENT_HEAD_LAYERS)return FEMALE_REPLACEMENT_HEAD_LAYERS;
+ // Male uses the actual female head, recolored to the existing male skin.
+ // Baked female eye, brow and mouth art replaces the separate male face art;
+ // keeping only the male original hair/body/outfit avoids doubled features.
+ if(isMaleSharedFaceReady())return {...PAPERDOLL_SEPARATE_LAYERS,
+  face:window.DUNGEON_MALE_SHARED_FACE_V5,
+  brows:FEMALE_CLEAR_LAYER,eyes:FEMALE_CLEAR_LAYER,mouth:FEMALE_CLEAR_LAYER};
  if(gender==='male'&&MALE_ROUND_HEAD_LAYERS)return MALE_ROUND_HEAD_LAYERS;
  return PAPERDOLL_STANDARD_BODIES[gender].layers;
 }
+window.addEventListener('dungeon-male-face-ready',()=>{
+ resetPaperDollSpriteCaches();
+ if(document.getElementById('equipmentBoard'))renderPlaceDrawer();
+});
 
 /* Physical expression v1 uses the EXISTING HP and maxHp; no fictitious meters. */
 let paperDollPhysicalPreview=null,paperDollPhysicalPreviewOpen=false;
@@ -5123,7 +5139,7 @@ function paintPaperDollFemaleEyes(){
  const eyeColor=selected==='purple'?'purple':
   selected==='custom'?s.appearanceV1.eyeCustomHex:
   '#'+color.rgb.map(x=>x.toString(16).padStart(2,'0')).join('');
- for(const stage of document.querySelectorAll(".paperdoll-stage.paperdoll-female"))
+ for(const stage of document.querySelectorAll(".paperdoll-stage.paperdoll-female, .paperdoll-stage.paperdoll-shared-male-face"))
   motion.render(stage,{closed,blink,gaze,eyeColor});
 }
 window.addEventListener("dungeon-female-eyes-ready",paintPaperDollFemaleEyes);
@@ -5139,7 +5155,7 @@ function paintPaperDollFemaleMouth(){
  else if(part==='shy')pose='shy';
  else if(part==='angry')pose='frown';
  if(['nightmare_mild','nightmare_severe'].includes(paperDollRestPreview.sleep))pose='frown';
- for(const stage of document.querySelectorAll('.paperdoll-stage.paperdoll-female'))
+ for(const stage of document.querySelectorAll('.paperdoll-stage.paperdoll-female, .paperdoll-stage.paperdoll-shared-male-face'))
   motion.render(stage,{pose,unconscious,talking:paperDollFemaleTalkPreview&&paperDollRestPreview.sleep==='awake',time:performance.now()});
 }
 // One small visible-only tick; NPCs can sample their actors from the scene update loop.
@@ -5152,10 +5168,14 @@ function paperDollBodyConditionSprite(gender,key){
  return PAPERDOLL_EXPRESSION_LAYERS.male[part]?.[key]||null;
 }
 function paperDollSprite(key){
+ const gender=s.appearanceV1?.gender==='female'?'female':'male';
+ // Shared head already includes all face parts. Do not stack original male
+ // eye/brow/mouth art or HP-expression sprites over the female face.
+ if(isMaleSharedFaceReady()&&['brows','eyes','mouth'].includes(key))
+  return FEMALE_CLEAR_LAYER;
  // Do not render expression-specific or customized mouths during unconsciousness.
  if(key==='mouth'&&currentPaperDollAbnormalStates().includes('unconscious'))
   return paperDollLayers().mouth||null;
- const gender=s.appearanceV1?.gender==='female'?'female':'male';
  const slotIds={hair:'hairStyle',face:'faceShape',eyes:'eyeShape',brows:'browShape',mouth:'mouthShape'};
  const slotId=slotIds[key]||key;
  const choice=s.appearanceV1?.parts?.[slotId];
@@ -5598,7 +5618,7 @@ function renderPaperDollAppearanceControls(){
 let paperDollEyeImage=null,paperDollSkinImages=null;
 function paintPaperDollEyes(){
  const stages=document.querySelectorAll('.paperdoll-stage');if(!stages.length)return;
- if(s.appearanceV1?.gender==='female'&&FEMALE_REPLACEMENT_HEAD_LAYERS){
+ if((s.appearanceV1?.gender==='female'&&FEMALE_REPLACEMENT_HEAD_LAYERS)||isMaleSharedFaceReady()){
   stages.forEach(stage=>stage.classList.remove('eyes-tinted'));
   return;
  }
@@ -5709,15 +5729,19 @@ function equipmentGuideHTML(sceneMode='equipment'){
  const veil=privateScene?'<span class="paperdoll-asset-layer paperdoll-privacy-veil" aria-hidden="true" style="background-image:var(--paperdoll-privacy-'+(sceneMode==='bath'?'steam':'mosaic')+')"></span>':'';
  const brows=maleTemplateLayer(character.layers.brows,'male-brows-fallback')+
   '<canvas class="paperdoll-brows-canvas" width="64" height="160" aria-hidden="true"></canvas>';
+ const sharedHead=isMaleSharedFaceReady();
+ const animatedFace=sharedHead||(s.appearanceV1?.gender==='female'&&FEMALE_REPLACEMENT_HEAD_LAYERS);
  const eyes=maleTemplateLayer(character.layers.eyes,'male-eyes')+
   '<canvas class="paperdoll-eyes-canvas" width="64" height="160" aria-hidden="true"></canvas>'+
-  (s.appearanceV1?.gender==='female'&&FEMALE_REPLACEMENT_HEAD_LAYERS?
+  (animatedFace?
    '<canvas class="paperdoll-female-eye-motion-canvas" width="64" height="160" aria-hidden="true"></canvas>':'');
- const mouth=s.appearanceV1?.gender==='male'?maleTemplateLayer(character.layers.mouth,'paperdoll-mouth'):(s.appearanceV1?.gender==='female'&&FEMALE_REPLACEMENT_HEAD_LAYERS?'<canvas class="paperdoll-female-mouth-motion-canvas" width="64" height="160" aria-hidden="true"></canvas>':'');
+ const mouth=animatedFace?
+  '<canvas class="paperdoll-female-mouth-motion-canvas" width="64" height="160" aria-hidden="true"></canvas>':
+  s.appearanceV1?.gender==='male'?maleTemplateLayer(character.layers.mouth,'paperdoll-mouth'):'';
  const healthMarks='<canvas class="paperdoll-condition-canvas" width="64" height="160" aria-hidden="true"></canvas>';
  const hair=maleTemplateLayer(character.layers.hair,'paperdoll-hair-fallback')+
   '<canvas class="paperdoll-hair-canvas" width="64" height="160" aria-hidden="true"></canvas>';
- return '<div class="paperdoll-stage '+(s.appearanceV1?.gender==='female'?'paperdoll-female':'paperdoll-male')+(s.appearanceV1?.parts?.hairStyle==='bald'?' paperdoll-bald':'')+(currentPaperDollAbnormalStates().includes('unconscious')?' eyes-unconscious':'')+'" role="img" aria-label="'+
+ return '<div class="paperdoll-stage '+(s.appearanceV1?.gender==='female'?'paperdoll-female':'paperdoll-male')+(sharedHead?' paperdoll-shared-male-face':'')+(s.appearanceV1?.parts?.hairStyle==='bald'?' paperdoll-bald':'')+(currentPaperDollAbnormalStates().includes('unconscious')?' eyes-unconscious':'')+'" role="img" aria-label="'+
   (paperDollTryOn?'主角旅行裝試穿預覽':(s.appearanceV1?.gender==='female'?'女性':'男性')+'標準型紙娃娃，依實際裝備顯示')+'">'+
   behind+base+shorts+tank+outfit+satchel+extras+veil+brows+eyes+mouth+healthMarks+hair+
   (paperDollTryOn?'<span class="paperdoll-preview-label">試穿</span>':'')+'</div>';
