@@ -3679,6 +3679,14 @@ html.stage-locked #app .paperdoll-stage .paperdoll-privacy-veil{
  background-size:100% 100%!important;
 }
 
+/* First-class expression selector in existing equipment panel. */
+html.stage-locked #app .paperdoll-expression-row{
+ display:flex;flex-wrap:wrap;gap:7px;align-items:center;justify-content:space-between;
+ padding:8px 3px 9px;margin:1px 0 0;border-top:1px solid #b5a07150;
+}
+html.stage-locked #app .paperdoll-expression-row label{font-size:12px;color:#f5dca6}
+html.stage-locked #app .paperdoll-expression-row select{max-width:74%;flex:1;min-width:112px}
+html.stage-locked #app .paperdoll-expression-note{font-size:10px;color:#c9c7b9;width:100%;line-height:1.4}
 /* Bald V3 uses a real, complete no-hair head under the hidden hairstyle. */
 html.stage-locked #app .paperdoll-stage.paperdoll-bald .paperdoll-hair-fallback,
 html.stage-locked #app .paperdoll-stage.paperdoll-bald .paperdoll-hair-canvas{display:none!important}
@@ -4899,13 +4907,16 @@ const PAPERDOLL_STANDARD_BODIES=Object.freeze({
  female:Object.freeze({id:'female_standard',label:'女性・標準型',layers:PAPERDOLL_FEMALE_LAYERS})
 });
 const PAPERDOLL_VARIANT_ASSETS=Object.freeze({male:Object.freeze({}),female:Object.freeze({})});
+/* Male V3 independent eye, eyebrow and mouth expression layers. The unchanged original V3 art is the neutral preset. */
+const PAPERDOLL_EXPRESSION_LAYERS=Object.freeze({male:{"smile":{"brows":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAACgCAYAAAC8LWpcAAAA20lEQVR4nO3Tz0oCARAH4HF3UzNX0Qh0lwoLsUt/6BZdgjp1s0fo/d9hunlaDLyE8X0wl4GB+Q1MBAAAAAAAAADAAVbNZXb1p6NJZ/83V5Pzg+b+TDOfZUTsquj1dgEupvXeMMOTajdXFkWO+4OMiPjebo/jCLOzcX49txkR8bp+yYf2Mdv5IofVID+ebveGGPXLrPunebfYZETETX2fERF1WeZq0RzHAYZV1bnoslzm59v7wSHW191vBQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPwPP1rpJ9gRzu0mAAAAAElFTkSuQmCC","eyes":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAACgCAYAAAC8LWpcAAABPklEQVR4nO3QTUuUYRQG4PtRcYYMQoKCZnZ9EEFIki36ABWhhRoEoZuC6C/4H9oFQS2jTW3c9xvcSz8hiIgKwellRgeeNm4LN28WXNfywDmc+04AAAAAAAAAADh5Lx8v1JP+4a+72btbk+Tt1tP/N/zqpY262H9Yly6vHTvErf5avTY7X+/11uvVznJNkndbm62VMNHW4SQZHR7kcNxkaqJ77J3hj59pxoPMlDPplOkkyZMX2+X23PVWSmitgOGwqfNXVnLh/MWM9vfyoPesjobNH0McDL7X5bn7+dZ8ydLCavqzvYyPdnZ2P5Y2/pxq42iSdLunSpK82nhfOzfu5NPgazpHs9+ZPn22LJ57VJ9vvs5kST58fpNSSivBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/jm/ABsxSlbpXSabAAAAAElFTkSuQmCC","mouth":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAACgCAYAAAC8LWpcAAAAYUlEQVR4nO3PoRWAMBAD0GOjGtZgglOdrROwYOuQKB5X8b+LShIBAAAAAAAAAAAAAHylt3O+5T8dVcUjr+d0jrtsBwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABsZgHyoweOg73iAwAAAABJRU5ErkJggg=="},"happy":{"brows":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAACgCAYAAAC8LWpcAAAA20lEQVR4nO3Tz0oCARAH4HF3UzNX0Qh0lwoLsUt/6BZdgjp1s0fo/d9hunlaDLyE8X0wl4GB+Q1MBAAAAAAAAABwiFVzmV396WjS2f/N1eT8oLk/08xnGRG7Knq9XYCLab03zPCk2s2VRZHj/iAjIr632+M4wuxsnF/PbUZEvK5f8qF9zHa+yGE1yI+n270hRv0y6/5p3i02GRFxU99nRERdlrlaNMdxgGFVdS66LJf5+fZ+cIj1dfdbAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPwLP1wYJ9jy948MAAAAAElFTkSuQmCC","eyes":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAACgCAYAAAC8LWpcAAAAeUlEQVR4nO3Quw2AMAwFwCyRJn16GhZi/x1MFQkKPkqKgHRX+1l+TgkAAAAAAAAAAOhVc4maS8zKT3U8vKfIaH6abVkjpXOB5m2Jq7maS7T9n3ZX9OkJI1kAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIBf2wHcRxtj2hf/ZQAAAABJRU5ErkJggg==","mouth":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAACgCAYAAAC8LWpcAAAAe0lEQVR4nO3QsQ1AYBgE0E9iCTsoRGIBA5hAZTCVCUxiFLXm14lKJX7Fe91Vd7kIAAAAAAAAAAAAAOAtU9Olp/ylMkdpX1exH22653nLsSSiyFMbsYzDdcC4rNl2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPA3JxRpDSmLL1JxAAAAAElFTkSuQmCC"},"surprised":{"brows":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAACgCAYAAAC8LWpcAAAA20lEQVR4nO3Tz0oCARAH4HF3UzNX0Qh0lwoLsUt/6BZdgjp1s0fo/d9hunlaDLyE8X0wl4GB+Q1MBAAAAAAAAAAcZNVcZld/Opp09n9zNTk/aO7PNPNZRsSuil5vF+BiWu8NMzypdnNlUeS4P8iIiO/t9jiOMDsb59dzmxERr+uXfGgfs50vclgN8uPpdm+IUb/Mun+ad4tNRkTc1PcZEVGXZa4WzXEcYFhVnYsuy2V+vr0fHGJ93f1WAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPwHP11HJ9jP1xxLAAAAAElFTkSuQmCC","eyes":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAACgCAYAAAC8LWpcAAABPklEQVR4nO3QTUuUYRQG4PtRcYYMQoKCZnZ9EEFIki36ABWhhRoEoZuC6C/4H9oFQS2jTW3c9xvcSz8hiIgKwellRgeeNm4LN28WXNfywDmc+04AAAAAAAAAADh5Lx8v1JP+4a+72btbk+Tt1tP/N/zqpY262H9Yly6vHTvErf5avTY7X+/11uvVznJNkndbm62VMNHW4SQZHR7kcNxkaqJ77J3hj59pxoPMlDPplOkkyZMX2+X23PVWSmitgOGwqfNXVnLh/MWM9vfyoPesjobNH0McDL7X5bn7+dZ8ydLCavqzvYyPdnZ2P5Y2/pxq42iSdLunSpK82nhfOzfu5NPgazpHs9+ZPn22LJ57VJ9vvs5kST58fpNSSivBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/jm/ABsxSlbpXSabAAAAAElFTkSuQmCC","mouth":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAACgCAYAAAC8LWpcAAAAcUlEQVR4nO3QoQ2AUBBEwQVHsBSCoSEKoyEMhWAJEhQ13A+ZUefeZRMAAAAAAAAAAAAA+KWuKrzOy/Pd27GX/dFXhZPkvO7KfJLiAVpQOsA0DpV5AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgDa9W7wHCAyzd+YAAAAASUVORK5CYII="},"angry":{"brows":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAACgCAYAAAC8LWpcAAAAk0lEQVR4nO3TMQrCUBAE0BG8QpqkTm+TMpfxYLmQjb29jYf4VoEgFgk/QoT3um0GZtlNAAAAAAAAAAA26pu29E1b/iX7vGdYkjxez9P1MpQkZZ5r8paFx67LdL9V5X3aNeybucCWRSxL1y7wMNae76/eBwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADi2NzWIHWqDKYi0AAAAAElFTkSuQmCC","eyes":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAACgCAYAAAC8LWpcAAABPklEQVR4nO3QTUuUYRQG4PtRcYYMQoKCZnZ9EEFIki36ABWhhRoEoZuC6C/4H9oFQS2jTW3c9xvcSz8hiIgKwellRgeeNm4LN28WXNfywDmc+04AAAAAAAAAADh5Lx8v1JP+4a+72btbk+Tt1tP/N/zqpY262H9Yly6vHTvErf5avTY7X+/11uvVznJNkndbm62VMNHW4SQZHR7kcNxkaqJ77J3hj59pxoPMlDPplOkkyZMX2+X23PVWSmitgOGwqfNXVnLh/MWM9vfyoPesjobNH0McDL7X5bn7+dZ8ydLCavqzvYyPdnZ2P5Y2/pxq42iSdLunSpK82nhfOzfu5NPgazpHs9+ZPn22LJ57VJ9vvs5kST58fpNSSivBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/jm/ABsxSlbpXSabAAAAAElFTkSuQmCC","mouth":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAACgCAYAAAC8LWpcAAAAYElEQVR4nO3OsRGAMAwDwLARDWswgStm8wQsaCratL5L/iupksYAAAAAAAAAAAAAAFZ0dA1n3PXnyLftR4vnvGrWAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAANjZB9MiB44dPHkdAAAAAElFTkSuQmCC"},"shy":{"brows":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAACgCAYAAAC8LWpcAAAA20lEQVR4nO3Tz0oCARAH4HF3UzNX0Qh0lwoLsUt/6BZdgjp1s0fo/d9hunlaDLyE8X0wl4GB+Q1MBAAAAAAAAADAAVbNZXb1p6NJZ/83V5Pzg+b+TDOfZUTsquj1dgEupvXeMMOTajdXFkWO+4OMiPjebo/jCLOzcX49txkR8bp+yYf2Mdv5IofVID+ebveGGPXLrPunebfYZETETX2fERF1WeZq0RzHAYZV1bnoslzm59v7wSHW191vBQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPwPP1rpJ9gRzu0mAAAAAElFTkSuQmCC","eyes":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAACgCAYAAAC8LWpcAAABPklEQVR4nO3QTUuUYRQG4PtRcYYMQoKCZnZ9EEFIki36ABWhhRoEoZuC6C/4H9oFQS2jTW3c9xvcSz8hiIgKwellRgeeNm4LN28WXNfywDmc+04AAAAAAAAAADh5Lx8v1JP+4a+72btbk+Tt1tP/N/zqpY262H9Yly6vHTvErf5avTY7X+/11uvVznJNkndbm62VMNHW4SQZHR7kcNxkaqJ77J3hj59pxoPMlDPplOkkyZMX2+X23PVWSmitgOGwqfNXVnLh/MWM9vfyoPesjobNH0McDL7X5bn7+dZ8ydLCavqzvYyPdnZ2P5Y2/pxq42iSdLunSpK82nhfOzfu5NPgazpHs9+ZPn22LJ57VJ9vvs5kST58fpNSSivBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/jm/ABsxSlbpXSabAAAAAElFTkSuQmCC","mouth":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAACgCAYAAAC8LWpcAAAAjElEQVR4nO3TsRVFQBAF0P0qEAl1ogUVKEWoFBVoQaQNjRA4K3f+7uFwbzTRezPBhAAAAAAAAAAAAADwUr9UQevQz3Gu+6FJlZu7p/g34AyqyqWoyiXn8SEcR8eunD2fkewFrhq7dotzN0637QEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD7MDVG0Sf4u5/cEAAAAASUVORK5CYII="},"eyesClosed":{"brows":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAACgCAYAAAC8LWpcAAAA20lEQVR4nO3Tz0oCARAH4HF3UzNX0Qh0lwoLsUt/6BZdgjp1s0fo/d9hunlaDLyE8X0wl4GB+Q1MBAAAAAAAAADAAVbNZXb1p6NJZ/83V5Pzg+b+TDOfZUTsquj1dgEupvXeMMOTajdXFkWO+4OMiPjebo/jCLOzcX49txkR8bp+yYf2Mdv5IofVID+ebveGGPXLrPunebfYZETETX2fERF1WeZq0RzHAYZV1bnoslzm59v7wSHW191vBQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPwPP1rpJ9gRzu0mAAAAAElFTkSuQmCC","eyes":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAACgCAYAAAC8LWpcAAAAdUlEQVR4nO3PIRKAIBAFUDwEhU63eCGvbbd4CEw2GNChOPNe3fm7f0MAAAAAAAAAAADe2tet/GnvdDmmatEcU2nNetne7Ktl9sJHrexxnUP3Wo+O5gEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPijG3HLEi0Bjwp/AAAAAElFTkSuQmCC","mouth":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAACgCAYAAAC8LWpcAAAAXklEQVR4nO3OAQ2AIBRAwe90s4nNrEAIG9CMLkwgBozdFXgvAgAAAAAAAAAAAADY0TErXHLq131Gq3887zftAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWMwDzuAcC0Eu+UQAAAABJRU5ErkJggg=="}},female:{}});
+const PAPERDOLL_EXPRESSION_CHOICES=Object.freeze({"original":"中性","smile":"微笑","happy":"開心","surprised":"驚訝","angry":"生氣","shy":"害羞","eyesClosed":"閉眼"});
 const PAPERDOLL_FUTURE_SLOTS=Object.freeze([
  {id:'hairStyle',name:'髮型',values:['original','bald','short','long']},
  {id:'faceShape',name:'臉型',values:['original','round','sharp']},
  {id:'eyeShape',name:'眼型',values:['original','gentle','sharp']},
  {id:'browShape',name:'眉型',values:['original','straight','arched']},
  {id:'mouthShape',name:'嘴型',values:['original','smile','serious']},
- {id:'expression',name:'表情',values:['original','happy','surprised','shy','angry','eyesClosed']},
+ {id:'expression',name:'表情',values:['original','smile','happy','surprised','angry','shy','eyesClosed']},
  {id:'ears',name:'耳型',values:['original','pointed','animal']},
  {id:'bodyHair',name:'體毛',values:['none','light','medium']},
  {id:'scar',name:'疤痕',values:['none','small','old']},
@@ -4935,6 +4946,11 @@ function paperDollSprite(key){
  const slotIds={hair:'hairStyle',face:'faceShape',eyes:'eyeShape',brows:'browShape',mouth:'mouthShape'};
  const slotId=slotIds[key]||key;
  const choice=s.appearanceV1?.parts?.[slotId];
+ const expression=s.appearanceV1?.parts?.expression||'original';
+ if((key==='brows'||key==='eyes'||key==='mouth')&&expression!=='original'){
+  const pose=PAPERDOLL_EXPRESSION_LAYERS[gender]?.[expression];
+  if(pose?.[key])return pose[key];
+ }
  return (choice&&PAPERDOLL_VARIANT_ASSETS[gender]?.[slotId]?.[choice])||paperDollLayers()[key]||null;
 }
 function paperDollExtraLayerHTML(placement='front'){
@@ -4988,6 +5004,7 @@ function normalizeAppearanceV1(){
  for(const slot of PAPERDOLL_FUTURE_SLOTS){
   if(!slot.values.includes(a.parts[slot.id]))a.parts[slot.id]=slot.values[0];
  }
+ if(a.gender==='female'&&a.parts.expression!=='original')a.parts.expression='original';
  const value=a.hairColor;
  if(typeof value!=='string'||!/^#[0-9a-fA-F]{6}$/.test(value))a.hairColor='#c8cbd0';
  else a.hairColor=value.toLowerCase();
@@ -5157,7 +5174,7 @@ function setPaperDollAppearance(field,value){
  normalizeAppearanceV1();const a=s.appearanceV1;
  if(field==='gender'){
   if(!['male','female'].includes(value))return;
-  if(a.gender!==value){a.gender=value;if(value==='female'&&a.parts?.hairStyle==='bald')a.parts.hairStyle='original';resetPaperDollSpriteCaches();}
+  if(a.gender!==value){a.gender=value;if(value==='female'){if(a.parts?.hairStyle==='bald')a.parts.hairStyle='original';a.parts.expression='original';}resetPaperDollSpriteCaches();}
  }else if(field==='skinTone'){
   if(!PAPERDOLL_SKIN_TONES.some(t=>t.id===value))return;a.skinTone=value;
  }else if(field==='eyeColor'){
@@ -5165,10 +5182,32 @@ function setPaperDollAppearance(field,value){
  }else if(field.startsWith('part:')){
   const slot=PAPERDOLL_FUTURE_SLOTS.find(t=>t.id===field.slice(5));
   if(!slot||!slot.values.includes(value))return;
-  if(value!==slot.values[0]&&!(slot.id==='hairStyle'&&value==='bald'&&a.gender==='male')&&!PAPERDOLL_VARIANT_ASSETS[a.gender]?.[slot.id]?.[value])return;
+  if(value!==slot.values[0]&&!(slot.id==='hairStyle'&&value==='bald'&&a.gender==='male')&&!(slot.id==='expression'&&!!PAPERDOLL_EXPRESSION_LAYERS[a.gender]?.[value])&&!PAPERDOLL_VARIANT_ASSETS[a.gender]?.[slot.id]?.[value])return;
   a.parts[slot.id]=value;
+  if(slot.id==='expression')resetPaperDollSpriteCaches();
  }else return;
  save();renderPlaceDrawer();
+}
+function renderPaperDollExpressionControls(){
+ normalizeAppearanceV1();
+ const row=document.createElement('div');row.className='paperdoll-expression-row';
+ row.setAttribute('role','group');row.setAttribute('aria-label','紙娃娃表情切換');
+ const label=document.createElement('label');label.htmlFor='equipExpressionSelect';label.textContent='表情';
+ const select=document.createElement('select');select.id='equipExpressionSelect';select.className='paperdoll-choice-select';
+ const gender=s.appearanceV1.gender;
+ for(const [id,name] of Object.entries(PAPERDOLL_EXPRESSION_CHOICES)){
+  const option=document.createElement('option');option.value=id;option.textContent=name;
+  option.disabled=id!=='original'&&!PAPERDOLL_EXPRESSION_LAYERS[gender]?.[id];
+  option.selected=s.appearanceV1.parts.expression===id;
+  select.appendChild(option);
+ }
+ select.onchange=()=>setPaperDollAppearance('part:expression',select.value);
+ row.append(label,select);
+ if(gender==='female'){
+  const note=document.createElement('span');note.className='paperdoll-expression-note';
+  note.textContent='女性頭部需先完成獨立表情拆圖';row.appendChild(note);
+ }
+ return row;
 }
 function renderPaperDollGenderControls(){
  normalizeAppearanceV1();
@@ -5199,9 +5238,10 @@ function renderPaperDollAppearanceControls(){
  addChoice(root,'膚色','skinTone',PAPERDOLL_SKIN_TONES,s.appearanceV1.skinTone);
  addChoice(root,'瞳色','eyeColor',PAPERDOLL_EYE_COLORS,s.appearanceV1.eyeColor);
  const more=document.createElement('details');more.className='paperdoll-future-slots';more.open=paperDollFutureSlotsOpen;
- const sub=document.createElement('summary');sub.textContent='可擴充部位（'+PAPERDOLL_FUTURE_SLOTS.length+' 個素材插槽）';
+ const sub=document.createElement('summary');sub.textContent='可擴充部位（'+(PAPERDOLL_FUTURE_SLOTS.length-1)+' 個素材插槽）';
  more.appendChild(sub);more.addEventListener('toggle',()=>paperDollFutureSlotsOpen=more.open);
  for(const slot of PAPERDOLL_FUTURE_SLOTS){
+  if(slot.id==='expression')continue;
   const options=slot.values.map((id,i)=>{const ready=id==='bald'&&slot.id==='hairStyle'&&s.appearanceV1.gender==='male'||!!PAPERDOLL_VARIANT_ASSETS[s.appearanceV1.gender]?.[slot.id]?.[id];return {id,name:i===0?'預設／無':id==='bald'?'光頭':id+(ready?'':' · 待匯入素材'),disabled:i!==0&&!ready};});
   addChoice(more,slot.name,'part:'+slot.id,options,s.appearanceV1.parts[slot.id]);
  }
@@ -5488,8 +5528,9 @@ function renderSideTab(tab,out){
   const hairControls=renderPaperDollHairControls();
   const genderControls=renderPaperDollGenderControls();
   const eyeControls=renderPaperDollEyeControls();
+  const expressionControls=renderPaperDollExpressionControls();
   const appearanceControls=renderPaperDollAppearanceControls();
-  footer.append(detail,equipAction,tryOn,bag);section.append(board,genderControls,hairControls,eyeControls,appearanceControls,footer);out.appendChild(section);
+  footer.append(detail,equipAction,tryOn,bag);section.append(board,genderControls,hairControls,eyeControls,expressionControls,appearanceControls,footer);out.appendChild(section);
   renderEquipmentBoard();return;
  }
  if(tab==='inventory'){
