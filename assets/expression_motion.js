@@ -317,7 +317,18 @@
    get enabled(){return enabled;}
   });
  }
+ /* An unconscious actor loses normal eye art and uses the original calm
+  * mouth regardless of chosen emotion or HP. Does not mutate saved data.
+  */
+ function applyAbnormalFacePriority(frame,states){
+  if(!frame||!Array.isArray(states)||!states.includes('unconscious'))return frame;
+  frame.parts.eyes=null;
+  frame.parts.mouth='original';
+  frame.blink=false;
+  if(frame.effects)frame.effects.blink=false;
+  return frame;
+ }
  root.DungeonExpressionMotion=Object.freeze({
-  version:'2.12.0',poses:POSES,statuses:STATUS_PRESETS,abnormalLabels:ABNORMAL_LABELS,drawSpiralEye,drawFaceSweat,drawUnconsciousEyes,drawAbnormalEffects,createActor
+  version:'2.12.1',poses:POSES,statuses:STATUS_PRESETS,abnormalLabels:ABNORMAL_LABELS,drawSpiralEye,drawFaceSweat,drawUnconsciousEyes,drawAbnormalEffects,applyAbnormalFacePriority,createActor
  });
 })(window);
