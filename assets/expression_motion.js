@@ -229,6 +229,56 @@
   ctx.restore();
   return drawn;
  }
+ /* Light-weight, visual-only sleep and vitality preview shared by NPCs.
+  * Independent from injury, HP and permanent save state.
+  */
+ const REST_SLEEP=Object.freeze({awake:'清醒',drowsy:'想睡',sleeping:'睡著'});
+ const REST_VITALITY=Object.freeze({high:'充沛',normal:'一般',low:'不足'});
+ function drawRestEffects(ctx,rest,time=clock(),layout){
+  if(!ctx||!rest)return;
+  const ox=Number.isFinite(layout?.x)?layout.x:0;
+  const oy=Number.isFinite(layout?.y)?layout.y:0;
+  const sleep=Object.prototype.hasOwnProperty.call(REST_SLEEP,rest.sleep)?rest.sleep:'awake';
+  const vitality=Object.prototype.hasOwnProperty.call(REST_VITALITY,rest.vitality)?rest.vitality:'normal';
+  const t=Number.isFinite(time)?time:0;
+  const px=(x,y,w,h,color)=>{ctx.fillStyle=color;ctx.fillRect(Math.round(ox+x),Math.round(oy+y),w,h);};
+  ctx.save();
+  if(sleep==='sleeping'||sleep==='drowsy'){
+   // Soft, buoyant Z; sleeping has two Zs, drowsy has one intermittent Z.
+   const step=Math.floor(t/420);
+   if(sleep==='sleeping'||step%4<2){
+    const bob=step%4,yy=15-bob;
+    const color=sleep==='sleeping'?'#dac6ef':'#b4a8bd';
+    px(50,yy,5,1,color);px(53,yy+1,1,1,color);
+    px(52,yy+2,1,1,color);px(51,yy+3,1,1,color);
+    px(50,yy+4,5,1,color);
+    if(sleep==='sleeping'){
+     const smallY=8-(Math.floor(t/630)%3);
+     px(56,smallY,4,1,'#ac9ac9');px(58,smallY+1,1,1,'#ac9ac9');
+     px(57,smallY+2,1,1,'#ac9ac9');px(56,smallY+3,4,1,'#ac9ac9');
+     // Very faint rise and fall at the ribcage: breathing, not torso scaling.
+     const pulse=Math.floor(t/850)%2;
+     px(47,78+pulse,2,1,'rgba(226,228,205,.63)');
+     px(48,80+pulse,1,1,'rgba(226,228,205,.42)');
+    }
+   }
+  }
+  if(sleep!=='sleeping'&&vitality==='high'){
+   // Sparse gold glints only occasionally, not permanent glowing aura.
+   if(Math.floor(t/620)%5===1){
+    px(14,62,2,3,'#b3dec5');px(13,63,4,1,'#e5f8d4');
+    px(51,70,2,2,'#8ac4b6');
+   }
+  }else if(sleep!=='sleeping'&&vitality==='low'){
+   // Gentle muted shoulder wisps, never a forced slow gameplay action.
+   const phase=Math.floor(t/500)%4;
+   if(phase<3){
+    px(12,64-phase,3,1,'rgba(153,156,170,.66)');
+    px(51,66-(phase%2),3,1,'rgba(153,156,170,.55)');
+   }
+  }
+  ctx.restore();
+ }
  function createActor(options){
   const opts=options||{};
   let status=statusOf(opts.status||'normal');
@@ -329,6 +379,6 @@
   return frame;
  }
  root.DungeonExpressionMotion=Object.freeze({
-  version:'2.12.1',poses:POSES,statuses:STATUS_PRESETS,abnormalLabels:ABNORMAL_LABELS,drawSpiralEye,drawFaceSweat,drawUnconsciousEyes,drawAbnormalEffects,applyAbnormalFacePriority,createActor
+  version:'2.13.0',poses:POSES,statuses:STATUS_PRESETS,abnormalLabels:ABNORMAL_LABELS,restSleep:REST_SLEEP,restVitality:REST_VITALITY,drawSpiralEye,drawFaceSweat,drawUnconsciousEyes,drawAbnormalEffects,drawRestEffects,applyAbnormalFacePriority,createActor
  });
 })(window);
