@@ -3675,6 +3675,14 @@ html.stage-locked #app .paperdoll-customizer-note{margin:4px 3px 8px;font-size:1
 html.stage-locked #app .paperdoll-customizer-field{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:5px 2px;font-size:11px;color:#e8d9bb;min-width:0}
 html.stage-locked #app #placeDrawerPanel .paperdoll-choice-select{flex:0 1 62%;min-width:0;max-width:65%;min-height:31px!important;padding:5px 4px!important;color:#f5e6c5!important;border:1px solid #a78a5c!important;background:#26473d!important;border-radius:5px!important;font-size:11px!important}
 html.stage-locked #app .paperdoll-future-slots{margin:5px 0;border-top:1px solid #b5a07150}
+
+html.stage-locked #app .paperdoll-stage .paperdoll-skin-canvas,
+html.stage-locked #app .paperdoll-stage .paperdoll-eyes-canvas{
+ position:absolute;inset:0;width:100%;height:100%;pointer-events:none;image-rendering:pixelated;
+}
+html.stage-locked #app .paperdoll-stage.skin-tinted .male-base,
+html.stage-locked #app .paperdoll-stage.skin-tinted .male-face,
+html.stage-locked #app .paperdoll-stage.eyes-tinted .male-eyes{display:none}
 </style>
 </head>
 <body>
@@ -5140,6 +5148,65 @@ function renderPaperDollAppearanceControls(){
  more.appendChild(end);root.appendChild(more);
  return root;
 }
+
+let paperDollEyeImage=null,paperDollSkinImages=null;
+function paintPaperDollEyes(){
+ const stages=document.querySelectorAll('.paperdoll-stage');if(!stages.length)return;
+ const choice=s.appearanceV1?.eyeColor||'purple';
+ if(choice==='purple'){stages.forEach(st=>st.classList.remove('eyes-tinted'));return;}
+ const preset=PAPERDOLL_EYE_COLORS.find(t=>t.id===choice);if(!preset?.rgb)return;
+ const source=paperDollSprite('eyes');
+ if(!paperDollEyeImage||paperDollEyeImage._paperdollSrc!==source){
+  const img=new Image();img._paperdollSrc=source;paperDollEyeImage=img;
+  img.onload=()=>paintPaperDollEyes();img.onerror=()=>console.warn('Eye layer unavailable');img.src=source;return;
+ }
+ if(!paperDollEyeImage.complete||paperDollEyeImage.naturalWidth!==64)return;
+ const work=document.createElement('canvas');work.width=64;work.height=160;
+ const ctx=work.getContext('2d',{willReadFrequently:true});ctx.imageSmoothingEnabled=false;ctx.drawImage(paperDollEyeImage,0,0);
+ const pixels=ctx.getImageData(0,0,64,160),d=pixels.data;
+ for(let i=0;i<d.length;i+=4){
+  const r=d[i],g=d[i+1],b=d[i+2];
+  if(d[i+3]===0||r<36||!((b>r*1.12&&b>g*1.10)||(r>68&&b>r*1.03&&g<160)))continue;
+  const shade=Math.max(.62,Math.min(1.28,(r+g+b)/330));
+  for(let j=0;j<3;j++)d[i+j]=Math.max(0,Math.min(255,Math.round(preset.rgb[j]*shade)));
+ }
+ ctx.putImageData(pixels,0,0);
+ for(const stage of stages){
+  const canvas=stage.querySelector('.paperdoll-eyes-canvas');if(!canvas)continue;
+  const c=canvas.getContext('2d');c.imageSmoothingEnabled=false;c.clearRect(0,0,64,160);c.drawImage(work,0,0);
+  stage.classList.add('eyes-tinted');
+ }
+}
+function paintPaperDollSkin(){
+ const stages=document.querySelectorAll('.paperdoll-stage');if(!stages.length)return;
+ const choice=s.appearanceV1?.skinTone||'original';
+ if(choice==='original'){stages.forEach(st=>st.classList.remove('skin-tinted'));return;}
+ const preset=PAPERDOLL_SKIN_TONES.find(t=>t.id===choice);if(!preset?.rgb)return;
+ const sources=['body','face'].map(key=>paperDollSprite(key));
+ if(!paperDollSkinImages||sources.some((url,i)=>paperDollSkinImages.sources[i]!==url)){
+  const imgs=sources.map(()=>new Image());paperDollSkinImages={sources,imgs};
+  for(let i=0;i<imgs.length;i++){
+   imgs[i].onload=()=>paintPaperDollSkin();imgs[i].onerror=()=>console.warn('Skin layer unavailable');imgs[i].src=sources[i];
+  }return;
+ }
+ if(paperDollSkinImages.imgs.some(im=>!im.complete||im.naturalWidth!==64))return;
+ const work=document.createElement('canvas');work.width=64;work.height=160;
+ const ctx=work.getContext('2d',{willReadFrequently:true});ctx.imageSmoothingEnabled=false;
+ for(const img of paperDollSkinImages.imgs)ctx.drawImage(img,0,0);
+ const pixels=ctx.getImageData(0,0,64,160),d=pixels.data;
+ for(let i=0;i<d.length;i+=4){
+  const r=d[i],g=d[i+1],b=d[i+2];
+  if(d[i+3]===0||r<86||!(r>g+12&&g>b+10))continue;
+  const relative=Math.max(.43,Math.min(1.22,(r*.36+g*.43+b*.21)/205));
+  for(let j=0;j<3;j++)d[i+j]=Math.max(0,Math.min(255,Math.round(preset.rgb[j]*relative)));
+ }
+ ctx.putImageData(pixels,0,0);
+ for(const stage of stages){
+  const canvas=stage.querySelector('.paperdoll-skin-canvas');if(!canvas)continue;
+  const c=canvas.getContext('2d');c.imageSmoothingEnabled=false;c.clearRect(0,0,64,160);c.drawImage(work,0,0);
+  stage.classList.add('skin-tinted');
+ }
+}
 function equipmentGuideHTML(sceneMode='equipment'){
  const privateScene=sceneMode==='bath'||sceneMode==='dressing';
  const show=id=>paperDollTryOn||s.equipmentV1[id]===TRAVEL_OUTFIT_IMAGE_IDS[id];
@@ -5152,7 +5219,8 @@ function equipmentGuideHTML(sceneMode='equipment'){
  if(show('outer'))indexes.push(5);
  // Approved white-fringe-cleaned tank sprite and shorts remain separate from the unchanged naked base.
  const base=maleTemplateLayer(character.layers.body,'male-base')+
-  maleTemplateLayer(character.layers.face,'male-face');
+  maleTemplateLayer(character.layers.face,'male-face')+
+  '<canvas class="paperdoll-skin-canvas" width="64" height="160" aria-hidden="true"></canvas>';
  const shorts=privateScene||show('legs')?'':maleTemplateLayer(character.layers.shorts,'male-shorts');
  const tank=privateScene||show('chest')?'':maleTemplateLayer(character.layers.tank,'male-tank');
  // Preview / future equippable outfits still use the previous clothing atlas.
@@ -5165,7 +5233,8 @@ function equipmentGuideHTML(sceneMode='equipment'){
  const veil=privateScene?'<span class="paperdoll-asset-layer paperdoll-privacy-veil" aria-hidden="true" style="background-image:var(--paperdoll-privacy-'+(sceneMode==='bath'?'steam':'mosaic')+')"></span>':'';
  const brows=maleTemplateLayer(character.layers.brows,'male-brows-fallback')+
   '<canvas class="paperdoll-brows-canvas" width="64" height="160" aria-hidden="true"></canvas>';
- const eyes=maleTemplateLayer(character.layers.eyes,'male-eyes');
+ const eyes=maleTemplateLayer(character.layers.eyes,'male-eyes')+
+  '<canvas class="paperdoll-eyes-canvas" width="64" height="160" aria-hidden="true"></canvas>';
  const hair=maleTemplateLayer(character.layers.hair,'paperdoll-hair-fallback')+
   '<canvas class="paperdoll-hair-canvas" width="64" height="160" aria-hidden="true"></canvas>';
  return '<div class="paperdoll-stage" role="img" aria-label="'+
@@ -5265,6 +5334,8 @@ function renderEquipmentBoard(){
  showEquipmentDetail(equipmentSelected);
  paintPaperDollHair();
  paintPaperDollBrows();
+ paintPaperDollEyes();
+ paintPaperDollSkin();
 }
 function renderSideTab(tab,out){
  if(tab==='character'){
