@@ -4010,11 +4010,11 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <script src="./assets/male_approved_face_v7.js?v=1"></script>
 <script src="./assets/male_approved_hair_v7.js?v=1"></script>
 <!-- Transparent new male hairstyle, registered to the same 64x160 head grid. -->
-<script src="./assets/male_hair_v8.js?v=3"></script>
+<script src="./assets/male_hair_v8.js?v=4"></script>
 <!-- V8 keeps the new face and eyes, never old V7 eye art. -->
-<script src="./assets/male_new_head_v8.js?v=3"></script>
-<script src="./assets/female_eye_motion_v1.js?v=5"></script>
-<script src="./assets/female_mouth_motion_v1.js?v=5"></script>
+<script src="./assets/male_new_head_v8.js?v=4"></script>
+<script src="./assets/female_eye_motion_v1.js?v=6"></script>
+<script src="./assets/female_mouth_motion_v1.js?v=6"></script>
 <script>
 (()=>{'use strict';
 // Fixed design canvas: use the approved screenshot's exact 1536×707 ratio,
@@ -5848,21 +5848,23 @@ function paintPaperDollPhysicalCondition(){
   const ctx=canvas.getContext('2d');if(!ctx)continue;
   ctx.imageSmoothingEnabled=false;
   ctx.clearRect(0,0,64,160);
+  // Keep all face status marks registered to the raised male V8c head.
+  const maleV8=stage.classList.contains('paperdoll-shared-male-face')&&window.DUNGEON_MALE_FACE_VERSION==='v8-new-eyes';
   // Only sleep creates visual effects; SP is a test number and blue HUD bar.
   if(!abnormal.includes('unconscious'))
    window.DungeonExpressionMotion.drawRestEffects(ctx,{
     ...paperDollRestPreview,elapsed:t-paperDollRestChangedAt
-   },t);
+   },t,maleV8?{y:-2}:undefined);
   // HP condition motion is independent from all abnormal effects.
-  if(effects?.sweat)window.DungeonExpressionMotion.drawFaceSweat(ctx,frame.status,effects.sweatPhase);
-  const maleV8=stage.classList.contains('paperdoll-shared-male-face')&&window.DUNGEON_MALE_FACE_VERSION==='v8-new-eyes';
-  const eyeY=maleV8?39:36;
+  if(effects?.sweat)window.DungeonExpressionMotion.drawFaceSweat(ctx,frame.status,effects.sweatPhase,
+   maleV8?{sweatY:27}:undefined);
+  const eyeY=maleV8?37:36;
   if(effects?.circleEyes&&!abnormal.includes('unconscious')){
    for(const x of [25,39])window.DungeonExpressionMotion.drawSpiralEye(ctx,x,eyeY,effects.circlePhase);
   }
-  // Match unconscious eye overlay to the new male pupils, not V7 anchors.
+  // The renderer adds layout.y, so 39 - 2 = the V8c eye center at y37.
   if(abnormal.length)window.DungeonExpressionMotion.drawAbnormalEffects(ctx,abnormal,t,
-   maleV8?{eyeCenters:[[25,39],[39,39]]}:undefined);
+   maleV8?{y:-2,eyeCenters:[[25,39],[39,39]]}:undefined);
  }
 }
 function renderEquipmentBoard(){
