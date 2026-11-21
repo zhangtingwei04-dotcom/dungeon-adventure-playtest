@@ -5727,7 +5727,8 @@ function paintPaperDollPhysicalCondition(){
    for(const x of [25,39])window.DungeonExpressionMotion.drawSpiralEye(ctx,x,36,effects.circlePhase);
   }
   // These overlays never replace brows, eyes, mouth, clothing or the save.
-  if(abnormal.length)window.DungeonExpressionMotion.drawAbnormalEffects(ctx,abnormal,t);
+  if(abnormal.length)window.DungeonExpressionMotion.drawAbnormalEffects(ctx,abnormal,t,
+   stage.classList.contains('paperdoll-female')?{eyeCenters:[[25,44],[39,44]]}:undefined);
  }
 }
 function renderEquipmentBoard(){
