@@ -57,3 +57,12 @@
 - 嚴格保留新男性頭部原本的紫色眼睛、臉型、耳朵、嘴巴、膚色與輪廓；女性圖層不變。男性透明髮型 V8b、脖子與服裝也沒有修改。
 - 正式遊戲 `index.html` 已調整 `male_new_head_v8.js?v=3` 避免手機載入舊快取。
 - 驗證：重新取回 GitHub main，PNG 64×160 完整 CRC 校驗通過；JS 模組與主要 inline script 語法檢查通過。尚未用 iPhone 實機確認最終顯示。
+
+## 男性髮型看起來未更新：載入鏈路修正（2026-11-22）
+
+- 使用者回報：即使前輪已將男性髮型擴大至 V8b，遊戲內仍未看到更新。
+- 檢查 GitHub `main`：`assets/male_hair_v8.js` 的確已是放大後的 64×160 透明 PNG，但 `index.html` 有兩個需要消除的不確定性：繪製器只有一份全域 `hairAtlasImage` 快取（未比較應載入的 `paperDollSprite('hair')` 來源）；`paperDollLayers()` 在新素材未載入時仍會回退到男性 V7 舊髮。
+- 修正 `index.html`：男生只使用 V8b 透明髮，若新素材不可用改用透明空白圖，**不再默默顯示舊 V7**。新增 `hairAtlasSource` 核對，來源改變就清空舊畫布並重載；檢查圖片 64×160 尺寸，避開舊圖載入完成後覆寫新圖的競態。
+- 新版網頁引用 `male_hair_v8.js?v=3`，髮型選單顯示「銀白蓬鬆髮型 V8b」讓人辨識目前讀到的程式版本。角色頭部、眼睛、眉毛、頸部、裝備與存檔未修改。
+- 新增 `male-hair-preview.html` 可直接載入相同正式 PNG，比較光頭與帶 V8b 新髮，並回報是否成功載入；有助於隔離 Pages 部署或瀏覽器快取與遊戲紙娃娃繪製器的差異。
+- 靜態驗證：`index.html` 主程式及對照頁腳本語法通過、GitHub main 確認引用 v3 和 source-aware cache。**尚未直接檢查 GitHub Pages 實際部署版本或真機 Safari 截圖；不可宣稱線上已視覺驗收**。
