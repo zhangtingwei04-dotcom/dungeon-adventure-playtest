@@ -56,32 +56,24 @@
   const face=layout||{};
   const ox=Number.isFinite(face.x)?face.x:0;
   const oy=Number.isFinite(face.y)?face.y:0;
-  // Sweat is on the upper forehead / hairline, ABOVE the eyes (around y=36).
-  // It stays inside the V3 head (x=18..46), never on the torso.
+  // Native face: x around 18..46, eyes at y 36. Keep glints on forehead.
   const points=Array.isArray(face.points)?face.points:
-   (status==='weak'?[[39,29],[25,30]]:
-    [[25,29],[39,29],[30,27],[35,31]]);
+   (status==='weak'?[[40,28],[24,29]]:
+    [[24,28],[39,28],[32,26]]);
   const p=posMod(Math.floor(phase),3);
   ctx.save();
   for(let i=0;i<points.length;i++){
-   // Weak: one hairline glint; critical: several tiny forehead glints.
+   // One sweat mark when weak, two or three when critical.
    if(status==='weak'&&i!==p%2)continue;
-   if(status==='critical'&&i===3&&p===1)continue;
+   if(status==='critical'&&i===2&&p===1)continue;
    const [x,y]=points[i];
    const px=Math.round(ox+x),py=Math.round(oy+y+((i+p)%3===0?1:0));
-   // At the 205px-tall equipment figure, 1 source px becomes only 1.28px.
-   // Use a narrow 2x3 pixel reflection, NOT a large outlined droplet.
-   ctx.fillStyle='rgba(17,94,126,0.95)';
-   ctx.fillRect(px+1,py+1,1,3);
-   ctx.fillStyle='rgba(24,197,230,0.99)';
-   ctx.fillRect(px,py,2,2);
-   ctx.fillStyle='rgba(235,255,255,1)';
-   ctx.fillRect(px,py,1,1);
-   // A tiny light reflection beside the sweat gives a moist facial sheen.
-   if(status==='critical'||p===2){
-    ctx.fillStyle='rgba(111,227,238,0.83)';
-    ctx.fillRect(px-1,py+2,1,1);
-   }
+   // A small luminous forehead sheen, 3px wide x 4px high.
+   // Light/dark micro-pixels preserve pixel-art style without a large droplet.
+   ctx.fillStyle='#15536a';ctx.fillRect(px+2,py+1,1,3);
+   ctx.fillStyle='#1bdaf2';ctx.fillRect(px,py+1,2,2);
+   ctx.fillStyle='#f5ffff';ctx.fillRect(px,py,2,1);
+   ctx.fillStyle='#69e8fb';ctx.fillRect(px+1,py+3,1,1);
   }
   ctx.restore();
  }
@@ -172,6 +164,6 @@
   });
  }
  root.DungeonExpressionMotion=Object.freeze({
-  version:'2.4.0',poses:POSES,statuses:STATUS_PRESETS,drawSpiralEye,drawFaceSweat,createActor
+  version:'2.5.0',poses:POSES,statuses:STATUS_PRESETS,drawSpiralEye,drawFaceSweat,createActor
  });
 })(window);
