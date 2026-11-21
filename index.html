@@ -3541,19 +3541,10 @@ html.stage-locked #app .equip-guide .paperdoll-stage > .paperdoll-template-layer
 html.stage-locked #app .equip-guide .paperdoll-stage > .paperdoll-asset-layer,
 html.stage-locked #app .equip-guide .paperdoll-stage > .paperdoll-layer:not(.paperdoll-approved-bag),
 html.stage-locked #app .equip-guide .paperdoll-stage > canvas{transform:translateY(9px)}
-/* Male vs female head-height correction from the user's iPhone screenshots.
-   Keep the native 64x160 canvas and horizontal/neck anchors unchanged.
-   Male artwork has a taller forehead, so fit only the male HEAD artwork
-   to 91% native height, aligned at the chin (y~52); do not scale the
-   body, shirt, shorts, bag, or status-effects canvas. Head/eyes/brows/
-   mouth/hair and their tinted overlays receive the same transform. */
-html.stage-locked #app .equip-guide .paperdoll-stage.paperdoll-male >
-:is(.male-face,.male-brows-fallback,.male-eyes,.paperdoll-mouth,
-    .paperdoll-hair-fallback,.paperdoll-brows-canvas,
-    .paperdoll-eyes-canvas,.paperdoll-hair-canvas){
-  transform-origin:50% 0;
-  transform:translateY(calc(9px + 3.25%)) scaleY(.91);
-}
+/* Rounded male bald-head silhouette now comes from a real 64x160 PNG.
+   Never squash head/eyes/mouth/hair using CSS: noninteger scaleY distorted
+   the cranium and blurred the pixel outline, especially without hair.
+   Head layers inherit the same native offset as the female sprite. */
 html.stage-locked #app .equip-guide .paperdoll-layer{
  display:block;position:absolute;inset:0;pointer-events:none;
  background-image:var(--paperdoll-atlas);
@@ -4013,6 +4004,7 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <script src="./assets/expression_motion.js?v=2.16"></script>
 <script src="./assets/female_head_v1.js?v=1"></script>
 <script src="./assets/female_parts_v2.js?v=4"></script>
+<script src="./assets/male_round_face_v4.js?v=1"></script>
 <script src="./assets/female_eye_motion_v1.js?v=2"></script>
 <script src="./assets/female_mouth_motion_v1.js?v=3"></script>
 <script>
@@ -5015,10 +5007,16 @@ const FEMALE_REPLACEMENT_HEAD_LAYERS=FEMALE_SPLIT_READY?
   face:window.DUNGEON_FEMALE_HEAD_V1,
   brows:FEMALE_CLEAR_LAYER,eyes:FEMALE_CLEAR_LAYER,
   hair:FEMALE_CLEAR_LAYER,mouth:FEMALE_CLEAR_LAYER}):null;
+/* Head geometry and every face-related layer use the same original 64x160
+   coordinate frame. The male scalp differs in artwork, not CSS scaling. */
+const MALE_ROUND_HEAD_LAYERS=typeof window.DUNGEON_MALE_ROUND_FACE_V4==='string'&&
+ window.DUNGEON_MALE_ROUND_FACE_V4.startsWith('data:image/png;base64,')?
+ Object.freeze({...PAPERDOLL_SEPARATE_LAYERS,face:window.DUNGEON_MALE_ROUND_FACE_V4}):null;
 function paperDollLayers(){
  const gender=s.appearanceV1?.gender==='female'?'female':'male';
- return gender==='female'&&FEMALE_REPLACEMENT_HEAD_LAYERS?
-  FEMALE_REPLACEMENT_HEAD_LAYERS:PAPERDOLL_STANDARD_BODIES[gender].layers;
+ if(gender==='female'&&FEMALE_REPLACEMENT_HEAD_LAYERS)return FEMALE_REPLACEMENT_HEAD_LAYERS;
+ if(gender==='male'&&MALE_ROUND_HEAD_LAYERS)return MALE_ROUND_HEAD_LAYERS;
+ return PAPERDOLL_STANDARD_BODIES[gender].layers;
 }
 
 /* Physical expression v1 uses the EXISTING HP and maxHp; no fictitious meters. */
@@ -5663,13 +5661,9 @@ function paintPaperDollSkin(){
  if(paperDollSkinImages.imgs.some(im=>!im.complete||im.naturalWidth!==64))return;
  const work=document.createElement('canvas');work.width=64;work.height=160;
  const ctx=work.getContext('2d',{willReadFrequently:true});ctx.imageSmoothingEnabled=false;
- // Match the male face-only CSS height correction in the skin-tint canvas.
- // The standard male body image remains at its original 64x160 coordinates.
- for(let i=0;i<paperDollSkinImages.imgs.length;i++){
-  if(s.appearanceV1?.gender==='male'&&i===1)
-   ctx.drawImage(paperDollSkinImages.imgs[i],0,0,64,160,0,5.2,64,160*.91);
-  else ctx.drawImage(paperDollSkinImages.imgs[i],0,0);
- }
+ // The revised round male face is already aligned. Skin shading must use
+ // original pixel positions, without a second squash/offset.
+ for(const img of paperDollSkinImages.imgs)ctx.drawImage(img,0,0);
  const pixels=ctx.getImageData(0,0,64,160),d=pixels.data;
  for(let i=0;i<d.length;i+=4){
   const r=d[i],g=d[i+1],b=d[i+2];
@@ -5794,14 +5788,13 @@ function paintPaperDollPhysicalCondition(){
     ...paperDollRestPreview,elapsed:t-paperDollRestChangedAt
    },t);
   // HP condition motion is independent from all abnormal effects.
-  if(effects?.sweat)window.DungeonExpressionMotion.drawFaceSweat(ctx,frame.status,effects.sweatPhase,
-   stage.classList.contains('paperdoll-male')?{sweatY:30}:undefined);
+  if(effects?.sweat)window.DungeonExpressionMotion.drawFaceSweat(ctx,frame.status,effects.sweatPhase);
   if(effects?.circleEyes&&!abnormal.includes('unconscious')&&!stage.classList.contains('paperdoll-female')){
-   for(const x of [25,39])window.DungeonExpressionMotion.drawSpiralEye(ctx,x,37,effects.circlePhase);
+   for(const x of [25,39])window.DungeonExpressionMotion.drawSpiralEye(ctx,x,36,effects.circlePhase);
   }
   // These overlays never replace brows, eyes, mouth, clothing or the save.
   if(abnormal.length)window.DungeonExpressionMotion.drawAbnormalEffects(ctx,abnormal,t,
-   stage.classList.contains('paperdoll-male')?{eyeCenters:[[25,37],[39,37]]}:undefined);
+   undefined);
  }
 }
 function renderEquipmentBoard(){
