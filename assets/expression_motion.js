@@ -88,6 +88,39 @@
   * One shared pixel renderer serves the player and future NPCs. Times are
   * sampled from the existing scene update rather than independent timers.
   */
+ /* Unconscious overrides EVERY eye emotion, including blinking, closed eyes
+  * and the HP-critical purple spiral. Four black-pixel spiral frames rotate
+  * on a pale eye base. The rest of the face remains unchanged.
+  */
+ const BLACK_SPIRAL_FRAMES=Object.freeze([
+  [[-1,-1],[0,-1],[1,-1],[1,0],[0,1],[-1,1],[-1,0],[0,0]],
+  [[1,-1],[1,0],[1,1],[0,1],[-1,0],[-1,-1],[0,-1],[0,0]],
+  [[1,1],[0,1],[-1,1],[-1,0],[0,-1],[1,-1],[1,0],[0,0]],
+  [[-1,1],[-1,0],[-1,-1],[0,-1],[1,0],[1,1],[0,1],[0,0]]
+ ]);
+ function drawUnconsciousEyes(ctx,time=clock(),layout){
+  if(!ctx)return;
+  const x0=Number.isFinite(layout?.x)?layout.x:0;
+  const y0=Number.isFinite(layout?.y)?layout.y:0;
+  const centers=Array.isArray(layout?.eyeCenters)?layout.eyeCenters:[[25,36],[39,36]];
+  const phase=posMod(Math.floor((Number(time)||0)/210),4);
+  const form=BLACK_SPIRAL_FRAMES[phase];
+  for(const [ex,ey] of centers){
+   const x=Math.round(x0+ex),y=Math.round(y0+ey);
+   // Only the tiny iris region is masked; no large square across the face.
+   ctx.fillStyle='#e8dfd9';ctx.fillRect(x-1,y-1,3,3);
+   // Opaque nearly-black line remains distinct from the purple low-HP eyes.
+   for(let i=0;i<form.length;i++){
+    const [dx,dy]=form[i];
+    ctx.fillStyle=i===7?'#121318':'#17151a';
+    ctx.fillRect(x+dx,y+dy,1,1);
+   }
+   // One pale pixel preserves the visible spiral's hollow opening.
+   ctx.fillStyle='#f9f6f0';
+   const light=[[-1,0],[0,-1],[1,0],[0,1]][phase];
+   ctx.fillRect(x+light[0],y+light[1],1,1);
+  }
+ }
  const ABNORMAL_LABELS=Object.freeze({
   poison:'中毒',fever:'發燒',injury:'受傷／流血',dizzy:'暈眩',
   unconscious:'昏迷',sleep_deprived:'睡眠不足',hunger:'飢餓',dehydration:'缺水'
@@ -157,12 +190,7 @@
      px(x-dx,y-dy,'#715bc1');px(x,y,'#d8ccff');
     }
    }else if(id==='unconscious'){
-    const p=step(440,5),y=18-p;
-    // Rising stylized "Z" is an effect, not a replacement eye shape.
-    line(50,y,6,'#baa5ea');
-    px(52,y+1,'#baa5ea');px(51,y+2,'#baa5ea');
-    line(50,y+3,6,'#baa5ea');
-    if(p<3){line(56,y-5,3,'rgba(186,165,234,.7)');px(57,y-4,'rgba(186,165,234,.7)');line(56,y-3,3,'rgba(186,165,234,.7)');}
+    // Drawn LAST below, over any other abnormal effect or facial expression.
    }else if(id==='sleep_deprived'){
     // Only floating Z; absolutely no eyelid shadow or dark circles.
     const p=step(330,6);
@@ -176,6 +204,8 @@
     thought(45,4,'water',step(470,4)<2?0:1);
    }
   }
+  // Black animated spirals get final drawing priority in all combinations.
+  if(states.includes('unconscious'))drawUnconsciousEyes(ctx,t,layout);
   ctx.restore();
   return drawn;
  }
@@ -268,6 +298,6 @@
   });
  }
  root.DungeonExpressionMotion=Object.freeze({
-  version:'2.9.0',poses:POSES,statuses:STATUS_PRESETS,abnormalLabels:ABNORMAL_LABELS,drawSpiralEye,drawFaceSweat,drawAbnormalEffects,createActor
+  version:'2.10.0',poses:POSES,statuses:STATUS_PRESETS,abnormalLabels:ABNORMAL_LABELS,drawSpiralEye,drawFaceSweat,drawUnconsciousEyes,drawAbnormalEffects,createActor
  });
 })(window);
