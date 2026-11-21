@@ -3687,6 +3687,9 @@ html.stage-locked #app .paperdoll-expression-row{
 html.stage-locked #app .paperdoll-expression-row label{font-size:12px;color:#f5dca6}
 html.stage-locked #app .paperdoll-expression-row select{max-width:74%;flex:1;min-width:112px}
 html.stage-locked #app .paperdoll-expression-note{font-size:10px;color:#c9c7b9;width:100%;line-height:1.4}
+html.stage-locked #app .paperdoll-physical-preview{width:100%;font-size:11px;color:#e6d6bd}
+html.stage-locked #app .paperdoll-physical-preview summary{cursor:pointer;padding:4px 0}
+html.stage-locked #app #placeDrawerPanel .paperdoll-physical-preview select{width:100%;max-width:100%;min-height:31px;border:1px solid #a78a5c;border-radius:5px;color:#f5e6c5;background:#26473d}
 /* Bald V3 uses a real, complete no-hair head under the hidden hairstyle. */
 html.stage-locked #app .paperdoll-stage.paperdoll-bald .paperdoll-hair-fallback,
 html.stage-locked #app .paperdoll-stage.paperdoll-bald .paperdoll-hair-canvas{display:none!important}
@@ -3704,7 +3707,8 @@ html.stage-locked #app #placeDrawerPanel .paperdoll-choice-select{flex:0 1 62%;m
 html.stage-locked #app .paperdoll-future-slots{margin:5px 0;border-top:1px solid #b5a07150}
 
 html.stage-locked #app .paperdoll-stage .paperdoll-skin-canvas,
-html.stage-locked #app .paperdoll-stage .paperdoll-eyes-canvas{
+html.stage-locked #app .paperdoll-stage .paperdoll-eyes-canvas,
+html.stage-locked #app .paperdoll-stage .paperdoll-condition-canvas{
  position:absolute;inset:0;width:100%;height:100%;pointer-events:none;image-rendering:pixelated;
 }
 html.stage-locked #app .paperdoll-stage.skin-tinted .male-base,
@@ -4941,16 +4945,33 @@ function paperDollLayers(){
  const gender=s.appearanceV1?.gender==='female'?'female':'male';
  return PAPERDOLL_STANDARD_BODIES[gender].layers;
 }
+
+/* Physical expression v1 uses the EXISTING HP and maxHp; no fictitious meters. */
+let paperDollPhysicalPreview=null,paperDollPhysicalPreviewOpen=false;
+const PAPERDOLL_BODY_CONDITIONS=Object.freeze({
+ normal:{name:'狀態穩定',note:'體力良好，神情自然',parts:null},
+ tired:{name:'略顯疲態',note:'體力下降，眉眼略顯沉重',parts:{brows:'original',eyes:'original',mouth:'angry'}},
+ weak:{name:'身體虛弱',note:'體力偏低，表情較緊繃',parts:{brows:'angry',eyes:'original',mouth:'angry'}},
+ critical:{name:'體力見底',note:'幾乎沒有力氣，難以睜眼',parts:{brows:'eyesClosed',eyes:'eyesClosed',mouth:'angry'}}
+});
+function paperDollBodyCondition(){
+ const max=Math.max(1,Number(s.maxHp)||1),hp=Math.max(0,Math.min(max,Number(s.hp)||0)),ratio=hp/max;
+ const actual=ratio>0.75?'normal':ratio>0.50?'tired':ratio>0.25?'weak':'critical';
+ const id=paperDollPhysicalPreview&&PAPERDOLL_BODY_CONDITIONS[paperDollPhysicalPreview]?paperDollPhysicalPreview:actual;
+ return {id,actual,preview:paperDollPhysicalPreview!==null,...PAPERDOLL_BODY_CONDITIONS[id],hp,max};
+}
+function paperDollBodyConditionSprite(gender,key){
+ if(gender!=='male'||!['brows','eyes','mouth'].includes(key))return null;
+ const part=paperDollBodyCondition().parts?.[key];
+ return part?PAPERDOLL_EXPRESSION_LAYERS.male[part]?.[key]||null:null;
+}
 function paperDollSprite(key){
  const gender=s.appearanceV1?.gender==='female'?'female':'male';
  const slotIds={hair:'hairStyle',face:'faceShape',eyes:'eyeShape',brows:'browShape',mouth:'mouthShape'};
  const slotId=slotIds[key]||key;
  const choice=s.appearanceV1?.parts?.[slotId];
- const expression=s.appearanceV1?.parts?.expression||'original';
- if((key==='brows'||key==='eyes'||key==='mouth')&&expression!=='original'){
-  const pose=PAPERDOLL_EXPRESSION_LAYERS[gender]?.[expression];
-  if(pose?.[key])return pose[key];
- }
+ const healthSprite=paperDollBodyConditionSprite(gender,key);
+ if(healthSprite)return healthSprite;
  return (choice&&PAPERDOLL_VARIANT_ASSETS[gender]?.[slotId]?.[choice])||paperDollLayers()[key]||null;
 }
 function paperDollExtraLayerHTML(placement='front'){
@@ -5061,11 +5082,10 @@ let paperDollBrowsImage=null;
 function paintPaperDollBrows(){
  const stages=document.querySelectorAll('.paperdoll-stage');
  if(!stages.length)return;
- if(!paperDollBrowsImage){
-  paperDollBrowsImage=new Image();
-  paperDollBrowsImage.onload=()=>paintPaperDollBrows();
-  paperDollBrowsImage.onerror=()=>console.warn('Eyebrow image unavailable');
-  paperDollBrowsImage.src=paperDollSprite('brows');
+ const source=paperDollSprite('brows');
+ if(!paperDollBrowsImage||paperDollBrowsImage._paperdollSrc!==source){
+  const img=new Image();img._paperdollSrc=source;paperDollBrowsImage=img;
+  img.onload=()=>paintPaperDollBrows();img.onerror=()=>console.warn('Eyebrow image unavailable');img.src=source;
   return;
  }
  if(!paperDollBrowsImage.complete||!paperDollBrowsImage.naturalWidth)return;
@@ -5189,23 +5209,30 @@ function setPaperDollAppearance(field,value){
  save();renderPlaceDrawer();
 }
 function renderPaperDollExpressionControls(){
- normalizeAppearanceV1();
+ const state=paperDollBodyCondition();
  const row=document.createElement('div');row.className='paperdoll-expression-row';
- row.setAttribute('role','group');row.setAttribute('aria-label','紙娃娃表情切換');
- const label=document.createElement('label');label.htmlFor='equipExpressionSelect';label.textContent='表情';
- const select=document.createElement('select');select.id='equipExpressionSelect';select.className='paperdoll-choice-select';
- const gender=s.appearanceV1.gender;
- for(const [id,name] of Object.entries(PAPERDOLL_EXPRESSION_CHOICES)){
+ row.setAttribute('role','group');row.setAttribute('aria-label','角色身體狀況');
+ const title=document.createElement('strong');title.textContent='身體狀況 · '+state.name;
+ const note=document.createElement('span');note.className='paperdoll-expression-note';
+ note.textContent=state.hp+'/'+state.max+' HP｜'+state.note+(state.preview?'（僅外觀預覽）':'（隨 HP 自動變化）');
+ row.append(title,note);
+ const details=document.createElement('details');details.className='paperdoll-physical-preview';
+ details.open=paperDollPhysicalPreviewOpen;
+ const summary=document.createElement('summary');summary.textContent='預覽四種狀況（不修改 HP）';
+ details.appendChild(summary);
+ details.addEventListener('toggle',()=>paperDollPhysicalPreviewOpen=details.open);
+ const select=document.createElement('select');select.className='paperdoll-choice-select';
+ select.setAttribute('aria-label','預覽身體狀況');
+ for(const [id,name] of [['auto','跟隨實際 HP'],...Object.entries(PAPERDOLL_BODY_CONDITIONS).map(([key,entry])=>[key,entry.name])]){
   const option=document.createElement('option');option.value=id;option.textContent=name;
-  option.disabled=id!=='original'&&!PAPERDOLL_EXPRESSION_LAYERS[gender]?.[id];
-  option.selected=s.appearanceV1.parts.expression===id;
-  select.appendChild(option);
+  option.selected=(paperDollPhysicalPreview||'auto')===id;select.appendChild(option);
  }
- select.onchange=()=>setPaperDollAppearance('part:expression',select.value);
- row.append(label,select);
- if(gender==='female'){
-  const note=document.createElement('span');note.className='paperdoll-expression-note';
-  note.textContent='女性頭部需先完成獨立表情拆圖';row.appendChild(note);
+ select.onchange=()=>{paperDollPhysicalPreview=select.value==='auto'?null:select.value;paperDollPhysicalPreviewOpen=true;renderPlaceDrawer();};
+ details.appendChild(select);row.appendChild(details);
+ if(s.appearanceV1?.gender==='female'){
+  const limit=document.createElement('span');limit.className='paperdoll-expression-note';
+  limit.textContent='女性版先以眼周陰影及汗珠提示疲態；完整五官變化待女性頭部素材完成。';
+  row.appendChild(limit);
  }
  return row;
 }
@@ -5346,11 +5373,12 @@ function equipmentGuideHTML(sceneMode='equipment'){
  const eyes=maleTemplateLayer(character.layers.eyes,'male-eyes')+
   '<canvas class="paperdoll-eyes-canvas" width="64" height="160" aria-hidden="true"></canvas>';
  const mouth=s.appearanceV1?.gender==='male'?maleTemplateLayer(character.layers.mouth,'paperdoll-mouth'):'';
+ const healthMarks='<canvas class="paperdoll-condition-canvas" width="64" height="160" aria-hidden="true"></canvas>';
  const hair=maleTemplateLayer(character.layers.hair,'paperdoll-hair-fallback')+
   '<canvas class="paperdoll-hair-canvas" width="64" height="160" aria-hidden="true"></canvas>';
  return '<div class="paperdoll-stage '+(s.appearanceV1?.gender==='female'?'paperdoll-female':'paperdoll-male')+(s.appearanceV1?.gender==='male'&&s.appearanceV1?.parts?.hairStyle==='bald'?' paperdoll-bald':'')+'" role="img" aria-label="'+
   (paperDollTryOn?'主角旅行裝試穿預覽':(s.appearanceV1?.gender==='female'?'女性':'男性')+'標準型紙娃娃，依實際裝備顯示')+'">'+
-  behind+base+shorts+tank+outfit+satchel+extras+veil+brows+eyes+mouth+hair+
+  behind+base+shorts+tank+outfit+satchel+extras+veil+brows+eyes+mouth+healthMarks+hair+
   (paperDollTryOn?'<span class="paperdoll-preview-label">試穿</span>':'')+'</div>';
 }
 function setOwnedEquipmentEquipped(slotId,equip){
@@ -5401,6 +5429,27 @@ function showEquipmentDetail(id){
   }
  }
 }
+function paintPaperDollPhysicalCondition(){
+ const state=paperDollBodyCondition();
+ for(const stage of document.querySelectorAll('.paperdoll-stage')){
+  const canvas=stage.querySelector('.paperdoll-condition-canvas');if(!canvas)continue;
+  const ctx=canvas.getContext('2d');if(!ctx)continue;
+  ctx.clearRect(0,0,64,160);ctx.imageSmoothingEnabled=false;
+  if(state.id==='normal')continue;
+  const female=stage.classList.contains('paperdoll-female');
+  // Small translucent under-eye shadows and a sweat drop. No iris pixels touched.
+  ctx.fillStyle=state.id==='tired'?'rgba(141,110,118,.43)':'rgba(132,94,117,.64)';
+  ctx.fillRect(female?21:22,39,3,1);ctx.fillRect(female?40:39,39,3,1);
+  if(state.id==='weak'||state.id==='critical'){
+   ctx.fillStyle='rgba(151,188,200,.85)';
+   ctx.fillRect(47,36,1,2);ctx.fillRect(46,38,2,1);
+  }
+  if(state.id==='critical'){
+   ctx.fillStyle='rgba(134,110,130,.50)';
+   ctx.fillRect(female?22:23,40,3,1);ctx.fillRect(female?39:38,40,3,1);
+  }
+ }
+}
 function renderEquipmentBoard(){
  normalizeEquipmentV1();
  const board=$('equipmentBoard');board.replaceChildren();
@@ -5448,6 +5497,7 @@ function renderEquipmentBoard(){
  paintPaperDollBrows();
  paintPaperDollEyes();
  paintPaperDollSkin();
+ paintPaperDollPhysicalCondition();
 }
 function renderSideTab(tab,out){
  if(tab==='character'){
