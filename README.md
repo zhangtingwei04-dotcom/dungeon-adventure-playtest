@@ -1,5 +1,10 @@
 # 殘車之後｜地下城冒險公開測試 V0.5.1
 
+## iPhone 紙娃娃透明 PNG 匯出修復（2026-11-21）
+
+獨立試穿頁的「匯出目前角色」原本僅使用 `canvas.toDataURL()` 搭配 `<a download>` 自動點擊，容易在 iOS Safari／App 內建瀏覽器失效。修改 `paperdoll-tryon-preview.html`，改為先產生 64×160 真透明 PNG 及 Blob URL，並提供：① 支援時以 `navigator.share({files:[File]})` 開啟原生分享選單，② 無法分享時顯示可長按儲存的實體 `<img>`，③ Blob URL 的手動下載及開新分頁連結。匯出內容依當前七層開關渲染，棋盤格不會烘焙進 PNG，當可見圖層未載入完成時會提示。只更新試穿頁，主遊戲、七張角色 PNG、裝備、背包、存檔不變。更新 commit `a6b5482c74c76e5f84a4284c4771c1de8e6d77de`。GitHub 回讀已確認七張角色圖層與正式遊戲相同；JavaScript 語法檢查通過，**尚未完成 iPhone Safari 實機下載驗證**。
+
+
 ## 紙娃娃全七層替換：使用者核准概念版 V1（2026-11-21）
 
 依使用者確認的三狀態像素角色美術稿，正式將 `index.html` 的 `PAPERDOLL_SEPARATE_LAYERS` 七個角色圖層（`body`／`face`／`brows`／`eyes`／`hair`／`tank`／`shorts`）**全部**替換為 `紙娃娃_確認設計_七層正式試穿素材.zip` 內的核准 64×160 RGBA 透明 PNG，同一固定座標、無舊版混用。新底模為不描繪性器官的中性身體，衣服／短褲獨立繪製，不附著於底模；臉部含紫眼與嘴巴。正式提交 `4bffa46c42bd5bf814a0e30d35723f19eeeed407`。獨立試穿頁 `paperdoll-tryon-preview.html` 完整同步核准素材及個別穿脫控制；提交 `2fdaecde224ef9d9287529c9c2afde69adf00f52`。
