@@ -19,3 +19,10 @@
 - `assets/female_eye_motion_v1.js` 語法檢查通過。
 - `index.html` 主要 inline script 語法檢查通過。
 - 尚未執行 iPhone 實機視覺檢查；需在裝備欄切換男／女及髮型，確認眨眼、閉眼、瞳色、換膚色、說話、昏迷、危急圈圈眼不重影。
+
+## 男性頸部接合 V1（2026-11-22）
+- 新增 `assets/male_neck_v1.svg`：真正透明背景，原生 64×160，對齊 x32 中心／下巴約 y51；比照女性已核准的頸部形狀，依先前男性暖膚色頭型微調寬度及陰影。
+- `index.html` 的紙娃娃組裝在原本身體與臉部之間加入 `paperdoll-male-neck`，只在男性核准頭型載入時啟用。
+- 更換膚色時由 `paperdoll-skin-canvas` 同時繪製身體＋男性脖子＋臉，隱藏未調色的脖子 SVG，避免兩套脖子重疊／露出舊膚色。
+- 女性既有 `female_neck_v1.svg`、男性髮型、表情動畫、衣物、背包與玩家存檔均未修改。
+- 驗證：重新讀取 main 的 SVG 與 index，整合檢查 9 項通過，主要 inline JavaScript 語法通過；iPhone 上的實際頭／頸接縫仍須人工確認。
