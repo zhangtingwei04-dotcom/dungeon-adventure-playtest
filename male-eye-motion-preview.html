@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#19342d">
+<title>男性 V8d 眼睛動畫｜實際素材測試</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;padding:18px;background:#152d28;color:#f4e6d3;font:14px/1.55 system-ui,-apple-system,sans-serif}
+main{max-width:640px;margin:auto}
+h1{font-size:20px;margin:0 0 8px}
+p{margin:8px 0;color:#b9cabf}
+.status{border:1px solid #617f72;background:#23453b;padding:8px 11px;border-radius:8px;margin:12px 0}
+.preview{display:flex;justify-content:center;background:#27453d;border:1px solid #527566;border-radius:10px;min-height:270px;padding:10px}
+.actor{position:relative;width:224px;aspect-ratio:64/70;overflow:hidden;image-rendering:pixelated}
+.actor>img,.actor>canvas{position:absolute;left:0;top:0;width:100%;height:auto;image-rendering:pixelated;pointer-events:none}
+.head{z-index:1}
+.paperdoll-female-eye-motion-canvas{z-index:2}
+.hair{z-index:3;transform:translateY(-1.25%)}
+.eyes-status-canvas{z-index:4}
+.controls{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0}
+button{font:inherit;font-size:13px;padding:8px 12px;border:1px solid #8c9c84;border-radius:6px;background:#274e42;color:#f7e8d0;min-height:36px}
+button[aria-pressed="true"]{background:#f0d6a0;color:#23392f;border-color:#f0d6a0}
+label{display:flex;align-items:center;gap:7px;margin-top:10px}
+a{color:#f1d6a4}
+small{color:#abbdb4}
+</style>
+</head>
+<body>
+<main>
+<h1>男性眼睛動畫 V2.6</h1>
+<p>使用遊戲正式 V8d 男性新頭與紫色眼睛；頭部、眉毛、嘴巴和脖子位置均不修改。可點選不同眼神，確認眼白與虹膜的動作。</p>
+<div id="status" class="status" role="status">正在載入正式遊戲素材…</div>
+<div class="preview">
+ <div class="actor paperdoll-shared-male-face" id="actor" role="img" aria-label="男性頭部與眼睛動畫預覽">
+  <img class="head" alt="新男性頭部">
+  <canvas class="paperdoll-female-eye-motion-canvas" width="64" height="160" aria-hidden="true"></canvas>
+  <img class="hair" alt="獨立透明銀白頭髮">
+  <canvas class="eyes-status-canvas" width="64" height="160" aria-hidden="true"></canvas>
+ </div>
+</div>
+<div id="controls" class="controls" role="group" aria-label="選擇眼睛動畫">
+ <button type="button" data-mode="auto" aria-pressed="true">自然動態</button>
+ <button type="button" data-mode="blink" aria-pressed="false">眨眼</button>
+ <button type="button" data-mode="half" aria-pressed="false">半閉眼</button>
+ <button type="button" data-mode="left" aria-pressed="false">向左看</button>
+ <button type="button" data-mode="right" aria-pressed="false">向右看</button>
+ <button type="button" data-mode="down" aria-pressed="false">向下看</button>
+ <button type="button" data-mode="closed" aria-pressed="false">閉眼</button>
+ <button type="button" data-mode="critical" aria-pressed="false">危急圈圈眼</button>
+ <button type="button" data-mode="unconscious" aria-pressed="false">昏迷圈圈眼</button>
+</div>
+<label><input type="checkbox" id="toggleHair" checked> 顯示銀白頭髮</label>
+<p><small>自然動態會週期性左右看、向下看及眨眼；其他選項是手動試演，不修改遊戲存檔。昏迷時原眼睛會被移除，由圈圈眼完全替代。</small></p>
+<p><a href="./?test=male-eye-v26">返回遊戲裝備欄</a></p>
+</main>
+<script src="./assets/male_new_head_v8.js?v=5"></script>
+<script src="./assets/male_hair_v8.js?v=5"></script>
+<script src="./assets/expression_motion.js?v=3"></script>
+<script src="./assets/female_eye_motion_v1.js?v=8"></script>
+<script>
+(()=>{
+ 'use strict';
+ const face=window.DUNGEON_MALE_SHARED_FACE_V5;
+ const hair=window.DUNGEON_MALE_HAIR_V8;
+ const motion=window.DungeonFemaleEyeMotionV1;
+ const effects=window.DungeonExpressionMotion;
+ const status=document.getElementById('status'), actor=document.getElementById('actor');
+ if(!face?.startsWith('data:image/png;base64,')||!hair?.startsWith('data:image/png;base64,')||!motion||!effects){
+  status.textContent='正式素材或眼睛動畫模組未能載入';return;
+ }
+ let loaded=0,mode='auto';
+ for(const element of actor.querySelectorAll('img')){
+  element.onload=()=>{
+   if(element.naturalWidth!==64||element.naturalHeight!==160){
+    status.textContent='素材大小錯誤：需要 64×160';return;
+   }
+   if(++loaded===2)status.textContent='已載入男性 V8d 原始紫色眼睛與透明頭髮';
+  };
+  element.onerror=()=>{status.textContent='PNG 載入失敗'};
+  element.src=element.classList.contains('head')?face:hair;
+ }
+ document.querySelectorAll('[data-mode]').forEach(button=>{
+  button.addEventListener('click',()=>{
+   mode=button.dataset.mode;
+   document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
+   draw();
+  });
+ });
+ document.getElementById('toggleHair').addEventListener('change',e=>{
+  actor.querySelector('.hair').style.display=e.target.checked?'':'none';
+ });
+ function draw(){
+  if(!document.getElementById('actor'))return;
+  const t=performance.now();
+  const isAuto=mode==='auto';
+  const blink=mode==='blink'||(isAuto&&t%4300>=4050);
+  const gaze=isAuto?motion.gaze(t):['left','right','down'].includes(mode)?mode:'center';
+  const unconscious=mode==='unconscious',circleEyes=mode==='critical';
+  motion.render(actor,{
+   gaze,blink,closed:mode==='closed',half:mode==='half',
+   unconscious,circleEyes,eyeColor:'purple'
+  });
+  const cv=actor.querySelector('.eyes-status-canvas'),ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,64,160);ctx.imageSmoothingEnabled=false;
+  if(unconscious)effects.drawUnconsciousEyes(ctx,t,{eyeCenters:[[25,38],[39,38]]});
+  else if(circleEyes)for(const x of [25,39])effects.drawSpiralEye(ctx,x,38,Math.floor(t/185)%4);
+ }
+ window.addEventListener('dungeon-female-eyes-ready',draw);
+ setInterval(()=>{if(!document.hidden)draw()},90);
+ draw();
+})();
+</script>
+</body>
+</html>
