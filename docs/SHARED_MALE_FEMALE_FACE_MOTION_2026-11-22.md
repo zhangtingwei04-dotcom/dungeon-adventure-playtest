@@ -83,3 +83,10 @@
 - `assets/female_eye_motion_v1.js` 男性 profile 下移 1px，版本 2.5；`assets/female_mouth_motion_v1.js` 男性專用口型貼片的 `MALE_TOP` 改為 44，所有男性嘴型 y 座標同步下移，版本 3.4。女性 profile 與口型皆不變。
 - `index.html` 男性昏迷圈圈眼、HP 圈圈眼、頭部狀態特效與睡眠偏移同步下移 1px；男頭載入版本更新 `male_new_head_v8.js?v=5`，眼睛／嘴巴模組更新到 v7；男髮維持 `male_hair_v8.js?v=5`，脖子圖層未修改。
 - 驗證：GitHub main 重新讀回，男頭與男髮的 64×160 PNG 全部 chunk CRC 通過、含透明資訊；四組 JS 與 index 主腳本語法檢查通過。真實 iPhone 畫面仍待實測確認。
+
+## 男性微笑調整 V3.5（2026-11-22）
+- 使用者不喜歡前版男性微笑的 U 形嘴角。只替換男性 `assets/female_mouth_motion_v1.js` 的 `malePoseFrame(...,'smile')`，改為內斂、不露齒的單側輕微上揚笑嘴，原有彎弧形下唇不再繪製。
+- 新笑嘴在原生 64×160 座標只繪製 5 個暖棕色像素：x30–33／y45 的平緩嘴線、x34／y44 的輕微上揚嘴角；不產生 y46 的明顯下唇線、不使用粉紅唇色。
+- 角色的 **neutral / happy / surprised / frown / shy / talkSmall / talkOpen** 其他造型沒有重畫。另修正 `index.html` 的嘴型選擇映射：男性 `happy` 使用先前已建立的獨立開心嘴型，不再被 `smile` 取代；女性仍維持原設定。
+- `assets/female_mouth_motion_v1.js` 版本提升至 3.5，`index.html` 更新 `?v=8` 重新載入。男性頭 V8d、頭位、原生新眼睛、獨立頭髮 V8、脖子與裝備皆不修改。
+- 重新讀回 GitHub main 後，測試像素渲染的 5 個位置、沒有下唇像素、`neutral` 不變、`happy` 與 `smile` 不同、女性原本繪圖函式保留及 JavaScript 語法，均通過。未完成實機視覺驗收。
