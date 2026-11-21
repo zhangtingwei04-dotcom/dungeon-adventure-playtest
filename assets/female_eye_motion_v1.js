@@ -1,4 +1,4 @@
-/* Shared eye motion V2.2: one animation controller with independently
+/* Shared eye motion V2.6: one animation controller with independently
  * approved male and female 64x160 eye art and eyelid profiles. */
 (function(root){
  'use strict';
@@ -60,21 +60,74 @@
   if(phase>=9500&&phase<10400)return 'down';
   return 'center';
  };
+ // Select a nearby real eye-white pixel, never skin, when clearing moved male
+ // irises. Sampling skin created visible peach-colored holes inside the eyes.
+ function nearestSclera(sourcePixels,cx,y){
+  let best=null,bestScore=-Infinity;
+  for(let x=cx-4;x<=cx+4;x++){
+   const c=sample(sourcePixels,x,y),[r,g,b,a]=c;
+   if(a<128||r<205||g<180||b<180||
+      Math.abs(g-b)>34||Math.abs(r-g)>45)continue;
+   const score=r+g+b-Math.abs(x-cx)*2;
+   if(score>bestScore){best=c;bestScore=score;}
+  }
+  return best||[245,234,234,255];
+ }
  function patch(type,irisColor,sourcePixels,profile){
   const out=new Uint8ClampedArray(sourcePixels);
   for(const {cx} of profile.eyes){
-   if(type==='closed'||type==='half'){
-    const upper=type==='closed'?profile.clearTop:profile.lidHalfY;
+   if(type==='closed'||type==='half'||type==='blank'){
+    const upper=type==='closed'||type==='blank'?profile.clearTop:profile.lidHalfY;
     for(let y=upper;y<=profile.clearBottom;y++)for(let x=cx-4;x<=cx+4;x++){
      const skin=sample(sourcePixels,x,profile.skinY);
      pix(out,x,y,skin[3]>100?skin:[252,226,209,255]);
     }
+    // Unconscious and HP-critical male eyes are fully replaced by the
+    // existing spiral overlay: never draw a stray eyelid through the spiral.
+    if(type==='blank')continue;
     const yy=type==='closed'?profile.lidClosedY:profile.lidHalfY;
     for(let x=cx-profile.lidHalfWidth;x<=cx+profile.lidHalfWidth;x++)
      pix(out,x,yy,profile.lidColor);
     continue;
    }
    const moving=type!=='center';
+   if(profile===PROFILES.male&&moving){
+    // Move the complete NEW V8d male pupil, including dark rim pixels and
+    // purple highlights, but leave the black upper lid and eye frame intact.
+    const colored=[];
+    for(let y=profile.irisTop;y<=profile.irisBottom;y++)
+     for(let x=cx-3;x<=cx+3;x++){
+      const p=sample(sourcePixels,x,y);
+      if(p[3]>=80&&isIris(p[0],p[1],p[2]))colored.push([x,y]);
+     }
+    if(colored.length){
+     const xs=colored.map(p=>p[0]),ys=colored.map(p=>p[1]);
+     const loX=Math.min(...xs),hiX=Math.max(...xs);
+     const loY=Math.max(profile.irisTop-1,Math.min(...ys)-1),hiY=Math.max(...ys);
+     const iris=[];
+     for(let y=loY;y<=hiY;y++)for(let x=loX;x<=hiX;x++){
+      const p=sample(sourcePixels,x,y),[r,g,b,a]=p;
+      const coloredPixel=isIris(r,g,b);
+      const rim=a>=80&&r<96&&g<79&&b<112;
+      if(!coloredPixel&&!rim)continue;
+      const val=[...p];
+      if(irisColor&&coloredPixel){
+       const shade=Math.max(.4,Math.min(1,(r+g+b)/360));
+       for(let k=0;k<3;k++)val[k]=Math.round(irisColor[k]*shade);
+      }
+      iris.push([x,y,val]);
+     }
+     for(const [x,y] of iris)pix(out,x,y,nearestSclera(sourcePixels,cx,y));
+     const dx=type==='left'?-1:type==='right'?1:0;
+     const dy=type==='down'?1:type==='up'?-1:0;
+     for(const [x,y,p] of iris){
+      const xx=x+dx,yy=y+dy;
+      if(xx>=cx-4&&xx<=cx+4&&yy>=profile.irisTop-1&&yy<=profile.irisBottom)
+       pix(out,xx,yy,p);
+     }
+     continue;
+    }
+   }
    const dx=type==='left'?-1:type==='right'?1:0;
    const dy=type==='up'?-1:type==='down'?1:0;
    const moved=[];
@@ -109,12 +162,14 @@
    const skinCtx=stage.querySelector('.paperdoll-skin-canvas')?.getContext('2d',{willReadFrequently:true});
    if(skinCtx)sourcePixels=skinCtx.getImageData(0,0,W,H).data;
   }
-  const type=opt.closed||opt.blink?'closed':opt.half?'half':(['left','right','up','down'].includes(opt.gaze)?opt.gaze:'center');
+  const type=isSharedMale&&(opt.unconscious||opt.circleEyes)?'blank':
+   opt.closed||opt.blink?'closed':opt.half?'half':
+   (['left','right','up','down'].includes(opt.gaze)?opt.gaze:'center');
   const rgb=opt.eyeColor==='purple'||!opt.eyeColor?null:colorHex(opt.eyeColor);
   if(type==='center'&&!rgb)return; // face's original purple pupils, no needless overwrite
   const painted=patch(type,rgb,sourcePixels,profile);
   for(const eye of profile.eyes)ctx.putImageData(painted,0,0,eye.x0,profile.top,boxW,profile.boxH);
  }
- root.DungeonFemaleEyeMotionV1=Object.freeze({version:'2.5.0',render,gaze,prepare});
+ root.DungeonFemaleEyeMotionV1=Object.freeze({version:'2.6.0',render,gaze,prepare});
  prepare();
 })(window);
