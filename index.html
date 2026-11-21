@@ -3970,7 +3970,7 @@ html.stage-locked #app .paperdoll-stage.eyes-tinted .male-eyes{display:none}
 <script src="./assets/approved_wagon_art_v1.js"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
-<script src="./assets/expression_motion.js?v=2.7.1"></script>
+<script src="./assets/expression_motion.js?v=2.8"></script>
 <script>
 (()=>{'use strict';
 // Fixed design canvas: use the approved screenshot's exact 1536×707 ratio,
@@ -4997,7 +4997,9 @@ function tickPaperDollMotion(force=false){
   frame.status,...['brows','eyes','mouth'].map(k=>frame.parts[k]),
   frame.effects.blink?'blink':'open',
   frame.effects.sweat?frame.effects.sweatPhase:'no-sweat',
-  frame.effects.circleEyes?frame.effects.circlePhase:'no-circle'
+  frame.effects.circleEyes?frame.effects.circlePhase:'no-circle',
+  currentPaperDollAbnormalStates().join(','),
+  currentPaperDollAbnormalStates().length?Math.floor(performance.now()/160):'no-abnormal'
  ].join('|');
  if(!force&&signature===paperDollMotionLastKey)return false;
  paperDollMotionFrame=frame;paperDollMotionLastKey=signature;
@@ -5317,7 +5319,7 @@ function renderPaperDollAbnormalControls(){
  summary.textContent='異常狀態｜'+(active.length?active.map(id=>PAPERDOLL_ABNORMAL_STATES[id]).join('、'):'目前無異常');
  details.appendChild(summary);
  const note=document.createElement('p');note.className='paperdoll-expression-note';
- note.textContent='不改變五官表情。以下勾選僅用於畫面測試，不改 HP、沒有異常效果、不寫入存檔。';details.appendChild(note);
+ note.textContent='八種異常狀態以獨立動態特效顯示，不改變五官。勾選僅預覽效果，不會改變 HP、套用實際異常或寫入存檔。';details.appendChild(note);
  const list=document.createElement('div');list.className='paperdoll-abnormal-options';
  for(const [id,name] of Object.entries(PAPERDOLL_ABNORMAL_STATES)){
   const label=document.createElement('label'),input=document.createElement('input');input.type='checkbox';
@@ -5524,39 +5526,23 @@ function showEquipmentDetail(id){
  }
 }
 function paintPaperDollPhysicalCondition(){
- const state=paperDollBodyCondition(),abnormal=currentPaperDollAbnormalStates();
+ const abnormal=currentPaperDollAbnormalStates();
+ const frame=paperDollMotionFrame;
+ const effects=frame?.effects;
+ const t=performance.now();
  for(const stage of document.querySelectorAll('.paperdoll-stage')){
-  const canvas=stage.querySelector('.paperdoll-condition-canvas');if(!canvas)continue;
-  const ctx=canvas.getContext('2d');if(!ctx)continue;ctx.clearRect(0,0,64,160);ctx.imageSmoothingEnabled=false;
-  const female=stage.classList.contains('paperdoll-female');
-  const dot=(x,y,color)=>{ctx.fillStyle=color;ctx.fillRect(x,y,1,1);};
-  const rect=(x,y,w,h,color)=>{ctx.fillStyle=color;ctx.fillRect(x,y,w,h);};
-  const faceSweat=(kind='weak')=>window.DungeonExpressionMotion.drawFaceSweat(ctx,kind,Math.floor(performance.now()/420)%3);
-  const line=(points,color)=>{ctx.strokeStyle=color;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(...points[0]);for(const p of points.slice(1))ctx.lineTo(...p);ctx.stroke();};
-  const arc=(x,y,r,start,end,color)=>{ctx.strokeStyle=color;ctx.lineWidth=1;ctx.beginPath();ctx.arc(x,y,r,start,end);ctx.stroke();};
-  const frame=paperDollMotionFrame;
-  const effects=frame?.effects;
-  // Sweat is a compact bright highlight at the upper forehead, never a large drop.
-  // The same primitive can draw on NPC faces with their own coordinates.
-  if(effects?.sweat){
-   window.DungeonExpressionMotion.drawFaceSweat(ctx,frame.status,effects.sweatPhase);
+  const canvas=stage.querySelector('.paperdoll-condition-canvas');
+  if(!canvas)continue;
+  const ctx=canvas.getContext('2d');if(!ctx)continue;
+  ctx.imageSmoothingEnabled=false;
+  ctx.clearRect(0,0,64,160);
+  // HP condition motion is independent from all abnormal effects.
+  if(effects?.sweat)window.DungeonExpressionMotion.drawFaceSweat(ctx,frame.status,effects.sweatPhase);
+  if(effects?.circleEyes&&!stage.classList.contains('paperdoll-female')){
+   for(const x of [25,39])window.DungeonExpressionMotion.drawSpiralEye(ctx,x,36,effects.circlePhase);
   }
-  if(effects?.circleEyes&&!female){
-   for(const x of [25,39]){
-    window.DungeonExpressionMotion.drawSpiralEye(ctx,x,36,effects.circlePhase);
-   }
-  }
-  // Abnormal conditions only paint independent decorations; face sources never change.
-  for(const id of abnormal){
-   if(id==='poison'){rect(17,42,4,2,'rgba(94,155,80,.44)');rect(43,42,4,2,'rgba(94,155,80,.44)');arc(8,32,4,.1,5.4,'#70ae69');arc(56,27,3,.1,5.3,'#70ae69');}
-   else if(id==='fever'){rect(16,42,5,2,'rgba(231,91,109,.48)');rect(43,42,5,2,'rgba(231,91,109,.48)');line([[8,28],[9,25],[8,22]],'#e75c56');line([[55,26],[56,23],[55,20]],'#e75c56');faceSweat('weak');}
-   else if(id==='injury'){line([[45,43],[44,44],[44,46]],'#af3f4b');line([[15,83],[17,86]],'#a83f4e');dot(43,46,'#cf6c74');rect(47,116,2,1,'#af6470');}
-   else if(id==='dizzy'){arc(9,23,4,.15,5.55,'#725ac1');arc(55,25,4,.2,5.45,'#725ac1');dot(59,30,'#a074dc');}
-   else if(id==='unconscious'){line([[51,20],[56,20],[52,25],[56,25]],'#8574b5');line([[55,13],[59,13],[56,17],[59,17]],'#8574b5');}
-   else if(id==='sleep_deprived'){rect(21,40,7,1,'rgba(96,74,123,.55)');rect(37,40,7,1,'rgba(96,74,123,.55)');}
-   else if(id==='hunger'){arc(53,88,5,.4,4.75,'#a87a62');arc(54,88,2,1,5.8,'#a87a62');}
-   else if(id==='dehydration'){rect(17,46,2,1,'rgba(165,110,105,.65)');rect(45,47,2,1,'rgba(165,110,105,.65)');faceSweat('weak');line([[51,23],[58,32]],'#bf555b');}
-  }
+  // These overlays never replace brows, eyes, mouth, clothing or the save.
+  if(abnormal.length)window.DungeonExpressionMotion.drawAbnormalEffects(ctx,abnormal,t);
  }
 }
 function renderEquipmentBoard(){
