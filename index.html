@@ -4007,7 +4007,7 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <script src="./assets/approved_wagon_art_v1.js"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
-<script src="./assets/expression_motion.js?v=2.16"></script>
+<script src="./assets/expression_motion.js?v=2.17"></script>
 <script src="./assets/female_head_v1.js?v=1"></script>
 <script src="./assets/female_parts_v2.js?v=4"></script>
 <script src="./assets/male_round_face_v4.js?v=2"></script>
@@ -5061,12 +5061,13 @@ function restPreviewLabel(){
         '｜活力：'+window.DungeonExpressionMotion.restVitality[paperDollRestPreview.vitality];
 }
 
-/* HP chooses facial expressions. Abnormal states are ONLY effect layers. */
+/* Four HP preview stages: display names only; preserve existing save keys,
+   thresholds, blink timing and priority rules. HP is not the SP/vitality bar. */
 const PAPERDOLL_BODY_CONDITIONS=Object.freeze({
- normal:{name:'開心',note:'睜眼微笑，偶爾輕眨眼',parts:{brows:'original',eyes:'original',mouth:'smile'}},
- tired:{name:'中性',note:'平靜表情，慢速自然眨眼',parts:null},
- weak:{name:'中性＋微汗',note:'右額露出皮膚有細汗，慢速出現',parts:null},
- critical:{name:'疲倦／戰敗',note:'平靜嘴型、圈圈眼持續旋轉，右額細汗快速出現',parts:{brows:'angry',eyes:'original',mouth:'original'}}
+ normal:{name:'開心',note:'HP 高於 75%｜微笑、偶爾輕眨眼',parts:{brows:'original',eyes:'original',mouth:'smile'}},
+ tired:{name:'中性',note:'HP 50%～75%｜平靜表情、自然眨眼',parts:null},
+ weak:{name:'虛弱',note:'HP 25%～50%｜慢速眨眼、右額細汗',parts:null},
+ critical:{name:'戰敗',note:'HP 25% 以下｜平靜嘴型、旋轉圈圈眼與細汗',parts:{brows:'angry',eyes:'original',mouth:'original'}}
 });
 const PAPERDOLL_ABNORMAL_STATES=Object.freeze({
  poison:'中毒',fever:'發燒',injury:'受傷／流血',dizzy:'暈眩',unconscious:'昏迷',
@@ -5869,7 +5870,12 @@ function paintPaperDollPhysicalCondition(){
    maleV8?{sweatY:28}:undefined);
   const eyeY=maleV8?38:36;
   if(effects?.circleEyes&&!abnormal.includes('unconscious')){
-   for(const x of [25,39])window.DungeonExpressionMotion.drawSpiralEye(ctx,x,eyeY,effects.circlePhase);
+   // Male V8d blanks the original purple eyes, which made a bare 3x3
+   // spiral appear too small. Rebuild the same rounded 5x5 eye footprint
+   // visible in the female artwork without resizing her existing effect.
+   for(const x of [25,39])
+    window.DungeonExpressionMotion.drawSpiralEye(ctx,x,eyeY,effects.circlePhase,
+     maleV8?{matchFemaleSize:true}:undefined);
   }
   // The renderer adds layout.y, so 39 - 1 = the V8d eye center at y38.
   if(abnormal.length)window.DungeonExpressionMotion.drawAbnormalEffects(ctx,abnormal,t,
