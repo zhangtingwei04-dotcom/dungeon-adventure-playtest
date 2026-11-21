@@ -5211,7 +5211,9 @@ function paintPaperDollEyes(){
  const stages=document.querySelectorAll('.paperdoll-stage');if(!stages.length)return;
  const choice=s.appearanceV1?.eyeColor||'purple';
  if(choice==='purple'){stages.forEach(st=>st.classList.remove('eyes-tinted'));return;}
- const preset=PAPERDOLL_EYE_COLORS.find(t=>t.id===choice);if(!preset?.rgb)return;
+ const preset=PAPERDOLL_EYE_COLORS.find(t=>t.id===choice);
+ const rgb=choice==='custom'?[1,3,5].map(i=>parseInt(s.appearanceV1.eyeCustomHex.slice(i,i+2),16)):preset?.rgb;
+ if(!rgb||rgb.some(v=>!Number.isFinite(v)))return;
  const source=paperDollSprite('eyes');
  if(!paperDollEyeImage||paperDollEyeImage._paperdollSrc!==source){
   const img=new Image();img._paperdollSrc=source;paperDollEyeImage=img;
@@ -5221,17 +5223,16 @@ function paintPaperDollEyes(){
  const work=document.createElement('canvas');work.width=64;work.height=160;
  const ctx=work.getContext('2d',{willReadFrequently:true});ctx.imageSmoothingEnabled=false;ctx.drawImage(paperDollEyeImage,0,0);
  const pixels=ctx.getImageData(0,0,64,160),d=pixels.data;
- const useRecoveredFemaleIris=s.appearanceV1?.gender==='female';
  for(let i=0;i<d.length;i+=4){
   const r=d[i],g=d[i+1],b=d[i+2];
   if(d[i+3]===0)continue;
-  // Female eye whites and magenta iris shadows are now owned by the eyes layer.
-  const femaleViolet=(b>=r+4&&b>=g+10&&b>=24&&!(r>=205&&g>=180));
-  const femaleMagenta=(r>=80&&r<=205&&b>=r-20&&b>=g+28&&r>=g+38);
-  const originalMaleMask=(r>=36&&((b>r*1.12&&b>g*1.10)||(r>68&&b>r*1.03&&g<160)));
-  if(!(useRecoveredFemaleIris?(femaleViolet||femaleMagenta):originalMaleMask))continue;
-  const shade=useRecoveredFemaleIris?Math.max(.22,Math.min(1.10,(r+g+b)/340)):Math.max(.62,Math.min(1.28,(r+g+b)/330));
-  for(let j=0;j<3;j++)d[i+j]=Math.max(0,Math.min(255,Math.round(preset.rgb[j]*shade)));
+  // All iris pixels (including dark purple shadows) now belong to the eye layer.
+  // Preserve sclera whites, bright reflections, skin tones and true black outlines.
+  const irisViolet=(b>=r+4&&b>=g+10&&b>=24&&!(r>=205&&g>=180));
+  const irisMagenta=(r>=80&&r<=205&&b>=r-20&&b>=g+28&&r>=g+38);
+  if(!(irisViolet||irisMagenta))continue;
+  const shade=Math.max(.22,Math.min(1.10,(r+g+b)/340));
+  for(let j=0;j<3;j++)d[i+j]=Math.max(0,Math.min(255,Math.round(rgb[j]*shade)));
  }
  ctx.putImageData(pixels,0,0);
  for(const stage of stages){
