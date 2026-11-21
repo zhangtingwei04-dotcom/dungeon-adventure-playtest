@@ -4009,8 +4009,10 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <script src="./assets/male_round_face_v4.js?v=2"></script>
 <script src="./assets/male_approved_face_v7.js?v=1"></script>
 <script src="./assets/male_approved_hair_v7.js?v=1"></script>
-<script src="./assets/female_eye_motion_v1.js?v=4"></script>
-<script src="./assets/female_mouth_motion_v1.js?v=4"></script>
+<!-- V8 replaces only the male FACE; the new eyes stay baked in V8, never V7. -->
+<script src="./assets/male_new_head_v8.js?v=1"></script>
+<script src="./assets/female_eye_motion_v1.js?v=5"></script>
+<script src="./assets/female_mouth_motion_v1.js?v=5"></script>
 <script>
 (()=>{'use strict';
 // Fixed design canvas: use the approved screenshot's exact 1536×707 ratio,
@@ -5825,12 +5827,14 @@ function paintPaperDollPhysicalCondition(){
    },t);
   // HP condition motion is independent from all abnormal effects.
   if(effects?.sweat)window.DungeonExpressionMotion.drawFaceSweat(ctx,frame.status,effects.sweatPhase);
+  const maleV8=stage.classList.contains('paperdoll-shared-male-face')&&window.DUNGEON_MALE_FACE_VERSION==='v8-new-eyes';
+  const eyeY=maleV8?39:36;
   if(effects?.circleEyes&&!abnormal.includes('unconscious')){
-   for(const x of [25,39])window.DungeonExpressionMotion.drawSpiralEye(ctx,x,36,effects.circlePhase);
+   for(const x of [25,39])window.DungeonExpressionMotion.drawSpiralEye(ctx,x,eyeY,effects.circlePhase);
   }
-  // These overlays never replace brows, eyes, mouth, clothing or the save.
+  // Match unconscious eye overlay to the new male pupils, not V7 anchors.
   if(abnormal.length)window.DungeonExpressionMotion.drawAbnormalEffects(ctx,abnormal,t,
-   undefined);
+   maleV8?{eyeCenters:[[25,39],[39,39]]}:undefined);
  }
 }
 function renderEquipmentBoard(){
