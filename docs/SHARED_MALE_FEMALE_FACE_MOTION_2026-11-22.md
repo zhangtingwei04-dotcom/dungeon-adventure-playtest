@@ -113,3 +113,10 @@
 - `assets/expression_motion.js` V2.17：擴充 `drawSpiralEye(ctx,x,y,phase,{matchFemaleSize:true})`，只在男性戰敗狀態繪製與既有昏迷眼底形尺寸相同的圓角 5×5 眼白背景，再覆蓋原本共用 3×3 紫色旋轉圈圈。女性不傳此選項，原動畫不改；男女昏迷都仍使用同一個 5×5 繪製函式。
 - `index.html` 載入 `expression_motion.js?v=2.17` 並只對男性 V8d 的 HP 圈圈眼傳遞 `matchFemaleSize`。 `male-eye-motion-preview.html` 加入「中性」與「戰敗圈圈眼」選項並使用相同的男性顯示規格。
 - 驗證：回讀 GitHub main，主程式、共用眼部模組、表情模組、預覽頁語法檢查通過；直接執行共享 JS 函式檢查女性原 3×3 紫色效果保持不變、男性可見底形範圍為 5×5、內部紫色旋轉像素完全相同、眼白底形 21 像素。iPhone 真機效果仍待確認。
+
+## 男性戰敗圈圈眼完全沿用女性原版（2026-11-22）
+- 使用者再次確認男性「戰敗」圈圈眼要**和女性的一模一樣**，而不是先前男性專用的 5×5 白色眼底＋3×3 紫色旋轉圖樣。
+- 刪除 `assets/expression_motion.js` 的男性專用 `matchFemaleSize` 白色眼底選項，男女現在呼叫**同一份原女性 `drawSpiralEye(ctx,x,y,phase)`**，相同 3×3 紫色畫法、顏色、4 個旋轉影格和節奏；只保留各自頭部原生眼中心 y：女性 y36、男性 V8d y38。
+- 修改 `assets/female_eye_motion_v1.js` 男性「戰敗」時不再清除原本紫色眼睛，而是跟女性一樣直接在角色原眼睛上疊加圈圈動畫；真正昏迷時才清除眼睛並換黑色圈圈眼。
+- `index.html` 更新 `expression_motion.js?v=2.18` 與 `female_eye_motion_v1.js?v=9`；`male-eye-motion-preview.html` 同步使用原本女性圈圈效果，不再標示男性 5×5 白底。
+- 靜態核對：共同 JS 函式 4 個旋轉影格在男／女中心座標的**相對位置、像素顏色與繪製順序完全一致**；程式語法與主要載入引用全通過。男性新頭 V8d、眼型、眉毛、嘴巴、脖子、銀白髮型及女性原有美術均未更動。GitHub Pages 與 iPhone 實際顯示仍待確認。
