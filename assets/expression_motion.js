@@ -42,6 +42,32 @@
   }
   ctx.fillStyle='#573275';ctx.fillRect(cx,cy,1,1);
  }
+ /* Tiny, translucent face highlights instead of illustrated droplets.
+  * Presets use the 64x160 paperdoll face. NPCs may pass their own points.
+  * Each mark is only 1 pixel; no long drips, outlines, or body-wide sweat.
+  */
+ function drawFaceSweat(ctx,status,phase=0,layout){
+  if(!ctx||!(status==='weak'||status==='critical'))return;
+  const face=layout||{};
+  const originX=Number.isFinite(face.x)?face.x:0;
+  const originY=Number.isFinite(face.y)?face.y:0;
+  const points=Array.isArray(face.points)?face.points:
+   (status==='weak'?[[46,40],[18,42]]:
+     [[18,39],[46,40],[19,44],[44,45],[22,34]]);
+  const p=posMod(Math.floor(phase),3);
+  ctx.save();
+  for(let i=0;i<points.length;i++){
+   // Weak: only one to two tiny glints; critical: more active face sheen.
+   if(status==='weak'&&i>0&&p!==2)continue;
+   if(status==='critical'&&i===4&&p===1)continue;
+   const [x,y]=points[i];
+   const yOffset=(i+p)%3===0?1:0;
+   const opacity=(i+p)%3===1?.23:(status==='weak'?.49:.43);
+   ctx.fillStyle='rgba(221,245,236,'+opacity+')';
+   ctx.fillRect(Math.round(originX+x),Math.round(originY+y+yOffset),1,1);
+  }
+  ctx.restore();
+ }
  function createActor(options){
   const opts=options||{};
   let status=statusOf(opts.status||'normal');
@@ -129,6 +155,6 @@
   });
  }
  root.DungeonExpressionMotion=Object.freeze({
-  version:'2.0.0',poses:POSES,statuses:STATUS_PRESETS,drawSpiralEye,createActor
+  version:'2.1.0',poses:POSES,statuses:STATUS_PRESETS,drawSpiralEye,drawFaceSweat,createActor
  });
 })(window);
