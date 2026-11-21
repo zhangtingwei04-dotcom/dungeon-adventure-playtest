@@ -7,7 +7,7 @@
  // blink-line style stay independent and can be adjusted without a fork.
  const PROFILES=Object.freeze({
   female:Object.freeze({eyes:[{cx:25,x0:20},{cx:39,x0:34}],lidHalfWidth:3,lidColor:[76,44,53,255],top:32,boxH:10,irisTop:34,irisBottom:39,clearTop:34,clearBottom:39,lidClosedY:36,lidHalfY:37,skinY:42}),
-  male:Object.freeze({eyes:[{cx:25,x0:20},{cx:39,x0:34}],lidHalfWidth:2,lidColor:[64,43,50,255],top:32,boxH:10,irisTop:36,irisBottom:39,clearTop:34,clearBottom:40,lidClosedY:36,lidHalfY:37,skinY:42})
+  male:Object.freeze({eyes:[{cx:25,x0:20},{cx:39,x0:34}],lidHalfWidth:2,lidColor:[64,43,50,255],top:33,boxH:10,irisTop:37,irisBottom:40,clearTop:35,clearBottom:41,lidClosedY:37,lidHalfY:38,skinY:43})
  });
  const boxW=11;
  let imagePixels=null,pending=false,failed=false;
@@ -115,6 +115,6 @@
   const painted=patch(type,rgb,sourcePixels,profile);
   for(const eye of profile.eyes)ctx.putImageData(painted,0,0,eye.x0,profile.top,boxW,profile.boxH);
  }
- root.DungeonFemaleEyeMotionV1=Object.freeze({version:'2.4.0',render,gaze,prepare});
+ root.DungeonFemaleEyeMotionV1=Object.freeze({version:'2.5.0',render,gaze,prepare});
  prepare();
 })(window);
