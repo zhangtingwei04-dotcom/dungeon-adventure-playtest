@@ -3983,7 +3983,7 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <script src="./assets/approved_wagon_art_v1.js"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
-<script src="./assets/expression_motion.js?v=2.15"></script>
+<script src="./assets/expression_motion.js?v=2.16"></script>
 <script>
 (()=>{'use strict';
 // Fixed design canvas: use the approved screenshot's exact 1536×707 ratio,
@@ -5357,7 +5357,7 @@ function renderPaperDollRestControls(){
  summary.textContent='睡眠與活力測試｜'+restPreviewLabel();
  details.appendChild(summary);
  const note=document.createElement('p');note.className='paperdoll-expression-note';
- note.textContent='新增輕微惡夢（皺眉、微汗）、嚴重惡夢（急促呼吸、顫動）與惡夢驚醒（驚訝後逐漸平靜）。同一套狀態也可套用 NPC；活力 SP 仍只顯示藍色測試條，不產生特效、不存檔。';
+ note.textContent='V2.16：新增美夢、睡夢中的微笑及美夢醒來（柔和微笑、少量夢境星光、慢慢睜眼）；惡夢三段與正常睡眠都保留。玩家和 NPC 共用狀態。活力 SP 只顯示藍色數值條，沒有特效、不寫入存檔。';
  details.appendChild(note);
  for(const [kind,title,values] of [
   ['sleep','睡眠狀態',window.DungeonExpressionMotion.restSleep],
@@ -5384,11 +5384,11 @@ function renderPaperDollRestControls(){
  }
  // The actual six NPC field sprites can demonstrate the same sleep modes.
  const npcHeading=document.createElement('p');npcHeading.className='paperdoll-expression-note';
- npcHeading.textContent='NPC 惡夢動態試演（共用上方睡眠狀態）';
+ npcHeading.textContent='NPC 睡眠、惡夢與美夢試演（共用上方睡眠狀態）';
  details.appendChild(npcHeading);
  const npcRow=document.createElement('div');npcRow.className='paperdoll-customizer-field';
  const member=document.createElement('select');member.className='paperdoll-choice-select';
- member.setAttribute('aria-label','選擇試演惡夢的 NPC');
+ member.setAttribute('aria-label','選擇試演睡眠及美夢的 NPC');
  for(const person of roster){
   const opt=document.createElement('option');opt.value=person.id;opt.textContent=person.name;
   opt.selected=person.id===paperDollNpcDreamMember;member.appendChild(opt);
@@ -5397,7 +5397,7 @@ function renderPaperDollRestControls(){
  const drawing=document.createElement('canvas');
  drawing.id='npcNightmarePreview';drawing.width=48;drawing.height=64;
  drawing.style.cssText='width:96px;height:128px;image-rendering:pixelated;display:block;margin:5px auto;background:#1c292b;border:1px solid #84735a;border-radius:4px';
- drawing.setAttribute('role','img');drawing.setAttribute('aria-label','NPC 睡眠與惡夢動態像素試演');
+ drawing.setAttribute('role','img');drawing.setAttribute('aria-label','NPC 睡眠、惡夢及美夢動態像素試演');
  npcRow.append(member,drawing);
  details.appendChild(npcRow);
  panel.appendChild(details);return panel;
@@ -6176,7 +6176,36 @@ function paintActorSprite(canvas,memberId,emotion='neutral',time=performance.now
   emotion,Math.max(0,time-sleepEnteredAt));
  const eye='#273334',brow=c.hair;
  if(dream){
-  if(dream.phase==='startled'){
+  const happyDream=dream.phase==='dream_good'||dream.phase==='dream_smile'||
+   dream.phase==='dream_awakening'||dream.phase==='dream_eyes_open'||dream.phase==='dream_settled';
+  if(happyDream){
+   const eyesOpen=dream.phase==='dream_eyes_open'||dream.phase==='dream_settled';
+   const smiling=dream.phase!=='dream_settled';
+   // A soft smile and relaxed brows; no sudden face or hair resizing.
+   px(20,18,4,1,brow);px(29,18,4,1,brow);
+   if(eyesOpen){
+    px(21,20,2,2,eye);px(30,20,2,2,eye);
+   }else{
+    px(20,21,4,1,eye);px(29,21,4,1,eye);
+   }
+   if(smiling){
+    px(23,25,1,1,'#9e615b');px(24,26,6,1,'#a8665e');
+    px(30,25,1,1,'#9e615b');
+   }else px(25,26,4,1,'#99685b');
+   if(dream.phase==='dream_smile'||dream.phase==='dream_eyes_open'){
+    px(17,23,2,1,'#d59a88');px(34,23,2,1,'#d59a88');
+   }
+   if(dream.phase!=='dream_settled'){
+    const step=Math.floor(time/620)%4,starY=12-step%3;
+    if(step!==3){
+     px(43,starY-1,1,3,'#d4b36e');
+     px(42,starY,3,1,'#f1d799');
+     px(43,starY,1,1,'#fff2c0');
+    }
+    const pulse=Math.floor(time/850)%2;
+    px(40,37+pulse,2,1,'rgba(233,223,200,.55)');
+   }
+  }else if(dream.phase==='startled'){
    px(20,17,4,1,brow);px(29,17,4,1,brow);
    px(21,19,2,4,eye);px(30,19,2,4,eye);
    px(25,25,4,3,'#784b4b');px(26,26,2,1,light);
