@@ -56,14 +56,15 @@
   const face=layout||{};
   const ox=Number.isFinite(face.x)?face.x:0;
   const oy=Number.isFinite(face.y)?face.y:0;
-  // Both cheeks remain INSIDE the original head silhouette. V3 face uses x=18..46.
+  // Sweat is on the upper forehead / hairline, ABOVE the eyes (around y=36).
+  // It stays inside the V3 head (x=18..46), never on the torso.
   const points=Array.isArray(face.points)?face.points:
-   (status==='weak'?[[42,39],[20,40]]:
-    [[20,38],[42,38],[22,42],[40,42]]);
+   (status==='weak'?[[39,29],[25,30]]:
+    [[25,29],[39,29],[30,27],[35,31]]);
   const p=posMod(Math.floor(phase),3);
   ctx.save();
   for(let i=0;i<points.length;i++){
-   // Weak: a small cheek sheen. Critical: fine streaks on both cheeks.
+   // Weak: one hairline glint; critical: several tiny forehead glints.
    if(status==='weak'&&i!==p%2)continue;
    if(status==='critical'&&i===3&&p===1)continue;
    const [x,y]=points[i];
@@ -171,6 +172,6 @@
   });
  }
  root.DungeonExpressionMotion=Object.freeze({
-  version:'2.3.0',poses:POSES,statuses:STATUS_PRESETS,drawSpiralEye,drawFaceSweat,createActor
+  version:'2.4.0',poses:POSES,statuses:STATUS_PRESETS,drawSpiralEye,drawFaceSweat,createActor
  });
 })(window);
