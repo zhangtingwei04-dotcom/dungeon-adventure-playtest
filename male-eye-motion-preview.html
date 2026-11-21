@@ -52,13 +52,13 @@ small{color:#abbdb4}
  <button type="button" data-mode="unconscious" aria-pressed="false">昏迷圈圈眼</button>
 </div>
 <label><input type="checkbox" id="toggleHair" checked> 顯示銀白頭髮</label>
-<p><small>「中性」保留新頭紫色眼睛；「戰敗」使用與女性相同的 5×5 可見眼部範圍。自然動態會週期性左右看、向下看及眨眼。所有試演都不修改存檔。</small></p>
+<p><small>「中性」保留新頭紫色眼睛；「戰敗」與女性共用完全相同的紫色 3×3 旋轉圈圈，不另外加白色眼底。自然動態會週期性左右看、向下看及眨眼。所有試演都不修改存檔。</small></p>
 <p><a href="./?test=male-eye-v26">返回遊戲裝備欄</a></p>
 </main>
 <script src="./assets/male_new_head_v8.js?v=5"></script>
 <script src="./assets/male_hair_v8.js?v=5"></script>
-<script src="./assets/expression_motion.js?v=2.17"></script>
-<script src="./assets/female_eye_motion_v1.js?v=8"></script>
+<script src="./assets/expression_motion.js?v=2.18"></script>
+<script src="./assets/female_eye_motion_v1.js?v=9"></script>
 <script>
 (()=>{
  'use strict';
@@ -106,7 +106,7 @@ small{color:#abbdb4}
   ctx.clearRect(0,0,64,160);ctx.imageSmoothingEnabled=false;
   if(unconscious)effects.drawUnconsciousEyes(ctx,t,{eyeCenters:[[25,38],[39,38]]});
   else if(circleEyes)for(const x of [25,39])
-   effects.drawSpiralEye(ctx,x,38,Math.floor(t/185)%4,{matchFemaleSize:true});
+   effects.drawSpiralEye(ctx,x,38,Math.floor(t/185)%4);
  }
  window.addEventListener('dungeon-female-eyes-ready',draw);
  setInterval(()=>{if(!document.hidden)draw()},90);
