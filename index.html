@@ -3968,7 +3968,7 @@ html.stage-locked #app .paperdoll-stage.eyes-tinted .male-eyes{display:none}
 <script src="./assets/approved_wagon_art_v1.js"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
-<script src="./assets/expression_motion.js?v=2"></script>
+<script src="./assets/expression_motion.js?v=2.1"></script>
 <script>
 (()=>{'use strict';
 // Fixed design canvas: use the approved screenshot's exact 1536×707 ratio,
@@ -4959,8 +4959,8 @@ let paperDollPhysicalPreview=null,paperDollPhysicalPreviewOpen=false;
 const PAPERDOLL_BODY_CONDITIONS=Object.freeze({
  normal:{name:'開心',note:'睜眼微笑，偶爾輕眨眼',parts:{brows:'original',eyes:'original',mouth:'smile'}},
  tired:{name:'中性',note:'平靜表情，慢速自然眨眼',parts:null},
- weak:{name:'中性＋微汗',note:'微汗緩緩滑動，眨眼變慢',parts:null},
- critical:{name:'疲倦／戰敗',note:'小圈圈眼持續轉動，汗珠交替流動',parts:{brows:'angry',eyes:'original',mouth:'angry'}}
+ weak:{name:'中性＋微汗',note:'臉側淡淡汗光，眨眼變慢',parts:null},
+ critical:{name:'疲倦／戰敗',note:'小圈圈眼持續轉動，額角與臉頰泛出細汗',parts:{brows:'angry',eyes:'original',mouth:'angry'}}
 });
 const PAPERDOLL_ABNORMAL_STATES=Object.freeze({
  poison:'中毒',fever:'發燒',injury:'受傷／流血',dizzy:'暈眩',unconscious:'昏迷',
@@ -5529,24 +5529,15 @@ function paintPaperDollPhysicalCondition(){
   const female=stage.classList.contains('paperdoll-female');
   const dot=(x,y,color)=>{ctx.fillStyle=color;ctx.fillRect(x,y,1,1);};
   const rect=(x,y,w,h,color)=>{ctx.fillStyle=color;ctx.fillRect(x,y,w,h);};
-  const drop=(x,y)=>{rect(x,y,1,1,'#def7ff');rect(x-1,y+1,3,2,'#4aa7d9');rect(x,y+3,2,1,'#287eaa');dot(x,y+1,'#eefaff');};
+  const faceSweat=(kind='weak')=>window.DungeonExpressionMotion.drawFaceSweat(ctx,kind,Math.floor(performance.now()/420)%3);
   const line=(points,color)=>{ctx.strokeStyle=color;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(...points[0]);for(const p of points.slice(1))ctx.lineTo(...p);ctx.stroke();};
   const arc=(x,y,r,start,end,color)=>{ctx.strokeStyle=color;ctx.lineWidth=1;ctx.beginPath();ctx.arc(x,y,r,start,end);ctx.stroke();};
   const frame=paperDollMotionFrame;
   const effects=frame?.effects;
-  if(effects?.sweat&&frame.status==='weak'){
-   // The small side-of-face sweat drop slowly travels one or two pixels.
-   drop(48,44+effects.sweatPhase);
-  }
-  if(effects?.sweat&&frame.status==='critical'){
-   // Asynchronous-looking sweat flows, while the 3x3 spiral remains within each eye.
-   const phase=effects.sweatPhase;
-   const first=[[48,43],[16,48],[52,68],[28,79],[17,99],[47,126]];
-   const second=[[52,51],[13,67],[37,80],[48,97],[24,109]];
-   const third=[[18,127],[42,118],[54,56],[19,58],[46,88]];
-   for(const [x,y] of first)drop(x,y+(phase===0?0:1));
-   if(phase!==2)for(const [x,y] of second)drop(x,y+(phase===1?1:0));
-   if(phase===2)for(const [x,y] of third)drop(x,y);
+  // Sweat is a translucent 1-pixel facial sheen, never a large blue drop.
+  // The same primitive can draw on NPC faces with their own coordinates.
+  if(effects?.sweat){
+   window.DungeonExpressionMotion.drawFaceSweat(ctx,frame.status,effects.sweatPhase);
   }
   if(effects?.circleEyes&&!female){
    for(const x of [25,39]){
@@ -5556,13 +5547,13 @@ function paintPaperDollPhysicalCondition(){
   // Abnormal conditions only paint independent decorations; face sources never change.
   for(const id of abnormal){
    if(id==='poison'){rect(17,42,4,2,'rgba(94,155,80,.44)');rect(43,42,4,2,'rgba(94,155,80,.44)');arc(8,32,4,.1,5.4,'#70ae69');arc(56,27,3,.1,5.3,'#70ae69');}
-   else if(id==='fever'){rect(16,42,5,2,'rgba(231,91,109,.48)');rect(43,42,5,2,'rgba(231,91,109,.48)');line([[8,28],[9,25],[8,22]],'#e75c56');line([[55,26],[56,23],[55,20]],'#e75c56');drop(51,47);}
+   else if(id==='fever'){rect(16,42,5,2,'rgba(231,91,109,.48)');rect(43,42,5,2,'rgba(231,91,109,.48)');line([[8,28],[9,25],[8,22]],'#e75c56');line([[55,26],[56,23],[55,20]],'#e75c56');faceSweat('weak');}
    else if(id==='injury'){line([[45,43],[44,44],[44,46]],'#af3f4b');line([[15,83],[17,86]],'#a83f4e');dot(43,46,'#cf6c74');rect(47,116,2,1,'#af6470');}
    else if(id==='dizzy'){arc(9,23,4,.15,5.55,'#725ac1');arc(55,25,4,.2,5.45,'#725ac1');dot(59,30,'#a074dc');}
    else if(id==='unconscious'){line([[51,20],[56,20],[52,25],[56,25]],'#8574b5');line([[55,13],[59,13],[56,17],[59,17]],'#8574b5');}
    else if(id==='sleep_deprived'){rect(21,40,7,1,'rgba(96,74,123,.55)');rect(37,40,7,1,'rgba(96,74,123,.55)');}
    else if(id==='hunger'){arc(53,88,5,.4,4.75,'#a87a62');arc(54,88,2,1,5.8,'#a87a62');}
-   else if(id==='dehydration'){rect(17,46,2,1,'rgba(165,110,105,.65)');rect(45,47,2,1,'rgba(165,110,105,.65)');drop(54,27);line([[51,23],[58,32]],'#bf555b');}
+   else if(id==='dehydration'){rect(17,46,2,1,'rgba(165,110,105,.65)');rect(45,47,2,1,'rgba(165,110,105,.65)');faceSweat('weak');line([[51,23],[58,32]],'#bf555b');}
   }
  }
 }
