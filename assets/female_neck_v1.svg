@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="160" viewBox="0 0 64 160" shape-rendering="crispEdges">
+  <!-- Female neck bridge: matches the paper doll's common 64x160 grid.
+       The replacement head hides the top, the unchanged chest / vest hides the foot. -->
+  <path fill="#2b1b1d" d="M29 49h7v2h1v7h1v3h2v3h-2v2H27v-2h-2v-3h2V52h2z"/>
+  <path fill="#d99b8c" d="M30 50h6v3h1v7h1v3h-2v2h-8v-3h1v-9h1z"/>
+  <path fill="#f4c4aa" d="M30 51h5v8h1v4h-8v-3h1v-7h1z"/>
+  <path fill="#f8d3b7" d="M30 52h3v8h-3z"/>
+  <path fill="#bf8279" d="M35 53h2v8h-1v2h-2v-3h1z"/>
+  <path fill="#eab49e" d="M29 63h7v2h-7z"/>
+</svg>
