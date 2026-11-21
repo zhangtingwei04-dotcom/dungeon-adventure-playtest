@@ -3606,29 +3606,35 @@ html.stage-locked #app .paperdoll-stage .paperdoll-hair-canvas{
 html.stage-locked #app .paperdoll-stage.hair-customized .paperdoll-hair-fallback{
  display:none;
 }
-html.stage-locked #app .equip-hair-controls{
+html.stage-locked #app .equip-hair-controls,
+html.stage-locked #app .equip-eye-controls{
  display:flex;align-items:center;gap:5px;width:100%;min-width:0;
  padding:5px 1px;margin-top:3px;
  border-top:1px solid rgba(181,160,113,.30);
 }
-html.stage-locked #app .equip-hair-title{
+html.stage-locked #app .equip-hair-title,
+html.stage-locked #app .equip-eye-title{
  flex:none;font-size:11px;color:#f3dca6;font-weight:700;
 }
-html.stage-locked #app .equip-hair-palette{
+html.stage-locked #app .equip-hair-palette,
+html.stage-locked #app .equip-eye-palette{
  display:flex;align-items:center;gap:4px;min-width:0;
  flex:1;overflow-x:auto;padding:2px 1px;
 }
-html.stage-locked #app #placeDrawerPanel .equip-hair-swatch{
+html.stage-locked #app #placeDrawerPanel .equip-hair-swatch,
+html.stage-locked #app #placeDrawerPanel .equip-eye-swatch{
  width:22px;min-width:22px;height:22px;min-height:22px!important;
  padding:0!important;border-radius:5px!important;
  border:1px solid #8f825e!important;
  background:var(--swatch-color)!important;
  box-shadow:inset 0 0 0 2px rgba(0,0,0,.15);
 }
-html.stage-locked #app #placeDrawerPanel .equip-hair-swatch[aria-pressed="true"]{
+html.stage-locked #app #placeDrawerPanel .equip-hair-swatch[aria-pressed="true"],
+html.stage-locked #app #placeDrawerPanel .equip-eye-swatch[aria-pressed="true"]{
  outline:2px solid #f4d184!important;outline-offset:1px;
 }
-html.stage-locked #app #placeDrawerPanel .equip-hair-picker{
+html.stage-locked #app #placeDrawerPanel .equip-hair-picker,
+html.stage-locked #app #placeDrawerPanel .equip-eye-picker{
  flex:none;width:29px;height:27px;min-height:27px!important;padding:1px!important;
  border:1px solid #c3a366!important;border-radius:5px!important;
  background:#18372d!important;cursor:pointer;
@@ -4912,7 +4918,8 @@ const PAPERDOLL_SKIN_TONES=Object.freeze([
 ]);
 const PAPERDOLL_EYE_COLORS=Object.freeze([
  {id:'purple',name:'紫色',rgb:null},{id:'blue',name:'藍色',rgb:[85,143,226]},
- {id:'green',name:'綠色',rgb:[78,175,116]},{id:'amber',name:'琥珀色',rgb:[211,150,66]}
+ {id:'green',name:'綠色',rgb:[78,175,116]},{id:'amber',name:'琥珀色',rgb:[211,150,66]},
+ {id:'custom',name:'自訂',rgb:null}
 ]);
 function paperDollLayers(){
  const gender=s.appearanceV1?.gender==='female'?'female':'male';
@@ -4970,6 +4977,8 @@ function normalizeAppearanceV1(){
  a.bodyType='standard'; // Two standard bodies only; do not silently change the figure.
  if(!PAPERDOLL_SKIN_TONES.some(t=>t.id===a.skinTone))a.skinTone='original';
  if(!PAPERDOLL_EYE_COLORS.some(t=>t.id===a.eyeColor))a.eyeColor='purple';
+ if(typeof a.eyeCustomHex!=='string'||!/^#[0-9a-fA-F]{6}$/.test(a.eyeCustomHex))a.eyeCustomHex='#9560b8';
+ else a.eyeCustomHex=a.eyeCustomHex.toLowerCase();
  if(!a.parts||typeof a.parts!=='object'||Array.isArray(a.parts))a.parts={};
  for(const slot of PAPERDOLL_FUTURE_SLOTS){
   if(!slot.values.includes(a.parts[slot.id]))a.parts[slot.id]=slot.values[0];
@@ -5104,6 +5113,37 @@ function renderPaperDollHairControls(){
 
 
 let paperDollCustomizerOpen=false,paperDollFutureSlotsOpen=false;
+function renderPaperDollEyeControls(){
+ normalizeAppearanceV1();
+ const row=document.createElement('div');row.className='equip-eye-controls';
+ row.setAttribute('role','group');row.setAttribute('aria-label','瞳色調整');
+ const title=document.createElement('span');title.className='equip-eye-title';title.textContent='瞳色';row.appendChild(title);
+ const palette=document.createElement('div');palette.className='equip-eye-palette';
+ for(const item of PAPERDOLL_EYE_COLORS.filter(c=>c.id!=='custom')){
+  const button=document.createElement('button');button.type='button';button.className='equip-eye-swatch';
+  const hex=item.rgb?'#'+item.rgb.map(v=>v.toString(16).padStart(2,'0')).join(''):'#9560b8';
+  button.style.setProperty('--swatch-color',hex);
+  button.title=item.name;button.setAttribute('aria-label','瞳色：'+item.name);
+  button.setAttribute('aria-pressed',String(s.appearanceV1.eyeColor===item.id));
+  button.onclick=()=>setPaperDollAppearance('eyeColor',item.id);
+  palette.appendChild(button);
+ }
+ row.appendChild(palette);
+ const picker=document.createElement('input');picker.type='color';
+ picker.id='equipEyeColorPicker';picker.className='equip-eye-picker';
+ picker.value=s.appearanceV1.eyeCustomHex;picker.title='自訂瞳色';
+ picker.setAttribute('aria-label','自訂瞳色');
+ picker.oninput=()=>{
+  normalizeAppearanceV1();
+  s.appearanceV1.eyeColor='custom';
+  s.appearanceV1.eyeCustomHex=picker.value.toLowerCase();
+  for(const button of palette.children)button.setAttribute('aria-pressed','false');
+  paintPaperDollEyes();
+ };
+ picker.onchange=()=>{save();renderPlaceDrawer();};
+ row.appendChild(picker);
+ return row;
+}
 function resetPaperDollSpriteCaches(){
  hairAtlasImage=null;hairAtlasReady=false;hairAtlasError=false;paperDollBrowsImage=null;
  paperDollEyeImage=null;paperDollSkinImages=null;
@@ -5439,8 +5479,9 @@ function renderSideTab(tab,out){
   equipAction.textContent='脫下';equipAction.hidden=true;
   const hairControls=renderPaperDollHairControls();
   const genderControls=renderPaperDollGenderControls();
+  const eyeControls=renderPaperDollEyeControls();
   const appearanceControls=renderPaperDollAppearanceControls();
-  footer.append(detail,equipAction,tryOn,bag);section.append(board,genderControls,hairControls,appearanceControls,footer);out.appendChild(section);
+  footer.append(detail,equipAction,tryOn,bag);section.append(board,genderControls,hairControls,eyeControls,appearanceControls,footer);out.appendChild(section);
   renderEquipmentBoard();return;
  }
  if(tab==='inventory'){
