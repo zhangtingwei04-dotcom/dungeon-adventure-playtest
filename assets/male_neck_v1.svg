@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="160" viewBox="0 0 64 160" shape-rendering="crispEdges">
+  <!-- Male neck V1, based on the previously approved warm-skin male head.
+       Same x32 center / chin y51 as female and native 64x160 paper doll.
+       This entire layer sits BEHIND the face and IN FRONT OF the body.
+       Keep all edges on whole pixels to preserve pixel-art fidelity. -->
+  <path fill="#352321" d="M29 49h7v2h1v7h1v3h2v3h-2v2H26v-2h-1v-3h2v-3h1v-7h1z"/>
+  <!-- Warm outer neck and subtle left/right musculature (not a long neck). -->
+  <path fill="#d89776" d="M30 50h6v3h1v6h1v4h-2v2h-8v-2h1V53h1z"/>
+  <path fill="#f4b48e" d="M30 51h5v8h1v4h-8v-3h1v-7h1z"/>
+  <path fill="#ffd0aa" d="M30 52h3v8h-3z"/>
+  <path fill="#eaa17c" d="M33 52h2v10h-2z"/>
+  <path fill="#b97a5e" d="M36 54h1v8h-1z"/>
+  <!-- Lower edge blends under the original shirt / torso collar. -->
+  <path fill="#ecac87" d="M28 63h8v2h-8z"/>
+</svg>
