@@ -75,3 +75,11 @@
 - 男性眼睛視線／眨眼 profile 向上 2px；嘴巴貼片使用 y43 開始；昏迷及 HP 旋轉圈圈眼中心改為 y37，臉部出汗與其他狀態圖示一併調整。女性位置與動畫維持不變。
 - index 目前載入版本：男性頭 `male_new_head_v8.js?v=4`、男髮 `male_hair_v8.js?v=5`、共用眼動畫 `female_eye_motion_v1.js?v=6`、共用嘴動畫 `female_mouth_motion_v1.js?v=6`。
 - 驗證：GitHub main 重新讀取，男頭與男髮 PNG 64×160、含透明 alpha 且每個 PNG chunk CRC 全通過；四個素材／動畫 JS 與 index 主程式語法通過。未完成真實 iPhone Safari 視覺驗收，不視為最終美術定稿。
+
+## 男性頭部位置微調 V8d（2026-11-22）
+
+- 使用者確認「男頭下去 1px」。直接把男性 V8c 的 64×160 透明 PNG **全體像素下移 1 個原生像素**，alpha bbox 由 x17..47／y14..49 變成 x17..47／y15..50；沒有縮放、補畫或替換任何臉部像素。
+- 新男性頭、紫色眼睛、眉毛、短平嘴及臉型均保留；現有銀白髮型與男性頸部維持原位，女角不受影響。
+- `assets/female_eye_motion_v1.js` 男性 profile 下移 1px，版本 2.5；`assets/female_mouth_motion_v1.js` 男性專用口型貼片的 `MALE_TOP` 改為 44，所有男性嘴型 y 座標同步下移，版本 3.4。女性 profile 與口型皆不變。
+- `index.html` 男性昏迷圈圈眼、HP 圈圈眼、頭部狀態特效與睡眠偏移同步下移 1px；男頭載入版本更新 `male_new_head_v8.js?v=5`，眼睛／嘴巴模組更新到 v7；男髮維持 `male_hair_v8.js?v=5`，脖子圖層未修改。
+- 驗證：GitHub main 重新讀回，男頭與男髮的 64×160 PNG 全部 chunk CRC 通過、含透明資訊；四組 JS 與 index 主腳本語法檢查通過。真實 iPhone 畫面仍待實測確認。
