@@ -9,7 +9,7 @@
   smile:Object.freeze({brows:'original',eyes:'original',mouth:'smile'}),
   happy:Object.freeze({brows:'original',eyes:'original',mouth:'smile'}),
   weak:Object.freeze({brows:'original',eyes:'original',mouth:'original'}),
-  critical:Object.freeze({brows:'angry',eyes:'original',mouth:'angry'}),
+  critical:Object.freeze({brows:'angry',eyes:'original',mouth:'original'}),
   surprised:Object.freeze({brows:'surprised',eyes:'surprised',mouth:'surprised'}),
   angry:Object.freeze({brows:'angry',eyes:'angry',mouth:'angry'}),
   shy:Object.freeze({brows:'shy',eyes:'original',mouth:'shy'}),
@@ -173,6 +173,6 @@
   });
  }
  root.DungeonExpressionMotion=Object.freeze({
-  version:'2.7.0',poses:POSES,statuses:STATUS_PRESETS,drawSpiralEye,drawFaceSweat,createActor
+  version:'2.7.1',poses:POSES,statuses:STATUS_PRESETS,drawSpiralEye,drawFaceSweat,createActor
  });
 })(window);
