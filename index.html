@@ -3983,7 +3983,7 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <script src="./assets/approved_wagon_art_v1.js"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
-<script src="./assets/expression_motion.js?v=2.14.1"></script>
+<script src="./assets/expression_motion.js?v=2.15"></script>
 <script>
 (()=>{'use strict';
 // Fixed design canvas: use the approved screenshot's exact 1536×707 ratio,
@@ -4972,7 +4972,9 @@ function paperDollLayers(){
 let paperDollPhysicalPreview=null,paperDollPhysicalPreviewOpen=false;
 /* Sleep and SP prototype values: session-only, no save schema changes. */
 let paperDollRestPreview={sleep:'awake',vitality:'normal'};
+let paperDollRestChangedAt=performance.now();
 let paperDollRestPreviewOpen=false;
+let paperDollNpcDreamMember='sister';
 const REST_SP_TEST_VALUES=Object.freeze({high:100,normal:70,low:25});
 function restPreviewLabel(){
  return '睡眠：'+window.DungeonExpressionMotion.restSleep[paperDollRestPreview.sleep]+
@@ -5018,10 +5020,9 @@ function tickPaperDollMotion(force=false){
  // Sleeping is a light visual preview: eyes closed, never an illness.
  // Unconscious black eyes override sleep and all expressions.
  const abnormalStates=currentPaperDollAbnormalStates();
- if(paperDollRestPreview.sleep==='sleeping'&&!abnormalStates.includes('unconscious')){
-  frame.parts.eyes='eyesClosed';frame.blink=false;
-  frame.effects.blink=false;frame.effects.circleEyes=false;
- }
+ if(!abnormalStates.includes('unconscious'))
+  window.DungeonExpressionMotion.applySleepFacePriority(
+   frame,paperDollRestPreview.sleep,performance.now()-paperDollRestChangedAt);
  window.DungeonExpressionMotion.applyAbnormalFacePriority(frame,abnormalStates);
  const restAnimating=paperDollRestPreview.sleep!=='awake';
  const signature=[
@@ -5047,6 +5048,7 @@ function tickPaperDollMotion(force=false){
   paintPaperDollEyes();
   paintPaperDollPhysicalCondition();
  }
+ paintNpcDreamPreview();
  return true;
 }
 // One small visible-only tick; NPCs can sample their actors from the scene update loop.
@@ -5355,7 +5357,7 @@ function renderPaperDollRestControls(){
  summary.textContent='睡眠與活力測試｜'+restPreviewLabel();
  details.appendChild(summary);
  const note=document.createElement('p');note.className='paperdoll-expression-note';
- note.textContent='活力僅顯示 SP 測試數值與藍色狀態條，不產生任何特效；睡眠仍保留閉眼、呼吸與 Z，飢餓仍是肉骨頭 🍖。切換僅供預覽，不寫入存檔、不扣血或限制探索。';
+ note.textContent='新增輕微惡夢（皺眉、微汗）、嚴重惡夢（急促呼吸、顫動）與惡夢驚醒（驚訝後逐漸平靜）。同一套狀態也可套用 NPC；活力 SP 仍只顯示藍色測試條，不產生特效、不存檔。';
  details.appendChild(note);
  for(const [kind,title,values] of [
   ['sleep','睡眠狀態',window.DungeonExpressionMotion.restSleep],
@@ -5370,6 +5372,8 @@ function renderPaperDollRestControls(){
    opt.selected=paperDollRestPreview[kind]===id;select.appendChild(opt);
   }
   select.onchange=()=>{
+   if(kind==='sleep'&&paperDollRestPreview.sleep!==select.value)
+    paperDollRestChangedAt=performance.now();
    paperDollRestPreview[kind]=select.value;
    paperDollRestPreviewOpen=true;
    paperDollMotionLastKey='';
@@ -5378,7 +5382,31 @@ function renderPaperDollRestControls(){
   };
   label.appendChild(select);details.appendChild(label);
  }
+ // The actual six NPC field sprites can demonstrate the same sleep modes.
+ const npcHeading=document.createElement('p');npcHeading.className='paperdoll-expression-note';
+ npcHeading.textContent='NPC 惡夢動態試演（共用上方睡眠狀態）';
+ details.appendChild(npcHeading);
+ const npcRow=document.createElement('div');npcRow.className='paperdoll-customizer-field';
+ const member=document.createElement('select');member.className='paperdoll-choice-select';
+ member.setAttribute('aria-label','選擇試演惡夢的 NPC');
+ for(const person of roster){
+  const opt=document.createElement('option');opt.value=person.id;opt.textContent=person.name;
+  opt.selected=person.id===paperDollNpcDreamMember;member.appendChild(opt);
+ }
+ member.onchange=()=>{paperDollNpcDreamMember=member.value;paintNpcDreamPreview();};
+ const drawing=document.createElement('canvas');
+ drawing.id='npcNightmarePreview';drawing.width=48;drawing.height=64;
+ drawing.style.cssText='width:96px;height:128px;image-rendering:pixelated;display:block;margin:5px auto;background:#1c292b;border:1px solid #84735a;border-radius:4px';
+ drawing.setAttribute('role','img');drawing.setAttribute('aria-label','NPC 睡眠與惡夢動態像素試演');
+ npcRow.append(member,drawing);
+ details.appendChild(npcRow);
  panel.appendChild(details);return panel;
+}
+function paintNpcDreamPreview(){
+ const canvas=document.getElementById('npcNightmarePreview');
+ if(!canvas||!canvas.closest('details')?.open)return;
+ paintActorSprite(canvas,paperDollNpcDreamMember,paperDollRestPreview.sleep,
+  performance.now(),paperDollRestChangedAt);
 }
 function renderPaperDollAbnormalControls(){
  const row=document.createElement('div');row.className='paperdoll-abnormal-row';
@@ -5619,7 +5647,9 @@ function paintPaperDollPhysicalCondition(){
   ctx.clearRect(0,0,64,160);
   // Only sleep creates visual effects; SP is a test number and blue HUD bar.
   if(!abnormal.includes('unconscious'))
-   window.DungeonExpressionMotion.drawRestEffects(ctx,paperDollRestPreview,t);
+   window.DungeonExpressionMotion.drawRestEffects(ctx,{
+    ...paperDollRestPreview,elapsed:t-paperDollRestChangedAt
+   },t);
   // HP condition motion is independent from all abnormal effects.
   if(effects?.sweat)window.DungeonExpressionMotion.drawFaceSweat(ctx,frame.status,effects.sweatPhase);
   if(effects?.circleEyes&&!abnormal.includes('unconscious')&&!stage.classList.contains('paperdoll-female')){
@@ -5678,6 +5708,7 @@ function renderEquipmentBoard(){
  paintPaperDollEyes();
  paintPaperDollSkin();
  paintPaperDollPhysicalCondition();
+ paintNpcDreamPreview();
 }
 function renderSideTab(tab,out){
  if(tab==='character'){
@@ -5703,7 +5734,9 @@ function renderSideTab(tab,out){
   const chapter=document.createElement('div');chapter.className='protagonist-subtitle';
   chapter.textContent='第一章 · 破損的馬車';profile.appendChild(chapter);
   const state=document.createElement('div');state.className='protagonist-status-tag';
-  state.textContent=paperDollRestPreview.sleep==='sleeping'?'睡著（預覽）':paperDollRestPreview.sleep==='drowsy'?'想睡（預覽）':s.flags.rescued?'清醒 · 已受救援':'清醒 · 獨自探索';profile.appendChild(state);
+  state.textContent=paperDollRestPreview.sleep==='awake'?
+ (s.flags.rescued?'清醒 · 已受救援':'清醒 · 獨自探索'):
+ window.DungeonExpressionMotion.restSleep[paperDollRestPreview.sleep]+'（預覽）';profile.appendChild(state);
   const hp=document.createElement('div');hp.className='protagonist-stat';
   const hpName=document.createElement('span');hpName.textContent='♥ HP';
   const hpNum=document.createElement('strong');hpNum.textContent=s.hp+' / '+s.maxHp;
@@ -6093,7 +6126,7 @@ const ACTOR_LOOK={
  c:{skin:'#d6a785',hair:'#704d37',coat:'#785b4d',trim:'#f0d19e',pants:'#48403b',style:'tied',detail:'pouch'},
  d:{skin:'#cca17e',hair:'#322e30',coat:'#3e526a',trim:'#d9bb8b',pants:'#323d4e',style:'cap',detail:'straps'}
 };
-function paintActorSprite(canvas,memberId,emotion='neutral'){
+function paintActorSprite(canvas,memberId,emotion='neutral',time=performance.now(),sleepEnteredAt=0){
  if(!canvas)return;
  canvas.width=48;canvas.height=64;
  const g=canvas.getContext('2d');if(!g)return;
@@ -6137,9 +6170,52 @@ function paintActorSprite(canvas,memberId,emotion='neutral'){
   px(12,8,26,8,c.hair);px(10,8,29,4,c.coat);px(10,12,30,3,c.trim);
   px(13,15,5,4,c.hair);px(33,15,5,4,c.hair);
  }
- // Eyes, eyebrows and a real expression change rather than only glow.
+ // NPCs use the same sleep-face definition as the player paper doll.
+ // Only the rendering coordinates differ (NPC sprite 48x64 vs player 64x160).
+ const dream=window.DungeonExpressionMotion.sleepFace(
+  emotion,Math.max(0,time-sleepEnteredAt));
  const eye='#273334',brow=c.hair;
- if(emotion==='worried'||emotion==='concerned'){
+ if(dream){
+  if(dream.phase==='startled'){
+   px(20,17,4,1,brow);px(29,17,4,1,brow);
+   px(21,19,2,4,eye);px(30,19,2,4,eye);
+   px(25,25,4,3,'#784b4b');px(26,26,2,1,light);
+  }else if(dream.phase==='calming'){
+   px(21,20,2,2,eye);px(30,20,2,2,eye);
+   px(25,26,4,1,'#99685b');
+  }else{
+   if(dream.phase==='mild'||dream.phase==='severe'){
+    px(19,18,5,dream.phase==='severe'?2:1,brow);
+    px(28,17,5,dream.phase==='severe'?2:1,brow);
+   }
+   px(20,21,4,1,eye);px(29,21,4,1,eye);
+   if(dream.phase==='mild'){
+    px(24,26,5,1,'#985c59');px(23,27,1,1,'#985c59');
+   }else if(dream.phase==='severe'){
+    px(24,26,5,2,'#915555');
+   }else{
+    px(25,26,4,1,'#99685b');
+   }
+  }
+  const step=Math.floor(time/(dream.phase==='severe'?180:390))%6;
+  const sweat=dream.phase==='severe'||dream.phase==='mild'&&step<3||
+              dream.phase==='startled';
+  if(sweat){
+   px(34,20+step%3,1,dream.phase==='severe'?3:2,'#49bcd5');
+   px(34,20+step%3,1,1,'#ceffff');
+  }
+  if(dream.phase==='severe'){
+   px(10,36+Math.floor(time/170)%2,2,1,'#8d9b98');
+   px(39,37-Math.floor(time/170)%2,2,1,'#8d9b98');
+  }
+  if(dream.phase==='sleeping'){
+   const bob=Math.floor(time/650)%3;
+   px(42,10-bob,4,1,'#d9c9e9');
+   px(44,11-bob,1,1,'#d9c9e9');
+   px(43,12-bob,1,1,'#d9c9e9');
+   px(42,13-bob,4,1,'#d9c9e9');
+  }
+ }else if(emotion==='worried'||emotion==='concerned'){
   px(19,18,5,1,brow);px(28,17,5,1,brow);
   px(21,20,2,2,eye);px(30,20,2,2,eye);
   px(24,26,4,1,'#8a574e');
