@@ -3717,6 +3717,8 @@ html.stage-locked #app .paperdoll-stage .paperdoll-eyes-canvas,
 html.stage-locked #app .paperdoll-stage .paperdoll-condition-canvas{
  position:absolute;inset:0;width:100%;height:100%;pointer-events:none;image-rendering:pixelated;
 }
+/* Keep the tiny facial-status effect visible above sprite layers. */
+html.stage-locked #app .paperdoll-stage .paperdoll-condition-canvas{z-index:6}
 html.stage-locked #app .paperdoll-stage.skin-tinted .male-base,
 html.stage-locked #app .paperdoll-stage.skin-tinted .male-face,
 html.stage-locked #app .paperdoll-stage.eyes-tinted .male-eyes{display:none}
@@ -3968,7 +3970,7 @@ html.stage-locked #app .paperdoll-stage.eyes-tinted .male-eyes{display:none}
 <script src="./assets/approved_wagon_art_v1.js"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
-<script src="./assets/expression_motion.js?v=2.2"></script>
+<script src="./assets/expression_motion.js?v=2.3"></script>
 <script>
 (()=>{'use strict';
 // Fixed design canvas: use the approved screenshot's exact 1536×707 ratio,
@@ -4959,8 +4961,8 @@ let paperDollPhysicalPreview=null,paperDollPhysicalPreviewOpen=false;
 const PAPERDOLL_BODY_CONDITIONS=Object.freeze({
  normal:{name:'開心',note:'睜眼微笑，偶爾輕眨眼',parts:{brows:'original',eyes:'original',mouth:'smile'}},
  tired:{name:'中性',note:'平靜表情，慢速自然眨眼',parts:null},
- weak:{name:'中性＋微汗',note:'臉頰藍綠色細汗光，眨眼變慢',parts:null},
- critical:{name:'疲倦／戰敗',note:'小圈圈眼持續轉動，額角與臉頰有亮藍綠細汗',parts:{brows:'angry',eyes:'original',mouth:'angry'}}
+ weak:{name:'中性＋微汗',note:'臉頰短小亮色汗痕，眨眼變慢',parts:null},
+ critical:{name:'疲倦／戰敗',note:'圈圈眼轉動，兩側臉頰有亮色細汗',parts:{brows:'angry',eyes:'original',mouth:'angry'}}
 });
 const PAPERDOLL_ABNORMAL_STATES=Object.freeze({
  poison:'中毒',fever:'發燒',injury:'受傷／流血',dizzy:'暈眩',unconscious:'昏迷',
