@@ -3726,6 +3726,9 @@ html.stage-locked #app .paperdoll-stage.eyes-tinted .male-eyes{display:none}
    or the tinted-eye canvas. The black moving spirals are the only eyes. */
 .paperdoll-stage.eyes-unconscious .male-eyes,
 .paperdoll-stage.eyes-unconscious .paperdoll-eyes-canvas{display:none!important}
+/* Hide any additional customized mouth while unconscious; only the
+   approved neutral mouth is permitted even if the outfit stays unchanged. */
+html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="mouthShape"]{display:none!important}
 </style>
 </head>
 <body>
@@ -3974,7 +3977,7 @@ html.stage-locked #app .paperdoll-stage.eyes-tinted .male-eyes{display:none}
 <script src="./assets/approved_wagon_art_v1.js"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
-<script src="./assets/expression_motion.js?v=2.12"></script>
+<script src="./assets/expression_motion.js?v=2.12.1"></script>
 <script>
 (()=>{'use strict';
 // Fixed design canvas: use the approved screenshot's exact 1536×707 ratio,
@@ -4997,12 +5000,9 @@ function tickPaperDollMotion(force=false){
  paperDollMotionActor.setExpressionOverride(paperDollEmotionPreview);
  paperDollMotionActor.setBlink(paperDollMotionEnabled);
  const frame=paperDollMotionActor.sample();
- // The unconscious state has NO source-eye sprite: only its rotating black
- // spiral eyes render on the special-effects canvas, regardless of emotion/HP.
- if(currentPaperDollAbnormalStates().includes('unconscious')){
-  frame.parts.eyes=null;
-  frame.blink=false;
- }
+ // Shared facial-priority rule: unconscious replaces both eyes and mouth,
+ // regardless of selected expression or HP; other conditions are unaffected.
+ window.DungeonExpressionMotion.applyAbnormalFacePriority(frame,currentPaperDollAbnormalStates());
  const signature=[
   frame.status,...['brows','eyes','mouth'].map(k=>frame.parts[k]),
   frame.effects.blink?'blink':'open',
@@ -5036,6 +5036,9 @@ function paperDollBodyConditionSprite(gender,key){
  return PAPERDOLL_EXPRESSION_LAYERS.male[part]?.[key]||null;
 }
 function paperDollSprite(key){
+ // Do not render expression-specific or customized mouths during unconsciousness.
+ if(key==='mouth'&&currentPaperDollAbnormalStates().includes('unconscious'))
+  return paperDollLayers().mouth||null;
  const gender=s.appearanceV1?.gender==='female'?'female':'male';
  const slotIds={hair:'hairStyle',face:'faceShape',eyes:'eyeShape',brows:'browShape',mouth:'mouthShape'};
  const slotId=slotIds[key]||key;
@@ -5053,7 +5056,7 @@ function paperDollExtraLayerHTML(placement='front'){
   if(!(placement==='back'?back:front).has(slot.id))continue;
   const asset=PAPERDOLL_VARIANT_ASSETS[gender]?.[slot.id]?.[choices[slot.id]];
   if(typeof asset!=='string'||!asset.startsWith('data:image/png;base64,'))continue;
-  out.push('<span class="paperdoll-asset-layer" aria-hidden="true" style="background-image:url('+asset+');background-size:100% 100%;background-position:0 0"></span>');
+  out.push('<span class="paperdoll-asset-layer" data-paperdoll-slot="'+slot.id+'" aria-hidden="true" style="background-image:url('+asset+');background-size:100% 100%;background-position:0 0"></span>');
  }
  return out.join('');
 }
@@ -5329,7 +5332,7 @@ function renderPaperDollAbnormalControls(){
  summary.textContent='異常狀態｜'+(active.length?active.map(id=>PAPERDOLL_ABNORMAL_STATES[id]).join('、'):'目前無異常');
  details.appendChild(summary);
  const note=document.createElement('p');note.className='paperdoll-expression-note';
- note.textContent='V2.12：昏迷完全隱藏原本眼睛，只留下旋轉黑色圈圈眼（任何表情都優先）；暈眩改為頭部周圍旋轉的金色 💫 星星。其餘特效保留。勾選只預覽，不影響 HP 或存檔。';details.appendChild(note);
+ note.textContent='V2.12.1：昏迷時直接替換為黑色旋轉圈圈眼，嘴巴固定平靜狀態（不受開心、生氣、驚訝或 HP 影響）；暈眩保留旋轉 💫。勾選只預覽，不影響 HP 或存檔。';details.appendChild(note);
  const list=document.createElement('div');list.className='paperdoll-abnormal-options';
  for(const [id,name] of Object.entries(PAPERDOLL_ABNORMAL_STATES)){
   const label=document.createElement('label'),input=document.createElement('input');input.type='checkbox';
