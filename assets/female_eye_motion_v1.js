@@ -6,10 +6,10 @@
  // Native head anchors currently match; each character's eye pixels and
  // blink-line style stay independent and can be adjusted without a fork.
  const PROFILES=Object.freeze({
-  female:Object.freeze({eyes:[{cx:25,x0:20},{cx:39,x0:34}],lidHalfWidth:3,lidColor:[76,44,53,255]}),
-  male:Object.freeze({eyes:[{cx:25,x0:20},{cx:39,x0:34}],lidHalfWidth:2,lidColor:[64,43,50,255]})
+  female:Object.freeze({eyes:[{cx:25,x0:20},{cx:39,x0:34}],lidHalfWidth:3,lidColor:[76,44,53,255],top:32,boxH:10,irisTop:34,irisBottom:39,clearTop:34,clearBottom:39,lidClosedY:36,lidHalfY:37,skinY:42}),
+  male:Object.freeze({eyes:[{cx:25,x0:20},{cx:39,x0:34}],lidHalfWidth:2,lidColor:[64,43,50,255],top:34,boxH:10,irisTop:38,irisBottom:41,clearTop:36,clearBottom:42,lidClosedY:38,lidHalfY:39,skinY:44})
  });
- const top=32,boxW=11,boxH=10;
+ const boxW=11;
  let imagePixels=null,pending=false,failed=false;
  let malePixels=null,malePending=false;
  // Male and female facial pixels have independent sources. Never import
@@ -64,12 +64,12 @@
   const out=new Uint8ClampedArray(sourcePixels);
   for(const {cx} of profile.eyes){
    if(type==='closed'||type==='half'){
-    const upper=type==='closed'?34:37;
-    for(let y=upper;y<=39;y++)for(let x=cx-4;x<=cx+4;x++){
-     const skin=sample(sourcePixels,x,42);
+    const upper=type==='closed'?profile.clearTop:profile.lidHalfY;
+    for(let y=upper;y<=profile.clearBottom;y++)for(let x=cx-4;x<=cx+4;x++){
+     const skin=sample(sourcePixels,x,profile.skinY);
      pix(out,x,y,skin[3]>100?skin:[252,226,209,255]);
     }
-    const yy=type==='closed'?36:37;
+    const yy=type==='closed'?profile.lidClosedY:profile.lidHalfY;
     for(let x=cx-profile.lidHalfWidth;x<=cx+profile.lidHalfWidth;x++)
      pix(out,x,yy,profile.lidColor);
     continue;
@@ -78,7 +78,7 @@
    const dx=type==='left'?-1:type==='right'?1:0;
    const dy=type==='up'?-1:type==='down'?1:0;
    const moved=[];
-   for(let y=34;y<=39;y++)for(let x=cx-3;x<=cx+3;x++){
+   for(let y=profile.irisTop;y<=profile.irisBottom;y++)for(let x=cx-3;x<=cx+3;x++){
     const p=sample(sourcePixels,x,y);
     if(!isIris(p[0],p[1],p[2])||p[3]<80)continue;
     const tint=irisColor?[...irisColor,255]:p;
@@ -87,9 +87,9 @@
      for(let k=0;k<3;k++)tint[k]=Math.round(irisColor[k]*shade);
     }
     moved.push([x+dx,y+dy,tint]);
-    if(moving)pix(out,x,y,sample(sourcePixels,x,42));
+    if(moving)pix(out,x,y,sample(sourcePixels,x,profile.skinY));
    }
-   for(const [x,y,v] of moved)if(x>=cx-4&&x<=cx+4&&y>=34&&y<=39)pix(out,x,y,v);
+   for(const [x,y,v] of moved)if(x>=cx-4&&x<=cx+4&&y>=profile.irisTop&&y<=profile.irisBottom+1)pix(out,x,y,v);
   }
   return new ImageData(out,W,H);
  }
@@ -113,8 +113,8 @@
   const rgb=opt.eyeColor==='purple'||!opt.eyeColor?null:colorHex(opt.eyeColor);
   if(type==='center'&&!rgb)return; // face's original purple pupils, no needless overwrite
   const painted=patch(type,rgb,sourcePixels,profile);
-  for(const eye of profile.eyes)ctx.putImageData(painted,0,0,eye.x0,top,boxW,boxH);
+  for(const eye of profile.eyes)ctx.putImageData(painted,0,0,eye.x0,profile.top,boxW,profile.boxH);
  }
- root.DungeonFemaleEyeMotionV1=Object.freeze({version:'2.2.0',render,gaze,prepare});
+ root.DungeonFemaleEyeMotionV1=Object.freeze({version:'2.3.0',render,gaze,prepare});
  prepare();
 })(window);
