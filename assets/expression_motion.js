@@ -241,37 +241,93 @@
  /* Light-weight, visual-only sleep and vitality preview shared by NPCs.
   * Independent from injury, HP and permanent save state.
   */
- const REST_SLEEP=Object.freeze({awake:'清醒',drowsy:'想睡',sleeping:'睡著'});
+ const REST_SLEEP=Object.freeze({
+  awake:'清醒',drowsy:'想睡',sleeping:'正常睡眠',
+  nightmare_mild:'輕微惡夢',nightmare_severe:'嚴重惡夢',nightmare_waking:'惡夢驚醒'
+ });
  const REST_VITALITY=Object.freeze({high:'充沛',normal:'一般',low:'不足'});
+ /*
+  * The same sleep pose is used by the player paper doll and the procedural
+  * 48x64 NPC painter. The temporary waking pose settles to neutral after
+  * about 1.5 seconds, with no forced gameplay or save changes.
+  */
+ function sleepFace(sleep,elapsed=0){
+  if(sleep==='sleeping')return {eyes:'eyesClosed',brows:null,mouth:null,phase:'sleeping'};
+  if(sleep==='nightmare_mild')return {eyes:'eyesClosed',brows:'angry',mouth:'shy',phase:'mild'};
+  if(sleep==='nightmare_severe')return {eyes:'eyesClosed',brows:'angry',mouth:'angry',phase:'severe'};
+  if(sleep==='nightmare_waking'){
+   return elapsed<1450?
+    {eyes:'surprised',brows:'surprised',mouth:'surprised',phase:'startled'}:
+    {eyes:'original',brows:'original',mouth:'original',phase:'calming'};
+  }
+  return null;
+ }
+ function applySleepFacePriority(frame,sleep,elapsed=0){
+  if(!frame||!frame.parts)return frame;
+  const pose=sleepFace(sleep,Math.max(0,Number(elapsed)||0));
+  if(!pose)return frame;
+  if(pose.eyes)frame.parts.eyes=pose.eyes;
+  if(pose.brows)frame.parts.brows=pose.brows;
+  if(pose.mouth)frame.parts.mouth=pose.mouth;
+  frame.blink=false;
+  if(frame.effects){
+   frame.effects.blink=false;
+   frame.effects.circleEyes=false;
+  }
+  return frame;
+ }
  function drawRestEffects(ctx,rest,time=clock(),layout){
   if(!ctx||!rest)return;
   const ox=Number.isFinite(layout?.x)?layout.x:0;
   const oy=Number.isFinite(layout?.y)?layout.y:0;
   const sleep=Object.prototype.hasOwnProperty.call(REST_SLEEP,rest.sleep)?rest.sleep:'awake';
   const t=Number.isFinite(time)?time:0;
+  const elapsed=Math.max(0,Number(rest.elapsed)||0);
   const px=(x,y,w,h,color)=>{ctx.fillStyle=color;ctx.fillRect(Math.round(ox+x),Math.round(oy+y),w,h);};
+  const z=(x,y,color)=>{
+   px(x,y,5,1,color);px(x+3,y+1,1,1,color);
+   px(x+2,y+2,1,1,color);px(x+1,y+3,1,1,color);px(x,y+4,5,1,color);
+  };
   ctx.save();
   if(sleep==='sleeping'||sleep==='drowsy'){
-   // Soft, buoyant Z; sleeping has two Zs, drowsy has one intermittent Z.
+   // Normal sleep: calm and slow breathing, with occasional pale Z.
    const step=Math.floor(t/420);
    if(sleep==='sleeping'||step%4<2){
-    const bob=step%4,yy=15-bob;
-    const color=sleep==='sleeping'?'#dac6ef':'#b4a8bd';
-    px(50,yy,5,1,color);px(53,yy+1,1,1,color);
-    px(52,yy+2,1,1,color);px(51,yy+3,1,1,color);
-    px(50,yy+4,5,1,color);
+    const yy=15-step%4;
+    z(50,yy,sleep==='sleeping'?'#dac6ef':'#b4a8bd');
     if(sleep==='sleeping'){
-     const smallY=8-(Math.floor(t/630)%3);
-     px(56,smallY,4,1,'#ac9ac9');px(58,smallY+1,1,1,'#ac9ac9');
-     px(57,smallY+2,1,1,'#ac9ac9');px(56,smallY+3,4,1,'#ac9ac9');
-     // Very faint rise and fall at the ribcage: breathing, not torso scaling.
+     z(56,8-(Math.floor(t/630)%3),'#ac9ac9');
      const pulse=Math.floor(t/850)%2;
      px(47,78+pulse,2,1,'rgba(226,228,205,.63)');
      px(48,80+pulse,1,1,'rgba(226,228,205,.42)');
     }
    }
+  }else if(sleep==='nightmare_mild'||sleep==='nightmare_severe'){
+   // No Z during nightmares. Different sweat and shoulder tension cadence.
+   const severe=sleep==='nightmare_severe';
+   const pace=severe?190:410;
+   const phase=Math.floor(t/pace)%6;
+   if(severe||phase<4){
+    const dropY=29+(severe?phase%3:phase%2);
+    px(37,dropY,2,severe?3:2,'rgba(44,165,189,.84)');
+    px(37,dropY,1,1,'#c9f7ff');
+   }
+   if(severe){
+    // Single-pixel jitter beside the shoulders, not an entire moving body.
+    const y=Math.floor(t/170)%2;
+    px(9,72+y,2,1,'rgba(168,171,180,.75)');
+    px(52,73-y,2,1,'rgba(168,171,180,.70)');
+    const pulse=Math.floor(t/260)%2;
+    px(48,79+pulse,2,1,'rgba(225,214,210,.65)');
+   }
+  }else if(sleep==='nightmare_waking'&&elapsed<2100){
+   // Short startled sweat which fades as eyes and mouth return to neutral.
+   if(elapsed<1450||Math.floor(elapsed/280)%2===0){
+    px(37,29+(Math.floor(t/200)%2),2,2,'rgba(44,170,195,.88)');
+    px(37,29,1,1,'#dcfaff');
+   }
   }
-  // Vitality is tracked in the test status display only; no visual effects.
+  // Vitality never paints a visual effect, even if the actor is asleep.
   ctx.restore();
  }
  function createActor(options){
@@ -374,6 +430,6 @@
   return frame;
  }
  root.DungeonExpressionMotion=Object.freeze({
-  version:'2.14.1',poses:POSES,statuses:STATUS_PRESETS,abnormalLabels:ABNORMAL_LABELS,restSleep:REST_SLEEP,restVitality:REST_VITALITY,drawSpiralEye,drawFaceSweat,drawUnconsciousEyes,drawAbnormalEffects,drawRestEffects,applyAbnormalFacePriority,createActor
+  version:'2.15.0',poses:POSES,statuses:STATUS_PRESETS,abnormalLabels:ABNORMAL_LABELS,restSleep:REST_SLEEP,restVitality:REST_VITALITY,sleepFace,applySleepFacePriority,drawSpiralEye,drawFaceSweat,drawUnconsciousEyes,drawAbnormalEffects,drawRestEffects,applyAbnormalFacePriority,createActor
  });
 })(window);
