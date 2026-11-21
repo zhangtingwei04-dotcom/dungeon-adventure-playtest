@@ -3642,6 +3642,17 @@ html.stage-locked #app .paperdoll-stage .paperdoll-eyebrows-fallback{
 html.stage-locked #app .paperdoll-stage.brows-customized .paperdoll-eyebrows-fallback{
  display:none;
 }
+
+/* Reusable paper doll template V1: every image cell uses the same 64x160 origin. */
+html.stage-locked #app .paperdoll-stage .paperdoll-template-layer{
+ display:block;position:absolute;inset:0;width:100%;height:100%;
+ pointer-events:none;background-image:var(--male-template-atlas);
+ background-repeat:no-repeat;background-size:700% 100%;
+ image-rendering:pixelated;
+}
+html.stage-locked #app .paperdoll-stage.brows-customized .male-brows-fallback{
+ display:none;
+}
 </style>
 </head>
 <body>
@@ -4814,6 +4825,21 @@ let paperDollTryOn=false;
 // Revised source: cleaned white/grey JPEG fringe at 31 outline pixels (body only).
 const PAPERDOLL_APPROVED_BODY='data:image/png;base64,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';
 const PAPERDOLL_EYEBROW_ART='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAACgBAMAAABOA3dvAAAAMFBMVEUAAABeRUZkRDdpS0AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACWbmodAAAAEHRSTlMA////AAAAAAAAAAAAAAAAAByypgAAADZJREFUeNrty7kNACAMA0CeBcgG7D8lDemgo0J3lSXbpQD8omWYx7pGpjj/xy563BYAAADAWwuQzACMHBoTrwAAAABJRU5ErkJggg==';
+
+// Approved 64x160 male body template. Atlas has seven independently composited cells:
+// 0 skin body / 1 face / 2 brows / 3 eyes / 4 hair / 5 undershirt / 6 shorts.
+// Full-resolution transparent source layers and manifest are stored separately.
+const PAPERDOLL_TEMPLATE_LIBRARY=Object.freeze({
+ human_male_base_v1:Object.freeze({
+  id:'human_male_base_v1',width:64,height:160,
+  atlas:'data:image/png;base64,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',
+  layers:Object.freeze({body:0,face:1,brows:2,eyes:3,hair:4,tank:5,shorts:6})
+ })
+});
+function maleTemplateLayer(index,cls=''){
+ return '<span class="paperdoll-template-layer '+cls+
+  '" aria-hidden="true" style="background-position:'+(index*100/6)+'% 0"></span>';
+}
 const HAIR_PALETTE_V1=Object.freeze([
  {name:'灰白',hex:'#c8cbd0'},
  {name:'銀白',hex:'#e2e7ee'},
@@ -4826,6 +4852,7 @@ const HAIR_PALETTE_V1=Object.freeze([
 ]);
 function normalizeAppearanceV1(){
  if(!s.appearanceV1||typeof s.appearanceV1!=='object'||Array.isArray(s.appearanceV1))s.appearanceV1={};
+ if(!s.appearanceV1.templateId)s.appearanceV1.templateId='human_male_base_v1';
  const value=s.appearanceV1.hairColor;
  if(typeof value!=='string'||!/^#[0-9a-fA-F]{6}$/.test(value))s.appearanceV1.hairColor='#c8cbd0';
  else s.appearanceV1.hairColor=value.toLowerCase();
@@ -4838,7 +4865,7 @@ function paintPaperDollHair(){
   hairAtlasImage=new Image();
   hairAtlasImage.onload=()=>{hairAtlasReady=true;paintPaperDollHair();};
   hairAtlasImage.onerror=()=>{hairAtlasError=true;console.warn('Hair art unavailable; using original image.');};
-  hairAtlasImage.src=EQUIPMENT_PAPERDOLL_ATLAS_V3;
+  hairAtlasImage.src=PAPERDOLL_TEMPLATE_LIBRARY.human_male_base_v1.atlas;
   return;
  }
  if(!hairAtlasReady)return;
@@ -4851,13 +4878,13 @@ function paintPaperDollHair(){
   if(!ctx)return;
   ctx.imageSmoothingEnabled=false;
   // Hair is cell 8 of the original 9-cell atlas (each cell is 64×160).
-  ctx.drawImage(hairAtlasImage,512,0,64,160,0,0,64,160);
+  ctx.drawImage(hairAtlasImage,256,0,64,160,0,0,64,160);
   const frame=ctx.getImageData(0,0,64,160),pixels=frame.data;
   for(let i=0;i<pixels.length;i+=4){
    if(pixels[i+3]===0)continue;
    const luminance=pixels[i]*0.2126+pixels[i+1]*0.7152+pixels[i+2]*0.0722;
    // Dark pixel outlines are intentionally preserved to retain crisp pixel art.
-   if(luminance<38)continue;
+   if(hex==='#c8cbd0'||luminance<38)continue; // Preserve the approved original colors at default.
    const shade=(luminance-165)*0.92;
    for(let c=0;c<3;c++)pixels[i+c]=Math.max(0,Math.min(255,Math.round(target[c]+shade)));
   }
@@ -4881,7 +4908,7 @@ function paintPaperDollBrows(){
   paperDollBrowsImage=new Image();
   paperDollBrowsImage.onload=()=>paintPaperDollBrows();
   paperDollBrowsImage.onerror=()=>console.warn('Eyebrow image unavailable');
-  paperDollBrowsImage.src=PAPERDOLL_EYEBROW_ART;
+  paperDollBrowsImage.src=PAPERDOLL_TEMPLATE_LIBRARY.human_male_base_v1.atlas;
   return;
  }
  if(!paperDollBrowsImage.complete||!paperDollBrowsImage.naturalWidth)return;
@@ -4891,10 +4918,10 @@ function paintPaperDollBrows(){
  const c=document.createElement('canvas');c.width=64;c.height=160;
  const ctx=c.getContext('2d',{willReadFrequently:true})||c.getContext('2d');
  if(!ctx)return;
- ctx.drawImage(paperDollBrowsImage,0,0);
+ ctx.drawImage(paperDollBrowsImage,128,0,64,160,0,0,64,160);
  const frame=ctx.getImageData(0,0,64,160),pixels=frame.data;
  for(let i=0;i<pixels.length;i+=4){
-  if(pixels[i+3]<1)continue;
+  if(pixels[i+3]<1||hex==='#c8cbd0')continue;
   const shade=pixels[i]*0.20-24;
   for(let k=0;k<3;k++)pixels[i+k]=Math.max(0,Math.min(255,Math.round(target[k]*0.72+shade)));
  }
@@ -4951,24 +4978,31 @@ function renderPaperDollHairControls(){
 
 function equipmentGuideHTML(){
  const show=id=>paperDollTryOn||s.equipmentV1[id]===TRAVEL_OUTFIT_IMAGE_IDS[id];
- // Approved body has skin, neutral face and toned sleeveless shirt.
- // Keep clothing, hair, eyes and satchel as independent transparent layers.
+ const character=PAPERDOLL_TEMPLATE_LIBRARY.human_male_base_v1;
  const indexes=[];
  if(show('outer'))indexes.push(1);
  if(show('legs'))indexes.push(2);
  if(show('chest'))indexes.push(3);
  if(show('feet'))indexes.push(4);
  if(show('outer'))indexes.push(5);
- const base='<span class="paperdoll-new-body" aria-hidden="true"></span>';
- const layers=indexes.map(i=>'<span class="paperdoll-layer" aria-hidden="true" style="background-position:'+String(i*12.5)+'% 0"></span>').join('');
- const bag=show('bag')?'<span class="paperdoll-layer paperdoll-approved-bag" aria-hidden="true"></span>':'';
- const eyebrow='<span class="paperdoll-eyebrows-fallback" aria-hidden="true"></span>'+
+ // Default underwear and tunic are truly independent, not baked into the torso.
+ const base=maleTemplateLayer(character.layers.body,'male-base')+
+  maleTemplateLayer(character.layers.face,'male-face');
+ const shorts=show('legs')?'':maleTemplateLayer(character.layers.shorts,'male-shorts');
+ const tank=show('chest')?'':maleTemplateLayer(character.layers.tank,'male-tank');
+ // Preview / future equippable outfits still use the previous clothing atlas.
+ const outfit=indexes.map(i=>'<span class="paperdoll-layer" aria-hidden="true" style="background-position:'+
+   String(i*12.5)+'% 0"></span>').join('');
+ const satchel=show('bag')?'<span class="paperdoll-layer paperdoll-approved-bag" aria-hidden="true"></span>':'';
+ const brows=maleTemplateLayer(character.layers.brows,'male-brows-fallback')+
   '<canvas class="paperdoll-brows-canvas" width="64" height="160" aria-hidden="true"></canvas>';
- const eyes='<span class="paperdoll-layer" aria-hidden="true" style="background-position:87.5% 0"></span>';
- const hair='<span class="paperdoll-layer paperdoll-hair-fallback" aria-hidden="true" style="background-position:100% 0"></span>'+
+ const eyes=maleTemplateLayer(character.layers.eyes,'male-eyes');
+ const hair=maleTemplateLayer(character.layers.hair,'paperdoll-hair-fallback')+
   '<canvas class="paperdoll-hair-canvas" width="64" height="160" aria-hidden="true"></canvas>';
- return '<div class="paperdoll-stage" role="img" aria-label="'+(paperDollTryOn?'主角旅行裝試穿預覽':'依實際裝備顯示的主角紙娃娃')+'">'+base+layers+bag+eyebrow+eyes+hair+
- (paperDollTryOn?'<span class="paperdoll-preview-label">試穿</span>':'')+'</div>';
+ return '<div class="paperdoll-stage" role="img" aria-label="'+
+  (paperDollTryOn?'主角旅行裝試穿預覽':'男性基本型紙娃娃，依實際裝備顯示')+'">'+
+  base+shorts+tank+outfit+satchel+brows+eyes+hair+
+  (paperDollTryOn?'<span class="paperdoll-preview-label">試穿</span>':'')+'</div>';
 }
 function setOwnedEquipmentEquipped(slotId,equip){
  normalizeEquipmentV1();
@@ -5029,8 +5063,7 @@ function renderEquipmentBoard(){
    try{
     f.style.setProperty('--paperdoll-atlas','url("'+EQUIPMENT_PAPERDOLL_ATLAS_V3+'")');
     f.style.setProperty('--paperdoll-bag','url("'+EQUIPMENT_APPROVED_BAG_IMAGE+'")');
-    f.style.setProperty('--paperdoll-body','url("'+PAPERDOLL_APPROVED_BODY+'")');
-    f.style.setProperty('--paperdoll-eyebrows','url("'+PAPERDOLL_EYEBROW_ART+'")');
+    f.style.setProperty('--male-template-atlas','url("'+PAPERDOLL_TEMPLATE_LIBRARY.human_male_base_v1.atlas+'")');
     f.innerHTML=equipmentGuideHTML();
    }catch(err){console.error('Paper doll failed:',err);f.setAttribute('aria-label','人形暫時無法顯示');}
    board.appendChild(f);continue;
@@ -5544,7 +5577,7 @@ function paintActorSprite(canvas,memberId,emotion='neutral'){
 }
 function randomSeed(){return (Date.now()^((Math.random()*4294967295)>>>0))>>>0;}
 function selectFour(seed){let a=[0,1,2,3,4,5],v=seed>>>0;for(let i=a.length-1;i>0;i--){v=(Math.imul(v,1664525)+1013904223)>>>0;let j=v%(i+1);[a[i],a[j]]=[a[j],a[i]];}return a.slice(0,4).sort((x,y)=>x-y);}
-function initial(){const seed=randomSeed();return{v:1,seed,scene:'wreck',worldMinutes:960,routeDiscovery:{known:[],searchCounts:{}},placeCardsViewed:[],exploration:{counts:{},routeProgress:{},pending:{},daily:{},last:{}},recovery:{found:false,looted:false,items:[],parts:{}},forestEcology:{checkedDays:{},observed:{},ingredients:{},leafCollected:false},forestRare:{checkedDays:{},sighted:{},hints:{},ingredients:{},beetleGearTaken:false,rabbitHerbTaken:false},beetle:{questAccepted:false,questCompleted:false,captured:false,terrarium:false,seen:false,food:72,clean:85,comfort:68,lastDay:0},wallet:{silver:1,copper:12},equipmentV1:{bag:'enchanted_satchel'},appearanceV1:{hairColor:'#c8cbd0'},hp:16,maxHp:16,seen:[],notes:[],items:[],party:selectFour(seed),flags:{},visits:{wreck:1},savedAt:Date.now(),sound:false,feedCollapsed:false,travelHudMode:'compact',travelLog:[{type:'daily',message:'在毀壞的馬車篷內醒來，扶著斷裂木板爬到了外面。',thought:'我怎麼會在這裡？先看看四周吧。',scene:'wreck',time:Date.now()}]};}
+function initial(){const seed=randomSeed();return{v:1,seed,scene:'wreck',worldMinutes:960,routeDiscovery:{known:[],searchCounts:{}},placeCardsViewed:[],exploration:{counts:{},routeProgress:{},pending:{},daily:{},last:{}},recovery:{found:false,looted:false,items:[],parts:{}},forestEcology:{checkedDays:{},observed:{},ingredients:{},leafCollected:false},forestRare:{checkedDays:{},sighted:{},hints:{},ingredients:{},beetleGearTaken:false,rabbitHerbTaken:false},beetle:{questAccepted:false,questCompleted:false,captured:false,terrarium:false,seen:false,food:72,clean:85,comfort:68,lastDay:0},wallet:{silver:1,copper:12},equipmentV1:{bag:'enchanted_satchel'},appearanceV1:{hairColor:'#c8cbd0',templateId:'human_male_base_v1'},hp:16,maxHp:16,seen:[],notes:[],items:[],party:selectFour(seed),flags:{},visits:{wreck:1},savedAt:Date.now(),sound:false,feedCollapsed:false,travelHudMode:'compact',travelLog:[{type:'daily',message:'在毀壞的馬車篷內醒來，扶著斷裂木板爬到了外面。',thought:'我怎麼會在這裡？先看看四周吧。',scene:'wreck',time:Date.now()}]};}
 function validSave(j){return !!(j&&j.v===1&&names[j.scene]&&Number.isFinite(j.hp)&&Number.isFinite(j.maxHp)&&Array.isArray(j.party)&&j.party.length===4&&new Set(j.party).size===4&&j.party.every(i=>Number.isInteger(i)&&i>=0&&i<6)&&Array.isArray(j.seen)&&Array.isArray(j.notes)&&Array.isArray(j.items)&&j.flags&&typeof j.flags==='object'&&j.visits&&typeof j.visits==='object');}
 function load(){try{const j=JSON.parse(localStorage.getItem(KEY));return validSave(j)?j:null;}catch{return null;}}
 let s=load()||initial(), hasSave=!!load(),modal=null,showHints=false,journalTab='discoveries',toastHandle=null;
