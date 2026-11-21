@@ -145,7 +145,12 @@
    line(x+3,yy,11,edge);line(x+1,yy+1,15,edge);
    px(x,yy+2,edge,17,11);line(x+1,yy+13,15,edge);line(x+3,yy+14,11,edge);
    px(x+2,yy+2,inside,13,11);
-   if(kind==='water'){
+   if(kind==='blood'){
+    // Visible blood drop in a thought bubble, never a wound painted on skin.
+    px(x+8,yy+3,'#ff9b9c',2,2);px(x+7,yy+5,'#e54f62',4,3);
+    px(x+6,yy+8,'#b92946',6,3);line(x+7,yy+11,4,'#d94c60');
+    px(x+8,yy+7,'#ffe9e1',1,2);
+   }else if(kind==='water'){
     px(x+8,yy+3,'#a1f5ff',2,2);px(x+7,yy+5,'#55dcf6',4,3);
     px(x+6,yy+8,'#32b9e2',6,3);line(x+7,yy+11,4,'#4bc9f0');
     px(x+8,yy+6,'#eaffff',1,3);
@@ -162,24 +167,33 @@
    if(!Object.prototype.hasOwnProperty.call(ABNORMAL_LABELS,id))continue;
    drawn++;
    if(id==='poison'){
-    // Green spores and a weak sickly glow near the temples.
-    const p=step(300,5);
-    px(12,35-p,'#73c578',2,2);px(50,34-posMod(p+2,5),'#a2db82',2,2);
-    px(13,33-p,'rgba(118,217,142,.65)');
-    line(18,41,3,'rgba(105,173,90,.48)');
-    line(43,41,3,'rgba(105,173,90,.48)');
+    // Three large green fumes rise directly above the hair, at different phases.
+    const sway=[-1,0,1,0];
+    for(let i=0;i<3;i++){
+     const p=posMod(step(170,18)+i*6,18),y=20-p;
+     const x=[23,32,41][i]+sway[posMod(step(230,4)+i,4)];
+     px(x-2,y-1,'#276c3b',6,5);
+     px(x-1,y,'#64d46b',4,3);
+     px(x,y-1,'#d4ffa4',2,1);
+     px(x+1,y+2,'#b6f692',1,1);
+    }
+    const y=17-step(205,14);
+    px(28,y,'#8deb83',3,3);px(29,y-1,'#eeffb5');
    }else if(id==='fever'){
-    const p=step(260,4),light=p<2?'.78':'.45';
-    line(19,41,4,'rgba(241,109,114,'+light+')');
-    line(42,41,4,'rgba(241,109,114,'+light+')');
-    px(10,25-p,'#f18575',2,2);px(53,26-posMod(p+1,4),'#ef9b77',2,2);
-    px(10,24-p,'rgba(255,183,137,.52)');
+    // Three wide orange/red heat columns rise from the head, clearly distinct from poison.
+    for(let i=0;i<3;i++){
+     const p=posMod(step(180,17)+i*5,17),y=19-p;
+     const x=[24,33,42][i]+(step(280,2)?1:-1);
+     px(x-2,y,'#a93b35',6,5);
+     px(x-1,y,'#f56642',4,4);
+     px(x,y-1,'#ffb761',3,3);
+     px(x+1,y,'#ffe79b',1,2);
+    }
+    const y=18-step(215,15);
+    px(30,y,'#ff8752',4,3);px(31,y-1,'#ffe49e',2,1);
    }else if(id==='injury'){
-    const p=step(340,4);
-    px(43,43,'#a94152',2,2);px(42,45,'#d66069',2,1);
-    px(43,45,'#a94152');
-    px(17,83,'#a94152');px(18,84,'#c05460');
-    if(p===1||p===2)px(44,44,'#f39a9b');
+    // Show a blood-related THOUGHT instead of physical cuts or bleeding.
+    thought(2,4,'blood',step(420,4)<2?0:1);
    }else if(id==='dizzy'){
     const p=step(220,4);
     const offsets=[[-1,-1],[1,-1],[1,1],[-1,1]];
@@ -196,7 +210,7 @@
     if(p<4)zed(57,10-Math.floor(p/2),4);
    }else if(id==='hunger'){
     // Food pictogram in an animated thought balloon.
-    thought(2,4,'food',step(520,4)<2?0:1);
+    thought(2,28,'food',step(520,4)<2?0:1);
    }else if(id==='dehydration'){
     // Water pictogram in an animated thought balloon.
     thought(45,4,'water',step(470,4)<2?0:1);
@@ -296,6 +310,6 @@
   });
  }
  root.DungeonExpressionMotion=Object.freeze({
-  version:'2.10.1',poses:POSES,statuses:STATUS_PRESETS,abnormalLabels:ABNORMAL_LABELS,drawSpiralEye,drawFaceSweat,drawUnconsciousEyes,drawAbnormalEffects,createActor
+  version:'2.11.0',poses:POSES,statuses:STATUS_PRESETS,abnormalLabels:ABNORMAL_LABELS,drawSpiralEye,drawFaceSweat,drawUnconsciousEyes,drawAbnormalEffects,createActor
  });
 })(window);
