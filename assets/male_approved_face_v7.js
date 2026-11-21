@@ -1,0 +1,6 @@
+/* V7: directly extracted from the previously user-approved merged male head,
+ * converted to 64x160 native transparent PNG; no new image generation.
+ * The V5 runtime variable name is retained for eye/mouth animation compatibility.
+ * Hair is in a separate file for normal/bald modes.
+ */
+window.DUNGEON_MALE_SHARED_FACE_V5="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAACgCAMAAACL85puAAAAwFBMVEUAAAD91a0JBAT0qHnXd1H6zaT7+fYtFxOvUzntmm/2torHZkbihFvmi2SROyjzrIL6yZwlEzQwGUt4dHW8XEGyZpvdgFrv6eUZFhclCwc3JiZMJWr659M5JVB4NyZsO4qaRC6XWaSIZlGpSTO5cqnTxModDiApDTRDH1tPIBZEJFxEPj5jIhZtMn9+Q5p2WES2YqGicFCmg2m1oKjehWDLvMTX1tjd4ODgeUzm3doAAAAAAAAAAAAAAAAAAAAAAACCFRK8AAAAQHRSTlMA////////////////////////////////////////////////////////////////////////////AAAAAAAA4zDSkgAAAatJREFUeNrtltdygzAQRb1XSHQb95q4p/ee//+xCAbGiQ1B4KdM9rzZwx61XWkbDYZh/gNIqRetAMexYhxA1RndClqCpCTPswbAqGq47wra4brVFoLmj/DYIJoVDHCER3sIsTY2oHcYTySFb2jAQgjKwRVO10wQ5sbrVbhGU+hCFAkErs12gAow2wVYxYIBjI6wWCB6MJnALwLLSOAdK6BC/ojASQUjexdoT6RxImCtBY/J55NUgUmUWLTApKYR0iq5CYmitA6lTP54IpNMBBZ6zOftWRvjbAVAG69b/bNZfi/hUkLQbDjrdKZtpPHnqtMZfkpyIU/LDCBX+kRKTdvzk+wqubi7naoZkU8hlQvES7x3avnQzwR01e/PVTyVwCsXSAr9OJfVZqMywXDZV0kWBBSVCZRNrSDMTyNr4Eq79BRG44jsfEFTRjcG59i1V7Dy4n3c22a36rCBnIpuofH+Zv6yHRqqvW1q39Cq/ECj9z0+qNEjAOFu+Ho9hi5AXdqidosSXy6D4EM3KEc0SbrHOT0inmEYhmEYhmEYhmEYhmEYhmEYhmGYQr4AooMRnjLAn4YAAAAASUVORK5CYII=";
