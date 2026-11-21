@@ -3527,7 +3527,8 @@ html.stage-locked #app .equip-guide .paperdoll-stage{
  filter:drop-shadow(0 2px 3px rgba(0,0,0,.28));
 }
 /* Shift only the male standard paper doll as a whole; keep every sprite aligned. */
-html.stage-locked #app .equip-guide .paperdoll-stage.paperdoll-male{transform:translateY(5px)}
+html.stage-locked #app .equip-guide .paperdoll-stage.paperdoll-male,
+html.stage-locked #app .equip-guide .paperdoll-stage.paperdoll-female{transform:translateY(5px)}
 html.stage-locked #app .equip-guide .paperdoll-layer{
  display:block;position:absolute;inset:0;pointer-events:none;
  background-image:var(--paperdoll-atlas);
@@ -5243,7 +5244,7 @@ function equipmentGuideHTML(sceneMode='equipment'){
   '<canvas class="paperdoll-eyes-canvas" width="64" height="160" aria-hidden="true"></canvas>';
  const hair=maleTemplateLayer(character.layers.hair,'paperdoll-hair-fallback')+
   '<canvas class="paperdoll-hair-canvas" width="64" height="160" aria-hidden="true"></canvas>';
- return '<div class="paperdoll-stage'+(s.appearanceV1?.gender==='female'?'':' paperdoll-male')+'" role="img" aria-label="'+
+ return '<div class="paperdoll-stage '+(s.appearanceV1?.gender==='female'?'paperdoll-female':'paperdoll-male')+'" role="img" aria-label="'+
   (paperDollTryOn?'主角旅行裝試穿預覽':(s.appearanceV1?.gender==='female'?'女性':'男性')+'標準型紙娃娃，依實際裝備顯示')+'">'+
   behind+base+shorts+tank+outfit+satchel+extras+veil+brows+eyes+hair+
   (paperDollTryOn?'<span class="paperdoll-preview-label">試穿</span>':'')+'</div>';
