@@ -3723,6 +3723,12 @@ html.stage-locked #app .paperdoll-stage .paperdoll-eyes-canvas,
 html.stage-locked #app .paperdoll-stage .paperdoll-condition-canvas{
  position:absolute;inset:0;width:100%;height:100%;pointer-events:none;image-rendering:pixelated;
 }
+/* Independent female eye pixels overlay the baked eyes only while moving.
+   Keep below status-effect canvas (z=6) and in the same 64x160 origin. */
+html.stage-locked #app .paperdoll-stage .paperdoll-female-eye-motion-canvas{
+ position:absolute;inset:0;width:100%;height:100%;pointer-events:none;
+ image-rendering:pixelated;z-index:5;
+}
 /* Keep the tiny facial-status effect visible above sprite layers. */
 html.stage-locked #app .paperdoll-stage .paperdoll-condition-canvas{z-index:6}
 html.stage-locked #app .paperdoll-stage.skin-tinted .male-base,
@@ -3987,6 +3993,7 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
 <script src="./assets/expression_motion.js?v=2.16"></script>
 <script src="./assets/female_head_v1.js?v=1"></script>
+<script src="./assets/female_eye_motion_v1.js?v=1"></script>
 <script>
 (()=>{'use strict';
 // Fixed design canvas: use the approved screenshot's exact 1536×707 ratio,
@@ -5050,6 +5057,8 @@ function tickPaperDollMotion(force=false){
   abnormalStates.join(','),
   abnormalStates.length?Math.floor(performance.now()/160):'no-abnormal',
   paperDollRestPreview.sleep,paperDollRestPreview.vitality,
+  s.appearanceV1?.gender==='female'&&paperDollMotionEnabled?
+   (window.DungeonFemaleEyeMotionV1?.gaze(performance.now())||'center'):'no-gaze',
   restAnimating?Math.floor(performance.now()/160):'rest-idle'
  ].join('|');
  if(!force&&signature===paperDollMotionLastKey)return false;
@@ -5063,11 +5072,26 @@ function tickPaperDollMotion(force=false){
  if(document.querySelector('.paperdoll-stage')){
   paintPaperDollBrows();
   paintPaperDollEyes();
+  paintPaperDollFemaleEyes();
   paintPaperDollPhysicalCondition();
  }
  paintNpcDreamPreview();
  return true;
 }
+/* Eye-only patch animation preserves the original combined female head PNG.
+   Head, neck, hair and body remain unchanged and male sprites are unaffected. */
+function paintPaperDollFemaleEyes(){
+ const motion=window.DungeonFemaleEyeMotionV1;if(!motion)return;
+ const abnormal=currentPaperDollAbnormalStates();
+ const parts=paperDollMotionFrame?.parts||{};
+ const unconscious=abnormal.includes("unconscious");
+ const closed=unconscious||parts.eyes==="eyesClosed";
+ const blink=paperDollMotionEnabled&&Boolean(paperDollMotionFrame?.effects?.blink);
+ const gaze=paperDollMotionEnabled?motion.gaze(performance.now()):"center";
+ for(const stage of document.querySelectorAll(".paperdoll-stage.paperdoll-female"))
+  motion.render(stage,{closed,blink,gaze});
+}
+window.addEventListener("dungeon-female-eyes-ready",paintPaperDollFemaleEyes);
 // One small visible-only tick; NPCs can sample their actors from the scene update loop.
 setInterval(()=>{if(!document.hidden)tickPaperDollMotion();},75);
 
@@ -5620,7 +5644,9 @@ function equipmentGuideHTML(sceneMode='equipment'){
  const brows=maleTemplateLayer(character.layers.brows,'male-brows-fallback')+
   '<canvas class="paperdoll-brows-canvas" width="64" height="160" aria-hidden="true"></canvas>';
  const eyes=maleTemplateLayer(character.layers.eyes,'male-eyes')+
-  '<canvas class="paperdoll-eyes-canvas" width="64" height="160" aria-hidden="true"></canvas>';
+  '<canvas class="paperdoll-eyes-canvas" width="64" height="160" aria-hidden="true"></canvas>'+
+  (s.appearanceV1?.gender==='female'&&FEMALE_REPLACEMENT_HEAD_LAYERS?
+   '<canvas class="paperdoll-female-eye-motion-canvas" width="64" height="160" aria-hidden="true"></canvas>':'');
  const mouth=s.appearanceV1?.gender==='male'?maleTemplateLayer(character.layers.mouth,'paperdoll-mouth'):'';
  const healthMarks='<canvas class="paperdoll-condition-canvas" width="64" height="160" aria-hidden="true"></canvas>';
  const hair=maleTemplateLayer(character.layers.hair,'paperdoll-hair-fallback')+
@@ -5751,6 +5777,7 @@ function renderEquipmentBoard(){
  paintPaperDollHair();
  paintPaperDollBrows();
  paintPaperDollEyes();
+ paintPaperDollFemaleEyes();
  paintPaperDollSkin();
  paintPaperDollPhysicalCondition();
  paintNpcDreamPreview();
