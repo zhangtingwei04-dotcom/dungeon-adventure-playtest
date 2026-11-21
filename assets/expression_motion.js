@@ -84,6 +84,85 @@
   }
   ctx.restore();
  }
+ /* Eight abnormal conditions are separate overlays, never face/HP substitutions.
+  * One shared pixel renderer serves the player and future NPCs. Times are
+  * sampled from the existing scene update rather than independent timers.
+  */
+ const ABNORMAL_LABELS=Object.freeze({
+  poison:'中毒',fever:'發燒',injury:'受傷／流血',dizzy:'暈眩',
+  unconscious:'昏迷',sleep_deprived:'睡眠不足',hunger:'飢餓',dehydration:'缺水'
+ });
+ function drawAbnormalEffects(ctx,states,time=clock(),layout){
+  if(!ctx||!Array.isArray(states)||states.length===0)return 0;
+  const x0=Number.isFinite(layout?.x)?layout.x:0;
+  const y0=Number.isFinite(layout?.y)?layout.y:0;
+  const t=Math.max(0,Number(time)||0);
+  const step=(speed,n)=>posMod(Math.floor(t/speed),n);
+  let drawn=0;
+  const px=(x,y,color,w=1,h=1)=>{
+   ctx.fillStyle=color;
+   ctx.fillRect(Math.round(x0+x),Math.round(y0+y),w,h);
+  };
+  const line=(x,y,length,color)=>px(x,y,color,length,1);
+  ctx.save();
+  for(const id of new Set(states)){
+   if(!Object.prototype.hasOwnProperty.call(ABNORMAL_LABELS,id))continue;
+   drawn++;
+   if(id==='poison'){
+    // Green spores and a weak sickly glow near the temples.
+    const p=step(300,5);
+    px(12,35-p,'#73c578');px(51,34-posMod(p+2,5),'#a2db82');
+    px(13,33-p,'rgba(118,217,142,.65)');
+    line(18,41,3,'rgba(105,173,90,.48)');
+    line(43,41,3,'rgba(105,173,90,.48)');
+   }else if(id==='fever'){
+    const p=step(260,4),light=p<2?'.78':'.45';
+    line(19,41,4,'rgba(241,109,114,'+light+')');
+    line(42,41,4,'rgba(241,109,114,'+light+')');
+    px(10,25-p,'#f18575');px(53,26-posMod(p+1,4),'#ef9b77');
+    px(10,24-p,'rgba(255,183,137,.52)');
+   }else if(id==='injury'){
+    const p=step(340,4);
+    px(43,43,'#a94152');px(42,44,'#d66069');
+    px(43,45,'#a94152');
+    px(17,83,'#a94152');px(18,84,'#c05460');
+    if(p===1||p===2)px(44,44,'#f39a9b');
+   }else if(id==='dizzy'){
+    const p=step(220,4);
+    const offsets=[[-1,-1],[1,-1],[1,1],[-1,1]];
+    for(const [x,y] of [[10,23],[53,23]]){
+     const [dx,dy]=offsets[p];px(x+dx,y+dy,'#b49bea',2,1);
+     px(x-dx,y-dy,'#715bc1');px(x,y,'#d8ccff');
+    }
+   }else if(id==='unconscious'){
+    const p=step(440,5),y=18-p;
+    // Rising stylized "Z" is an effect, not a replacement eye shape.
+    line(50,y,4,'#baa5ea');
+    px(52,y+1,'#baa5ea');px(51,y+2,'#baa5ea');
+    line(50,y+3,4,'#baa5ea');
+    if(p<3){line(56,y-5,3,'rgba(186,165,234,.7)');px(57,y-4,'rgba(186,165,234,.7)');line(56,y-3,3,'rgba(186,165,234,.7)');}
+   }else if(id==='sleep_deprived'){
+    const p=step(480,4),alpha=p<2?'.78':'.45';
+    line(22,41,6,'rgba(102,77,145,'+alpha+')');
+    line(36,41,6,'rgba(102,77,145,'+alpha+')');
+    if(p===3){px(22,42,'rgba(142,112,171,.44)');px(40,42,'rgba(142,112,171,.44)');}
+   }else if(id==='hunger'){
+    const p=step(340,4),y=85+(p===2?1:0);
+    // A small pulsing stomach ripple, never a facial expression.
+    px(51,y,'#bf9877');px(53,y+1,'#d4ae86');
+    px(55,y+2,'#bf9877');
+    if(p%2===0)px(54,y-1,'rgba(244,206,158,.68)');
+   }else if(id==='dehydration'){
+    const p=step(520,4);
+    line(44,46,3,'rgba(177,112,109,.8)');
+    px(45,47,'#cf8d84');
+    px(18,44,'rgba(201,153,142,.6)');
+    if(p===2){px(43,46,'#e8b6a5');px(18,45,'rgba(198,156,141,.65)');}
+   }
+  }
+  ctx.restore();
+  return drawn;
+ }
  function createActor(options){
   const opts=options||{};
   let status=statusOf(opts.status||'normal');
@@ -173,6 +252,6 @@
   });
  }
  root.DungeonExpressionMotion=Object.freeze({
-  version:'2.7.1',poses:POSES,statuses:STATUS_PRESETS,drawSpiralEye,drawFaceSweat,createActor
+  version:'2.8.0',poses:POSES,statuses:STATUS_PRESETS,abnormalLabels:ABNORMAL_LABELS,drawSpiralEye,drawFaceSweat,drawAbnormalEffects,createActor
  });
 })(window);
