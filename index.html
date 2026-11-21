@@ -3663,6 +3663,18 @@ html.stage-locked #app .paperdoll-stage .paperdoll-asset-layer{
 html.stage-locked #app .paperdoll-stage .paperdoll-privacy-veil{
  background-size:100% 100%!important;
 }
+
+/* Accessible, mobile-sized controls inside the existing equipment panel. */
+html.stage-locked #app .paperdoll-gender-switch{display:flex;align-items:center;gap:5px;flex-wrap:wrap;width:100%;padding:6px 1px}
+html.stage-locked #app .paperdoll-gender-title{font-size:11px;color:#f4dda6;margin-right:auto}
+html.stage-locked #app #placeDrawerPanel .paperdoll-gender-button{min-height:31px!important;border:1px solid #a78a5c!important;border-radius:6px!important;color:#f3e5bd!important;background:#29493f!important;padding:4px 10px!important;font-size:12px!important}
+html.stage-locked #app #placeDrawerPanel .paperdoll-gender-button[aria-pressed=true]{background:#d4b77c!important;color:#222d26!important;font-weight:700}
+html.stage-locked #app .paperdoll-customizer{width:100%;min-width:0;border-top:1px solid #b5a07150;margin:5px 0 0;padding:4px 1px}
+html.stage-locked #app .paperdoll-customizer summary{font-size:12px;color:#f7dcac;cursor:pointer;padding:7px 3px;line-height:1.4}
+html.stage-locked #app .paperdoll-customizer-note{margin:4px 3px 8px;font-size:10px;line-height:1.5;color:#c3cabb}
+html.stage-locked #app .paperdoll-customizer-field{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:5px 2px;font-size:11px;color:#e8d9bb;min-width:0}
+html.stage-locked #app #placeDrawerPanel .paperdoll-choice-select{flex:0 1 62%;min-width:0;max-width:65%;min-height:31px!important;padding:5px 4px!important;color:#f5e6c5!important;border:1px solid #a78a5c!important;background:#26473d!important;border-radius:5px!important;font-size:11px!important}
+html.stage-locked #app .paperdoll-future-slots{margin:5px 0;border-top:1px solid #b5a07150}
 </style>
 </head>
 <body>
@@ -4954,7 +4966,7 @@ function paintPaperDollHair(){
   hairAtlasImage=new Image();
   hairAtlasImage.onload=()=>{hairAtlasReady=true;paintPaperDollHair();};
   hairAtlasImage.onerror=()=>{hairAtlasError=true;console.warn('Hair art unavailable; using original image.');};
-  hairAtlasImage.src=PAPERDOLL_SEPARATE_LAYERS.hair;
+  hairAtlasImage.src=paperDollSprite('hair');
   return;
  }
  if(!hairAtlasReady)return;
@@ -4997,7 +5009,7 @@ function paintPaperDollBrows(){
   paperDollBrowsImage=new Image();
   paperDollBrowsImage.onload=()=>paintPaperDollBrows();
   paperDollBrowsImage.onerror=()=>console.warn('Eyebrow image unavailable');
-  paperDollBrowsImage.src=PAPERDOLL_SEPARATE_LAYERS.brows;
+  paperDollBrowsImage.src=paperDollSprite('brows');
   return;
  }
  if(!paperDollBrowsImage.complete||!paperDollBrowsImage.naturalWidth)return;
@@ -5065,6 +5077,69 @@ function renderPaperDollHairControls(){
  return row;
 }
 
+
+let paperDollCustomizerOpen=false,paperDollFutureSlotsOpen=false;
+function resetPaperDollSpriteCaches(){
+ hairAtlasImage=null;hairAtlasReady=false;hairAtlasError=false;paperDollBrowsImage=null;
+ paperDollEyeImage=null;paperDollSkinImages=null;
+}
+function setPaperDollAppearance(field,value){
+ normalizeAppearanceV1();const a=s.appearanceV1;
+ if(field==='gender'){
+  if(!['male','female'].includes(value))return;
+  if(a.gender!==value){a.gender=value;resetPaperDollSpriteCaches();}
+ }else if(field==='skinTone'){
+  if(!PAPERDOLL_SKIN_TONES.some(t=>t.id===value))return;a.skinTone=value;
+ }else if(field==='eyeColor'){
+  if(!PAPERDOLL_EYE_COLORS.some(t=>t.id===value))return;a.eyeColor=value;
+ }else if(field.startsWith('part:')){
+  const slot=PAPERDOLL_FUTURE_SLOTS.find(t=>t.id===field.slice(5));
+  if(!slot||!slot.values.includes(value))return;
+  if(value!==slot.values[0]&&!PAPERDOLL_VARIANT_ASSETS[a.gender]?.[slot.id]?.[value])return;
+  a.parts[slot.id]=value;
+ }else return;
+ save();renderPlaceDrawer();
+}
+function renderPaperDollGenderControls(){
+ normalizeAppearanceV1();
+ const row=document.createElement('div');row.className='paperdoll-gender-switch';
+ row.setAttribute('role','group');row.setAttribute('aria-label','角色性別與標準體型');
+ const title=document.createElement('span');title.className='paperdoll-gender-title';title.textContent='標準體型';row.appendChild(title);
+ for(const [value,label] of [['male','男性'],['female','女性']]){
+  const btn=document.createElement('button');btn.type='button';btn.textContent=label;btn.className='paperdoll-gender-button';
+  btn.setAttribute('aria-pressed',String(s.appearanceV1.gender===value));
+  btn.onclick=()=>setPaperDollAppearance('gender',value);row.appendChild(btn);
+ }return row;
+}
+function renderPaperDollAppearanceControls(){
+ normalizeAppearanceV1();
+ const root=document.createElement('details');root.className='paperdoll-customizer';root.open=paperDollCustomizerOpen;
+ const summary=document.createElement('summary');summary.textContent='角色自訂 · 膚色、瞳色與外觀圖層';root.appendChild(summary);
+ root.addEventListener('toggle',()=>paperDollCustomizerOpen=root.open);
+ const intro=document.createElement('p');intro.className='paperdoll-customizer-note';
+ intro.textContent='男女皆為標準型。已建立共用素材接口；未匯入的造型不會以其他性別的圖片冒充。';
+ root.appendChild(intro);
+ function addChoice(where,title,field,options,chosen){
+  const label=document.createElement('label');label.className='paperdoll-customizer-field';
+  const span=document.createElement('span');span.textContent=title;label.appendChild(span);
+  const select=document.createElement('select');select.className='paperdoll-choice-select';select.setAttribute('aria-label',title);
+  for(const item of options){const option=document.createElement('option');option.value=item.id;option.textContent=item.name;option.selected=chosen===item.id;option.disabled=!!item.disabled;select.appendChild(option);}
+  select.onchange=()=>setPaperDollAppearance(field,select.value);label.appendChild(select);where.appendChild(label);
+ }
+ addChoice(root,'膚色','skinTone',PAPERDOLL_SKIN_TONES,s.appearanceV1.skinTone);
+ addChoice(root,'瞳色','eyeColor',PAPERDOLL_EYE_COLORS,s.appearanceV1.eyeColor);
+ const more=document.createElement('details');more.className='paperdoll-future-slots';more.open=paperDollFutureSlotsOpen;
+ const sub=document.createElement('summary');sub.textContent='可擴充部位（'+PAPERDOLL_FUTURE_SLOTS.length+' 個素材插槽）';
+ more.appendChild(sub);more.addEventListener('toggle',()=>paperDollFutureSlotsOpen=more.open);
+ for(const slot of PAPERDOLL_FUTURE_SLOTS){
+  const options=slot.values.map((id,i)=>({id,name:i===0?'預設／無':id+(PAPERDOLL_VARIANT_ASSETS[s.appearanceV1.gender]?.[slot.id]?.[id]?'':' · 待匯入素材'),disabled:i!==0&&!PAPERDOLL_VARIANT_ASSETS[s.appearanceV1.gender]?.[slot.id]?.[id]}));
+  addChoice(more,slot.name,'part:'+slot.id,options,s.appearanceV1.parts[slot.id]);
+ }
+ const end=document.createElement('p');end.className='paperdoll-customizer-note';
+ end.textContent='新素材需為 64×160 透明 PNG，同一座標才會啟用；目前保留已核准衣服、背包與存檔。';
+ more.appendChild(end);root.appendChild(more);
+ return root;
+}
 function equipmentGuideHTML(sceneMode='equipment'){
  const privateScene=sceneMode==='bath'||sceneMode==='dressing';
  const show=id=>paperDollTryOn||s.equipmentV1[id]===TRAVEL_OUTFIT_IMAGE_IDS[id];
@@ -5084,6 +5159,7 @@ function equipmentGuideHTML(sceneMode='equipment'){
  const outfit=(privateScene?[]:indexes).map(i=>'<span class="paperdoll-layer" aria-hidden="true" style="background-position:'+
    String(i*12.5)+'% 0"></span>').join('');
  const satchel=!privateScene&&show('bag')?'<span class="paperdoll-layer paperdoll-approved-bag" aria-hidden="true"></span>':'';
+ const extras=paperDollExtraLayerHTML();
  // Private scenes must cover the pelvis even when garment layers are absent.
  // There is no explicit genital art in the body source.
  const veil=privateScene?'<span class="paperdoll-asset-layer paperdoll-privacy-veil" aria-hidden="true" style="background-image:var(--paperdoll-privacy-'+(sceneMode==='bath'?'steam':'mosaic')+')"></span>':'';
@@ -5093,8 +5169,8 @@ function equipmentGuideHTML(sceneMode='equipment'){
  const hair=maleTemplateLayer(character.layers.hair,'paperdoll-hair-fallback')+
   '<canvas class="paperdoll-hair-canvas" width="64" height="160" aria-hidden="true"></canvas>';
  return '<div class="paperdoll-stage" role="img" aria-label="'+
-  (paperDollTryOn?'主角旅行裝試穿預覽':'男性基本型紙娃娃，依實際裝備顯示')+'">'+
-  base+shorts+tank+outfit+satchel+veil+brows+eyes+hair+
+  (paperDollTryOn?'主角旅行裝試穿預覽':(s.appearanceV1?.gender==='female'?'女性':'男性')+'標準型紙娃娃，依實際裝備顯示')+'">'+
+  base+shorts+tank+outfit+satchel+extras+veil+brows+eyes+hair+
   (paperDollTryOn?'<span class="paperdoll-preview-label">試穿</span>':'')+'</div>';
 }
 function setOwnedEquipmentEquipped(slotId,equip){
@@ -5157,7 +5233,7 @@ function renderEquipmentBoard(){
     f.style.setProperty('--paperdoll-atlas','url("'+EQUIPMENT_PAPERDOLL_ATLAS_V3+'")');
     f.style.setProperty('--paperdoll-bag','url("'+EQUIPMENT_APPROVED_BAG_IMAGE+'")');
     for(const name of ['body','face','brows','eyes','hair','tank','shorts']){
-     f.style.setProperty('--paperdoll-img-'+name,'url("'+PAPERDOLL_SEPARATE_LAYERS[name]+'")');
+     f.style.setProperty('--paperdoll-img-'+name,'url("'+paperDollSprite(name)+'")');
     }
     f.style.setProperty('--paperdoll-privacy-mosaic','url("'+PAPERDOLL_SEPARATE_LAYERS.privacyMosaic+'")');
     f.style.setProperty('--paperdoll-privacy-steam','url("'+PAPERDOLL_SEPARATE_LAYERS.privacySteam+'")');
@@ -5267,7 +5343,9 @@ function renderSideTab(tab,out){
   equipAction.id='equipEquipmentAction';equipAction.className='equip-action-button';
   equipAction.textContent='脫下';equipAction.hidden=true;
   const hairControls=renderPaperDollHairControls();
-  footer.append(detail,equipAction,tryOn,bag);section.append(board,hairControls,footer);out.appendChild(section);
+  const genderControls=renderPaperDollGenderControls();
+  const appearanceControls=renderPaperDollAppearanceControls();
+  footer.append(detail,equipAction,tryOn,bag);section.append(board,genderControls,hairControls,appearanceControls,footer);out.appendChild(section);
   renderEquipmentBoard();return;
  }
  if(tab==='inventory'){
