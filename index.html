@@ -2422,7 +2422,7 @@ html.stage-locked #app #topGameHud .top-hud-disabled{
 /* Visual test of vitality (not a gameplay resource or saved stat). */
 html.stage-locked #app #topGameHud #hudSPFill{
  display:block;width:70%;height:100%;
- background:linear-gradient(#a1d4b3,#548e8b);border-radius:20px;
+ background:linear-gradient(#94c5ff,#3c76c8);border-radius:20px;
  transition:width .2s ease;
 }
 html.stage-locked #app #topGameHud .top-hud-controls{
@@ -3983,7 +3983,7 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <script src="./assets/approved_wagon_art_v1.js"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
-<script src="./assets/expression_motion.js?v=2.13"></script>
+<script src="./assets/expression_motion.js?v=2.14"></script>
 <script>
 (()=>{'use strict';
 // Fixed design canvas: use the approved screenshot's exact 1536×707 ratio,
@@ -5355,7 +5355,7 @@ function renderPaperDollRestControls(){
  summary.textContent='睡眠與活力測試｜'+restPreviewLabel();
  details.appendChild(summary);
  const note=document.createElement('p');note.className='paperdoll-expression-note';
- note.textContent='僅測試紙娃娃動態與 SP 示意數值，不會寫入存檔、扣血、限制探索或影響實際異常。';
+ note.textContent='睡眠與活力可同時存在：睡著也會依活力顯示綠色加號或亂線想法泡泡；飢餓改為肉骨頭 🍖。此處僅測試外觀與 SP 示意值，不寫入存檔、不扣血或限制探索。';
  details.appendChild(note);
  for(const [kind,title,values] of [
   ['sleep','睡眠狀態',window.DungeonExpressionMotion.restSleep],
