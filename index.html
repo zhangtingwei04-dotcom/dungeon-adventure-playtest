@@ -3983,7 +3983,7 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <script src="./assets/approved_wagon_art_v1.js"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
-<script src="./assets/expression_motion.js?v=2.14"></script>
+<script src="./assets/expression_motion.js?v=2.14.1"></script>
 <script>
 (()=>{'use strict';
 // Fixed design canvas: use the approved screenshot's exact 1536×707 ratio,
@@ -5023,7 +5023,7 @@ function tickPaperDollMotion(force=false){
   frame.effects.blink=false;frame.effects.circleEyes=false;
  }
  window.DungeonExpressionMotion.applyAbnormalFacePriority(frame,abnormalStates);
- const restAnimating=paperDollRestPreview.sleep!=='awake'||paperDollRestPreview.vitality!=='normal';
+ const restAnimating=paperDollRestPreview.sleep!=='awake';
  const signature=[
   frame.status,...['brows','eyes','mouth'].map(k=>frame.parts[k]),
   frame.effects.blink?'blink':'open',
@@ -5355,7 +5355,7 @@ function renderPaperDollRestControls(){
  summary.textContent='睡眠與活力測試｜'+restPreviewLabel();
  details.appendChild(summary);
  const note=document.createElement('p');note.className='paperdoll-expression-note';
- note.textContent='睡眠與活力可同時存在：睡著也會依活力顯示綠色加號或亂線想法泡泡；飢餓改為肉骨頭 🍖。此處僅測試外觀與 SP 示意值，不寫入存檔、不扣血或限制探索。';
+ note.textContent='活力僅顯示 SP 測試數值與藍色狀態條，不產生任何特效；睡眠仍保留閉眼、呼吸與 Z，飢餓仍是肉骨頭 🍖。切換僅供預覽，不寫入存檔、不扣血或限制探索。';
  details.appendChild(note);
  for(const [kind,title,values] of [
   ['sleep','睡眠狀態',window.DungeonExpressionMotion.restSleep],
@@ -5617,7 +5617,7 @@ function paintPaperDollPhysicalCondition(){
   const ctx=canvas.getContext('2d');if(!ctx)continue;
   ctx.imageSmoothingEnabled=false;
   ctx.clearRect(0,0,64,160);
-  // Independent overlays: sleep and SP are session-only tests.
+  // Only sleep creates visual effects; SP is a test number and blue HUD bar.
   if(!abnormal.includes('unconscious'))
    window.DungeonExpressionMotion.drawRestEffects(ctx,paperDollRestPreview,t);
   // HP condition motion is independent from all abnormal effects.
