@@ -4007,7 +4007,7 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <script src="./assets/male_round_face_v4.js?v=2"></script>
 <script src="./assets/male_approved_face_v7.js?v=1"></script>
 <script src="./assets/male_approved_hair_v7.js?v=1"></script>
-<script src="./assets/female_eye_motion_v1.js?v=3"></script>
+<script src="./assets/female_eye_motion_v1.js?v=4"></script>
 <script src="./assets/female_mouth_motion_v1.js?v=4"></script>
 <script>
 (()=>{'use strict';
@@ -5076,7 +5076,7 @@ function paperDollBodyCondition(){
 /* Four HP-linked facial loops; the same controller also works for NPCs. */
 const paperDollMotionActor=window.DungeonExpressionMotion?.createActor({id:'player',status:'healthy',blink:true})||null;
 let paperDollMotionFrame=null,paperDollMotionLastKey='',paperDollEmotionPreview=null,paperDollMotionEnabled=true;
-let paperDollFemaleTalkPreview=false;
+let paperDollTalkPreview=false;
 function paperDollMotionStatus(){
  // The existing four-state appearance preview must animate too, without changing HP.
  const id=paperDollBodyCondition().id;
@@ -5104,9 +5104,9 @@ function tickPaperDollMotion(force=false){
   abnormalStates.join(','),
   abnormalStates.length?Math.floor(performance.now()/160):'no-abnormal',
   paperDollRestPreview.sleep,paperDollRestPreview.vitality,
-  s.appearanceV1?.gender==='female'&&paperDollMotionEnabled?
+  paperDollMotionEnabled?
    (window.DungeonFemaleEyeMotionV1?.gaze(performance.now())||'center'):'no-gaze',
-  paperDollFemaleTalkPreview&&s.appearanceV1?.gender==='female'?Math.floor(performance.now()/170):'no-talk',
+  paperDollTalkPreview?Math.floor(performance.now()/170):'no-talk',
   restAnimating?Math.floor(performance.now()/160):'rest-idle'
  ].join('|');
  if(!force&&signature===paperDollMotionLastKey)return false;
@@ -5127,8 +5127,8 @@ function tickPaperDollMotion(force=false){
  paintNpcDreamPreview();
  return true;
 }
-/* Eye-only patch animation preserves the original combined female head PNG.
-   Head, neck, hair and body remain unchanged and male sprites are unaffected. */
+/* Eye-only motion reads each gender's approved source head. No body, hair,
+   outfit, or save modification. */
 function paintPaperDollFemaleEyes(){
  const motion=window.DungeonFemaleEyeMotionV1;if(!motion)return;
  const abnormal=currentPaperDollAbnormalStates();
@@ -5159,7 +5159,7 @@ function paintPaperDollFemaleMouth(){
  else if(part==='angry')pose='frown';
  if(['nightmare_mild','nightmare_severe'].includes(paperDollRestPreview.sleep))pose='frown';
  for(const stage of document.querySelectorAll('.paperdoll-stage.paperdoll-female, .paperdoll-stage.paperdoll-shared-male-face'))
-  motion.render(stage,{pose,unconscious,talking:paperDollFemaleTalkPreview&&paperDollRestPreview.sleep==='awake',time:performance.now()});
+  motion.render(stage,{pose,unconscious,talking:paperDollTalkPreview&&paperDollRestPreview.sleep==='awake',time:performance.now()});
 }
 // One small visible-only tick; NPCs can sample their actors from the scene update loop.
 setInterval(()=>{if(!document.hidden)tickPaperDollMotion();},75);
@@ -5478,11 +5478,11 @@ function renderPaperDollExpressionControls(){
  }
  emotionSelect.onchange=()=>{paperDollEmotionPreview=emotionSelect.value==='auto'?null:emotionSelect.value;paperDollMotionLastKey='';tickPaperDollMotion(true);};
  motion.appendChild(emotionSelect);
- if(s.appearanceV1?.gender==='female'){
+ {
   const speechLabel=document.createElement('label');speechLabel.className='paperdoll-customizer-field';
-  const speechCheck=document.createElement('input');speechCheck.type='checkbox';speechCheck.checked=paperDollFemaleTalkPreview;
-  speechCheck.setAttribute('aria-label','女性角色嘴巴說話試演');
-  speechCheck.onchange=()=>{paperDollFemaleTalkPreview=speechCheck.checked;paperDollMotionLastKey='';tickPaperDollMotion(true);};
+  const speechCheck=document.createElement('input');speechCheck.type='checkbox';speechCheck.checked=paperDollTalkPreview;
+  speechCheck.setAttribute('aria-label','角色嘴巴說話試演');
+  speechCheck.onchange=()=>{paperDollTalkPreview=speechCheck.checked;paperDollMotionLastKey='';tickPaperDollMotion(true);};
   speechLabel.append(speechCheck,document.createTextNode(' 嘴巴說話試演（不改存檔）'));
   motion.appendChild(speechLabel);
  }
@@ -5700,6 +5700,7 @@ function paintPaperDollSkin(){
   const c=canvas.getContext('2d');c.imageSmoothingEnabled=false;c.clearRect(0,0,64,160);c.drawImage(work,0,0);
   stage.classList.add('skin-tinted');
  }
+ paintPaperDollFemaleEyes();
  paintPaperDollFemaleMouth();
 }
 function equipmentGuideHTML(sceneMode='equipment'){
@@ -5816,7 +5817,7 @@ function paintPaperDollPhysicalCondition(){
    },t);
   // HP condition motion is independent from all abnormal effects.
   if(effects?.sweat)window.DungeonExpressionMotion.drawFaceSweat(ctx,frame.status,effects.sweatPhase);
-  if(effects?.circleEyes&&!abnormal.includes('unconscious')&&!stage.classList.contains('paperdoll-female')){
+  if(effects?.circleEyes&&!abnormal.includes('unconscious')){
    for(const x of [25,39])window.DungeonExpressionMotion.drawSpiralEye(ctx,x,36,effects.circlePhase);
   }
   // These overlays never replace brows, eyes, mouth, clothing or the save.
