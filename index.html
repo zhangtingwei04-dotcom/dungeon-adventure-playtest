@@ -3529,6 +3529,12 @@ html.stage-locked #app .equip-guide .paperdoll-stage{
 /* Shift only the male standard paper doll as a whole; keep every sprite aligned. */
 html.stage-locked #app .equip-guide .paperdoll-stage.paperdoll-male,
 html.stage-locked #app .equip-guide .paperdoll-stage.paperdoll-female{transform:translateY(5px)}
+/* Position the registered figure 7px lower than the anchored satchel.
+   All sprite and tint layers move together, but the satchel stays put. */
+html.stage-locked #app .equip-guide .paperdoll-stage > .paperdoll-template-layer,
+html.stage-locked #app .equip-guide .paperdoll-stage > .paperdoll-asset-layer,
+html.stage-locked #app .equip-guide .paperdoll-stage > .paperdoll-layer:not(.paperdoll-approved-bag),
+html.stage-locked #app .equip-guide .paperdoll-stage > canvas{transform:translateY(7px)}
 html.stage-locked #app .equip-guide .paperdoll-layer{
  display:block;position:absolute;inset:0;pointer-events:none;
  background-image:var(--paperdoll-atlas);
@@ -4947,7 +4953,7 @@ function maleTemplateLayer(index,cls=''){
   ');background-size:100% 100%;background-position:0 0"></span>';
 }
 const HAIR_PALETTE_V1=Object.freeze([
- {name:'灰白',hex:'#c8cbd0'},
+ {name:'原始灰白（保留高光）',hex:'#c8cbd0'},
  {name:'銀白',hex:'#e2e7ee'},
  {name:'深灰',hex:'#777b85'},
  {name:'黑色',hex:'#393d47'},
@@ -4998,10 +5004,15 @@ function paintPaperDollHair(){
   for(let i=0;i<pixels.length;i+=4){
    if(pixels[i+3]===0)continue;
    const luminance=pixels[i]*0.2126+pixels[i+1]*0.7152+pixels[i+2]*0.0722;
-   // Dark pixel outlines are intentionally preserved to retain crisp pixel art.
-   if(hex==='#c8cbd0'||luminance<38)continue; // Preserve the approved original colors at default.
-   const shade=(luminance-165)*0.92;
-   for(let c=0;c<3;c++)pixels[i+c]=Math.max(0,Math.min(255,Math.round(target[c]+shade)));
+   // Tint relative to the ORIGINAL pixel rather than repainting its luminosity.
+   // This preserves the warm silver highlights, dimensional shading and outline.
+   if(hex==='#c8cbd0'||luminance<38)continue;
+   const neutral=[200,203,208];
+   const targetBrightness=(target[0]+target[1]+target[2])/3;
+   const strength=hex==='#777b85'?0.52:(targetBrightness<100?0.88:0.68);
+   const mask=Math.min(1,Math.max(0,(luminance-38)/125));
+   for(let c=0;c<3;c++)pixels[i+c]=Math.max(0,Math.min(255,
+     Math.round(pixels[i+c]+(target[c]-neutral[c])*strength*mask)));
   }
   ctx.putImageData(frame,0,0);
   for(const stage of stages){
