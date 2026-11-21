@@ -3968,7 +3968,7 @@ html.stage-locked #app .paperdoll-stage.eyes-tinted .male-eyes{display:none}
 <script src="./assets/approved_wagon_art_v1.js"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
-<script src="./assets/expression_motion.js?v=1"></script>
+<script src="./assets/expression_motion.js?v=2"></script>
 <script>
 (()=>{'use strict';
 // Fixed design canvas: use the approved screenshot's exact 1536×707 ratio,
@@ -4957,10 +4957,10 @@ function paperDollLayers(){
 let paperDollPhysicalPreview=null,paperDollPhysicalPreviewOpen=false;
 /* HP chooses facial expressions. Abnormal states are ONLY effect layers. */
 const PAPERDOLL_BODY_CONDITIONS=Object.freeze({
- normal:{name:'開心',note:'體力充足，眼睛自然睜開，嘴角微笑',parts:{brows:'original',eyes:'original',mouth:'smile'}},
- tired:{name:'中性',note:'平靜自然，沒有汗',parts:null},
- weak:{name:'中性＋微汗',note:'原本表情不變，臉側一滴汗',parts:null},
- critical:{name:'疲倦／戰敗',note:'小圈圈眼、全身出汗',parts:{brows:'angry',eyes:'original',mouth:'angry'}}
+ normal:{name:'開心',note:'睜眼微笑，偶爾輕眨眼',parts:{brows:'original',eyes:'original',mouth:'smile'}},
+ tired:{name:'中性',note:'平靜表情，慢速自然眨眼',parts:null},
+ weak:{name:'中性＋微汗',note:'微汗緩緩滑動，眨眼變慢',parts:null},
+ critical:{name:'疲倦／戰敗',note:'小圈圈眼持續轉動，汗珠交替流動',parts:{brows:'angry',eyes:'original',mouth:'angry'}}
 });
 const PAPERDOLL_ABNORMAL_STATES=Object.freeze({
  poison:'中毒',fever:'發燒',injury:'受傷／流血',dizzy:'暈眩',unconscious:'昏迷',
@@ -4977,22 +4977,26 @@ function paperDollBodyCondition(){
  const id=paperDollPhysicalPreview&&PAPERDOLL_BODY_CONDITIONS[paperDollPhysicalPreview]?paperDollPhysicalPreview:actual;
  return {id,actual,preview:paperDollPhysicalPreview!==null,...PAPERDOLL_BODY_CONDITIONS[id],hp,max};
 }
-/* Shared state machine: each player/NPC has an independent emotion and blink clock. */
-const paperDollMotionActor=window.DungeonExpressionMotion?.createActor({id:'player',expression:'original',blink:true})||null;
+/* Four HP-linked facial loops; the same controller also works for NPCs. */
+const paperDollMotionActor=window.DungeonExpressionMotion?.createActor({id:'player',status:'healthy',blink:true})||null;
 let paperDollMotionFrame=null,paperDollMotionLastKey='',paperDollEmotionPreview=null,paperDollMotionEnabled=true;
-function paperDollMotionTarget(){
- if(paperDollEmotionPreview)return paperDollEmotionPreview;
- const status=paperDollBodyCondition().id;
- return status==='normal'?'happy':status==='critical'?'angry':'original';
+function paperDollMotionStatus(){
+ // The existing four-state appearance preview must animate too, without changing HP.
+ const id=paperDollBodyCondition().id;
+ return id==='normal'?'healthy':id==='tired'?'normal':id;
 }
 function tickPaperDollMotion(force=false){
  if(!paperDollMotionActor||(!force&&!document.querySelector('.paperdoll-stage')))return false;
- paperDollMotionActor.setExpression(paperDollMotionTarget());
+ paperDollMotionActor.setStatus(paperDollMotionStatus());
+ paperDollMotionActor.setExpressionOverride(paperDollEmotionPreview);
+ paperDollMotionActor.setBlink(paperDollMotionEnabled);
  const frame=paperDollMotionActor.sample();
- // Preserve the tiny low-HP eye spirals over the original eyes.
- if(!paperDollEmotionPreview&&paperDollBodyCondition().id==='critical')
-  frame.parts.eyes=frame.blink?'eyesClosed':'original';
- const signature=['brows','eyes','mouth'].map(k=>frame.parts[k]).join('|');
+ const signature=[
+  frame.status,...['brows','eyes','mouth'].map(k=>frame.parts[k]),
+  frame.effects.blink?'blink':'open',
+  frame.effects.sweat?frame.effects.sweatPhase:'no-sweat',
+  frame.effects.circleEyes?frame.effects.circlePhase:'no-circle'
+ ].join('|');
  if(!force&&signature===paperDollMotionLastKey)return false;
  paperDollMotionFrame=frame;paperDollMotionLastKey=signature;
  for(const guide of document.querySelectorAll('.equip-guide')){
@@ -5002,11 +5006,13 @@ function tickPaperDollMotion(force=false){
   }
  }
  if(document.querySelector('.paperdoll-stage')){
-  paintPaperDollBrows();paintPaperDollEyes();
+  paintPaperDollBrows();
+  paintPaperDollEyes();
+  paintPaperDollPhysicalCondition();
  }
  return true;
 }
-// One lightweight scheduler for visible paperdolls; no work when the tab is hidden.
+// One small visible-only tick; NPCs can sample their actors from the scene update loop.
 setInterval(()=>{if(!document.hidden)tickPaperDollMotion();},75);
 
 function paperDollBodyConditionSprite(gender,key){
@@ -5280,10 +5286,10 @@ function renderPaperDollExpressionControls(){
  select.onchange=()=>{paperDollPhysicalPreview=select.value==='auto'?null:select.value;paperDollPhysicalPreviewOpen=true;renderPlaceDrawer();};
  details.appendChild(select);row.appendChild(details);
  const motion=document.createElement('details');motion.className='paperdoll-physical-preview';
- const motionSummary=document.createElement('summary');motionSummary.textContent='動態表情與試演（不影響 HP）';motion.appendChild(motionSummary);
+ const motionSummary=document.createElement('summary');motionSummary.textContent='四種 HP 固定動態與試演（不影響 HP）';motion.appendChild(motionSummary);
  const blinkLabel=document.createElement('label');blinkLabel.className='paperdoll-customizer-field';
  const blinkInput=document.createElement('input');blinkInput.type='checkbox';blinkInput.checked=paperDollMotionEnabled;
- blinkInput.onchange=()=>{paperDollMotionEnabled=blinkInput.checked;paperDollMotionActor?.setEnabled(paperDollMotionEnabled);paperDollMotionLastKey='';tickPaperDollMotion(true);};
+ blinkInput.onchange=()=>{paperDollMotionEnabled=blinkInput.checked;paperDollMotionActor?.setBlink(paperDollMotionEnabled);paperDollMotionLastKey='';tickPaperDollMotion(true);};
  blinkLabel.append(blinkInput,document.createTextNode(' 自然眨眼'));motion.appendChild(blinkLabel);
  const emotionSelect=document.createElement('select');emotionSelect.className='paperdoll-choice-select';
  emotionSelect.setAttribute('aria-label','預覽動態表情');
@@ -5526,13 +5532,26 @@ function paintPaperDollPhysicalCondition(){
   const drop=(x,y)=>{rect(x,y,1,1,'#def7ff');rect(x-1,y+1,3,2,'#4aa7d9');rect(x,y+3,2,1,'#287eaa');dot(x,y+1,'#eefaff');};
   const line=(points,color)=>{ctx.strokeStyle=color;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(...points[0]);for(const p of points.slice(1))ctx.lineTo(...p);ctx.stroke();};
   const arc=(x,y,r,start,end,color)=>{ctx.strokeStyle=color;ctx.lineWidth=1;ctx.beginPath();ctx.arc(x,y,r,start,end);ctx.stroke();};
-  if(state.id==='weak')drop(48,44);
-  if(state.id==='critical'){
-   // Four-pixel, 3x3-ish miniature spirals INSIDE the original eyes, not large rings.
-   if(!female)for(const x of [25,39]){
-    dot(x-1,36,'#eacdf5');dot(x,36,'#3c2252');dot(x,37,'#eacdf5');dot(x+1,37,'#673880');
+  const frame=paperDollMotionFrame;
+  const effects=frame?.effects;
+  if(effects?.sweat&&frame.status==='weak'){
+   // The small side-of-face sweat drop slowly travels one or two pixels.
+   drop(48,44+effects.sweatPhase);
+  }
+  if(effects?.sweat&&frame.status==='critical'){
+   // Asynchronous-looking sweat flows, while the 3x3 spiral remains within each eye.
+   const phase=effects.sweatPhase;
+   const first=[[48,43],[16,48],[52,68],[28,79],[17,99],[47,126]];
+   const second=[[52,51],[13,67],[37,80],[48,97],[24,109]];
+   const third=[[18,127],[42,118],[54,56],[19,58],[46,88]];
+   for(const [x,y] of first)drop(x,y+(phase===0?0:1));
+   if(phase!==2)for(const [x,y] of second)drop(x,y+(phase===1?1:0));
+   if(phase===2)for(const [x,y] of third)drop(x,y);
+  }
+  if(effects?.circleEyes&&!female){
+   for(const x of [25,39]){
+    window.DungeonExpressionMotion.drawSpiralEye(ctx,x,36,effects.circlePhase);
    }
-   for(const [x,y] of [[48,43],[52,51],[16,48],[13,67],[52,68],[28,79],[37,80],[17,99],[48,97],[24,109],[42,118],[18,127],[47,126]])drop(x,y);
   }
   // Abnormal conditions only paint independent decorations; face sources never change.
   for(const id of abnormal){
