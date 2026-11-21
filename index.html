@@ -3541,6 +3541,17 @@ html.stage-locked #app .equip-guide .paperdoll-stage > .paperdoll-template-layer
 html.stage-locked #app .equip-guide .paperdoll-stage > .paperdoll-asset-layer,
 html.stage-locked #app .equip-guide .paperdoll-stage > .paperdoll-layer:not(.paperdoll-approved-bag),
 html.stage-locked #app .equip-guide .paperdoll-stage > canvas{transform:translateY(9px)}
+/* Shared 64x160 male/female head anchor: center x32, chin around y51.
+   The original male face ended one native pixel higher than the
+   newly aligned female face. Shift only male HEAD layers down 1/160
+   of their rendered height; body, vest, shorts, bag stay unchanged.
+   Use one correction for face, brows, eyes, mouth and removable hair. */
+html.stage-locked #app .equip-guide .paperdoll-stage.paperdoll-male >
+:is(.male-face,.male-brows-fallback,.male-eyes,.paperdoll-mouth,
+    .paperdoll-hair-fallback,.paperdoll-brows-canvas,
+    .paperdoll-eyes-canvas,.paperdoll-hair-canvas){
+  transform:translateY(calc(9px + 0.625%));
+}
 html.stage-locked #app .equip-guide .paperdoll-layer{
  display:block;position:absolute;inset:0;pointer-events:none;
  background-image:var(--paperdoll-atlas);
@@ -5649,7 +5660,11 @@ function paintPaperDollSkin(){
  if(paperDollSkinImages.imgs.some(im=>!im.complete||im.naturalWidth!==64))return;
  const work=document.createElement('canvas');work.width=64;work.height=160;
  const ctx=work.getContext('2d',{willReadFrequently:true});ctx.imageSmoothingEnabled=false;
- for(const img of paperDollSkinImages.imgs)ctx.drawImage(img,0,0);
+ // Apply the same one-pixel male head correction in the skin-tinted
+ // composite; the body layer itself is never moved.
+ for(let i=0;i<paperDollSkinImages.imgs.length;i++)
+  ctx.drawImage(paperDollSkinImages.imgs[i],0,
+   s.appearanceV1?.gender==='male'&&i===1?1:0);
  const pixels=ctx.getImageData(0,0,64,160),d=pixels.data;
  for(let i=0;i<d.length;i+=4){
   const r=d[i],g=d[i+1],b=d[i+2];
@@ -5774,13 +5789,14 @@ function paintPaperDollPhysicalCondition(){
     ...paperDollRestPreview,elapsed:t-paperDollRestChangedAt
    },t);
   // HP condition motion is independent from all abnormal effects.
-  if(effects?.sweat)window.DungeonExpressionMotion.drawFaceSweat(ctx,frame.status,effects.sweatPhase);
+  if(effects?.sweat)window.DungeonExpressionMotion.drawFaceSweat(ctx,frame.status,effects.sweatPhase,
+   stage.classList.contains('paperdoll-male')?{sweatY:30}:undefined);
   if(effects?.circleEyes&&!abnormal.includes('unconscious')&&!stage.classList.contains('paperdoll-female')){
-   for(const x of [25,39])window.DungeonExpressionMotion.drawSpiralEye(ctx,x,36,effects.circlePhase);
+   for(const x of [25,39])window.DungeonExpressionMotion.drawSpiralEye(ctx,x,37,effects.circlePhase);
   }
   // These overlays never replace brows, eyes, mouth, clothing or the save.
   if(abnormal.length)window.DungeonExpressionMotion.drawAbnormalEffects(ctx,abnormal,t,
-   stage.classList.contains('paperdoll-female')?{eyeCenters:[[25,36],[39,36]]}:undefined);
+   stage.classList.contains('paperdoll-male')?{eyeCenters:[[25,37],[39,37]]}:undefined);
  }
 }
 function renderEquipmentBoard(){
