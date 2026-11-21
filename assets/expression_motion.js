@@ -248,7 +248,6 @@
   const ox=Number.isFinite(layout?.x)?layout.x:0;
   const oy=Number.isFinite(layout?.y)?layout.y:0;
   const sleep=Object.prototype.hasOwnProperty.call(REST_SLEEP,rest.sleep)?rest.sleep:'awake';
-  const vitality=Object.prototype.hasOwnProperty.call(REST_VITALITY,rest.vitality)?rest.vitality:'normal';
   const t=Number.isFinite(time)?time:0;
   const px=(x,y,w,h,color)=>{ctx.fillStyle=color;ctx.fillRect(Math.round(ox+x),Math.round(oy+y),w,h);};
   ctx.save();
@@ -272,40 +271,7 @@
     }
    }
   }
-  // Sleep and vitality are two INDEPENDENT axes. Show the same vitality
-  // thought when awake, drowsy or fully asleep (only unconsciousness hides it).
-  // Right side below the existing water bubble; left-side hunger stays visible.
-  const bubble=(kind,bob)=>{
-   const x=45,y=31+bob,edge='#f4e6c9',inside='rgba(27,51,56,.94)';
-   px(x+3,y,11,1,edge);px(x+1,y+1,15,1,edge);
-   px(x,y+2,17,11,edge);px(x+1,y+13,15,1,edge);px(x+3,y+14,11,1,edge);
-   px(x+2,y+2,13,11,inside);
-   px(x+2,y+15,2,2,'#dce8db');px(x,y+18,1,1,'#dce8db');
-   if(kind==='plus'){
-    // Recognizable bright green plus with darker edge and light center.
-    px(x+7,y+4,4,8,'#225d40');
-    px(x+4,y+7,10,3,'#225d40');
-    px(x+8,y+5,2,6,'#70ef88');
-    px(x+5,y+8,8,1,'#7dff95');
-    px(x+8,y+8,2,1,'#d6ffd4');
-   }else{
-    // Chaotic scribble instead of a vague exhaustion cloud.
-    const shift=Math.floor(t/380)%2;
-    px(x+4,y+5+shift,2,1,'#a99fbc');
-    px(x+6,y+6,4,1,'#cbbdd7');
-    px(x+5,y+7,2,2,'#80788b');
-    px(x+9,y+5,1,3,'#ddd2df');
-    px(x+10,y+7+shift,3,1,'#a79bb9');
-    px(x+7,y+8,3,2,'#c5afc9');
-    px(x+4,y+10,5,1,'#8d809e');
-    px(x+11,y+10-shift,2,2,'#7f7890');
-    px(x+6,y+11,5,1,'#dbccd6');
-   }
-  };
-  if(vitality==='high'||vitality==='low'){
-   const bob=Math.floor(t/490)%4<2?0:1;
-   bubble(vitality==='high'?'plus':'scribble',bob);
-  }
+  // Vitality is tracked in the test status display only; no visual effects.
   ctx.restore();
  }
  function createActor(options){
@@ -408,6 +374,6 @@
   return frame;
  }
  root.DungeonExpressionMotion=Object.freeze({
-  version:'2.14.0',poses:POSES,statuses:STATUS_PRESETS,abnormalLabels:ABNORMAL_LABELS,restSleep:REST_SLEEP,restVitality:REST_VITALITY,drawSpiralEye,drawFaceSweat,drawUnconsciousEyes,drawAbnormalEffects,drawRestEffects,applyAbnormalFacePriority,createActor
+  version:'2.14.1',poses:POSES,statuses:STATUS_PRESETS,abnormalLabels:ABNORMAL_LABELS,restSleep:REST_SLEEP,restVitality:REST_VITALITY,drawSpiralEye,drawFaceSweat,drawUnconsciousEyes,drawAbnormalEffects,drawRestEffects,applyAbnormalFacePriority,createActor
  });
 })(window);
