@@ -5247,7 +5247,7 @@ function paintPaperDollHair(){
   // This lowers the crown while keeping the ends of the bangs and side locks
   // near their previous position. Face, neck, body and male art are unchanged.
   if(s.appearanceV1?.gender==='female'&&FEMALE_SPLIT_READY)
-   ctx.drawImage(hairAtlasImage,0,0,64,64,0,0,61,59);
+   ctx.drawImage(hairAtlasImage,0,0,64,64,0,-2,61,59);
   else ctx.drawImage(hairAtlasImage,0,0,64,160,0,0,64,160);
   const frame=ctx.getImageData(0,0,64,160),pixels=frame.data;
   for(let i=0;i<pixels.length;i+=4){
