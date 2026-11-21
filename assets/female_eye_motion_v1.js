@@ -1,103 +1,86 @@
-/* Female paper doll eye motion V1.
- * The approved head art is never redrawn/replaced in the repository.
- * Only the two 64x160 pixel eye patches change during a blink or a gaze.
- * The original eyes remain perfectly untouched when looking forward.
+/* 64x160 independent female eye motion.
+ * Source is a separate, male-aligned bare face (female_parts_v2).
+ * All paints stay within eye boxes; hair is a different image layer.
  */
 (function(root){
  'use strict';
  const W=64,H=160;
- const EYES=[{cx:25, x0:20, width:11},{cx:38, x0:34, width:11}];
- const EYE_TOP=39,EYE_HEIGHT=9;
- const SKIN=[252,214,180,255],WHITE=[250,238,232,255];
- let frames=null,waiting=false,failed=false;
- const pixel=(data,x,y,color)=>{
-  if(x<0||x>=W||y<0||y>=H)return;
-  const p=(y*W+x)*4;
-  for(let j=0;j<4;j++)data[p+j]=color[j];
- };
- const get=(data,x,y)=>Array.from(data.slice((y*W+x)*4,(y*W+x)*4+4));
- function buildFrame(original,mode){
-  const target=new Uint8ClampedArray(original);
-  const paint=(x,y,c)=>pixel(target,x,y,c);
-  for(const eye of EYES){
-   const cx=eye.cx;
-   if(mode==='closed'||mode==='half'){
-    const start=mode==='half'?43:40;
-    for(let y=start;y<=46;y++){
-     for(let x=cx-4;x<=cx+3;x++){
-      // Preserve a little natural shading at the outside of the eyelids.
-      const base=(x===cx-4||x===cx+3)?get(original,x,48):SKIN;
-      paint(x,y,base);
-     }
-    }
-    const lineY=mode==='half'?43:44;
-    for(let x=cx-3;x<=cx+2;x++)paint(x,lineY,[70,39,50,255]);
-    for(let x=cx-2;x<=cx+1;x++)paint(x,lineY+1,[219,156,139,255]);
-    continue;
-   }
-   const dx=mode==='left'?-1:mode==='right'?1:0;
-   const dy=mode==='up'?-1:mode==='down'?1:0;
-   // Remove the former pupil/iris before placing its ORIGINAL pixels
-   // one pixel away. Without this there would be a doubled pupil.
-   for(let y=42;y<=46;y++)
-    for(let x=cx-2;x<=cx+2;x++)
-     paint(x,y,y===46?SKIN:WHITE);
-   for(let y=42;y<=45;y++){
-    for(let x=cx-1;x<=cx+2;x++){
-     const yy=y+dy,xx=x+dx;
-     if(xx>=cx-2&&xx<=cx+2&&yy>=42&&yy<=46)
-      paint(xx,yy,get(original,x,y));
-    }
-   }
-  }
-  return new ImageData(target,W,H);
- }
+ const eyes=[{cx:25,x0:20},{cx:39,x0:34}],top=32,boxW=11,boxH=10;
+ let imagePixels=null,pending=false,failed=false;
+ const src=()=>root.DUNGEON_FEMALE_FACE_V2||root.DUNGEON_FEMALE_HEAD_V1;
+ const colorHex=hex=>/^#[0-9a-f]{6}$/i.test(hex||'')?[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)):null;
+ const isIris=(r,g,b)=>(b>=g+14&&r>=g+12&&r<=206&&b>=65);
  function prepare(){
-  if(waiting||frames||failed)return;
-  const src=root.DUNGEON_FEMALE_HEAD_V1;
-  if(typeof src!=='string'||!src.startsWith('data:image/png;base64,')){failed=true;return;}
-  waiting=true;
-  const img=new Image();
+  if(imagePixels||pending||failed)return;
+  const uri=src();
+  if(!uri||!uri.startsWith('data:image/png;base64,')){failed=true;return;}
+  pending=true;const img=new Image();
   img.onload=()=>{
    try{
-    if(img.naturalWidth!==W||img.naturalHeight!==H)throw Error('Eye motion source dimensions differ');
-    const canvas=document.createElement('canvas');canvas.width=W;canvas.height=H;
-    const ctx=canvas.getContext('2d',{willReadFrequently:true});
-    ctx.imageSmoothingEnabled=false;ctx.drawImage(img,0,0);
-    const original=ctx.getImageData(0,0,W,H).data;
-    frames={};
-    for(const name of ['left','right','up','down','half','closed'])
-     frames[name]=buildFrame(original,name);
+    if(img.width!==W||img.height!==H)throw Error('Female face must be 64x160');
+    const cv=document.createElement('canvas');cv.width=W;cv.height=H;
+    const ctx=cv.getContext('2d',{willReadFrequently:true});
+    ctx.drawImage(img,0,0);imagePixels=ctx.getImageData(0,0,W,H).data;
     root.dispatchEvent(new Event('dungeon-female-eyes-ready'));
-   }catch(err){console.warn('Female eye motion unavailable:',err);failed=true;}
-   waiting=false;
+   }catch(e){failed=true;console.warn('Female eye atlas:',e)}
+   pending=false;
   };
-  img.onerror=()=>{failed=true;waiting=false;};
-  img.src=src;
+  img.onerror=()=>{failed=true;pending=false};img.src=uri;
  }
- function gaze(time){
-  // Quiet, repeatable motions: long forward looks, brief side glances,
-  // a small downward look, then back to center. No rapid darting.
-  const t=((time%12600)+12600)%12600;
-  if(t>=3100&&t<4600)return 'left';
-  if(t>=6100&&t<7600)return 'right';
-  if(t>=9500&&t<10400)return 'down';
+ const sample=(px,x,y)=>Array.from(px.slice((y*W+x)*4,(y*W+x)*4+4));
+ const pix=(px,x,y,c)=>{if(x<0||x>=W||y<0||y>=H)return;const i=(y*W+x)*4;for(let k=0;k<4;k++)px[i+k]=c[k];};
+ const gaze=t=>{
+  const phase=((Number(t)||0)%12600+12600)%12600;
+  if(phase>=3100&&phase<4600)return 'left';
+  if(phase>=6100&&phase<7600)return 'right';
+  if(phase>=9500&&phase<10400)return 'down';
   return 'center';
+ };
+ function patch(type,irisColor){
+  const out=new Uint8ClampedArray(imagePixels);
+  for(const {cx} of eyes){
+   if(type==='closed'||type==='half'){
+    const upper=type==='closed'?34:37;
+    for(let y=upper;y<=39;y++)for(let x=cx-4;x<=cx+4;x++){
+     const skin=sample(imagePixels,x,42);
+     pix(out,x,y,skin[3]>100?skin:[252,226,209,255]);
+    }
+    const yy=type==='closed'?36:37;
+    for(let x=cx-3;x<=cx+3;x++)pix(out,x,yy,[76,44,53,255]);
+    continue;
+   }
+   const moving=type!=='center';
+   const dx=type==='left'?-1:type==='right'?1:0;
+   const dy=type==='up'?-1:type==='down'?1:0;
+   const moved=[];
+   for(let y=34;y<=39;y++)for(let x=cx-3;x<=cx+3;x++){
+    const p=sample(imagePixels,x,y);
+    if(!isIris(p[0],p[1],p[2])||p[3]<80)continue;
+    const tint=irisColor?[...irisColor,255]:p;
+    if(irisColor){
+     const shade=Math.max(.4,Math.min(1,(p[0]+p[1]+p[2])/360));
+     for(let k=0;k<3;k++)tint[k]=Math.round(irisColor[k]*shade);
+    }
+    moved.push([x+dx,y+dy,tint]);
+    if(moving)pix(out,x,y,[244,231,231,255]);
+   }
+   for(const [x,y,v] of moved)if(x>=cx-4&&x<=cx+4&&y>=34&&y<=39)pix(out,x,y,v);
+  }
+  return new ImageData(out,W,H);
  }
- function render(stage,opts={}){
+ function render(stage,opt={}){
   if(!stage||!stage.classList.contains('paperdoll-female'))return;
-  const canvas=stage.querySelector('.paperdoll-female-eye-motion-canvas');
-  if(!canvas)return;
-  if(!frames){prepare();return;}
-  const ctx=canvas.getContext('2d');if(!ctx)return;
+  const cv=stage.querySelector('.paperdoll-female-eye-motion-canvas');
+  if(!cv)return;
+  const ctx=cv.getContext('2d');if(!ctx)return;
   ctx.imageSmoothingEnabled=false;ctx.clearRect(0,0,W,H);
-  const type=opts.closed?'closed':opts.blink?'closed':opts.half?'half':
-   (['left','right','up','down'].includes(opts.gaze)?opts.gaze:'center');
-  if(type==='center')return; // perfect original, no extra pixels
-  const data=frames[type];
-  for(const eye of EYES)
-   ctx.putImageData(data,0,0,eye.x0,EYE_TOP,eye.width,EYE_HEIGHT);
+  if(!imagePixels){prepare();return;}
+  const type=opt.closed||opt.blink?'closed':opt.half?'half':(['left','right','up','down'].includes(opt.gaze)?opt.gaze:'center');
+  const rgb=opt.eyeColor==='purple'||!opt.eyeColor?null:colorHex(opt.eyeColor);
+  if(type==='center'&&!rgb)return; // face's original purple pupils, no needless overwrite
+  const painted=patch(type,rgb);
+  for(const eye of eyes)ctx.putImageData(painted,0,0,eye.x0,top,boxW,boxH);
  }
- root.DungeonFemaleEyeMotionV1=Object.freeze({render,gaze,prepare});
+ root.DungeonFemaleEyeMotionV1=Object.freeze({version:'2.0.0',render,gaze,prepare});
  prepare();
 })(window);
