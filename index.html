@@ -3970,7 +3970,7 @@ html.stage-locked #app .paperdoll-stage.eyes-tinted .male-eyes{display:none}
 <script src="./assets/approved_wagon_art_v1.js"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
-<script src="./assets/expression_motion.js?v=2.9"></script>
+<script src="./assets/expression_motion.js?v=2.10"></script>
 <script>
 (()=>{'use strict';
 // Fixed design canvas: use the approved screenshot's exact 1536×707 ratio,
@@ -4993,6 +4993,11 @@ function tickPaperDollMotion(force=false){
  paperDollMotionActor.setExpressionOverride(paperDollEmotionPreview);
  paperDollMotionActor.setBlink(paperDollMotionEnabled);
  const frame=paperDollMotionActor.sample();
+ // Unconscious eye animation takes absolute priority over any emotion or HP.
+ if(currentPaperDollAbnormalStates().includes('unconscious')){
+  frame.parts.eyes='original';
+  frame.blink=false;
+ }
  const signature=[
   frame.status,...['brows','eyes','mouth'].map(k=>frame.parts[k]),
   frame.effects.blink?'blink':'open',
@@ -5319,7 +5324,7 @@ function renderPaperDollAbnormalControls(){
  summary.textContent='異常狀態｜'+(active.length?active.map(id=>PAPERDOLL_ABNORMAL_STATES[id]).join('、'):'目前無異常');
  details.appendChild(summary);
  const note=document.createElement('p');note.className='paperdoll-expression-note';
- note.textContent='動態特效：睡眠不足只有 Z、沒有眼影；飢餓顯示食物想法泡泡、缺水顯示水滴想法泡泡。勾選僅預覽，不改 HP、異常數值或存檔。';details.appendChild(note);
+ note.textContent='昏迷：無論原本表情，都顯示持續旋轉的黑線圈圈眼（不顯示昏迷 Z）；睡眠不足保留 Z。飢餓／缺水顯示想法泡泡。勾選僅預覽，不改 HP、異常數值或存檔。';details.appendChild(note);
  const list=document.createElement('div');list.className='paperdoll-abnormal-options';
  for(const [id,name] of Object.entries(PAPERDOLL_ABNORMAL_STATES)){
   const label=document.createElement('label'),input=document.createElement('input');input.type='checkbox';
@@ -5538,7 +5543,7 @@ function paintPaperDollPhysicalCondition(){
   ctx.clearRect(0,0,64,160);
   // HP condition motion is independent from all abnormal effects.
   if(effects?.sweat)window.DungeonExpressionMotion.drawFaceSweat(ctx,frame.status,effects.sweatPhase);
-  if(effects?.circleEyes&&!stage.classList.contains('paperdoll-female')){
+  if(effects?.circleEyes&&!abnormal.includes('unconscious')&&!stage.classList.contains('paperdoll-female')){
    for(const x of [25,39])window.DungeonExpressionMotion.drawSpiralEye(ctx,x,36,effects.circlePhase);
   }
   // These overlays never replace brows, eyes, mouth, clothing or the save.
