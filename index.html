@@ -4010,7 +4010,7 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <script src="./assets/male_approved_face_v7.js?v=1"></script>
 <script src="./assets/male_approved_hair_v7.js?v=1"></script>
 <!-- Transparent new male hairstyle, registered to the same 64x160 head grid. -->
-<script src="./assets/male_hair_v8.js?v=2"></script>
+<script src="./assets/male_hair_v8.js?v=3"></script>
 <!-- V8 keeps the new face and eyes, never old V7 eye art. -->
 <script src="./assets/male_new_head_v8.js?v=3"></script>
 <script src="./assets/female_eye_motion_v1.js?v=5"></script>
@@ -5028,15 +5028,13 @@ function isMaleSharedFaceReady(){
 function paperDollLayers(){
  const gender=s.appearanceV1?.gender==='female'?'female':'male';
  if(gender==='female'&&FEMALE_REPLACEMENT_HEAD_LAYERS)return FEMALE_REPLACEMENT_HEAD_LAYERS;
- // Male uses the actual female head, recolored to the existing male skin.
- // Baked female eye, brow and mouth art replaces the separate male face art;
- // keeping only the male original hair/body/outfit avoids doubled features.
+ // Male V8: new head with its own eyes and separately generated transparent hair.
+ // Never silently show the previous V7 hairstyle if the new file is unavailable.
  if(isMaleSharedFaceReady())return {...PAPERDOLL_SEPARATE_LAYERS,
   face:window.DUNGEON_MALE_SHARED_FACE_V5,
-  hair:(typeof window.DUNGEON_MALE_HAIR_V8==='string'?
-    window.DUNGEON_MALE_HAIR_V8:
-    typeof window.DUNGEON_MALE_APPROVED_HAIR_V7==='string'?
-    window.DUNGEON_MALE_APPROVED_HAIR_V7:PAPERDOLL_SEPARATE_LAYERS.hair),
+  hair:(typeof window.DUNGEON_MALE_HAIR_V8==='string'&&
+    window.DUNGEON_MALE_HAIR_V8.startsWith('data:image/png;base64,')?
+    window.DUNGEON_MALE_HAIR_V8:FEMALE_CLEAR_LAYER),
   brows:FEMALE_CLEAR_LAYER,eyes:FEMALE_CLEAR_LAYER,mouth:FEMALE_CLEAR_LAYER};
  if(gender==='male'&&MALE_ROUND_HEAD_LAYERS)return MALE_ROUND_HEAD_LAYERS;
  return PAPERDOLL_STANDARD_BODIES[gender].layers;
@@ -5252,15 +5250,41 @@ function normalizeAppearanceV1(){
  else a.hairColor=value.toLowerCase();
 }
 let hairAtlasImage=null,hairAtlasReady=false,hairAtlasError=false;
+let hairAtlasSource=null;
 function paintPaperDollHair(){
  const stages=document.querySelectorAll('.paperdoll-stage');
  if(!stages.length)return;
- // Separate female hair art is now safe to tint independently.
+ const expected=paperDollSprite('hair');
+ if(typeof expected!=='string'||!expected.startsWith('data:image/png;base64,')){
+  console.warn('Selected paper doll hair sprite is missing');
+  return;
+ }
+ // Cache by the actual PNG source, not just by whether some image was loaded.
+ if(hairAtlasSource!==expected){
+  hairAtlasSource=expected;
+  hairAtlasImage=null;hairAtlasReady=false;hairAtlasError=false;
+  for(const stage of stages){
+   stage.querySelector('.paperdoll-hair-canvas')?.getContext('2d')?.clearRect(0,0,64,160);
+   stage.classList.remove('hair-customized');
+  }
+ }
  if(!hairAtlasImage&&!hairAtlasError){
-  hairAtlasImage=new Image();
-  hairAtlasImage.onload=()=>{hairAtlasReady=true;paintPaperDollHair();};
-  hairAtlasImage.onerror=()=>{hairAtlasError=true;console.warn('Hair art unavailable; using original image.');};
-  hairAtlasImage.src=paperDollSprite('hair');
+  const img=new Image();hairAtlasImage=img;
+  img.onload=()=>{
+   if(hairAtlasImage!==img||hairAtlasSource!==expected)return;
+   if(img.naturalWidth!==64||img.naturalHeight!==160){
+    hairAtlasReady=false;hairAtlasError=true;
+    console.warn('Paper doll hair must be an aligned 64x160 PNG');
+    return;
+   }
+   hairAtlasReady=true;paintPaperDollHair();
+  };
+  img.onerror=()=>{
+   if(hairAtlasImage!==img)return;
+   hairAtlasReady=false;hairAtlasError=true;
+   console.warn('Failed to load transparent paper doll hair');
+  };
+  img.src=expected;
   return;
  }
  if(!hairAtlasReady)return;
@@ -5366,7 +5390,7 @@ function renderPaperDollHairControls(){
  const hairStyleName=document.createElement('span');hairStyleName.textContent='髮型';
  const hairStyleSelect=document.createElement('select');hairStyleSelect.className='paperdoll-choice-select';
  hairStyleSelect.setAttribute('aria-label','選擇髮型');
- for(const [id,name] of [['original','原始髮型'],['bald','無髮型（光頭）']]){
+ for(const [id,name] of [['original',s.appearanceV1.gender==='male'?'銀白蓬鬆髮型 V8b':'原始髮型'],['bald','無髮型（光頭）']]){
   const option=document.createElement('option');option.value=id;option.textContent=name;
   option.selected=s.appearanceV1.parts?.hairStyle===id;hairStyleSelect.appendChild(option);
  }
@@ -5430,7 +5454,7 @@ function renderPaperDollEyeControls(){
  return row;
 }
 function resetPaperDollSpriteCaches(){
- hairAtlasImage=null;hairAtlasReady=false;hairAtlasError=false;paperDollBrowsImage=null;
+ hairAtlasImage=null;hairAtlasReady=false;hairAtlasError=false;hairAtlasSource=null;paperDollBrowsImage=null;
  paperDollEyeImage=null;paperDollSkinImages=null;
 }
 function setPaperDollAppearance(field,value){
