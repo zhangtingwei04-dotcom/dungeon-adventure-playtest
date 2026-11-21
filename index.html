@@ -3970,7 +3970,7 @@ html.stage-locked #app .paperdoll-stage.eyes-tinted .male-eyes{display:none}
 <script src="./assets/approved_wagon_art_v1.js"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
-<script src="./assets/expression_motion.js?v=2.3"></script>
+<script src="./assets/expression_motion.js?v=2.4"></script>
 <script>
 (()=>{'use strict';
 // Fixed design canvas: use the approved screenshot's exact 1536×707 ratio,
@@ -4961,8 +4961,8 @@ let paperDollPhysicalPreview=null,paperDollPhysicalPreviewOpen=false;
 const PAPERDOLL_BODY_CONDITIONS=Object.freeze({
  normal:{name:'開心',note:'睜眼微笑，偶爾輕眨眼',parts:{brows:'original',eyes:'original',mouth:'smile'}},
  tired:{name:'中性',note:'平靜表情，慢速自然眨眼',parts:null},
- weak:{name:'中性＋微汗',note:'臉頰短小亮色汗痕，眨眼變慢',parts:null},
- critical:{name:'疲倦／戰敗',note:'圈圈眼轉動，兩側臉頰有亮色細汗',parts:{brows:'angry',eyes:'original',mouth:'angry'}}
+ weak:{name:'中性＋微汗',note:'額頭髮際線附近泛出細汗，眨眼變慢',parts:null},
+ critical:{name:'疲倦／戰敗',note:'圈圈眼轉動，額頭附近泛出較多細汗',parts:{brows:'angry',eyes:'original',mouth:'angry'}}
 });
 const PAPERDOLL_ABNORMAL_STATES=Object.freeze({
  poison:'中毒',fever:'發燒',injury:'受傷／流血',dizzy:'暈眩',unconscious:'昏迷',
@@ -5536,7 +5536,7 @@ function paintPaperDollPhysicalCondition(){
   const arc=(x,y,r,start,end,color)=>{ctx.strokeStyle=color;ctx.lineWidth=1;ctx.beginPath();ctx.arc(x,y,r,start,end);ctx.stroke();};
   const frame=paperDollMotionFrame;
   const effects=frame?.effects;
-  // Sweat is a translucent 1-pixel facial sheen, never a large blue drop.
+  // Sweat is a compact bright highlight at the upper forehead, never a large drop.
   // The same primitive can draw on NPC faces with their own coordinates.
   if(effects?.sweat){
    window.DungeonExpressionMotion.drawFaceSweat(ctx,frame.status,effects.sweatPhase);
