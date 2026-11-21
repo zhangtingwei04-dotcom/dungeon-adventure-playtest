@@ -3995,7 +3995,7 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <script src="./assets/expression_motion.js?v=2.16"></script>
 <script src="./assets/female_head_v1.js?v=1"></script>
 <script src="./assets/female_eye_motion_v1.js?v=1"></script>
-<script src="./assets/female_mouth_motion_v1.js?v=1"></script>
+<script src="./assets/female_mouth_motion_v1.js?v=2"></script>
 <script>
 (()=>{'use strict';
 // Fixed design canvas: use the approved screenshot's exact 1536×707 ratio,
@@ -5097,6 +5097,7 @@ function paintPaperDollFemaleEyes(){
   motion.render(stage,{closed,blink,gaze});
 }
 window.addEventListener("dungeon-female-eyes-ready",paintPaperDollFemaleEyes);
+window.addEventListener("dungeon-female-mouth-ready",()=>paintPaperDollFemaleMouth());
 /* Independent female mouth animation follows HP, selected expression and dreams. */
 function paintPaperDollFemaleMouth(){
  const motion=window.DungeonFemaleMouthMotionV1;if(!motion)return;
@@ -5640,6 +5641,7 @@ function paintPaperDollSkin(){
   const c=canvas.getContext('2d');c.imageSmoothingEnabled=false;c.clearRect(0,0,64,160);c.drawImage(work,0,0);
   stage.classList.add('skin-tinted');
  }
+ paintPaperDollFemaleMouth();
 }
 function equipmentGuideHTML(sceneMode='equipment'){
  const privateScene=sceneMode==='bath'||sceneMode==='dressing';
