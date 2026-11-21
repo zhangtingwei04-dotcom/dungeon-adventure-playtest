@@ -82,8 +82,8 @@
      const skin=sample(sourcePixels,x,profile.skinY);
      pix(out,x,y,skin[3]>100?skin:[252,226,209,255]);
     }
-    // Unconscious and HP-critical male eyes are fully replaced by the
-    // existing spiral overlay: never draw a stray eyelid through the spiral.
+    // Only unconsciousness replaces the entire eye. HP defeat keeps the
+    // native male eye visible, exactly as the female spiral effect does.
     if(type==='blank')continue;
     const yy=type==='closed'?profile.lidClosedY:profile.lidHalfY;
     for(let x=cx-profile.lidHalfWidth;x<=cx+profile.lidHalfWidth;x++)
@@ -162,7 +162,9 @@
    const skinCtx=stage.querySelector('.paperdoll-skin-canvas')?.getContext('2d',{willReadFrequently:true});
    if(skinCtx)sourcePixels=skinCtx.getImageData(0,0,W,H).data;
   }
-  const type=isSharedMale&&(opt.unconscious||opt.circleEyes)?'blank':
+  // Match female HP-defeat animation: show the original eye below the
+  // shared purple spiral; only true unconsciousness removes the eye.
+  const type=isSharedMale&&opt.unconscious?'blank':
    opt.closed||opt.blink?'closed':opt.half?'half':
    (['left','right','up','down'].includes(opt.gaze)?opt.gaze:'center');
   const rgb=opt.eyeColor==='purple'||!opt.eyeColor?null:colorHex(opt.eyeColor);
@@ -170,6 +172,6 @@
   const painted=patch(type,rgb,sourcePixels,profile);
   for(const eye of profile.eyes)ctx.putImageData(painted,0,0,eye.x0,profile.top,boxW,profile.boxH);
  }
- root.DungeonFemaleEyeMotionV1=Object.freeze({version:'2.6.0',render,gaze,prepare});
+ root.DungeonFemaleEyeMotionV1=Object.freeze({version:'2.7.0',render,gaze,prepare});
  prepare();
 })(window);
