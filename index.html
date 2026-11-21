@@ -3568,10 +3568,13 @@ html.stage-locked #app #placeDrawerPanel .equip-try-on-button{
 }
 
 /* Equipment display V1: real equipped art and slot picture share item IDs. */
+/* Move only the worn shoulder satchel 2 CSS px up inside the paper doll.
+   All body, head, clothing, eye, hair and equipment-slot positions stay fixed. */
 html.stage-locked #app .equip-guide .paperdoll-approved-bag{
  background-image:var(--paperdoll-bag)!important;
  background-size:100% 100%!important;background-position:0 0!important;
  background-repeat:no-repeat!important;image-rendering:pixelated;
+ transform:translateY(-2px);
 }
 html.stage-locked #app #placeDrawerPanel .equip-slot .equip-slot-symbol.equip-item-art,
 html.stage-locked #app #placeDrawerPanel .equip-slot.is-filled .equip-slot-symbol.equip-item-art,
