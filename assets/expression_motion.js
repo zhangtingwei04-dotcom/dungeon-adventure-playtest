@@ -26,27 +26,18 @@
  const statusOf=s=>Object.prototype.hasOwnProperty.call(STATUS_PRESETS,s)?s:'normal';
  const between=(min,max)=>min+Math.random()*(max-min);
  const posMod=(a,b)=>((a%b)+b)%b;
- // Four readable 3x3 spiral frames, within the character's existing eye.
- // Male defeated status can request the same 5x5 eye footprint as the
- // female eye; female spiral artwork remains untouched.
+ // Both genders use EXACTLY the same purple 3x3 spiral sprite during
+ // HP defeat, over their existing eye art. Unconscious black spirals remain
+ // a separate, higher-priority effect shared by both genders.
  const SPIRAL_FRAMES=Object.freeze([
   Object.freeze([[-1,-1],[0,-1],[1,0],[1,1]]),
   Object.freeze([[1,-1],[1,0],[0,1],[-1,1]]),
   Object.freeze([[1,1],[0,1],[-1,0],[-1,-1]]),
   Object.freeze([[-1,1],[-1,0],[0,-1],[1,-1]])
  ]);
- function drawSpiralEye(ctx,cx,cy,phase,options){
+ function drawSpiralEye(ctx,cx,cy,phase){
   if(!ctx)return;
-  if(options?.matchFemaleSize){
-   // Female's visible eye occupies a rounded 5x5 footprint. The V8d male
-   // critical-eye patch hides its original pixels, so rebuild that footprint
-   // before drawing the SAME 3x3 purple spiral used for female characters.
-   // Reuse the exact outline dimensions of the established unconscious eye.
-   ctx.fillStyle='#f1e8e3';
-   ctx.fillRect(cx-1,cy-2,3,1);
-   ctx.fillRect(cx-2,cy-1,5,3);
-   ctx.fillRect(cx-1,cy+2,3,1);
-  }
+  // No gender-specific white backing, scaling or alternate shape.
   const shape=SPIRAL_FRAMES[posMod(Math.floor(phase),4)];
   ctx.fillStyle='#3c2252';ctx.fillRect(cx-1,cy-1,3,3);
   for(let i=0;i<shape.length;i++){
@@ -480,6 +471,6 @@
   return frame;
  }
  root.DungeonExpressionMotion=Object.freeze({
-  version:'2.17.0',poses:POSES,statuses:STATUS_PRESETS,abnormalLabels:ABNORMAL_LABELS,restSleep:REST_SLEEP,restVitality:REST_VITALITY,sleepFace,applySleepFacePriority,drawSpiralEye,drawFaceSweat,drawUnconsciousEyes,drawAbnormalEffects,drawRestEffects,applyAbnormalFacePriority,createActor
+  version:'2.18.0',poses:POSES,statuses:STATUS_PRESETS,abnormalLabels:ABNORMAL_LABELS,restSleep:REST_SLEEP,restVitality:REST_VITALITY,sleepFace,applySleepFacePriority,drawSpiralEye,drawFaceSweat,drawUnconsciousEyes,drawAbnormalEffects,drawRestEffects,applyAbnormalFacePriority,createActor
  });
 })(window);
