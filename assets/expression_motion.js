@@ -243,7 +243,8 @@
   */
  const REST_SLEEP=Object.freeze({
   awake:'清醒',drowsy:'想睡',sleeping:'正常睡眠',
-  nightmare_mild:'輕微惡夢',nightmare_severe:'嚴重惡夢',nightmare_waking:'惡夢驚醒'
+  nightmare_mild:'輕微惡夢',nightmare_severe:'嚴重惡夢',nightmare_waking:'惡夢驚醒',
+  dream_good:'美夢',dream_smile:'美夢中的微笑',dream_waking:'美夢醒來'
  });
  const REST_VITALITY=Object.freeze({high:'充沛',normal:'一般',low:'不足'});
  /*
@@ -259,6 +260,17 @@
    return elapsed<1450?
     {eyes:'surprised',brows:'surprised',mouth:'surprised',phase:'startled'}:
     {eyes:'original',brows:'original',mouth:'original',phase:'calming'};
+  }
+  if(sleep==='dream_good')
+   return {eyes:'eyesClosed',brows:'original',mouth:'smile',phase:'dream_good'};
+  if(sleep==='dream_smile')
+   return {eyes:'eyesClosed',brows:'original',mouth:'smile',phase:'dream_smile'};
+  if(sleep==='dream_waking'){
+   if(elapsed<1050)
+    return {eyes:'eyesClosed',brows:'original',mouth:'smile',phase:'dream_awakening'};
+   if(elapsed<2500)
+    return {eyes:'original',brows:'original',mouth:'smile',phase:'dream_eyes_open'};
+   return {eyes:'original',brows:'original',mouth:'original',phase:'dream_settled'};
   }
   return null;
  }
@@ -325,6 +337,31 @@
    if(elapsed<1450||Math.floor(elapsed/280)%2===0){
     px(37,29+(Math.floor(t/200)%2),2,2,'rgba(44,170,195,.88)');
     px(37,29,1,1,'#dcfaff');
+   }
+  }else if(sleep==='dream_good'||sleep==='dream_smile'||sleep==='dream_waking'){
+   // Dream warmth is a small, intermittent golden glimmer, not vitality.
+   // Avoid the sleep Z; this light belongs only to the dream state.
+   const waking=sleep==='dream_waking';
+   const smiling=sleep==='dream_smile';
+   if(!waking||elapsed<2500){
+    const breath=Math.floor(t/920)%2;
+    px(47,78+breath,2,1,'rgba(233,226,204,.52)');
+    px(48,80+breath,1,1,'rgba(233,226,204,.32)');
+   }
+   if((!waking||elapsed<2050)&&Math.floor(t/560)%4!==3){
+    const b=Math.floor(t/560)%3;
+    const starX=50+(smiling?2:0),starY=15-b;
+    px(starX,starY-2,1,5,'#c69d55');
+    px(starX-2,starY,5,1,'#e6c87e');
+    px(starX,starY,1,1,'#fff1b7');
+    if(smiling&&Math.floor(t/790)%3===1){
+     px(57,10,1,3,'#ead49b');px(56,11,3,1,'#ead49b');
+    }
+   }
+   // Barely visible cheek blush accent: no reshaping the face outline.
+   if(smiling||waking&&elapsed>=1050&&elapsed<2500){
+    px(20,43,2,1,'rgba(219,137,127,.57)');
+    px(43,43,2,1,'rgba(219,137,127,.57)');
    }
   }
   // Vitality never paints a visual effect, even if the actor is asleep.
@@ -430,6 +467,6 @@
   return frame;
  }
  root.DungeonExpressionMotion=Object.freeze({
-  version:'2.15.0',poses:POSES,statuses:STATUS_PRESETS,abnormalLabels:ABNORMAL_LABELS,restSleep:REST_SLEEP,restVitality:REST_VITALITY,sleepFace,applySleepFacePriority,drawSpiralEye,drawFaceSweat,drawUnconsciousEyes,drawAbnormalEffects,drawRestEffects,applyAbnormalFacePriority,createActor
+  version:'2.16.0',poses:POSES,statuses:STATUS_PRESETS,abnormalLabels:ABNORMAL_LABELS,restSleep:REST_SLEEP,restVitality:REST_VITALITY,sleepFace,applySleepFacePriority,drawSpiralEye,drawFaceSweat,drawUnconsciousEyes,drawAbnormalEffects,drawRestEffects,applyAbnormalFacePriority,createActor
  });
 })(window);
