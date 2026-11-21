@@ -3984,6 +3984,7 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
 <script src="./assets/expression_motion.js?v=2.16"></script>
+<script src="./assets/female_head_v1.js?v=1"></script>
 <script>
 (()=>{'use strict';
 // Fixed design canvas: use the approved screenshot's exact 1536×707 ratio,
@@ -4963,9 +4964,23 @@ const PAPERDOLL_EYE_COLORS=Object.freeze([
  {id:'green',name:'綠色',rgb:[78,175,116]},{id:'amber',name:'琥珀色',rgb:[211,150,66]},
  {id:'custom',name:'自訂',rgb:null}
 ]);
+/* Female head-only replacement in the original 64x160 coordinate space.
+ * Keep the original female BODY, tank, shorts and equipment unchanged.
+ * If the replacement script is unavailable, fall back to the original head.
+ * Facial parts are currently combined in the replacement art; do not
+ * recolor the entire hair/face as if they were still separate layers.
+ */
+const FEMALE_CLEAR_LAYER='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAACgCAYAAAC8LWpcAAAAP0lEQVR42u3BMQEAAADCoPVPbQo/oAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIC3AaCgAAE4j1zSAAAAAElFTkSuQmCC';
+const FEMALE_REPLACEMENT_HEAD_LAYERS=typeof window.DUNGEON_FEMALE_HEAD_V1==='string'&&
+ window.DUNGEON_FEMALE_HEAD_V1.startsWith('data:image/png;base64,')?
+ Object.freeze({...PAPERDOLL_FEMALE_LAYERS,
+  face:window.DUNGEON_FEMALE_HEAD_V1,
+  brows:FEMALE_CLEAR_LAYER,eyes:FEMALE_CLEAR_LAYER,
+  hair:FEMALE_CLEAR_LAYER,mouth:FEMALE_CLEAR_LAYER}):null;
 function paperDollLayers(){
  const gender=s.appearanceV1?.gender==='female'?'female':'male';
- return PAPERDOLL_STANDARD_BODIES[gender].layers;
+ return gender==='female'&&FEMALE_REPLACEMENT_HEAD_LAYERS?
+  FEMALE_REPLACEMENT_HEAD_LAYERS:PAPERDOLL_STANDARD_BODIES[gender].layers;
 }
 
 /* Physical expression v1 uses the EXISTING HP and maxHp; no fictitious meters. */
@@ -5132,6 +5147,12 @@ let hairAtlasImage=null,hairAtlasReady=false,hairAtlasError=false;
 function paintPaperDollHair(){
  const stages=document.querySelectorAll('.paperdoll-stage');
  if(!stages.length)return;
+ if(s.appearanceV1?.gender==='female'&&FEMALE_REPLACEMENT_HEAD_LAYERS){
+  // The new female head is a complete illustration, not just hair pixels.
+  // Tinting this layer would alter the purple eyes and facial skin.
+  stages.forEach(stage=>stage.classList.remove('hair-customized'));
+  return;
+ }
  if(!hairAtlasImage&&!hairAtlasError){
   hairAtlasImage=new Image();
   hairAtlasImage.onload=()=>{hairAtlasReady=true;paintPaperDollHair();};
@@ -5225,6 +5246,13 @@ function setPaperDollHairColor(value,persist=true){
 }
 function renderPaperDollHairControls(){
  normalizeAppearanceV1();
+ if(s.appearanceV1.gender==='female'&&FEMALE_REPLACEMENT_HEAD_LAYERS){
+  const row=document.createElement('div');row.className='equip-hair-controls';
+  row.setAttribute('aria-label','女性新頭部原色');
+  const text=document.createElement('span');text.className='paperdoll-expression-note';
+  text.textContent='女性頭部已更換為粉紫髮；髮色暫保持原畫，避免染到臉部。';
+  row.appendChild(text);return row;
+ }
  const row=document.createElement('div');row.className='equip-hair-controls';
  row.setAttribute('role','group');row.setAttribute('aria-label','紙娃娃髮色調整');
  const title=document.createElement('span');title.className='equip-hair-title';title.textContent='髮色';
@@ -5255,6 +5283,12 @@ function renderPaperDollHairControls(){
 let paperDollCustomizerOpen=false,paperDollFutureSlotsOpen=false;
 function renderPaperDollEyeControls(){
  normalizeAppearanceV1();
+ if(s.appearanceV1.gender==='female'&&FEMALE_REPLACEMENT_HEAD_LAYERS){
+  const row=document.createElement('div');row.className='equip-eye-controls';
+  const text=document.createElement('span');text.className='paperdoll-expression-note';
+  text.textContent='女性新頭部使用紫色眼睛；獨立瞳色與表情拆層尚待完成。';
+  row.appendChild(text);return row;
+ }
  const row=document.createElement('div');row.className='equip-eye-controls';
  row.setAttribute('role','group');row.setAttribute('aria-label','瞳色調整');
  const title=document.createElement('span');title.className='equip-eye-title';title.textContent='瞳色';row.appendChild(title);
@@ -5475,6 +5509,10 @@ function renderPaperDollAppearanceControls(){
 let paperDollEyeImage=null,paperDollSkinImages=null;
 function paintPaperDollEyes(){
  const stages=document.querySelectorAll('.paperdoll-stage');if(!stages.length)return;
+ if(s.appearanceV1?.gender==='female'&&FEMALE_REPLACEMENT_HEAD_LAYERS){
+  stages.forEach(stage=>stage.classList.remove('eyes-tinted'));
+  return;
+ }
  if(currentPaperDollAbnormalStates().includes('unconscious')){
   // Skip tinted eye rendering completely. Clear any previously cached tint.
   for(const stage of stages){
