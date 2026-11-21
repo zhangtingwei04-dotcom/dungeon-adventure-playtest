@@ -54,29 +54,32 @@
  function drawFaceSweat(ctx,status,phase=0,layout){
   if(!ctx||!(status==='weak'||status==='critical'))return;
   const face=layout||{};
-  const originX=Number.isFinite(face.x)?face.x:0;
-  const originY=Number.isFinite(face.y)?face.y:0;
+  const ox=Number.isFinite(face.x)?face.x:0;
+  const oy=Number.isFinite(face.y)?face.y:0;
+  // Both cheeks remain INSIDE the original head silhouette. V3 face uses x=18..46.
   const points=Array.isArray(face.points)?face.points:
-   (status==='weak'?[[43,40],[21,40]]:
-      [[21,38],[43,39],[23,42],[41,43]]);
+   (status==='weak'?[[42,39],[20,40]]:
+    [[20,38],[42,38],[22,42],[40,42]]);
   const p=posMod(Math.floor(phase),3);
   ctx.save();
   for(let i=0;i<points.length;i++){
-   // Keep the sweat confined to visible skin, beside/below the eyes.
-   // Weak shows one bead at a time; critical shows several glints.
+   // Weak: a small cheek sheen. Critical: fine streaks on both cheeks.
    if(status==='weak'&&i!==p%2)continue;
    if(status==='critical'&&i===3&&p===1)continue;
    const [x,y]=points[i];
-   const px=Math.round(originX+x),py=Math.round(originY+y+((i+p)%3===0?1:0));
-   // Dark blue-teal pixel anchors the highlight against light skin.
-   ctx.fillStyle='rgba(18,111,144,0.88)';
-   ctx.fillRect(px,py+1,1,1);
-   // Brighter aqua reads as moisture, not a white skin blemish.
-   ctx.fillStyle='rgba(44,202,229,0.97)';
+   const px=Math.round(ox+x),py=Math.round(oy+y+((i+p)%3===0?1:0));
+   // At the 205px-tall equipment figure, 1 source px becomes only 1.28px.
+   // Use a narrow 2x3 pixel reflection, NOT a large outlined droplet.
+   ctx.fillStyle='rgba(17,94,126,0.95)';
+   ctx.fillRect(px+1,py+1,1,3);
+   ctx.fillStyle='rgba(24,197,230,0.99)';
+   ctx.fillRect(px,py,2,2);
+   ctx.fillStyle='rgba(235,255,255,1)';
    ctx.fillRect(px,py,1,1);
-   if(status==='critical'||p!==1){
-    ctx.fillStyle='rgba(233,253,255,0.99)';
-    ctx.fillRect(px-1,py,1,1);
+   // A tiny light reflection beside the sweat gives a moist facial sheen.
+   if(status==='critical'||p===2){
+    ctx.fillStyle='rgba(111,227,238,0.83)';
+    ctx.fillRect(px-1,py+2,1,1);
    }
   }
   ctx.restore();
@@ -168,6 +171,6 @@
   });
  }
  root.DungeonExpressionMotion=Object.freeze({
-  version:'2.2.0',poses:POSES,statuses:STATUS_PRESETS,drawSpiralEye,drawFaceSweat,createActor
+  version:'2.3.0',poses:POSES,statuses:STATUS_PRESETS,drawSpiralEye,drawFaceSweat,createActor
  });
 })(window);
