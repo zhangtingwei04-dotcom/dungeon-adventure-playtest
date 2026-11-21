@@ -5235,7 +5235,7 @@ function paintPaperDollHair(){
   // hair sprite is a little narrower and higher so it naturally hugs
   // the forehead and ears, without changing face/body/neck anchors.
   if(s.appearanceV1?.gender==='female'&&FEMALE_SPLIT_READY)
-   ctx.drawImage(hairAtlasImage,0,0,64,160,1,-4,61,160);
+   ctx.drawImage(hairAtlasImage,0,0,64,160,-1,-4,61,160);
   else ctx.drawImage(hairAtlasImage,0,0,64,160,0,0,64,160);
   const frame=ctx.getImageData(0,0,64,160),pixels=frame.data;
   for(let i=0;i<pixels.length;i+=4){
