@@ -195,11 +195,19 @@
     // Show a blood-related THOUGHT instead of physical cuts or bleeding.
     thought(2,4,'blood',step(420,4)<2?0:1);
    }else if(id==='dizzy'){
-    const p=step(220,4);
-    const offsets=[[-1,-1],[1,-1],[1,1],[-1,1]];
-    for(const [x,y] of [[10,23],[53,23]]){
-     const [dx,dy]=offsets[p];px(x+dx,y+dy,'#b49bea',3,2);
-     px(x-dx,y-dy,'#715bc1');px(x,y,'#d8ccff');
+    // Animated 💫: two bright gold/white stars circle the head.
+    const orbit=[[32,10],[44,13],[53,20],[44,27],
+                 [32,29],[20,27],[11,20],[20,13]];
+    const frame=step(170,8);
+    for(let i=0;i<2;i++){
+     const index=posMod(frame+(i?4:0),8),[x,y]=orbit[index];
+     const light=i?'#ffe99a':'#ffe16b';
+     const glow=i?'#d8a94f':'#e9b947';
+     px(x-1,y-3,glow,3,7);px(x-3,y-1,glow,7,3);
+     px(x-1,y-1,light,3,3);px(x,y,'#fffdf0');
+     px(x-2,y-2,'#ffeaa2');px(x+2,y+2,'#ffeaa2');
+     const [tx,ty]=orbit[posMod(index+7,8)];
+     px(tx,ty,'#ffedac',2,2);
     }
    }else if(id==='unconscious'){
     // Drawn LAST below, over any other abnormal effect or facial expression.
@@ -310,6 +318,6 @@
   });
  }
  root.DungeonExpressionMotion=Object.freeze({
-  version:'2.11.0',poses:POSES,statuses:STATUS_PRESETS,abnormalLabels:ABNORMAL_LABELS,drawSpiralEye,drawFaceSweat,drawUnconsciousEyes,drawAbnormalEffects,createActor
+  version:'2.12.0',poses:POSES,statuses:STATUS_PRESETS,abnormalLabels:ABNORMAL_LABELS,drawSpiralEye,drawFaceSweat,drawUnconsciousEyes,drawAbnormalEffects,createActor
  });
 })(window);
