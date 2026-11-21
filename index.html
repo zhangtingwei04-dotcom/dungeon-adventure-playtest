@@ -5181,7 +5181,7 @@ function maleTemplateLayer(index,cls=''){
   ');background-size:100% 100%;background-position:0 0"></span>';
 }
 const HAIR_PALETTE_V1=Object.freeze([
- {name:'原始灰白（保留高光）',hex:'#c8cbd0'},
+ {name:'原始髮色（保留高光）',hex:'#c8cbd0'},
  {name:'銀白',hex:'#e2e7ee'},
  {name:'深灰',hex:'#777b85'},
  {name:'黑色',hex:'#393d47'},
@@ -5312,6 +5312,19 @@ function renderPaperDollHairControls(){
  row.setAttribute('role','group');row.setAttribute('aria-label','紙娃娃髮色調整');
  const title=document.createElement('span');title.className='equip-hair-title';title.textContent='髮色';
  row.appendChild(title);
+ // Both genders share the same hairStyle slot; currently original and bald are real options.
+ const hairStyleLabel=document.createElement('label');hairStyleLabel.className='paperdoll-customizer-field';
+ hairStyleLabel.style.cssText='width:100%;justify-content:flex-start';
+ const hairStyleName=document.createElement('span');hairStyleName.textContent='髮型';
+ const hairStyleSelect=document.createElement('select');hairStyleSelect.className='paperdoll-choice-select';
+ hairStyleSelect.setAttribute('aria-label','選擇髮型');
+ for(const [id,name] of [['original','原始髮型'],['bald','無髮型（光頭）']]){
+  const option=document.createElement('option');option.value=id;option.textContent=name;
+  option.selected=s.appearanceV1.parts?.hairStyle===id;hairStyleSelect.appendChild(option);
+ }
+ hairStyleSelect.onchange=()=>setPaperDollAppearance('part:hairStyle',hairStyleSelect.value);
+ hairStyleLabel.append(hairStyleName,hairStyleSelect);
+ row.appendChild(hairStyleLabel);row.style.flexWrap='wrap';
  const palette=document.createElement('div');palette.className='equip-hair-palette';
  for(const preset of HAIR_PALETTE_V1){
   const button=document.createElement('button');button.type='button';
