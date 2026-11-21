@@ -3999,7 +3999,7 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
 <script src="./assets/expression_motion.js?v=2.16"></script>
 <script src="./assets/female_head_v1.js?v=1"></script>
-<script src="./assets/female_parts_v2.js?v=3"></script>
+<script src="./assets/female_parts_v2.js?v=4"></script>
 <script src="./assets/female_eye_motion_v1.js?v=2"></script>
 <script src="./assets/female_mouth_motion_v1.js?v=3"></script>
 <script>
@@ -5231,7 +5231,12 @@ function paintPaperDollHair(){
   if(!ctx)return;
   ctx.imageSmoothingEnabled=false;
   // Each 64×160 hair PNG is loaded separately; no atlas coordinate coupling.
-  ctx.drawImage(hairAtlasImage,0,0,64,160,0,0,64,160);
+  // Male and female stay on the SAME 64x160 origin. The full female
+  // hair sprite is a little narrower and higher so it naturally hugs
+  // the forehead and ears, without changing face/body/neck anchors.
+  if(s.appearanceV1?.gender==='female'&&FEMALE_SPLIT_READY)
+   ctx.drawImage(hairAtlasImage,0,0,64,160,1,-4,61,160);
+  else ctx.drawImage(hairAtlasImage,0,0,64,160,0,0,64,160);
   const frame=ctx.getImageData(0,0,64,160),pixels=frame.data;
   for(let i=0;i<pixels.length;i+=4){
    if(pixels[i+3]===0)continue;
@@ -5239,7 +5244,7 @@ function paintPaperDollHair(){
    // Tint relative to the ORIGINAL pixel rather than repainting its luminosity.
    // This preserves the warm silver highlights, dimensional shading and outline.
    if(hex==='#c8cbd0'||luminance<38)continue;
-   const neutral=[200,203,208];
+   const neutral=s.appearanceV1?.gender==='female'?[217,189,188]:[200,203,208];
    const targetBrightness=(target[0]+target[1]+target[2])/3;
    const strength=hex==='#777b85'?0.52:(targetBrightness<100?0.88:0.68);
    const mask=Math.min(1,Math.max(0,(luminance-38)/125));
