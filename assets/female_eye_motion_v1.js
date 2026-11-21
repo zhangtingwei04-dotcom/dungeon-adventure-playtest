@@ -1,15 +1,19 @@
-/* 64x160 independent female eye motion.
- * Source is a separate, male-aligned bare face (female_parts_v2).
- * All paints stay within eye boxes; hair is a different image layer.
- */
+/* Shared eye motion V2.2: one animation controller with independently
+ * approved male and female 64x160 eye art and eyelid profiles. */
 (function(root){
  'use strict';
  const W=64,H=160;
- const eyes=[{cx:25,x0:20},{cx:39,x0:34}],top=32,boxW=11,boxH=10;
+ // Native head anchors currently match; each character's eye pixels and
+ // blink-line style stay independent and can be adjusted without a fork.
+ const PROFILES=Object.freeze({
+  female:Object.freeze({eyes:[{cx:25,x0:20},{cx:39,x0:34}],lidHalfWidth:3,lidColor:[76,44,53,255]}),
+  male:Object.freeze({eyes:[{cx:25,x0:20},{cx:39,x0:34}],lidHalfWidth:2,lidColor:[64,43,50,255]})
+ });
+ const top=32,boxW=11,boxH=10;
  let imagePixels=null,pending=false,failed=false;
  let malePixels=null,malePending=false;
- // Male head is a skin-recolored copy of this exact female face.
- // Cache that recolored sprite separately so eye blinks never paint pale patches.
+ // Male and female facial pixels have independent sources. Never import
+ // the female eye appearance or skin color into a male eyelid patch.
  const src=()=>root.DUNGEON_FEMALE_FACE_V2||root.DUNGEON_FEMALE_HEAD_V1;
  const colorHex=hex=>/^#[0-9a-f]{6}$/i.test(hex||'')?[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)):null;
  const isIris=(r,g,b)=>(b>=g+14&&r>=g+12&&r<=206&&b>=65);
@@ -56,9 +60,9 @@
   if(phase>=9500&&phase<10400)return 'down';
   return 'center';
  };
- function patch(type,irisColor,sourcePixels){
+ function patch(type,irisColor,sourcePixels,profile){
   const out=new Uint8ClampedArray(sourcePixels);
-  for(const {cx} of eyes){
+  for(const {cx} of profile.eyes){
    if(type==='closed'||type==='half'){
     const upper=type==='closed'?34:37;
     for(let y=upper;y<=39;y++)for(let x=cx-4;x<=cx+4;x++){
@@ -66,7 +70,8 @@
      pix(out,x,y,skin[3]>100?skin:[252,226,209,255]);
     }
     const yy=type==='closed'?36:37;
-    for(let x=cx-3;x<=cx+3;x++)pix(out,x,yy,[76,44,53,255]);
+    for(let x=cx-profile.lidHalfWidth;x<=cx+profile.lidHalfWidth;x++)
+     pix(out,x,yy,profile.lidColor);
     continue;
    }
    const moving=type!=='center';
@@ -96,14 +101,20 @@
   const ctx=cv.getContext('2d');if(!ctx)return;
   ctx.imageSmoothingEnabled=false;ctx.clearRect(0,0,W,H);
   const isSharedMale=stage.classList.contains('paperdoll-shared-male-face');
-  const sourcePixels=isSharedMale?malePixels:imagePixels;
+  const profile=isSharedMale?PROFILES.male:PROFILES.female;
+  let sourcePixels=isSharedMale?malePixels:imagePixels;
   if(!sourcePixels){if(isSharedMale)prepareMale();else prepare();return;}
+  // A blink must sample the tinted skin, not expose the original face color.
+  if(stage.classList.contains('skin-tinted')){
+   const skinCtx=stage.querySelector('.paperdoll-skin-canvas')?.getContext('2d',{willReadFrequently:true});
+   if(skinCtx)sourcePixels=skinCtx.getImageData(0,0,W,H).data;
+  }
   const type=opt.closed||opt.blink?'closed':opt.half?'half':(['left','right','up','down'].includes(opt.gaze)?opt.gaze:'center');
   const rgb=opt.eyeColor==='purple'||!opt.eyeColor?null:colorHex(opt.eyeColor);
   if(type==='center'&&!rgb)return; // face's original purple pupils, no needless overwrite
-  const painted=patch(type,rgb,sourcePixels);
-  for(const eye of eyes)ctx.putImageData(painted,0,0,eye.x0,top,boxW,boxH);
+  const painted=patch(type,rgb,sourcePixels,profile);
+  for(const eye of profile.eyes)ctx.putImageData(painted,0,0,eye.x0,top,boxW,boxH);
  }
- root.DungeonFemaleEyeMotionV1=Object.freeze({version:'2.1.0',render,gaze,prepare});
+ root.DungeonFemaleEyeMotionV1=Object.freeze({version:'2.2.0',render,gaze,prepare});
  prepare();
 })(window);
