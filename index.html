@@ -3541,16 +3541,18 @@ html.stage-locked #app .equip-guide .paperdoll-stage > .paperdoll-template-layer
 html.stage-locked #app .equip-guide .paperdoll-stage > .paperdoll-asset-layer,
 html.stage-locked #app .equip-guide .paperdoll-stage > .paperdoll-layer:not(.paperdoll-approved-bag),
 html.stage-locked #app .equip-guide .paperdoll-stage > canvas{transform:translateY(9px)}
-/* Shared 64x160 male/female head anchor: center x32, chin around y51.
-   The original male face ended one native pixel higher than the
-   newly aligned female face. Shift only male HEAD layers down 1/160
-   of their rendered height; body, vest, shorts, bag stay unchanged.
-   Use one correction for face, brows, eyes, mouth and removable hair. */
+/* Male vs female head-height correction from the user's iPhone screenshots.
+   Keep the native 64x160 canvas and horizontal/neck anchors unchanged.
+   Male artwork has a taller forehead, so fit only the male HEAD artwork
+   to 91% native height, aligned at the chin (y~52); do not scale the
+   body, shirt, shorts, bag, or status-effects canvas. Head/eyes/brows/
+   mouth/hair and their tinted overlays receive the same transform. */
 html.stage-locked #app .equip-guide .paperdoll-stage.paperdoll-male >
 :is(.male-face,.male-brows-fallback,.male-eyes,.paperdoll-mouth,
     .paperdoll-hair-fallback,.paperdoll-brows-canvas,
     .paperdoll-eyes-canvas,.paperdoll-hair-canvas){
-  transform:translateY(calc(9px + 0.625%));
+  transform-origin:50% 0;
+  transform:translateY(calc(9px + 3.25%)) scaleY(.91);
 }
 html.stage-locked #app .equip-guide .paperdoll-layer{
  display:block;position:absolute;inset:0;pointer-events:none;
@@ -5660,11 +5662,13 @@ function paintPaperDollSkin(){
  if(paperDollSkinImages.imgs.some(im=>!im.complete||im.naturalWidth!==64))return;
  const work=document.createElement('canvas');work.width=64;work.height=160;
  const ctx=work.getContext('2d',{willReadFrequently:true});ctx.imageSmoothingEnabled=false;
- // Apply the same one-pixel male head correction in the skin-tinted
- // composite; the body layer itself is never moved.
- for(let i=0;i<paperDollSkinImages.imgs.length;i++)
-  ctx.drawImage(paperDollSkinImages.imgs[i],0,
-   s.appearanceV1?.gender==='male'&&i===1?1:0);
+ // Match the male face-only CSS height correction in the skin-tint canvas.
+ // The standard male body image remains at its original 64x160 coordinates.
+ for(let i=0;i<paperDollSkinImages.imgs.length;i++){
+  if(s.appearanceV1?.gender==='male'&&i===1)
+   ctx.drawImage(paperDollSkinImages.imgs[i],0,0,64,160,0,5.2,64,160*.91);
+  else ctx.drawImage(paperDollSkinImages.imgs[i],0,0);
+ }
  const pixels=ctx.getImageData(0,0,64,160),d=pixels.data;
  for(let i=0;i<d.length;i+=4){
   const r=d[i],g=d[i+1],b=d[i+2];
