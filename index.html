@@ -4005,7 +4005,8 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <script src="./assets/female_head_v1.js?v=1"></script>
 <script src="./assets/female_parts_v2.js?v=4"></script>
 <script src="./assets/male_round_face_v4.js?v=2"></script>
-<script src="./assets/male_merged_head_v6.js?v=1"></script>
+<script src="./assets/male_approved_face_v7.js?v=1"></script>
+<script src="./assets/male_approved_hair_v7.js?v=1"></script>
 <script src="./assets/female_eye_motion_v1.js?v=3"></script>
 <script src="./assets/female_mouth_motion_v1.js?v=4"></script>
 <script>
@@ -5026,6 +5027,8 @@ function paperDollLayers(){
  // keeping only the male original hair/body/outfit avoids doubled features.
  if(isMaleSharedFaceReady())return {...PAPERDOLL_SEPARATE_LAYERS,
   face:window.DUNGEON_MALE_SHARED_FACE_V5,
+  hair:(typeof window.DUNGEON_MALE_APPROVED_HAIR_V7==='string'?
+    window.DUNGEON_MALE_APPROVED_HAIR_V7:PAPERDOLL_SEPARATE_LAYERS.hair),
   brows:FEMALE_CLEAR_LAYER,eyes:FEMALE_CLEAR_LAYER,mouth:FEMALE_CLEAR_LAYER};
  if(gender==='male'&&MALE_ROUND_HEAD_LAYERS)return MALE_ROUND_HEAD_LAYERS;
  return PAPERDOLL_STANDARD_BODIES[gender].layers;
