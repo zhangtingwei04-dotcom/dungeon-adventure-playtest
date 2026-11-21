@@ -4017,7 +4017,7 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <script src="./assets/male_hair_v8.js?v=5"></script>
 <!-- V8 keeps the new face and eyes, never old V7 eye art. -->
 <script src="./assets/male_new_head_v8.js?v=5"></script>
-<script src="./assets/female_eye_motion_v1.js?v=7"></script>
+<script src="./assets/female_eye_motion_v1.js?v=8"></script>
 <script src="./assets/female_mouth_motion_v1.js?v=9"></script>
 <script>
 (()=>{'use strict';
@@ -5145,6 +5145,7 @@ function paintPaperDollFemaleEyes(){
  const parts=paperDollMotionFrame?.parts||{};
  const unconscious=abnormal.includes("unconscious");
  const closed=unconscious||parts.eyes==="eyesClosed";
+ const circleEyes=Boolean(paperDollMotionFrame?.effects?.circleEyes)&&!unconscious;
  const blink=paperDollMotionEnabled&&Boolean(paperDollMotionFrame?.effects?.blink);
  const gaze=paperDollMotionEnabled?motion.gaze(performance.now()):"center";
  const selected=s.appearanceV1?.eyeColor||'purple';
@@ -5153,7 +5154,7 @@ function paintPaperDollFemaleEyes(){
   selected==='custom'?s.appearanceV1.eyeCustomHex:
   '#'+color.rgb.map(x=>x.toString(16).padStart(2,'0')).join('');
  for(const stage of document.querySelectorAll(".paperdoll-stage.paperdoll-female, .paperdoll-stage.paperdoll-shared-male-face"))
-  motion.render(stage,{closed,blink,gaze,eyeColor});
+  motion.render(stage,{closed,blink,gaze,eyeColor,unconscious,circleEyes});
 }
 window.addEventListener("dungeon-female-eyes-ready",paintPaperDollFemaleEyes);
 window.addEventListener("dungeon-female-mouth-ready",()=>paintPaperDollFemaleMouth());
