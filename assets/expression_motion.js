@@ -55,26 +55,32 @@
   * Same right-side artwork and six-frame appearance cycle;
   * only the speed changes with HP. Left side never draws sweat.
   */
+ /* Sweat shared by weak + critical. Position tested against the actual
+  * 64x160 V3 sprite: exposed RIGHT forehead skin is at x36..38, y29..30.
+  * The old x40/y28 painted a bright square over the fringe.
+  */
  function drawFaceSweat(ctx,status,phase=0,layout){
   if(!ctx||!(status==='weak'||status==='critical'))return;
   const opt=layout||{};
   const px=Math.round((Number.isFinite(opt.x)?opt.x:0)+
-    (Number.isFinite(opt.sweatX)?opt.sweatX:40));
+    (Number.isFinite(opt.sweatX)?opt.sweatX:37));
   const py=Math.round((Number.isFinite(opt.y)?opt.y:0)+
-    (Number.isFinite(opt.sweatY)?opt.sweatY:28));
+    (Number.isFinite(opt.sweatY)?opt.sweatY:29));
   const frame=posMod(Math.floor(phase),6);
   if(frame===0||frame===5)return;
   ctx.save();
-  // Small bright mark at the viewer's RIGHT forehead, above the eye.
+  // A clear but compact highlight ON THE SKIN of the right forehead.
+  // Both HP states use exactly the same art. Only their frame rates differ.
   if(frame===1||frame===4){
-   ctx.fillStyle='#15536a';ctx.fillRect(px+1,py+1,1,1);
-   ctx.fillStyle='#84f2ff';ctx.fillRect(px,py,1,1);
+   ctx.fillStyle='rgba(16,115,141,0.8)';
+   ctx.fillRect(px,py,1,1);
   }else{
-   const drift=frame===3?1:0;
-   ctx.fillStyle='#15536a';ctx.fillRect(px+2,py+1+drift,1,3);
-   ctx.fillStyle='#1bdaf2';ctx.fillRect(px,py+1+drift,2,2);
-   ctx.fillStyle='#f5ffff';ctx.fillRect(px,py+drift,2,1);
-   ctx.fillStyle='#69e8fb';ctx.fillRect(px+1,py+3+drift,1,1);
+   ctx.fillStyle='rgba(18,118,141,0.94)';
+   ctx.fillRect(px+1,py+1,1,1);
+   ctx.fillStyle='rgba(37,207,231,0.96)';
+   ctx.fillRect(px,py+1,1,1);
+   ctx.fillStyle='#f1ffff';
+   ctx.fillRect(px,py,1,1);
   }
   ctx.restore();
  }
@@ -167,6 +173,6 @@
   });
  }
  root.DungeonExpressionMotion=Object.freeze({
-  version:'2.6.0',poses:POSES,statuses:STATUS_PRESETS,drawSpiralEye,drawFaceSweat,createActor
+  version:'2.7.0',poses:POSES,statuses:STATUS_PRESETS,drawSpiralEye,drawFaceSweat,createActor
  });
 })(window);
