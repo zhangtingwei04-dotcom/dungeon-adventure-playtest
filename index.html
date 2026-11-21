@@ -4018,7 +4018,7 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <!-- V8 keeps the new face and eyes, never old V7 eye art. -->
 <script src="./assets/male_new_head_v8.js?v=5"></script>
 <script src="./assets/female_eye_motion_v1.js?v=7"></script>
-<script src="./assets/female_mouth_motion_v1.js?v=7"></script>
+<script src="./assets/female_mouth_motion_v1.js?v=8"></script>
 <script>
 (()=>{'use strict';
 // Fixed design canvas: use the approved screenshot's exact 1536×707 ratio,
@@ -5163,7 +5163,8 @@ function paintPaperDollFemaleMouth(){
  const unconscious=currentPaperDollAbnormalStates().includes('unconscious');
  const part=paperDollMotionFrame?.parts?.mouth||'original';
  let pose='neutral';
- if(part==='smile'||part==='happy')pose='smile';
+ if(part==='smile'||part==='happy')
+  pose=part==='happy'&&s.appearanceV1?.gender==='male'?'happy':'smile';
  else if(part==='surprised')pose='surprised';
  else if(part==='shy')pose='shy';
  else if(part==='angry')pose='frown';
