@@ -91,8 +91,11 @@
   // Clean only the existing male lip pixels. Eyes, nose and chin untouched.
   for(let x=30;x<=34;x++)for(let y=45;y<=46;y++)set(x,y,get(29,y));
   if(pose==='smile'){
-   // Modest lifted corners; no broad lipstick-shaped bow.
-   set(30,45,soft);set(31,46,edge);set(32,46,edge);set(33,45,soft);
+   // Quiet asymmetric closed-mouth smile: one subtly lifted right corner.
+   // No U-shaped lower lip, no pink highlight and no open-mouth pixels.
+   set(30,45,soft);
+   set(31,45,edge);set(32,45,edge);set(33,45,soft);
+   set(34,44,soft);
   }else if(pose==='happy'){
    set(30,45,edge);set(31,45,dark);set(32,45,dark);set(33,45,edge);
    set(31,46,soft);set(32,46,highlight);
@@ -132,6 +135,6 @@
   }
   ctx.putImageData(isSharedMale?malePoseFrame(skinBase,pose):poseFrame(skinBase,pose),LEFT,isSharedMale?MALE_TOP:TOP);
  }
- root.DungeonFemaleMouthMotionV1=Object.freeze({version:'3.4.0',render,prepare});
+ root.DungeonFemaleMouthMotionV1=Object.freeze({version:'3.5.0',render,prepare});
  prepare();
 })(window);
