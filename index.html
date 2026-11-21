@@ -3970,7 +3970,7 @@ html.stage-locked #app .paperdoll-stage.eyes-tinted .male-eyes{display:none}
 <script src="./assets/approved_wagon_art_v1.js"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
-<script src="./assets/expression_motion.js?v=2.10.1"></script>
+<script src="./assets/expression_motion.js?v=2.11"></script>
 <script>
 (()=>{'use strict';
 // Fixed design canvas: use the approved screenshot's exact 1536×707 ratio,
@@ -5324,7 +5324,7 @@ function renderPaperDollAbnormalControls(){
  summary.textContent='異常狀態｜'+(active.length?active.map(id=>PAPERDOLL_ABNORMAL_STATES[id]).join('、'):'目前無異常');
  details.appendChild(summary);
  const note=document.createElement('p');note.className='paperdoll-expression-note';
- note.textContent='昏迷：無論原本表情，都顯示持續旋轉的黑線圈圈眼（不顯示昏迷 Z）；睡眠不足保留 Z。飢餓／缺水顯示想法泡泡。勾選僅預覽，不改 HP、異常數值或存檔。';details.appendChild(note);
+ note.textContent='V2.11：中毒＝頭上綠色毒氣向上飄；發燒＝紅橘色熱氣向上飄；受傷／流血＝血滴想法泡泡。昏迷黑線圈圈眼、睡眠不足 Z、飢餓與缺水想法泡泡均保留。勾選只預覽，不影響 HP 或存檔。';details.appendChild(note);
  const list=document.createElement('div');list.className='paperdoll-abnormal-options';
  for(const [id,name] of Object.entries(PAPERDOLL_ABNORMAL_STATES)){
   const label=document.createElement('label'),input=document.createElement('input');input.type='checkbox';
