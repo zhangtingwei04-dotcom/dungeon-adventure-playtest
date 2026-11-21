@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#17342e">
+<title>男性微笑對照｜V8d</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;padding:18px;background:#142e29;color:#f2e6d3;font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif}
+main{max-width:600px;margin:0 auto}
+h1{font-size:19px;margin:0 0 8px}
+p{font-size:13px;color:#c0cfc8;line-height:1.6}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.card{background:#2b4b40;border:1px solid #627f71;padding:12px 8px;border-radius:10px;text-align:center}
+.card strong{font-size:13px}
+.stage{position:relative;width:100%;aspect-ratio:64 / 77;overflow:hidden;margin:0 auto 12px;image-rendering:pixelated}
+.stage img,.stage canvas{position:absolute;top:0;left:0;width:100%;height:auto;image-rendering:pixelated;pointer-events:none}
+.stage .head{z-index:1}
+.stage canvas{z-index:2}
+.stage .hair{z-index:3;transform:translateY(-1.25%)}
+.status{border:1px solid #5d8c79;padding:10px;border-radius:8px;margin:12px 0}
+a{color:#f6dca4}
+</style>
+</head>
+<body>
+<main>
+<h1>男性微笑：新版本對照</h1>
+<p>兩邊使用同一張男性新頭 V8d 與透明銀白髮型；右邊只替換微笑嘴型。男性眼睛、眉毛、頭髮、頭部高度都完全相同。</p>
+<div class="status" id="status" role="status">正在讀取遊戲的正式素材…</div>
+<div class="grid">
+ <div class="card"><div class="stage paperdoll-shared-male-face" id="neutralStage">
+  <img class="head" alt="男性中性表情"><img class="hair" alt="銀白髮型">
+ </div><strong>中性表情</strong></div>
+ <div class="card"><div class="stage paperdoll-shared-male-face" id="smileStage">
+  <img class="head" alt="男性微笑底圖"><canvas class="paperdoll-female-mouth-motion-canvas" width="64" height="160" aria-hidden="true"></canvas><img class="hair" alt="銀白髮型">
+ </div><strong>新版：內斂微笑</strong></div>
+</div>
+<p>正式遊戲使用同一份表情繪製模組。如果此頁顯示素材錯誤，請以頁面狀態訊息為準。</p>
+<p><a href="./?preview=male-smile-v35">返回遊戲裝備欄測試微笑</a></p>
+</main>
+<script src="./assets/male_new_head_v8.js?v=5"></script>
+<script src="./assets/male_hair_v8.js?v=5"></script>
+<script src="./assets/female_mouth_motion_v1.js?v=8"></script>
+<script>
+(()=>{
+ 'use strict';
+ const status=document.getElementById('status');
+ const head=window.DUNGEON_MALE_SHARED_FACE_V5,hair=window.DUNGEON_MALE_HAIR_V8;
+ if(typeof head!=='string'||!head.startsWith('data:image/png;base64,')||
+    typeof hair!=='string'||!hair.startsWith('data:image/png;base64,')){
+  status.textContent='男性 V8d 頭部或 V8 髮型尚未載入';return;
+ }
+ let loaded=0,failed=false;
+ function drawSmile(){
+  const motion=window.DungeonFemaleMouthMotionV1;
+  if(motion)motion.render(document.getElementById('smileStage'),{pose:'smile',talking:false,unconscious:false,time:0});
+ }
+ function done(){
+  loaded++;
+  if(loaded!==4||failed)return;
+  status.textContent='已載入男性 V8d 頭與髮型，使用共用嘴型模組 3.5';
+  drawSmile();
+ }
+ for(const im of document.querySelectorAll('.stage img')){
+  im.onload=()=>im.naturalWidth===64&&im.naturalHeight===160?done():(failed=true,status.textContent='PNG 尺寸有誤');
+  im.onerror=()=>{failed=true;status.textContent='頭部或髮型 PNG 載入失敗'};
+  im.src=im.classList.contains('head')?head:hair;
+ }
+ window.addEventListener('dungeon-female-mouth-ready',drawSmile);
+ drawSmile();
+})();
+</script>
+</body>
+</html>
