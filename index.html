@@ -3722,6 +3722,10 @@ html.stage-locked #app .paperdoll-stage .paperdoll-condition-canvas{z-index:6}
 html.stage-locked #app .paperdoll-stage.skin-tinted .male-base,
 html.stage-locked #app .paperdoll-stage.skin-tinted .male-face,
 html.stage-locked #app .paperdoll-stage.eyes-tinted .male-eyes{display:none}
+/* Actual eye replacement: while unconscious, do NOT paint original eye art
+   or the tinted-eye canvas. The black moving spirals are the only eyes. */
+.paperdoll-stage.eyes-unconscious .male-eyes,
+.paperdoll-stage.eyes-unconscious .paperdoll-eyes-canvas{display:none!important}
 </style>
 </head>
 <body>
@@ -3970,7 +3974,7 @@ html.stage-locked #app .paperdoll-stage.eyes-tinted .male-eyes{display:none}
 <script src="./assets/approved_wagon_art_v1.js"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
-<script src="./assets/expression_motion.js?v=2.11"></script>
+<script src="./assets/expression_motion.js?v=2.12"></script>
 <script>
 (()=>{'use strict';
 // Fixed design canvas: use the approved screenshot's exact 1536×707 ratio,
@@ -4993,9 +4997,10 @@ function tickPaperDollMotion(force=false){
  paperDollMotionActor.setExpressionOverride(paperDollEmotionPreview);
  paperDollMotionActor.setBlink(paperDollMotionEnabled);
  const frame=paperDollMotionActor.sample();
- // Unconscious eye animation takes absolute priority over any emotion or HP.
+ // The unconscious state has NO source-eye sprite: only its rotating black
+ // spiral eyes render on the special-effects canvas, regardless of emotion/HP.
  if(currentPaperDollAbnormalStates().includes('unconscious')){
-  frame.parts.eyes='original';
+  frame.parts.eyes=null;
   frame.blink=false;
  }
  const signature=[
@@ -5324,7 +5329,7 @@ function renderPaperDollAbnormalControls(){
  summary.textContent='異常狀態｜'+(active.length?active.map(id=>PAPERDOLL_ABNORMAL_STATES[id]).join('、'):'目前無異常');
  details.appendChild(summary);
  const note=document.createElement('p');note.className='paperdoll-expression-note';
- note.textContent='V2.11：中毒＝頭上綠色毒氣向上飄；發燒＝紅橘色熱氣向上飄；受傷／流血＝血滴想法泡泡。昏迷黑線圈圈眼、睡眠不足 Z、飢餓與缺水想法泡泡均保留。勾選只預覽，不影響 HP 或存檔。';details.appendChild(note);
+ note.textContent='V2.12：昏迷完全隱藏原本眼睛，只留下旋轉黑色圈圈眼（任何表情都優先）；暈眩改為頭部周圍旋轉的金色 💫 星星。其餘特效保留。勾選只預覽，不影響 HP 或存檔。';details.appendChild(note);
  const list=document.createElement('div');list.className='paperdoll-abnormal-options';
  for(const [id,name] of Object.entries(PAPERDOLL_ABNORMAL_STATES)){
   const label=document.createElement('label'),input=document.createElement('input');input.type='checkbox';
@@ -5382,6 +5387,16 @@ function renderPaperDollAppearanceControls(){
 let paperDollEyeImage=null,paperDollSkinImages=null;
 function paintPaperDollEyes(){
  const stages=document.querySelectorAll('.paperdoll-stage');if(!stages.length)return;
+ if(currentPaperDollAbnormalStates().includes('unconscious')){
+  // Skip tinted eye rendering completely. Clear any previously cached tint.
+  for(const stage of stages){
+   stage.classList.add('eyes-unconscious');
+   const eyeCanvas=stage.querySelector('.paperdoll-eyes-canvas');
+   if(eyeCanvas)eyeCanvas.getContext('2d')?.clearRect(0,0,64,160);
+  }
+  return;
+ }
+ for(const stage of stages)stage.classList.remove('eyes-unconscious');
  const choice=s.appearanceV1?.eyeColor||'purple';
  if(choice==='purple'){stages.forEach(st=>st.classList.remove('eyes-tinted'));return;}
  const preset=PAPERDOLL_EYE_COLORS.find(t=>t.id===choice);
@@ -5477,7 +5492,7 @@ function equipmentGuideHTML(sceneMode='equipment'){
  const healthMarks='<canvas class="paperdoll-condition-canvas" width="64" height="160" aria-hidden="true"></canvas>';
  const hair=maleTemplateLayer(character.layers.hair,'paperdoll-hair-fallback')+
   '<canvas class="paperdoll-hair-canvas" width="64" height="160" aria-hidden="true"></canvas>';
- return '<div class="paperdoll-stage '+(s.appearanceV1?.gender==='female'?'paperdoll-female':'paperdoll-male')+(s.appearanceV1?.gender==='male'&&s.appearanceV1?.parts?.hairStyle==='bald'?' paperdoll-bald':'')+'" role="img" aria-label="'+
+ return '<div class="paperdoll-stage '+(s.appearanceV1?.gender==='female'?'paperdoll-female':'paperdoll-male')+(s.appearanceV1?.gender==='male'&&s.appearanceV1?.parts?.hairStyle==='bald'?' paperdoll-bald':'')+(currentPaperDollAbnormalStates().includes('unconscious')?' eyes-unconscious':'')+'" role="img" aria-label="'+
   (paperDollTryOn?'主角旅行裝試穿預覽':(s.appearanceV1?.gender==='female'?'女性':'男性')+'標準型紙娃娃，依實際裝備顯示')+'">'+
   behind+base+shorts+tank+outfit+satchel+extras+veil+brows+eyes+mouth+healthMarks+hair+
   (paperDollTryOn?'<span class="paperdoll-preview-label">試穿</span>':'')+'</div>';
@@ -5536,6 +5551,7 @@ function paintPaperDollPhysicalCondition(){
  const effects=frame?.effects;
  const t=performance.now();
  for(const stage of document.querySelectorAll('.paperdoll-stage')){
+  stage.classList.toggle('eyes-unconscious',abnormal.includes('unconscious'));
   const canvas=stage.querySelector('.paperdoll-condition-canvas');
   if(!canvas)continue;
   const ctx=canvas.getContext('2d');if(!ctx)continue;
