@@ -4007,7 +4007,7 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <script src="./assets/approved_wagon_art_v1.js"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
-<script src="./assets/expression_motion.js?v=2.17"></script>
+<script src="./assets/expression_motion.js?v=2.18"></script>
 <script src="./assets/female_head_v1.js?v=1"></script>
 <script src="./assets/female_parts_v2.js?v=4"></script>
 <script src="./assets/male_round_face_v4.js?v=2"></script>
@@ -4017,7 +4017,7 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <script src="./assets/male_hair_v8.js?v=5"></script>
 <!-- V8 keeps the new face and eyes, never old V7 eye art. -->
 <script src="./assets/male_new_head_v8.js?v=5"></script>
-<script src="./assets/female_eye_motion_v1.js?v=8"></script>
+<script src="./assets/female_eye_motion_v1.js?v=9"></script>
 <script src="./assets/female_mouth_motion_v1.js?v=9"></script>
 <script>
 (()=>{'use strict';
@@ -5870,12 +5870,10 @@ function paintPaperDollPhysicalCondition(){
    maleV8?{sweatY:28}:undefined);
   const eyeY=maleV8?38:36;
   if(effects?.circleEyes&&!abnormal.includes('unconscious')){
-   // Male V8d blanks the original purple eyes, which made a bare 3x3
-   // spiral appear too small. Rebuild the same rounded 5x5 eye footprint
-   // visible in the female artwork without resizing her existing effect.
+   // Both genders use the same purple spiral sprites and 3x3 pixel size
+   // on top of their original eyes; only eye-center Y differs by head art.
    for(const x of [25,39])
-    window.DungeonExpressionMotion.drawSpiralEye(ctx,x,eyeY,effects.circlePhase,
-     maleV8?{matchFemaleSize:true}:undefined);
+    window.DungeonExpressionMotion.drawSpiralEye(ctx,x,eyeY,effects.circlePhase);
   }
   // The renderer adds layout.y, so 39 - 1 = the V8d eye center at y38.
   if(abnormal.length)window.DungeonExpressionMotion.drawAbnormalEffects(ctx,abnormal,t,
