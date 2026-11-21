@@ -51,29 +51,30 @@
   * Never draw a large droplet; use 2-3 colored pixels with a pale highlight.
   * NPCs pass their own face-local points and optional offsets.
   */
+ /* One reusable forehead sweat animation for BOTH weak and critical.
+  * Same right-side artwork and six-frame appearance cycle;
+  * only the speed changes with HP. Left side never draws sweat.
+  */
  function drawFaceSweat(ctx,status,phase=0,layout){
   if(!ctx||!(status==='weak'||status==='critical'))return;
-  const face=layout||{};
-  const ox=Number.isFinite(face.x)?face.x:0;
-  const oy=Number.isFinite(face.y)?face.y:0;
-  // Native face: x around 18..46, eyes at y 36. Keep glints on forehead.
-  const points=Array.isArray(face.points)?face.points:
-   (status==='weak'?[[40,28],[24,29]]:
-    [[24,28],[39,28],[32,26]]);
-  const p=posMod(Math.floor(phase),3);
+  const opt=layout||{};
+  const px=Math.round((Number.isFinite(opt.x)?opt.x:0)+
+    (Number.isFinite(opt.sweatX)?opt.sweatX:40));
+  const py=Math.round((Number.isFinite(opt.y)?opt.y:0)+
+    (Number.isFinite(opt.sweatY)?opt.sweatY:28));
+  const frame=posMod(Math.floor(phase),6);
+  if(frame===0||frame===5)return;
   ctx.save();
-  for(let i=0;i<points.length;i++){
-   // One sweat mark when weak, two or three when critical.
-   if(status==='weak'&&i!==p%2)continue;
-   if(status==='critical'&&i===2&&p===1)continue;
-   const [x,y]=points[i];
-   const px=Math.round(ox+x),py=Math.round(oy+y+((i+p)%3===0?1:0));
-   // A small luminous forehead sheen, 3px wide x 4px high.
-   // Light/dark micro-pixels preserve pixel-art style without a large droplet.
-   ctx.fillStyle='#15536a';ctx.fillRect(px+2,py+1,1,3);
-   ctx.fillStyle='#1bdaf2';ctx.fillRect(px,py+1,2,2);
-   ctx.fillStyle='#f5ffff';ctx.fillRect(px,py,2,1);
-   ctx.fillStyle='#69e8fb';ctx.fillRect(px+1,py+3,1,1);
+  // Small bright mark at the viewer's RIGHT forehead, above the eye.
+  if(frame===1||frame===4){
+   ctx.fillStyle='#15536a';ctx.fillRect(px+1,py+1,1,1);
+   ctx.fillStyle='#84f2ff';ctx.fillRect(px,py,1,1);
+  }else{
+   const drift=frame===3?1:0;
+   ctx.fillStyle='#15536a';ctx.fillRect(px+2,py+1+drift,1,3);
+   ctx.fillStyle='#1bdaf2';ctx.fillRect(px,py+1+drift,2,2);
+   ctx.fillStyle='#f5ffff';ctx.fillRect(px,py+drift,2,1);
+   ctx.fillStyle='#69e8fb';ctx.fillRect(px+1,py+3+drift,1,1);
   }
   ctx.restore();
  }
@@ -135,7 +136,9 @@
    const face=POSES[pose],before=POSES[previous];
    const passed=time-changedAt;
    const circlePhase=p.circleEyes?posMod(Math.floor((time-enteredAt)/185),4):0;
-   const sweatPhase=p.sweat?posMod(Math.floor((time-enteredAt)/(status==='critical'?300:420)),3):0;
+   // Identical 6-frame sweat loop for both states, with a slower weak cycle.
+   const sweatStepMs=status==='critical'?210:520;
+   const sweatPhase=p.sweat?posMod(Math.floor((time-enteredAt)/sweatStepMs),6):0;
    return {
     status,expression:pose,pose,blink:blinking,
     parts:{
@@ -164,6 +167,6 @@
   });
  }
  root.DungeonExpressionMotion=Object.freeze({
-  version:'2.5.0',poses:POSES,statuses:STATUS_PRESETS,drawSpiralEye,drawFaceSweat,createActor
+  version:'2.6.0',poses:POSES,statuses:STATUS_PRESETS,drawSpiralEye,drawFaceSweat,createActor
  });
 })(window);
