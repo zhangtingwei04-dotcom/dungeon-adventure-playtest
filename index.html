@@ -5245,10 +5245,11 @@ function paintPaperDollHair(){
   ctx.imageSmoothingEnabled=false;
   // Each 64×160 hair PNG is loaded separately; no atlas coordinate coupling.
   // Male and female stay on the SAME 64x160 origin. The full female
-  // hair sprite is a little narrower and higher so it naturally hugs
-  // the forehead and ears, without changing face/body/neck anchors.
+  // Crop to the 64px female hair region and compress its native height by ~8%.
+  // This lowers the crown while keeping the ends of the bangs and side locks
+  // near their previous position. Face, neck, body and male art are unchanged.
   if(s.appearanceV1?.gender==='female'&&FEMALE_SPLIT_READY)
-   ctx.drawImage(hairAtlasImage,0,0,64,160,0,-5,61,160);
+   ctx.drawImage(hairAtlasImage,0,0,64,64,0,0,61,59);
   else ctx.drawImage(hairAtlasImage,0,0,64,160,0,0,64,160);
   const frame=ctx.getImageData(0,0,64,160),pixels=frame.data;
   for(let i=0;i<pixels.length;i+=4){
