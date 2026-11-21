@@ -2419,6 +2419,12 @@ html.stage-locked #app #topGameHud .top-hud-disabled{
  background:linear-gradient(#243c38,#1a302e);
  border-color:#716e5a;
 }
+/* Visual test of vitality (not a gameplay resource or saved stat). */
+html.stage-locked #app #topGameHud #hudSPFill{
+ display:block;width:70%;height:100%;
+ background:linear-gradient(#a1d4b3,#548e8b);border-radius:20px;
+ transition:width .2s ease;
+}
 html.stage-locked #app #topGameHud .top-hud-controls{
  display:flex;align-items:center;justify-content:flex-end;gap:7px;min-width:0;
 }
@@ -3886,8 +3892,8 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
    <div class="top-hud-meter top-hud-disabled" aria-label="魔力尚未開放"></div>
   </div>
   <div class="top-hud-resource">
-   <div class="top-hud-resource-line"><span>ϟ SP</span><span>— / —</span></div>
-   <div class="top-hud-meter top-hud-disabled" aria-label="精力尚未開放"></div>
+   <div class="top-hud-resource-line"><span>ϟ SP · 試驗</span><span id="hudSPText">70 / 100</span></div>
+   <div class="top-hud-meter" id="hudSPMeter" role="progressbar" aria-label="活力視覺測試（非正式數值）" aria-valuemin="0" aria-valuemax="100" aria-valuenow="70"><span id="hudSPFill"></span></div>
   </div>
  </div>
  <div class="top-hud-controls">
@@ -6690,8 +6696,8 @@ function setActionVisual(button,kind,label){
  const title=document.createElement('span');title.className='action-title';title.textContent=label;
  button.appendChild(title);
 }
-/* Only real HP exists in this prototype; MP and SP are display placeholders
-   until magic/stamina rules are explicitly approved. No new save attributes. */
+/* Only HP is a real gameplay stat. MP is disabled; SP displays a session-only
+   VISUAL prototype with no gameplay effects or save attributes. */
 function renderPlayerStatus(){
  const max=Math.max(1,Number(s.maxHp)||1);
  const hp=Math.max(0,Math.min(max,Number(s.hp)||0));
@@ -6702,6 +6708,11 @@ function renderPlayerStatus(){
  $('hudHPFill').style.width=percent+'%';
  $('hudHPMeter').setAttribute('aria-valuemax',String(max));
  $('hudHPMeter').setAttribute('aria-valuenow',String(hp));
+ const sp=REST_SP_TEST_VALUES[paperDollRestPreview.vitality];
+ $('hudSPText').textContent=sp+' / 100';
+ $('hudSPFill').style.width=sp+'%';
+ $('hudSPMeter').setAttribute('aria-valuenow',String(sp));
+ $('hudSPMeter').title='活力視覺測試：'+window.DungeonExpressionMotion.restVitality[paperDollRestPreview.vitality]+'；尚無消耗與回復規則';
  const meter=$('playerHpTrack');
  meter.setAttribute('aria-valuemax',String(max));
  meter.setAttribute('aria-valuenow',String(hp));
