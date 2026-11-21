@@ -7,6 +7,8 @@
  const W=64,H=160,LEFT=29,TOP=43,PW=7,PH=4;
  const poses=new Set(['neutral','smile','happy','surprised','frown','shy','talkSmall','talkOpen']);
  let base=null,loading=false,failed=false;
+ let maleBase=null,maleLoading=false;
+ // Match gender-specific skin pixels: male face is female art recolored warm.
  function prepare(){
   if(base||loading||failed)return;
   const uri=root.DUNGEON_FEMALE_FACE_V2||root.DUNGEON_FEMALE_HEAD_V1;
@@ -25,6 +27,25 @@
    loading=false;
   };
   img.onerror=()=>{failed=true;loading=false};img.src=uri;
+ }
+ function prepareMale(){
+  if(maleBase||maleLoading)return;
+  const uri=root.DUNGEON_MALE_SHARED_FACE_V5;
+  if(typeof uri!=='string'||!uri.startsWith('data:image/png;base64,'))return;
+  maleLoading=true;const img=new Image();
+  img.onload=()=>{
+   try{
+    if(img.width!==W||img.height!==H)throw Error('Male shared face must be 64x160');
+    const c=document.createElement('canvas');c.width=W;c.height=H;
+    const ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0);
+    const raw=ctx.getImageData(0,0,W,H).data,part=new Uint8ClampedArray(PW*PH*4);
+    for(let y=0;y<PH;y++)for(let x=0;x<PW;x++)for(let k=0;k<4;k++)
+     part[(y*PW+x)*4+k]=raw[((TOP+y)*W+LEFT+x)*4+k];
+    maleBase=part;root.dispatchEvent(new Event('dungeon-female-mouth-ready'));
+   }catch(err){console.warn('Male shared mouth source:',err)}
+   maleLoading=false;
+  };
+  img.onerror=()=>{maleLoading=false};img.src=uri;
  }
  function poseFrame(background,pose){
   const pixels=new Uint8ClampedArray(background);
@@ -55,24 +76,27 @@
   return new ImageData(pixels,PW,PH);
  }
  function render(stage,opts={}){
-  if(!stage||!stage.classList.contains('paperdoll-female'))return;
+  if(!stage||!(stage.classList.contains('paperdoll-female')||
+    stage.classList.contains('paperdoll-shared-male-face')))return;
   const cv=stage.querySelector('.paperdoll-female-mouth-motion-canvas');if(!cv)return;
   const ctx=cv.getContext('2d');if(!ctx)return;
   ctx.imageSmoothingEnabled=false;ctx.clearRect(0,0,W,H);
-  if(!base){prepare();return;}
+  const isSharedMale=stage.classList.contains('paperdoll-shared-male-face');
+  const sourceBase=isSharedMale?maleBase:base;
+  if(!sourceBase){if(isSharedMale)prepareMale();else prepare();return;}
   let pose=opts.unconscious?'neutral':(poses.has(opts.pose)?opts.pose:'neutral');
   if(!opts.unconscious&&opts.talking){
    const step=Math.floor((Number(opts.time)||0)/170)%4;
    pose=step===0?'neutral':step===2?'talkOpen':'talkSmall';
   }
   if(pose==='neutral')return;
-  let skinBase=base;
+  let skinBase=sourceBase;
   if(stage.classList.contains('skin-tinted')){
    const skin=stage.querySelector('.paperdoll-skin-canvas')?.getContext('2d',{willReadFrequently:true});
    if(skin)skinBase=skin.getImageData(LEFT,TOP,PW,PH).data;
   }
   ctx.putImageData(poseFrame(skinBase,pose),LEFT,TOP);
  }
- root.DungeonFemaleMouthMotionV1=Object.freeze({version:'3.0.0',render,prepare});
+ root.DungeonFemaleMouthMotionV1=Object.freeze({version:'3.1.0',render,prepare});
  prepare();
 })(window);
