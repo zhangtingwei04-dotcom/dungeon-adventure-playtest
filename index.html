@@ -3744,8 +3744,10 @@ html.stage-locked #app .paperdoll-stage .paperdoll-condition-canvas{z-index:6}
 html.stage-locked #app .paperdoll-stage.skin-tinted .male-base,
 html.stage-locked #app .paperdoll-stage.skin-tinted .male-face,
 html.stage-locked #app .paperdoll-stage.eyes-tinted .male-eyes{display:none}
-/* Female neck is recolored with skin canvas as an aligned 64x160 layer. */
-html.stage-locked #app .paperdoll-stage.skin-tinted .paperdoll-female-neck{display:none}
+/* Independent male/female 64x160 neck bridges recolor together with body.
+   A tinted neck is drawn by skin canvas, so hide the original sprite. */
+html.stage-locked #app .paperdoll-stage.skin-tinted .paperdoll-female-neck,
+html.stage-locked #app .paperdoll-stage.skin-tinted .paperdoll-male-neck{display:none}
 /* Actual eye replacement: while unconscious, do NOT paint original eye art
    or the tinted-eye canvas. The black moving spirals are the only eyes. */
 .paperdoll-stage.eyes-unconscious .male-eyes,
@@ -5674,6 +5676,8 @@ function paintPaperDollSkin(){
  const preset=PAPERDOLL_SKIN_TONES.find(t=>t.id===choice);if(!preset?.rgb)return;
  const sources=s.appearanceV1?.gender==='female'&&FEMALE_REPLACEMENT_HEAD_LAYERS?
   [paperDollSprite('body'),'./assets/female_neck_v1.svg?v=1',paperDollSprite('face')]:
+  isMaleSharedFaceReady()?
+  [paperDollSprite('body'),'./assets/male_neck_v1.svg?v=1',paperDollSprite('face')]:
   ['body','face'].map(key=>paperDollSprite(key));
  if(!paperDollSkinImages||sources.some((url,i)=>paperDollSkinImages.sources[i]!==url)){
   const imgs=sources.map(()=>new Image());paperDollSkinImages={sources,imgs};
@@ -5714,10 +5718,14 @@ function equipmentGuideHTML(sceneMode='equipment'){
  if(show('feet'))indexes.push(4);
  if(show('outer'))indexes.push(5);
  // Approved white-fringe-cleaned tank sprite and shorts remain separate from the unchanged naked base.
+ // Neck bridges follow the original x32 paper-doll anchor and render under
+ // their respective face layers, without editing head, hair or clothing.
  const femaleNeck=s.appearanceV1?.gender==='female'&&FEMALE_REPLACEMENT_HEAD_LAYERS?
   '<span class="paperdoll-asset-layer paperdoll-female-neck" aria-hidden="true" style="background-image:url(./assets/female_neck_v1.svg?v=1)"></span>':'';
+ const maleNeck=isMaleSharedFaceReady()?
+  '<span class="paperdoll-asset-layer paperdoll-male-neck" aria-hidden="true" style="background-image:url(./assets/male_neck_v1.svg?v=1)"></span>':'';
  const base=maleTemplateLayer(character.layers.body,'male-base')+
-  femaleNeck+
+  femaleNeck+maleNeck+
   maleTemplateLayer(character.layers.face,'male-face')+
   '<canvas class="paperdoll-skin-canvas" width="64" height="160" aria-hidden="true"></canvas>';
  const shorts=privateScene||show('legs')?'':maleTemplateLayer(character.layers.shorts,'male-shorts');
