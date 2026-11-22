@@ -134,8 +134,10 @@
   // Eyes (including formerly-mislabelled upper lashes) occupy y32..38.
   // Repaint both with the original face skin during blink or expression
   // so neither the original eyelid nor eyebrow can ghost underneath.
-  // Include y42 so both female-style blush marks are visible below the eyes.
-  out.drawImage(scratch,18,27,30,16,18,27,30,16);
+  // Extend the eye overlay by 1px ONLY for shy blush at y42. All other
+  // expressions retain their previously approved 30x15 clip region.
+  const clipH=(pose==='shy'||eyeExpression==='shy')?16:15;
+  out.drawImage(scratch,18,27,30,clipH,18,27,30,clipH);
  }
  function renderMouth(stage,opts={}){
   const target=stage?.querySelector('.paperdoll-female-mouth-motion-canvas');if(!target)return;
