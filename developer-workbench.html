@@ -242,17 +242,20 @@ function paint(canvas,opts){
  if(adapter?.ready&&opts.expression){
   var f=opts.frame;
   if(f){
-   adapter.renderEyes(stage,{closed:f.parts.eyes==='eyesClosed',unconscious:false,blink:f.effects.blink,gaze:'center',eyeColor:'purple',eyeExpression:f.parts.eyes||'original',brows:f.parts.brows||'original',skinTone:'original'});
+   adapter.renderEyes(stage,{closed:opts.closed||f.parts.eyes==='eyesClosed',unconscious:opts.closed===true,blink:f.effects.blink,gaze:'center',eyeColor:'purple',eyeExpression:f.parts.eyes||'original',brows:f.parts.brows||'original',skinTone:'original'});
    var mouth=f.parts.mouth==='happy'||f.parts.mouth==='smile'?'smile':f.parts.mouth==='angry'?'frown':f.parts.mouth==='original'?'neutral':f.parts.mouth||'neutral';
-   adapter.renderMouth(stage,{pose:mouth,unconscious:false,talking:state.talking,time:opts.time,skinTone:'original'});
+   adapter.renderMouth(stage,{pose:mouth,unconscious:opts.closed===true,talking:state.talking&&!opts.closed,time:opts.time,skinTone:'original'});
    c.drawImage(eyeCv,0,0);c.drawImage(mouthCv,0,0);
   }
  }
  if(opts.hair)c.drawImage(images.maleHair,0,0);
  if(opts.expression&&opts.frame){
   var fx=opts.frame.effects;
+  if(state.sleepMode!=='awake')motion.drawRestEffects(c,{sleep:state.sleepMode,elapsed:opts.time-restChangedAt},opts.time);
   if(fx.sweat)motion.drawFaceSweat(c,opts.frame.status,opts.sweatFrame,{sweatY:26,sweatLong:true,sweatEyeSafe:true});
-  if(fx.circleEyes)for(var x of [25,39])motion.drawSpiralEye(c,x,36,fx.circlePhase);
+  if(fx.circleEyes&&!opts.closed)for(var x of [25,39])motion.drawSpiralEye(c,x,36,fx.circlePhase);
+  if(opts.closed)rootUnconscious(c,opts.time);
+  else if(state.abnormalMode!=='none')motion.drawAbnormalEffects(c,[state.abnormalMode],opts.time,{eyeCenters:[[25,36],[39,36]]});
  }
 }
 function rootUnconscious(ctx,time){
