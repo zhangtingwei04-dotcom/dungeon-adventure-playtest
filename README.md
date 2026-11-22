@@ -1,5 +1,10 @@
 # 殘車之後｜地下城冒險公開測試 V0.5.1
 
+## 女性試裝表情系統 V1（2026-11-22）
+
+已在 [開發者工具台](https://zhangtingwei04-dotcom.github.io/dungeon-adventure-playtest/developer-workbench.html) 加入**女性專用試裝表情層**（`assets/female_trial_expression_v1.js`），直接以目前選取的女性原版或新試裝頭部取樣；中性完全不修改原圖。可測試微笑／開心／驚訝／生氣／害羞／閉眼／眨眼，以及 HP 四階段、汗滴、戰敗圈圈眼、睡眠與八種異常視覺預覽、說話口型。女性銀白髮偏移預設 x=-2、y=-5，仍可每次 1px 微調。**只安裝於工具台**，未將尚未完成美術驗收的女性新頭與表情裝到正式遊戲。詳見 [女性表情安裝紀錄](docs/FEMALE_TRIAL_EXPRESSION_INSTALL_2026-11-22.md)。
+
+
 ## 開發者工具台 V1（2026-11-22）
 
 已建立 iPhone 可操作的 [開發者工具台](https://zhangtingwei04-dotcom.github.io/dungeon-adventure-playtest/developer-workbench.html)。可預覽男女頭型、男性 HP／表情動畫、女性銀白髮每次 1px 對位（目前試排 x=-2、y=-5）、前後比較及透明 PNG／設定 JSON 匯出。此頁使用既有真實素材，不修改正式角色或遊戲存檔；手動設定僅存於獨立本機儲存空間，並不具備 GitHub 寫入權限。設計／限制見 [工具台開發紀錄](docs/DEVELOPER_WORKBENCH_V1_2026-11-22.md)。
