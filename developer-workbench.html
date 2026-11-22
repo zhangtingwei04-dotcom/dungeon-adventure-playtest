@@ -115,6 +115,15 @@ footer{font-size:12px;color:#9cb7a8;padding:18px 0 10px}
 </div>
 <p id="hairToolNote">依你最後的微調要求，預設左移 2px、上移 5px。原始髮片與光頭都不變。</p>
 </div>
+<div id="maleTrialLayers" hidden>
+<h3>新版男性五層｜逐層檢查</h3>
+<div class="checks">
+<label><input id="trialBrowOn" type="checkbox" checked> ② 眉毛</label>
+<label><input id="trialEyesOn" type="checkbox" checked> ③ 藍眼</label>
+<label><input id="trialMouthOn" type="checkbox" checked> ④ 嘴巴</label>
+</div>
+<p>① 光頭底圖固定、⑤ 髮型由上方「頭髮」控制。關閉任一零件只改預覽，不會移動頭部或下巴。</p>
+</div>
 <div id="expressionControls">
 <h3>男女表情與 HP 測試</h3>
 <div class="fields">
@@ -172,7 +181,7 @@ footer{font-size:12px;color:#9cb7a8;padding:18px 0 10px}
 'use strict';
 var $=id=>document.getElementById(id);
 var key='dungeon-dev-workbench-v1';
-var defaults=Object.freeze({gender:'female',femaleVersion:'trial',maleVersion:'dome2',hair:true,hairX:-2,hairY:-5,showGrid:false,showGuides:false,zoom:8,animate:true,hp:'normal',pose:'auto',sweatFrame:3,sleepMode:'awake',abnormalMode:'none',talking:false});
+var defaults=Object.freeze({gender:'female',femaleVersion:'trial',maleVersion:'dome2',hair:true,hairX:-2,hairY:-5,showGrid:false,showGuides:false,zoom:8,animate:true,hp:'normal',pose:'auto',sweatFrame:3,sleepMode:'awake',abnormalMode:'none',talking:false,trialBrows:true,trialEyes:true,trialMouth:true});
 var state={...defaults},images={},ready=false,rendering=false,lastTime=0;
 if(new URLSearchParams(window.location.search).get('male-trial')==='1'){
  state.gender='male';state.maleVersion='trial5';state.hair=true;
@@ -222,6 +231,10 @@ function updateSelect(){
  sel.replaceChildren();
  for(var entry of versions){var o=document.createElement('option');o.value=entry[0];o.textContent=entry[1];sel.append(o)}sel.value=chosen;
  $('femaleControls').hidden=!isFemale();
+ $('maleTrialLayers').hidden=isFemale()||state.maleVersion!=='trial5';
+ $('trialBrowOn').checked=state.trialBrows;
+ $('trialEyesOn').checked=state.trialEyes;
+ $('trialMouthOn').checked=state.trialMouth;
  $('hairOn').value=state.hair?'on':'off';
  $('offsetValue').textContent='X '+(state.hairX>=0?'+':'')+state.hairX+'px · Y '+(state.hairY>=0?'+':'')+state.hairY+'px';
  $('showGrid').checked=state.showGrid;$('showGuides').checked=state.showGuides;$('animate').checked=state.animate;
@@ -239,12 +252,12 @@ function paintMaleTrial(c,opts){
   mouth=step===0?'original':step===2?'talkOpen':'talkSmall';
  }
  c.drawImage(images.maleTrialHead,0,0);
- c.drawImage(images.maleTrialBrows,0,0);
- if(eyesClosed){
+ if(state.trialBrows)c.drawImage(images.maleTrialBrows,0,0);
+ if(!state.trialEyes){}else if(eyesClosed){
   c.fillStyle='#4d302c';
   c.fillRect(23,38,6,1);c.fillRect(35,38,6,1);
  }else c.drawImage(images.maleTrialEyes,0,0);
- if(!f||['original','normal','neutral','weak','critical','eyesClosed'].includes(mouth)){
+ if(!state.trialMouth){}else if(!f||['original','normal','neutral','weak','critical','eyesClosed'].includes(mouth)){
   c.drawImage(images.maleTrialMouth,0,0);
  }else{
   const skin=c.getImageData(31,46,1,1).data;
@@ -261,11 +274,11 @@ function paintMaleTrial(c,opts){
   }else if(mouth==='talkSmall')c.fillRect(31,47,2,1);
   else c.drawImage(images.maleTrialMouth,0,0);
  }
- if(f?.expression==='shy'||f?.parts?.brows==='shy'){
+ if(state.trialEyes&&(f?.expression==='shy'||f?.parts?.brows==='shy')){
   c.fillStyle='rgba(225,141,144,.65)';
   c.fillRect(21,44,2,1);c.fillRect(41,44,2,1);
  }
- if(f?.expression==='angry'){
+ if(state.trialBrows&&f?.expression==='angry'){
   c.fillStyle='#58362e';c.fillRect(27,34,2,1);c.fillRect(35,34,2,1);
  }
  if(opts.hair)c.drawImage(images.maleTrialHair,0,0);
@@ -377,6 +390,7 @@ function updateManifest(){
   '專案：《迷宮盡頭的燈火》','角色：'+(isFemale()?'女性':'男性 V3'),
   '版本：'+ver,'頭部 PNG：64 × 160（透明）','頭髮：'+(state.hair?'顯示':'隱藏'),
   '頭髮座標：'+(isFemale()?('x='+state.hairX+', y='+state.hairY):state.maleVersion==='trial5'?'新版試裝 x=0, y=0（頭與下巴不平移）':'原始固定位置'),
+  '新版五層：'+(state.maleVersion==='trial5'?('頭底圖固定、眉毛 '+(state.trialBrows?'開':'關')+'、眼睛 '+(state.trialEyes?'開':'關')+'、嘴巴 '+(state.trialMouth?'開':'關')):'未選取'),
   '動畫：'+(state.animate?'播放':'暫停'),
   '表情：'+state.pose+' · HP：'+state.hp+' · 睡眠：'+state.sleepMode+' · 異常：'+state.abnormalMode,
   '正式版修改：無（僅匯出／預覽）',
@@ -435,6 +449,7 @@ function restore(raw){
  state.sleepMode=Object.hasOwn(motion.restSleep,raw.sleepMode)?raw.sleepMode:'awake';
  state.abnormalMode=raw.abnormalMode==='none'||Object.hasOwn(motion.abnormalLabels,raw.abnormalMode)?raw.abnormalMode:'none';
  state.talking=raw.talking===true;
+ for(const k of ['trialBrows','trialEyes','trialMouth'])state[k]=raw[k]!==false;
 }
 for(let tab of document.querySelectorAll('[data-tab]')){
  tab.addEventListener('click',()=>{for(var b of document.querySelectorAll('[data-tab]')){b.classList.toggle('active',b===tab)}
@@ -445,6 +460,9 @@ for(let tab of document.querySelectorAll('[data-tab]')){
 $('gender').onchange=e=>changeState(()=>state.gender=e.target.value);
 $('version').onchange=e=>changeState(()=>{if(isFemale())state.femaleVersion=e.target.value;else state.maleVersion=e.target.value});
 $('hairOn').onchange=e=>changeState(()=>state.hair=e.target.value==='on');
+$('trialBrowOn').onchange=e=>changeState(()=>state.trialBrows=e.target.checked);
+$('trialEyesOn').onchange=e=>changeState(()=>state.trialEyes=e.target.checked);
+$('trialMouthOn').onchange=e=>changeState(()=>state.trialMouth=e.target.checked);
 $('zoom').onchange=e=>changeState(()=>state.zoom=Number(e.target.value));
 $('showGrid').onchange=e=>changeState(()=>state.showGrid=e.target.checked);
 $('showGuides').onchange=e=>changeState(()=>state.showGuides=e.target.checked);
