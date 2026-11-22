@@ -4026,6 +4026,9 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <script src="./assets/male_template_v9_test.js?v=1"></script>
 <script src="./assets/male_v9_gaze_v1.js?v=1"></script>
 <script src="./assets/male_v9_equipment_v1.js?v=3"></script>
+<!-- Original 2026-11-21 V3 acceptance art; default male head. ?male-head=v9/v8 restores older versions. -->
+<script src="./assets/male_approved_v3_layers.js?v=1"></script>
+<script src="./assets/male_approved_v3_adapter.js?v=1"></script>
 <script src="./assets/female_eye_motion_v1.js?v=10"></script>
 <script src="./assets/female_mouth_motion_v1.js?v=10"></script>
 <script>
@@ -5041,8 +5044,8 @@ function isMaleSharedFaceReady(){
 function paperDollLayers(){
  const gender=s.appearanceV1?.gender==='female'?'female':'male';
  if(gender==='female'&&FEMALE_REPLACEMENT_HEAD_LAYERS)return FEMALE_REPLACEMENT_HEAD_LAYERS;
- // Male V9 approved template, or the original V8 with ?male-head=v8.
- // Face and independent hair remain in one native 64x160 coordinate frame.
+ // Exact user-approved V3 head (2026-11-21), or comparison V9/V8 using
+ // ?male-head=v9 or ?male-head=v8; every layer remains in 64x160 coordinates.
  if(isMaleSharedFaceReady())return {...PAPERDOLL_SEPARATE_LAYERS,
   face:window.DUNGEON_MALE_SHARED_FACE_V5,
   hair:(typeof window.DUNGEON_MALE_HAIR_V8==='string'&&
@@ -5428,7 +5431,8 @@ function renderPaperDollHairControls(){
  const hairStyleSelect=document.createElement('select');hairStyleSelect.className='paperdoll-choice-select';
  hairStyleSelect.setAttribute('aria-label','選擇髮型');
  for(const [id,name] of [['original',s.appearanceV1.gender==='male'?
-    (window.DungeonMaleV9Equipment?.active?'原始銀白亂髮 V9':'銀白蓬鬆髮型 V8b'):'原始髮型'],['bald','無髮型（光頭）']]){
+    (window.DungeonMaleV9Equipment?.version==='v3-accepted'?'先前驗收銀白髮型 V3':
+     window.DungeonMaleV9Equipment?.active?'銀白亂髮 V9':'銀白蓬鬆髮型 V8b'):'原始髮型'],['bald','無髮型（光頭）']]){
   const option=document.createElement('option');option.value=id;option.textContent=name;
   option.selected=s.appearanceV1.parts?.hairStyle===id;hairStyleSelect.appendChild(option);
  }
@@ -5633,7 +5637,7 @@ function renderPaperDollAbnormalControls(){
  summary.textContent='異常狀態｜'+(active.length?active.map(id=>PAPERDOLL_ABNORMAL_STATES[id]).join('、'):'目前無異常');
  details.appendChild(summary);
  const note=document.createElement('p');note.className='paperdoll-expression-note';
- note.textContent='男性 V9 昏迷時雙眼平靜閉合，頭頂右上顯示一個旋轉圈圈眼圖示，嘴巴保持平靜；戰敗的紫色圈圈眼不變。女性與 V8 頭維持原本昏迷效果；僅預覽，不影響 HP 或存檔。';details.appendChild(note);
+ note.textContent='男性 V3 與 V9 昏迷時雙眼平靜閉合，頭頂右上顯示一個旋轉圈圈眼圖示，嘴巴保持平靜；戰敗紫色圈圈眼不變。女性與 V8 保持原樣；僅預覽，不影響 HP 或存檔。';details.appendChild(note);
  const list=document.createElement('div');list.className='paperdoll-abnormal-options';
  for(const [id,name] of Object.entries(PAPERDOLL_ABNORMAL_STATES)){
   const label=document.createElement('label'),input=document.createElement('input');input.type='checkbox';
@@ -5888,6 +5892,7 @@ function paintPaperDollPhysicalCondition(){
   ctx.clearRect(0,0,64,160);
   // V8 and V9 both keep the full head at its unchanged native position.
   const maleShared=stage.classList.contains('paperdoll-shared-male-face');
+  const maleV3=maleShared&&window.DUNGEON_MALE_FACE_VERSION==='v3-accepted';
   const maleV9=maleShared&&window.DUNGEON_MALE_FACE_VERSION==='v9-original-template';
   const maleV8=maleShared&&window.DUNGEON_MALE_FACE_VERSION==='v8-new-eyes';
   // Only sleep creates visual effects; SP is a test number and blue HUD bar.
@@ -5897,8 +5902,8 @@ function paintPaperDollPhysicalCondition(){
    },t,maleV8?{y:-1}:undefined);
   // HP condition motion is independent from all abnormal effects.
   if(effects?.sweat)window.DungeonExpressionMotion.drawFaceSweat(ctx,frame.status,effects.sweatPhase,
-   maleV9||maleV8?{sweatY:28}:undefined);
-  const eyeY=maleV9?39:maleV8?37:36;
+   maleV3||maleV9||maleV8?{sweatY:28}:undefined);
+  const eyeY=maleV3?36:maleV9?39:maleV8?37:36;
   if(effects?.circleEyes&&!abnormal.includes('unconscious')){
    // Both genders use the same purple spiral sprites and 3x3 pixel size
    // on top of their original eyes; only eye-center Y differs by head art.
@@ -5909,14 +5914,15 @@ function paintPaperDollPhysicalCondition(){
   // plus exactly ONE slowly rotating black spiral-eye ICON above the upper-right
   // hairline. Exclude unconscious from the shared double-eye renderer. Keep
   // every other abnormal mark and the V8/female behavior untouched.
-  if(maleV9&&abnormal.includes('unconscious')){
+  if((maleV3||maleV9)&&abnormal.includes('unconscious')){
    const otherAbnormal=abnormal.filter(id=>id!=='unconscious');
    if(otherAbnormal.length)window.DungeonExpressionMotion.drawAbnormalEffects(ctx,otherAbnormal,t,
-    {eyeCenters:[[25,39],[39,39]]});
+    {eyeCenters:maleV3?[[25,36],[39,36]]:[[25,39],[39,39]]});
    // Preserve the x55/y12 position and rotation; only enlarge to 8x8 pixels.
    if(!window.DungeonMaleV9UnconsciousIcon?.draw(ctx,t,55,12))
     window.DungeonExpressionMotion.drawUnconsciousEyes(ctx,t*0.45,{eyeCenters:[[55,12]]});
   }else if(abnormal.length)window.DungeonExpressionMotion.drawAbnormalEffects(ctx,abnormal,t,
+   maleV3?{eyeCenters:[[25,36],[39,36]]}:
    maleV9?{eyeCenters:[[25,39],[39,39]]}:
    maleV8?{y:-1,eyeCenters:[[25,38],[39,38]]}:undefined);
  }
