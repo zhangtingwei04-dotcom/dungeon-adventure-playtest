@@ -23,7 +23,7 @@ select{min-height:40px;min-width:150px;max-width:100%;font-size:15px;padding:5px
 a{color:#ffe0a0}
 @media(max-width:520px){.gallery{grid-template-columns:1fr}.card h3{min-height:0}.sample canvas{max-width:140px}}
 </style>
-<script src="./assets/expression_motion.js?v=2.19"></script>
+<script src="./assets/expression_motion.js?v=2.20"></script>
 <script src="./assets/male_v9_unconscious_icon_v2.js?v=1"></script>
 <script src="./assets/male_approved_v3_layers.js?v=1"></script>
 <script src="./assets/male_v3_corrected_layers_v2.js?v=1"></script>
@@ -130,7 +130,7 @@ a{color:#ffe0a0}
   ctx.drawImage(c.mouthCanvas,0,0);
   if(!c.bald)ctx.drawImage(imgs.hair_standard,0,0);
   if(test.sleep)motion.drawRestEffects(ctx,{sleep:test.sleep,elapsed:time-startAt},time);
-  if(frame.effects.sweat)motion.drawFaceSweat(ctx,frame.status,frame.effects.sweatPhase,{sweatY:26,sweatLong:true});
+  if(frame.effects.sweat)motion.drawFaceSweat(ctx,frame.status,frame.effects.sweatPhase,{sweatY:26,sweatLong:true,sweatEyeSafe:true});
   if(frame.effects.circleEyes&&!unconscious)
    for(const x of [25,39])motion.drawSpiralEye(ctx,x,36,frame.effects.circlePhase);
   if(test.abnormal&&test.abnormal!=='none'){
