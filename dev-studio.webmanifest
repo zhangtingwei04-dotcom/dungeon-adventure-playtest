@@ -1,0 +1,21 @@
+{
+  "name": "迷宮盡頭的燈火｜開發者總台",
+  "short_name": "燈火開發台",
+  "id": "./developer-studio.html",
+  "start_url": "./developer-studio.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0b1c19",
+  "theme_color": "#16382d",
+  "description": "《迷宮盡頭的燈火》開發工作台：遊戲獨立存檔預覽、角色裝備與髮型素材庫、圖層定位與數據匯出。",
+  "icons": [
+    {
+      "src": "./assets/dev-studio-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "lang": "zh-TW"
+}
