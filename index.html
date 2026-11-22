@@ -4145,7 +4145,9 @@ if(window.matchMedia('(display-mode: standalone)').matches||navigator.standalone
    img.src=art[key];
   }
  })();
-const KEY='dungeon_adventure_ch1_v01';
+// Developer-studio preview is intentionally isolated from real play saves.
+const DEV_PREVIEW_MODE=new URLSearchParams(location.search).get('dev-preview')==='1';
+const KEY=DEV_PREVIEW_MODE?'dungeon_adventure_ch1_devpreview_v1':'dungeon_adventure_ch1_v01';
 const $=id=>document.getElementById(id);
 const names={wreck:['破損的馬車','森林邊緣 · 一切從這裡開始'],trail:['林間小徑','陽光沿著舊路灑落'],clearing:['寂靜的林間空地','風聲裡混著陌生的細響'],ruin:['苔生石門','林木間的無名遺構'],gate:['城鎮入口','道路與陌生的人群'],inn:['旅店客房','一處短暫安全的地方'],lobby:['旅店大廳','晨光與麵包香氣'],street:['城鎮街道','人們各自忙碌的日常'],guild:['冒險者公會','工作、傳聞與出發前的準備'],outskirts:['近郊路口','城牆之外 · 未知尚在前方'],home:['冒險小隊的公共起居室','共同生活的六個人 · 只是普通的一天']};
 // Fictional first-chapter travel times in game minutes (balance estimates, not measured distances).
