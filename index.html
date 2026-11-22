@@ -4069,6 +4069,7 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <script src="./assets/female_eye_motion_v1.js?v=10"></script>
 <script src="./assets/female_mouth_motion_v1.js?v=10"></script>
 <script src="./assets/traveler_cloak_trial_v1.js?v=1"></script>
+<script src="./assets/dungeon_generated_cloak_v2.js?v=2"></script>
 <script>
 (()=>{'use strict';
 // Fixed design canvas: use the approved screenshot's exact 1536×707 ratio,
@@ -5031,6 +5032,7 @@ const LEGACY_EQUIPMENT_ART_ENABLED=false;
 // Unapproved artwork stays in its workbench; production starts without the cloak sprite.
 // Opt-in ?cloak=trial permits an explicit comparison in the live game only.
 const CLOAK_PIXEL_TRIAL_ENABLED=new URLSearchParams(location.search).get('cloak')==='trial';
+const CLOAK_ART_V2_TRIAL_ENABLED=new URLSearchParams(location.search).get('cloak')==='art2';
 let paperDollTryOn=false;
 
 /* Hair tint belongs to the player appearance, not equipment or the source PNG.
@@ -5953,9 +5955,11 @@ function equipmentGuideHTML(sceneMode='equipment'){
   '<span class="paperdoll-layer paperdoll-approved-bag" aria-hidden="true"></span>':'';
  // This is a NEW reversible cloak prototype. Other rejected gear art stays off.
  // The test follows equipped state, never a preview or a second inventory.
- const cloakArt=CLOAK_PIXEL_TRIAL_ENABLED&&!privateScene&&
-   s.equipmentV1?.outer==='starter_cloak'&&window.DungeonTravelerCloakTrialV1?.ready?
-   window.DungeonTravelerCloakTrialV1.sprites[s.appearanceV1?.gender==='female'?'female':'male']:null;
+ const cloakArt=!privateScene&&s.equipmentV1?.outer==='starter_cloak'?
+  (CLOAK_ART_V2_TRIAL_ENABLED&&window.DungeonGeneratedCloakV2?.front&&window.DungeonGeneratedCloakV2?.back?
+    window.DungeonGeneratedCloakV2:
+   CLOAK_PIXEL_TRIAL_ENABLED&&window.DungeonTravelerCloakTrialV1?.ready?
+    window.DungeonTravelerCloakTrialV1.sprites[s.appearanceV1?.gender==='female'?'female':'male']:null):null;
  const cloakBack=cloakArt?'<span class="paperdoll-asset-layer paperdoll-cloak-trial-back" aria-hidden="true" style="background-image:url('+cloakArt.back+')"></span>':'';
  const cloakFront=cloakArt?'<span class="paperdoll-asset-layer paperdoll-cloak-trial-front" aria-hidden="true" style="background-image:url('+cloakArt.front+')"></span>':'';
  const extras=paperDollExtraLayerHTML('front');
@@ -6228,7 +6232,7 @@ function renderSideTab(tab,out){
   const appearanceControls=renderPaperDollAppearanceControls();
   // One selected slot, then one direct "脫下／裝上" action just below it.
   const artNote=document.createElement('p');artNote.className='equip-art-pending';
-  artNote.textContent='披風美術改到開發者工作台驗收；正式畫面先停用未核准披風圖，穿脫與存檔照常使用。';
+  artNote.textContent=CLOAK_ART_V2_TRIAL_ENABLED?'正使用深綠金邊披風原圖 V2 試穿；可至裝備庫調整位置和縮放，正式美術尚未驗收。':'披風原圖 V2 在開發者總台可試穿；正常遊玩仍隱藏未驗收披風圖。裝備和存檔照常使用。';
   footer.append(detail,equipAction,bag);
   section.append(board,footer,artNote,genderControls);
   section.append(hairControls,eyeControls,expressionControls,restControls,abnormalControls,appearanceControls);
