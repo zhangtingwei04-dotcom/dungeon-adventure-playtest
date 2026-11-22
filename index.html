@@ -4932,14 +4932,19 @@ function renderBackpackPanel(out){
  out.appendChild(foot);
 }
 
-/* Equipment diagram V1: underwear belongs to base-clothing artwork, not gear.
-   The enchanted satchel is the only equipped starter item. */
+/* Underwear is base-clothing artwork and does not occupy gear slots.
+   The full pictured travel outfit is equipped on new-game creation. */
 const STARTER_SATCHEL_ID='enchanted_satchel';
+const STARTER_OUTFIT_V2=Object.freeze({
+ chest:'starter_tunic',legs:'starter_trousers',feet:'starter_boots',
+ outer:'starter_cloak',hands:'starter_gloves',bag:STARTER_SATCHEL_ID
+});
 function createStartingEquipmentV1(){
- // Fresh state for each new game. All other equipment slots are empty.
- return {head:null,chest:null,main:null,legs:null,feet:null,
-  neck:null,outer:null,offhand:null,hands:null,
-  bag:STARTER_SATCHEL_ID,owned:[STARTER_SATCHEL_ID]};
+ const equipment={head:null,chest:null,main:null,legs:null,feet:null,
+  neck:null,outer:null,offhand:null,hands:null,bag:null,
+  owned:Object.values(STARTER_OUTFIT_V2),starterOutfitV2:true};
+ for(const [slot,id] of Object.entries(STARTER_OUTFIT_V2))equipment[slot]=id;
+ return equipment;
 }
 const EQUIPMENT_PARTS=Object.freeze([
  {id:'head',name:'頭部',symbol:'♜',side:'left',hint:'帽子、頭盔等頭部裝備'},
@@ -4955,14 +4960,25 @@ const EQUIPMENT_PARTS=Object.freeze([
 ]);
 function normalizeEquipmentV1(){
  if(!s.equipmentV1||typeof s.equipmentV1!=='object'||Array.isArray(s.equipmentV1))s.equipmentV1={};
- // Preserve equipped bag and migrate older saves into a nonduplicating owned-gear list.
+ // Preserve worn pieces and migrate older saves into a nonduplicating gear list.
  const eq=s.equipmentV1;
  if(eq.bag===undefined)eq.bag=STARTER_SATCHEL_ID;
  if(!Array.isArray(eq.owned))eq.owned=[STARTER_SATCHEL_ID];
  const knownIds=new Set(Object.values(EQUIPMENT_VISUAL_CATALOG).map(x=>x.id));
  eq.owned=[...new Set(eq.owned.filter(id=>typeof id==='string'&&knownIds.has(id)))];
- // Every existing player begins with this bag, even after they unequip it.
+ // Players retain their original satchel, even if they unequipped it.
  if(!eq.owned.includes(STARTER_SATCHEL_ID))eq.owned.push(STARTER_SATCHEL_ID);
+ // Legacy saves from before the full outfit release only carried a satchel.
+ // Give the outfit once, without undoing already chosen clothing states.
+ if(eq.starterOutfitV2!==true){
+  const alreadyHadClothing=Object.entries(STARTER_OUTFIT_V2).some(([slot,id])=>
+   slot!=='bag'&&(eq[slot]===id||eq.owned.includes(id)));
+  for(const [slot,id] of Object.entries(STARTER_OUTFIT_V2)){
+   if(!eq.owned.includes(id))eq.owned.push(id);
+   if(slot!=='bag'&&!alreadyHadClothing&&eq[slot]==null)eq[slot]=id;
+  }
+  eq.starterOutfitV2=true;
+ }
  for(const part of EQUIPMENT_PARTS){
   const item=EQUIPMENT_VISUAL_CATALOG[part.id];
   if(!item){if(eq[part.id]!==null)eq[part.id]=null;continue;}
@@ -4975,7 +4991,7 @@ function normalizeEquipmentV1(){
 // Nine aligned 64x160 pixel layers packed into one tested 576x160 PNG.
 const EQUIPMENT_PAPERDOLL_ATLAS_V3='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAkAAAACgCAMAAADTnyOvAAABgFBMVEUAAAD21rImHSEpTD4ULip4UzdVQjj35tDOrGYNAwZKNC4QBAgnGBs9MjDOua+Qakvp18vXw7lvVVSDaWvcx8KPdnQ3Jir6x5j+47uvmJPwy6jvt4nhzMZ7Y2ZrRzb36eKsiGxZRUmmeE7lrYXx04xkTE24opmXc1Sag4S6lGfCq6ejiom7pqJ0XWInFhfLl3Gch3BDLCqEXUfMqYuZoV1OPEPmqHpgP4r/8NOlfO7cwp4eEBVJJBiUfIT+9e06Ix5gPS2kaVF7Y1amfGLAjWkhDg80GUjoyP9FHRFkNHmHVDnZtZbknWwYBSMtHiE6JyRDKB1GLCZDIFJXM2NmMx6XXKavl7QeEhUhCzE3JENLH15bLnFiLH1yQ4t7bYWESS6DVpWBapCrZT+ljLG+s7LJnoDW0NPzsHwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAN7DRbAAAAgHRSTlMA//////////+A////////////////////////////////////////////////gP////////////////////////////////////////+AgICA//////+A/////////////////////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIw5A6gAABQOSURBVHja7Z0He+LG2obRYFv1DBo1EEIYsCmm2MaOvbvxliS7yUlOcnr5em///x980wSiSAhnrSAxT9ZeNBD7Qtz7vGVGo0pFSEhISEhISEhISEhISEhISKi4UvVI4lwIPYMfr2u5VJaqquJ8CO0p3eu6PmyZZmugaZ44H0LPiWGa7zgItVoj4+/E+RDaX9ee1zdNDJHviUxI6DkupD65E9hqIde7FmdDaF96aBwzQui0oAtEJi20nzwmw3OnDvQ9AZDQXim0N4EO1ngy0y2IfCB6QkJ7RC9rMoC4/jJbCA1sbTYOPWvkujND+JDQbnxAaI9buPoaT6f+dDqFYd+1Qp8o7IpcSCg5bNEQpXohMlsORNC1bde13dEg7Ib+aGaHru9bxn4/1GASZ/conMe6VlXVswf+AI5xDIMQOQ4c2LZtWbbrQzjF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';
 // Item IDs, images and slot icons stay in one equipment catalog.
-// The travel gear entries are previews unless equipped in the saved game.
+// All six pictured pieces are equipped at the start; try-on remains temporary.
 // Three-leaf traveler mark; scroll-free approved 64x160 paper-doll image.
 const EQUIPMENT_APPROVED_BAG_IMAGE='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAACgCAMAAACL85puAAAAwFBMVEUAAABsOSYTBAk0FhR3RStMJhuGSTGSWTNVKyIFAAMkDQ9XNBtbMSKVYzMIAgXwsUM7IhZCHRuweThnPB16UimTWLOkaDaxhUj/zV9fNmeyd0I6GEZMJ1BgMWx9PqNmQR9xU0eBQKmQaECda7ipVNegakKqYNS9gN3cq/fktvUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACArvJrAAAAQHRSTlMA//////////8v/////0X///////////////////////////////////8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAT0QWOAAAAa5JREFUeNrtlsl25DAIRYtJYA1l11xJD0l67v//wcg5+QGZnO4Nd+GdnnkIELtdEARBEARBEARBEASbQCHX+XI80uT5v14BPQFQNfMJAFePg51wApfAkhL7LDCwuG4BGARdZSTmu8fMrOKqZPamUZTV1Q2oSV0hTFVTc4VAzRnCHroJVwj5A7Lw3y9CFNzlyOrraoVU966uVoC6uEzUb7fmiWG5NWJ2CHCjZlpcaTQ7Fs9caHxj8mSBj3JInndyQuPKzgELyTwmJkrGvrY0BkDfQwUgZ09jEgCVsyMPfWMqTydHHpa2tCJE9myyMpyPifWE6TG9o+MdjlRKftS309Df/v1wKRCeSr9MgPv6GRZAEuNS16Pz+hmuK6QDnKXCfYb5PpumcQGhPqD7/+c1BB1/cLJZYZR3Czq8P01kwj+RCN4iQMJhC9W+//4kRlS0b4CQRwUO8uXP3xfRBNBYx7u7Czz8unyla0rCWjYIENjlx+e+tSQ7mNQNAiYPF6JuwQwqpzzeCyAEBNfWPdiGNXjfYzCjLEKZMm4Y0hNizv3kimdCB0EQBEEQBEHwr3gFnHgOo4ks+x0AAAAASUVORK5CYII=';
 const EQUIPMENT_TRILEAF_BAG_SLOT_ICON='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAMAAABg3Am1AAAAwFBMVEUAAABrOSU1FhQUBApOJxuGSC9VKyJ1RimOWC8lDQ/wsUNXMhsMAQdcMSOVYzMHAAVBHBs7IhRnPB2TWLP/zV9fNmemaTqyd0I6GEZMJ1BgMWx9PqNmQR94UitxU0eBQKmda7ipVNegakKqYNS9gN3cq/fktvUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABRvlJqAAAAQHRSTlMA//////////////84//9E//////////////////////////////8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEB4WKQAAAV9JREFUeNrtlNluwyAQRc2ABzDe1+x78v+f2NyipG2Slxj3qb0SMoI50izXRNHflZRKETm3WtU10W8AVZXnWM4BJGLebJjVXWkaCqSp1sbUtZRxPAzxg4ypqlAAZaNo56wdBmO+QsVVWgtRFGFAmqJUKevaOVx7ta24KxRAQkoxa+1clt2CkuS20/phnKOAshRivVYKQNsiOEnwZUYTpgBgCoxPSp+OR7A3V4UCUWQtX4Wmwuo/izZGKSnDAAwOdtb6cEB6RD7cIzgJBXCUZcy73ek0m2GEgJyD+bRGitaGAmWp1GJxPl8u261SGBWSyXM0GpZ5msMooOuOx6ZZLon6Hr8PmmCMc9MAaCRz0+z38zlRngNgLks0O8umAXDVdU2DhvqiYRYhEB7HL+bwFnBLChYXAqvvkRbKBvTCrW8DReHTgoisxROML5aUT+EjAFgcF/ZT8pueXtXRwL+m0wfyoSJ9l69eggAAAABJRU5ErkJggg==';
@@ -4985,6 +5001,7 @@ const EQUIPMENT_VISUAL_CATALOG=Object.freeze({
  legs:Object.freeze({id:'starter_trousers',name:'旅行長褲',icon:1}),
  feet:Object.freeze({id:'starter_boots',name:'皮革長靴',icon:2}),
  outer:Object.freeze({id:'starter_cloak',name:'深綠金邊披風',icon:3}),
+ hands:Object.freeze({id:'starter_gloves',name:'棕色皮革手套',icon:null,glyph:'✥'}),
  bag:Object.freeze({id:'enchanted_satchel',name:'附魔旅行側包',icon:4})
 });
 function displayEquipmentInSlot(slotId){
@@ -4994,7 +5011,7 @@ function displayEquipmentInSlot(slotId){
  if(paperDollTryOn)return {item,preview:true};
  return null;
 }
-const TRAVEL_OUTFIT_IMAGE_IDS=Object.freeze({chest:'starter_tunic',legs:'starter_trousers',feet:'starter_boots',outer:'starter_cloak',bag:'enchanted_satchel'});
+const TRAVEL_OUTFIT_IMAGE_IDS=STARTER_OUTFIT_V2;
 // Test only. Do not save preview clothes into equipmentV1 or inventory.
 let paperDollTryOn=false;
 
@@ -6085,8 +6102,11 @@ function renderEquipmentBoard(){
    btn.dataset.equipPart=part.id;
    btn.setAttribute('aria-label',part.name+'：'+(shown?shown.item.name+(preview?'（僅試穿）':'（已裝備）'):'空裝備格'));
    const icon=document.createElement('span');icon.className='equip-slot-symbol';icon.setAttribute('aria-hidden','true');
-   if(shown){icon.classList.add('equip-item-art');icon.style.backgroundPosition=String(shown.item.icon*25)+'% 0';if(part.id==='bag')icon.classList.add('equip-trileaf-bag-icon');}
-   else icon.textContent=part.symbol;
+   if(shown&&Number.isInteger(shown.item.icon)){
+    icon.classList.add('equip-item-art');
+    icon.style.backgroundPosition=String(shown.item.icon*25)+'% 0';
+    if(part.id==='bag')icon.classList.add('equip-trileaf-bag-icon');
+   }else icon.textContent=shown?.item.glyph||part.symbol;
    const words=document.createElement('span');words.className='equip-slot-words';
    const title=document.createElement('span');title.className='equip-slot-name';title.textContent=part.name;
    const status=document.createElement('span');status.className='equip-slot-status';
