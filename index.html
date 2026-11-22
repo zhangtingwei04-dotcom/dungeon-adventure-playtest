@@ -3781,9 +3781,9 @@ html.stage-locked #app .paperdoll-stage .paperdoll-condition-canvas{z-index:6}
 html.stage-locked #app .paperdoll-stage.skin-tinted .male-base,
 html.stage-locked #app .paperdoll-stage.skin-tinted .male-face,
 html.stage-locked #app .paperdoll-stage.eyes-tinted .male-eyes{display:none}
-/* The female-only neck bridge is drawn by her skin tint canvas. Male has
-   only the neck included in the approved body sprite. */
-html.stage-locked #app .paperdoll-stage.skin-tinted .paperdoll-female-neck{display:none}
+/* Female animation is a full head sprite, but body still masks its lower
+   neck: keep it in ordinary DOM stacking rather than overlaying everything. */
+html.stage-locked #app .paperdoll-stage.paperdoll-female-trial .paperdoll-female-trial-expression-canvas{z-index:auto}
 /* Unconscious hides legacy external eye sprites. Male V9 overrides its own
    face iris with CLOSED eyelids and puts one floating spiral above the hair;
    female / male V8 retain their existing eye-replacement behavior. */
@@ -5889,10 +5889,8 @@ function paintPaperDollSkin(){
  const choice=s.appearanceV1?.skinTone||'original';
  if(choice==='original'){stages.forEach(st=>st.classList.remove('skin-tinted'));return;}
  const preset=PAPERDOLL_SKIN_TONES.find(t=>t.id===choice);if(!preset?.rgb)return;
- const sources=s.appearanceV1?.gender==='female'&&FEMALE_REPLACEMENT_HEAD_LAYERS?
-  [paperDollSprite('body'),'./assets/female_neck_v1.svg?v=1',paperDollSprite('face')]:
-  // Male face beneath body: the body supplies the only neck.
-  [paperDollSprite('face'),paperDollSprite('body')];
+ // One body neck for both sexes, also when tinting the skin.
+ const sources=[paperDollSprite('face'),paperDollSprite('body')];
  if(!paperDollSkinImages||sources.some((url,i)=>paperDollSkinImages.sources[i]!==url)){
   const imgs=sources.map(()=>new Image());paperDollSkinImages={sources,imgs};
   for(let i=0;i<imgs.length;i++){
@@ -5902,8 +5900,8 @@ function paintPaperDollSkin(){
  if(paperDollSkinImages.imgs.some(im=>!im.complete||im.naturalWidth!==64))return;
  const work=document.createElement('canvas');work.width=64;work.height=160;
  const ctx=work.getContext('2d',{willReadFrequently:true});ctx.imageSmoothingEnabled=false;
- // Female skin: body -> female neck -> head; male skin: head -> body,
- // keeping pixel alignment while avoiding a duplicated male neck bridge.
+ // Male and female skin both composite head -> body so the body neck
+ // covers any redundant pixels below the head.
  for(const img of paperDollSkinImages.imgs)ctx.drawImage(img,0,0);
  const pixels=ctx.getImageData(0,0,64,160),d=pixels.data;
  for(let i=0;i<d.length;i+=4){
@@ -5934,19 +5932,15 @@ function equipmentGuideHTML(sceneMode='equipment'){
   if(show('outer'))indexes.push(5);
  }
  // Approved white-fringe-cleaned tank sprite and shorts remain separate from the unchanged naked base.
- // The female keeps her original neck bridge; male head goes under his
- // original body, which already supplies the single visible neck.
- const femaleNeck=s.appearanceV1?.gender==='female'&&FEMALE_REPLACEMENT_HEAD_LAYERS?
-  '<span class="paperdoll-asset-layer paperdoll-female-neck" aria-hidden="true" style="background-image:url(./assets/female_neck_v1.svg?v=1)"></span>':'';
- const base=s.appearanceV1?.gender==='female'?
-  (maleTemplateLayer(character.layers.body,'male-base')+
-   femaleNeck+
-   maleTemplateLayer(character.layers.face,'male-face')+
-   '<canvas class="paperdoll-skin-canvas" width="64" height="160" aria-hidden="true"></canvas>'):
-  // Render male head first; body then masks the duplicate neck pixels.
-  (maleTemplateLayer(character.layers.face,'male-face')+
-   maleTemplateLayer(character.layers.body,'male-base')+
-   '<canvas class="paperdoll-skin-canvas" width="64" height="160" aria-hidden="true"></canvas>');
+ // Both heads, including the animated official female head, are BELOW the
+ // original body. The body already includes the visible neck.
+ const femaleTrial=s.appearanceV1?.gender==='female'&&femaleOfficialHeadEnabled&&femaleOfficialHeadReady;
+ const femaleTrialFace=femaleTrial?
+  '<canvas class="paperdoll-female-trial-expression-canvas" width="64" height="160" aria-hidden="true"></canvas>':'';
+ const base=maleTemplateLayer(character.layers.face,'male-face')+
+  femaleTrialFace+
+  maleTemplateLayer(character.layers.body,'male-base')+
+  '<canvas class="paperdoll-skin-canvas" width="64" height="160" aria-hidden="true"></canvas>';
  // Independent underwear sprites: never owned/equipped gear.
  // The base tank and shorts remain visible underneath empty outerwear slots.
  // Base underwear remains visible until new approved outerwear sprites exist.
@@ -5981,17 +5975,14 @@ function equipmentGuideHTML(sceneMode='equipment'){
  const mouth=(v3Head?maleTemplateLayer(character.layers.mouth,'paperdoll-mouth'):'')+
   (animatedFace?'<canvas class="paperdoll-female-mouth-motion-canvas" width="64" height="160" aria-hidden="true"></canvas>':
   s.appearanceV1?.gender==='male'?maleTemplateLayer(character.layers.mouth,'paperdoll-mouth'):'');
- const femaleTrial=s.appearanceV1?.gender==='female'&&femaleOfficialHeadEnabled&&femaleOfficialHeadReady;
-  const femaleTrialFace=femaleTrial?
-   '<canvas class="paperdoll-female-trial-expression-canvas" width="64" height="160" aria-hidden="true"></canvas>':'';
-  const healthMarks='<canvas class="paperdoll-condition-canvas" width="64" height="160" aria-hidden="true"></canvas>';
+ const healthMarks='<canvas class="paperdoll-condition-canvas" width="64" height="160" aria-hidden="true"></canvas>';
  const hair=maleTemplateLayer(character.layers.hair,'paperdoll-hair-fallback')+
   '<canvas class="paperdoll-hair-canvas" width="64" height="160" aria-hidden="true"></canvas>';
  return '<div class="paperdoll-stage '+(s.appearanceV1?.gender==='female'?'paperdoll-female':'paperdoll-male')+(femaleTrial?' paperdoll-female-trial':'')+(sharedHead?' paperdoll-shared-male-face':'')+
    (sharedHead&&window.DungeonMaleV9Equipment?.version==='v3-accepted'?' paperdoll-v3':'')+
    (s.appearanceV1?.parts?.hairStyle==='bald'?' paperdoll-bald':'')+(currentPaperDollAbnormalStates().includes('unconscious')?' eyes-unconscious':'')+'" role="img" aria-label="'+
   (paperDollTryOn?'主角旅行裝試穿預覽':(s.appearanceV1?.gender==='female'?'女性':'男性')+'標準型紙娃娃，依實際裝備顯示')+'">'+
-  behind+cloakBack+base+shorts+tank+outfit+cloakFront+satchel+extras+veil+brows+eyes+mouth+femaleTrialFace+healthMarks+hair+
+  behind+cloakBack+base+shorts+tank+outfit+cloakFront+satchel+extras+veil+brows+eyes+mouth+healthMarks+hair+
   (paperDollTryOn?'<span class="paperdoll-preview-label">試穿</span>':'')+'</div>';
 }
 function setOwnedEquipmentEquipped(slotId,equip){
