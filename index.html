@@ -4012,6 +4012,7 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
 <script src="./assets/expression_motion.js?v=2.18"></script>
+<script src="./assets/male_v9_unconscious_icon_v2.js?v=1"></script>
 <script src="./assets/female_head_v1.js?v=1"></script>
 <script src="./assets/female_parts_v2.js?v=4"></script>
 <script src="./assets/male_round_face_v4.js?v=2"></script>
@@ -5912,7 +5913,9 @@ function paintPaperDollPhysicalCondition(){
    const otherAbnormal=abnormal.filter(id=>id!=='unconscious');
    if(otherAbnormal.length)window.DungeonExpressionMotion.drawAbnormalEffects(ctx,otherAbnormal,t,
     {eyeCenters:[[25,39],[39,39]]});
-   window.DungeonExpressionMotion.drawUnconsciousEyes(ctx,t*0.45,{eyeCenters:[[55,12]]});
+   // Preserve the x55/y12 position and rotation; only enlarge to 8x8 pixels.
+   if(!window.DungeonMaleV9UnconsciousIcon?.draw(ctx,t,55,12))
+    window.DungeonExpressionMotion.drawUnconsciousEyes(ctx,t*0.45,{eyeCenters:[[55,12]]});
   }else if(abnormal.length)window.DungeonExpressionMotion.drawAbnormalEffects(ctx,abnormal,t,
    maleV9?{eyeCenters:[[25,39],[39,39]]}:
    maleV8?{y:-1,eyeCenters:[[25,38],[39,38]]}:undefined);
