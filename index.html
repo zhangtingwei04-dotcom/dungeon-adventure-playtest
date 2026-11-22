@@ -3748,6 +3748,12 @@ html.stage-locked #app .paperdoll-stage .paperdoll-female-eye-motion-canvas{
  image-rendering:pixelated;z-index:5;
 }
 html.stage-locked #app .paperdoll-stage .paperdoll-female-mouth-motion-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;image-rendering:pixelated;z-index:5}
+/* Temporary in-game female expression preview, under original aligned hair. */
+html.stage-locked #app .paperdoll-stage .paperdoll-female-trial-expression-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;image-rendering:pixelated;z-index:4}
+html.stage-locked #app .paperdoll-stage.paperdoll-female-trial .paperdoll-hair-fallback{display:none!important}
+html.stage-locked #app .paperdoll-female-trial-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:7px 3px;border-top:1px solid #b5a07150;font-size:11px;color:#f5dfb8}
+html.stage-locked #app #placeDrawerPanel .paperdoll-female-trial-switch{min-height:32px!important;border:1px solid #bda071!important;border-radius:6px!important;background:#29493f!important;color:#f4e4c2!important;padding:5px 10px!important;font-size:12px!important}
+html.stage-locked #app #placeDrawerPanel .paperdoll-female-trial-switch[aria-pressed="true"]{background:#d4b77c!important;color:#22362c!important;font-weight:700}
 /* Aligned hair renders in front of eyes/mouth, with status marks on top. */
 html.stage-locked #app .paperdoll-stage .paperdoll-hair-fallback,
 html.stage-locked #app .paperdoll-stage .paperdoll-hair-canvas{z-index:5}
@@ -4022,6 +4028,8 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <script src="./assets/male_v9_unconscious_icon_v2.js?v=1"></script>
 <script src="./assets/female_head_v1.js?v=1"></script>
 <script src="./assets/female_parts_v2.js?v=4"></script>
+<script src="./assets/female_bald_candidate_v1.js?v=1"></script>
+<script src="./assets/female_trial_expression_v1.js?v=2"></script>
 <script src="./assets/male_round_face_v4.js?v=2"></script>
 <script src="./assets/male_approved_face_v7.js?v=1"></script>
 <script src="./assets/male_approved_hair_v7.js?v=1"></script>
@@ -5029,6 +5037,8 @@ const PAPERDOLL_EYE_COLORS=Object.freeze([
  * Facial parts are currently combined in the replacement art; do not
  * recolor the entire hair/face as if they were still separate layers.
  */
+let paperDollFemaleTrialPreview=new URLSearchParams(location.search).get('female-head')==='trial';
+const femaleTrialHeadAvailable=Boolean(window.DungeonFemaleBaldCandidateV1?.head&&window.DungeonFemaleTrialExpressionV1?.ready);
 const FEMALE_CLEAR_LAYER='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAACgCAYAAAC8LWpcAAAAP0lEQVR42u3BMQEAAADCoPVPbQo/oAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIC3AaCgAAE4j1zSAAAAAElFTkSuQmCC';
 const FEMALE_SPLIT_READY=typeof window.DUNGEON_FEMALE_FACE_V2==='string'&&
  window.DUNGEON_FEMALE_FACE_V2.startsWith('data:image/png;base64,')&&
@@ -5056,6 +5066,8 @@ function isMaleSharedFaceReady(){
 }
 function paperDollLayers(){
  const gender=s.appearanceV1?.gender==='female'?'female':'male';
+ if(gender==='female'&&paperDollFemaleTrialPreview&&femaleTrialHeadAvailable&&FEMALE_REPLACEMENT_HEAD_LAYERS)
+  return {...FEMALE_REPLACEMENT_HEAD_LAYERS,face:window.DungeonFemaleBaldCandidateV1.head};
  if(gender==='female'&&FEMALE_REPLACEMENT_HEAD_LAYERS)return FEMALE_REPLACEMENT_HEAD_LAYERS;
  // Native V3 really is FIVE separate PNG layers. The old integration had
  // mistakenly merged eyebrows/eyes/mouth into the face and cleared those slots.
@@ -5169,6 +5181,7 @@ function tickPaperDollMotion(force=false){
   paintPaperDollEyes();
   paintPaperDollFemaleEyes();
   paintPaperDollFemaleMouth();
+  paintPaperDollFemaleTrialExpression();
   paintPaperDollPhysicalCondition();
  }
  paintNpcDreamPreview();
@@ -5194,7 +5207,8 @@ function paintPaperDollFemaleEyes(){
   selected==='custom'?s.appearanceV1.eyeCustomHex:
   '#'+color.rgb.map(x=>x.toString(16).padStart(2,'0')).join('');
  for(const stage of document.querySelectorAll(".paperdoll-stage.paperdoll-female, .paperdoll-stage.paperdoll-shared-male-face")){
-  if(maleV9&&stage.classList.contains('paperdoll-shared-male-face'))
+  if(stage.classList.contains('paperdoll-female-trial'))continue;
+   if(maleV9&&stage.classList.contains('paperdoll-shared-male-face'))
    window.DungeonMaleV9Equipment.renderEyes(stage,{
     closed,blink,gaze,eyeColor,unconscious,circleEyes,
     eyeExpression:parts.eyes||'original',
@@ -5223,7 +5237,8 @@ function paintPaperDollFemaleMouth(){
  // separately (shy vs angry), plus waking transitions. Do not replace both
  // with one forced frown and discard the approved three-step distinction.
  for(const stage of document.querySelectorAll('.paperdoll-stage.paperdoll-female, .paperdoll-stage.paperdoll-shared-male-face')){
-  const opts={pose,unconscious,talking:paperDollTalkPreview&&paperDollRestPreview.sleep==='awake',time:performance.now()};
+  if(stage.classList.contains('paperdoll-female-trial'))continue;
+   const opts={pose,unconscious,talking:paperDollTalkPreview&&paperDollRestPreview.sleep==='awake',time:performance.now()};
   if(window.DungeonMaleV9Equipment?.active&&stage.classList.contains('paperdoll-shared-male-face'))
    window.DungeonMaleV9Equipment.renderMouth(stage,{...opts,skinTone:s.appearanceV1?.skinTone||'original'});
   else motion.render(stage,opts);
@@ -5369,7 +5384,9 @@ function paintPaperDollHair(){
   // Crop to the 64px female hair region and compress its native height by ~8%.
   // This lowers the crown while keeping the ends of the bangs and side locks
   // near their previous position. Face, neck, body and male art are unchanged.
-  if(s.appearanceV1?.gender==='female'&&FEMALE_SPLIT_READY)
+  if(s.appearanceV1?.gender==='female'&&paperDollFemaleTrialPreview&&femaleTrialHeadAvailable)
+   ctx.drawImage(hairAtlasImage,-2,-5); // Native original hair, no resampling
+  else if(s.appearanceV1?.gender==='female'&&FEMALE_SPLIT_READY)
    ctx.drawImage(hairAtlasImage,0,0,64,64,0,-2,61,59);
   else if(s.appearanceV1?.gender==='male'&&isMaleSharedFaceReady())
    // The V9/V8 hair remains at its native origin; no translation.
@@ -5854,14 +5871,17 @@ function equipmentGuideHTML(sceneMode='equipment'){
  const mouth=(v3Head?maleTemplateLayer(character.layers.mouth,'paperdoll-mouth'):'')+
   (animatedFace?'<canvas class="paperdoll-female-mouth-motion-canvas" width="64" height="160" aria-hidden="true"></canvas>':
   s.appearanceV1?.gender==='male'?maleTemplateLayer(character.layers.mouth,'paperdoll-mouth'):'');
- const healthMarks='<canvas class="paperdoll-condition-canvas" width="64" height="160" aria-hidden="true"></canvas>';
+ const femaleTrial=s.appearanceV1?.gender==='female'&&paperDollFemaleTrialPreview&&femaleTrialHeadAvailable;
+  const femaleTrialFace=femaleTrial?
+   '<canvas class="paperdoll-female-trial-expression-canvas" width="64" height="160" aria-hidden="true"></canvas>':'';
+  const healthMarks='<canvas class="paperdoll-condition-canvas" width="64" height="160" aria-hidden="true"></canvas>';
  const hair=maleTemplateLayer(character.layers.hair,'paperdoll-hair-fallback')+
   '<canvas class="paperdoll-hair-canvas" width="64" height="160" aria-hidden="true"></canvas>';
- return '<div class="paperdoll-stage '+(s.appearanceV1?.gender==='female'?'paperdoll-female':'paperdoll-male')+(sharedHead?' paperdoll-shared-male-face':'')+
+ return '<div class="paperdoll-stage '+(s.appearanceV1?.gender==='female'?'paperdoll-female':'paperdoll-male')+(femaleTrial?' paperdoll-female-trial':'')+(sharedHead?' paperdoll-shared-male-face':'')+
    (sharedHead&&window.DungeonMaleV9Equipment?.version==='v3-accepted'?' paperdoll-v3':'')+
    (s.appearanceV1?.parts?.hairStyle==='bald'?' paperdoll-bald':'')+(currentPaperDollAbnormalStates().includes('unconscious')?' eyes-unconscious':'')+'" role="img" aria-label="'+
   (paperDollTryOn?'主角旅行裝試穿預覽':(s.appearanceV1?.gender==='female'?'女性':'男性')+'標準型紙娃娃，依實際裝備顯示')+'">'+
-  behind+base+shorts+tank+outfit+satchel+extras+veil+brows+eyes+mouth+healthMarks+hair+
+  behind+base+shorts+tank+outfit+satchel+extras+veil+brows+eyes+mouth+femaleTrialFace+healthMarks+hair+
   (paperDollTryOn?'<span class="paperdoll-preview-label">試穿</span>':'')+'</div>';
 }
 function setOwnedEquipmentEquipped(slotId,equip){
@@ -6012,6 +6032,7 @@ function renderEquipmentBoard(){
  paintPaperDollFemaleEyes();
  paintPaperDollFemaleMouth();
  paintPaperDollSkin();
+ paintPaperDollFemaleTrialExpression();
  paintPaperDollPhysicalCondition();
  paintNpcDreamPreview();
 }
