@@ -1,0 +1,12 @@
+{
+  "name": "迷宮盡頭的燈火",
+  "short_name": "迷宮燈火",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#101819",
+  "theme_color": "#101b1d",
+  "lang": "zh-TW"
+}
