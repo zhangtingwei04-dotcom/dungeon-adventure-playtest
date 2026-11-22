@@ -128,12 +128,11 @@ a.back{border:1px solid #ad9160;border-radius:8px;padding:9px 12px;text-decorati
   const ctx=context(c),pre=gender==='female'?'female':'male';
   const draw=(key,x=0,y=0)=>{if(images[key])ctx.drawImage(images[key],x,y);};
   const dressed=withCloak&&settings.cloakOn;
-  // Male head before body (body neck masks the duplicate); female unchanged.
+  // Both heads are below their bodies; bodies supply the visible neck.
   if(dressed&&settings.backOn)draw(pre+'Back',settings.x,settings.y);
-  if(gender==='male')draw('maleHead');
+  draw(pre+'Head');
   draw(pre+'Body');
   draw(pre+'Shorts');draw(pre+'Tank');
-  if(gender==='female')draw('femaleHead');
   if(dressed&&settings.frontOn)draw(pre+'Front',settings.x,settings.y);
   if(gender==='male'){
    draw('maleBrows');draw('maleEyes');draw('maleMouth');
