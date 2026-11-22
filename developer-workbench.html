@@ -23,6 +23,7 @@ h1{font-size:clamp(18px,3.2vw,25px);line-height:1.25;margin:0 0 4px}
 nav{max-width:1220px;margin:auto;display:flex;gap:8px;overflow:auto;padding:0 16px 12px}
 nav button{min-width:94px;border-radius:30px;min-height:38px;white-space:nowrap;font-size:13px;padding:6px 14px}
 nav button.active{background:#d0b77b;color:#213429;border-color:#e0c58b;font-weight:750}
+nav a.workbench-link{display:inline-flex;align-items:center;justify-content:center;min-height:38px;min-width:94px;padding:6px 14px;border:1px solid #d3b579;border-radius:30px;background:#345447;color:#f7e1ad;text-decoration:none;font-size:13px;white-space:nowrap;font-weight:750}
 main{max-width:1220px;margin:auto;padding:16px}
 .workspace{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(300px,.95fr);gap:16px;align-items:start}
 .panel{border:1px solid #7c765d;border-radius:14px;background:#18392f;box-shadow:0 8px 25px #07120f55;padding:15px}
@@ -79,6 +80,7 @@ footer{font-size:12px;color:#9cb7a8;padding:18px 0 10px}
 <nav aria-label="工具台分頁">
 <button class="active" data-tab="studio">角色工坊</button>
 <button data-tab="compare">前後對照</button>
+<a class="workbench-link" href="./cloak-fitting-workbench.html?v=1">披風貼合</a>
 <button data-tab="exports">素材與設定</button>
 <button data-tab="links">測試入口</button>
 </nav>
@@ -167,6 +169,7 @@ footer{font-size:12px;color:#9cb7a8;padding:18px 0 10px}
 <a href="./male-v3-expression-check.html?v=13" target="_blank" rel="noopener">男性表情完整驗收</a>
 <a href="./male-head-master-v1-preview.html?v=1" target="_blank" rel="noopener">男性光頭母版 V1｜輪廓對照</a>
 <a href="./female-bald-v3-trial.html?v=3" target="_blank" rel="noopener">女性髮片微調頁</a>
+<a href="./cloak-fitting-workbench.html?v=1">男女披風貼合工作台｜全身對照</a>
 <a href="./v3-bald-height-preview.html?v=7" target="_blank" rel="noopener">男性頭頂高度對照</a>
 <a href="https://github.com/zhangtingwei04-dotcom/dungeon-adventure-playtest/tree/main/docs" target="_blank" rel="noopener">GitHub 開發紀錄</a>
 <a href="https://github.com/zhangtingwei04-dotcom/dungeon-adventure-playtest" target="_blank" rel="noopener">GitHub 原始碼</a>
@@ -175,7 +178,7 @@ footer{font-size:12px;color:#9cb7a8;padding:18px 0 10px}
 </section>
 </div>
 </div>
-<footer>《迷宮盡頭的燈火》專用工具台 · 與《鱗片與種子》及歐姆計劃分開 · 目前僅角色與表情工作流</footer>
+<footer>《迷宮盡頭的燈火》專用工具台 · 與《鱗片與種子》及歐姆計劃分開 · 角色、表情與披風貼合測試</footer>
 </main>
 <div id="toast" role="status" aria-live="polite"></div>
 <script>
