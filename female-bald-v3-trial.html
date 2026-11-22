@@ -13,7 +13,7 @@ p{font-size:13px;color:#cadad0;line-height:1.65}strong{color:#ffdd9f}
 .preview{border-radius:7px;background:#e7eee8;display:flex;justify-content:center;align-items:center;padding:10px;min-height:180px}
 canvas{width:100%;max-width:240px;image-rendering:pixelated;aspect-ratio:1;display:block}
 button{background:#315b4b;color:#f6e6c7;border:1px solid #9b835d;border-radius:6px;min-height:40px;padding:7px 12px}
-.actions{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}small{font-size:11px;color:#b9cec0}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.adjust-panel{border-top:1px solid #7b856d;padding-top:12px}.adjust-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin:10px 0}.adjust-controls button{font-size:13px}.adjust-controls #resetAlign{grid-column:1/-1}.card.approved .preview canvas{max-width:300px}small{font-size:11px;color:#b9cec0}
 a{color:#f9dcad}@media(max-width:480px){.layout{gap:8px}.card{padding:8px}.preview{min-height:145px;padding:4px}}
 </style>
 <script src="./assets/female_parts_v2.js?v=4"></script>
@@ -25,10 +25,20 @@ a{color:#f9dcad}@media(max-width:480px){.layout{gap:8px}.card{padding:8px}.previ
 <section class="card"><h2>原版光頭</h2><div class="preview"><canvas width="64" height="64" id="originalBald"></canvas></div></section>
 <section class="card"><h2>新版光頭（待完整驗收）</h2><div class="preview"><canvas width="64" height="64" id="trialBald"></canvas></div></section>
 <section class="card"><h2>原版＋原銀白髮</h2><div class="preview"><canvas width="64" height="64" id="originalHair"></canvas></div></section>
-<section class="card"><h2>新版＋原髮位置（修改前）</h2><div class="preview"><canvas width="64" height="64" id="trialHairBefore"></canvas></div></section>
-<section class="card approved"><h2>新版＋對齊銀白髮（左移 1px、上移 4px）</h2><div class="preview"><canvas width="64" height="64" id="trialHair"></canvas></div><p>保留原有髮束、顏色及像素比例，只平移位置，讓瀏海不再遮住紫金色雙眼。</p></section>
+<section class="card"><h2>新版＋原髮位置（未調整）</h2><div class="preview"><canvas width="64" height="64" id="trialHairBefore"></canvas></div></section>
+<section class="card"><h2>上一版（左 1px、上 4px）</h2><div class="preview"><canvas width="64" height="64" id="trialHairPrevious"></canvas></div></section>
+<section class="card approved"><h2>再次對齊（預設左 1px、上 5px）</h2><div class="preview"><canvas width="64" height="64" id="trialHair"></canvas></div>
+<p>原銀白髮不重新生成，只移動像素座標。可使用下方控制每次微調 1px。</p>
+<div class="adjust-panel"><strong>頭髮位置：<span id="hairOffset" aria-live="polite">左 1px／上 5px</span></strong>
+<div class="adjust-controls">
+<button id="moveLeft" type="button" aria-label="頭髮往左一個像素">← 左 1px</button>
+<button id="moveUp" type="button" aria-label="頭髮往上一個像素">↑ 上 1px</button>
+<button id="moveDown" type="button" aria-label="頭髮往下一個像素">↓ 下 1px</button>
+<button id="moveRight" type="button" aria-label="頭髮往右一個像素">右 1px →</button>
+<button id="resetAlign" type="button">恢復本次預設</button>
+</div><small>範圍：左右 ±4px、垂直 −5～+3px，避免頭髮超出素材畫布。</small></div></section>
 </div>
-<p><strong>目前驗證重點：</strong>額頭高度、光頭輪廓、雙眼是否有原本神韻、頭髮遮擋、下巴與頸部銜接。光頭素材來自參考圖縮製，不會宣稱與原圖逐像素相同；髮片只做 -1px／-4px 平移、不改顏色和尺寸。正式安裝前仍需確認眼、眉、嘴分層及表情相容。</p>
+<p><strong>目前驗證重點：</strong>額頭高度、光頭輪廓、雙眼是否有原本神韻、頭髮遮擋、下巴與頸部銜接。光頭素材來自參考圖縮製，不會宣稱與原圖逐像素相同；頭髮只做像素平移、不改顏色和尺寸；新預設為 -1px／-5px，仍需你確認。正式安裝前仍需確認眼、眉、嘴分層及表情相容。</p>
 <div class="actions">
 <button id="export" type="button">匯出新版 64×160 光頭 PNG</button>
 <button id="exportHair" type="button">匯出已對齊 64×160 髮片 PNG</button>
@@ -50,18 +60,41 @@ img.onerror=()=>reject(Error('PNG 載入失敗'));img.src=url;
 });
 // Apply a translation only for the candidate head. Never scale or repaint the
 // original hair; this registered 64x160 offset matches its center and eyes.
-const hairAlign=Object.freeze({x:-1,y:-4});
-function draw(id,face,hair,align=false){
-const ctx=document.getElementById(id).getContext('2d');ctx.imageSmoothingEnabled=false;
-ctx.clearRect(0,0,64,64);ctx.drawImage(face,0,0);
-if(hair)ctx.drawImage(hair,align?hairAlign.x:0,align?hairAlign.y:0);
+const previousHairAlign=Object.freeze({x:-1,y:-4});
+const defaultHairAlign=Object.freeze({x:-1,y:-5});
+const hairAlign={...defaultHairAlign};
+function draw(id,face,hair,offset){
+ const ctx=document.getElementById(id).getContext('2d');ctx.imageSmoothingEnabled=false;
+ ctx.clearRect(0,0,64,64);ctx.drawImage(face,0,0);
+ if(hair)ctx.drawImage(hair,offset?.x||0,offset?.y||0);
+}
+function showOffset(){
+ const f=n=>n===0?'0px':n<0?'左 '+(-n)+'px':'右 '+n+'px';
+ const v=n=>n===0?'0px':n<0?'上 '+(-n)+'px':'下 '+n+'px';
+ document.getElementById('hairOffset').textContent=f(hairAlign.x)+'／'+v(hairAlign.y);
+}
+function moveHair(dx,dy,trial,hair){
+ hairAlign.x=Math.max(-4,Math.min(4,hairAlign.x+dx));
+ hairAlign.y=Math.max(-5,Math.min(3,hairAlign.y+dy));
+ draw('trialHair',trial,hair,hairAlign);
+ showOffset();
 }
 async function go(){
 const [original,hair,trial]=await Promise.all(['original','hair','trial'].map(k=>load(src[k])));
 draw('originalBald',original);draw('trialBald',trial);
 draw('originalHair',original,hair);draw('trialHairBefore',trial,hair);
-draw('trialHair',trial,hair,true);
-document.getElementById('status').textContent='已對齊：新光頭上的銀白髮左移 1px、上移 4px；正式遊戲與原始髮片未變更。';
+draw('trialHairPrevious',trial,hair,previousHairAlign);
+draw('trialHair',trial,hair,hairAlign);
+showOffset();
+document.getElementById('moveLeft').onclick=()=>moveHair(-1,0,trial,hair);
+document.getElementById('moveRight').onclick=()=>moveHair(1,0,trial,hair);
+document.getElementById('moveUp').onclick=()=>moveHair(0,-1,trial,hair);
+document.getElementById('moveDown').onclick=()=>moveHair(0,1,trial,hair);
+document.getElementById('resetAlign').onclick=()=>{
+ hairAlign.x=defaultHairAlign.x;hairAlign.y=defaultHairAlign.y;
+ draw('trialHair',trial,hair,hairAlign);showOffset();
+};
+document.getElementById('status').textContent='已採用第二次試排：左移 1px、上移 5px；可每次調整 1px。正式遊戲與原始髮片未變更。';
 document.getElementById('export').onclick=()=>{
 const canvas=document.createElement('canvas');canvas.width=64;canvas.height=160;
 canvas.getContext('2d').drawImage(trial,0,0);
@@ -73,7 +106,7 @@ const canvas=document.createElement('canvas');canvas.width=64;canvas.height=160;
 const ctx=canvas.getContext('2d');ctx.imageSmoothingEnabled=false;
 ctx.drawImage(hair,hairAlign.x,hairAlign.y);
 const a=document.createElement('a');a.href=canvas.toDataURL('image/png');
-a.download='female_v3_hair_aligned_left1_up4_64x160.png';a.click();
+a.download='female_v3_hair_x'+hairAlign.x+'_y'+hairAlign.y+'_64x160.png';a.click();
 };
 }
 go().catch(err=>document.getElementById('status').textContent='載入失敗：'+err.message);
