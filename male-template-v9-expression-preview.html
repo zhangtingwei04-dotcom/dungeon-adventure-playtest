@@ -86,8 +86,8 @@ a{color:#f0dca8}
   for(let y=45;y<=46;y++)for(let x=30;x<=34;x++){
    ctx.fillStyle=getSkin(x,44);ctx.fillRect(x,y,1,1);
   }
-  ctx.fillStyle='#a36b57';ctx.fillRect(30,45,1,1);ctx.fillRect(33,45,1,1);
-  ctx.fillStyle='#9e5f50';ctx.fillRect(31,46,2,1);
+  ctx.fillStyle='#b9846b';ctx.fillRect(30,46,1,1);ctx.fillRect(33,46,1,1);
+  ctx.fillStyle='#936252';ctx.fillRect(31,46,2,1);
  }
  function frameFor(m,t){
   if(!motion||!actor.has(m.id))return {status:m.status,parts:{eyes:m.id==='closed'?'eyesClosed':'original',mouth:m.id==='smile'?'smile':'original'},effects:{blink:false,sweat:m.id==='defeat',sweatPhase:0,circleEyes:m.id==='defeat',circlePhase:0}};
