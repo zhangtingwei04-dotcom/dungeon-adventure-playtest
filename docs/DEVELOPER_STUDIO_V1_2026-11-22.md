@@ -64,3 +64,12 @@
 - `developer-studio.html` 與 `cloak-fitting-workbench.html` 的 Canvas 遮罩同樣從原始 `body/shorts/tank` 依序重疊，不再只畫裸體 body。
 - 男女性別各自採本來的衣物 PNG，內褲原始尺寸、角色手臂角度、頭髮、配件及玩家存檔不變。
 - 仍待 iPhone Safari 實際畫面確認披風與短褲的局部遮擋關係。
+
+## 2026-11-23：採用使用者工作台 JSON 的披風 V2 定位
+
+使用者提供 `dungeon-character-asset-library-v1` 全部資料，現階段只採用 `starter_cloak` 的位置，不動原已核准的頭髮或未有圖像的裝備：男性 `back=(x0,y0,scale1)`、`front=(x0,y-8,scale1)`；女性 `back=(x0,y0,scale1)`、`front=(x0,y-6,scale1)`。兩性前後層都仍為可見，披風裝備 ID 仍是 `starter_cloak`。
+
+- 正式遊戲只在使用者明確試穿 `?cloak=art2` 且已裝備披風時生效；新增 V2 專用 class 分性別轉換，分別相當於完整 160px 高度的 -5%（男 -8 px）及 -3.75%（女 -6 px），並保留原有所有圖層的 9 CSS px 共用位移。
+- `developer-studio.html` 在沒有同素材本機設定時，以此組值為預設，使用者已存在的 localStorage 定位值不會被蓋掉；其餘 `hair_original` 設定（男 0/0、女 -2/-5）、裝備圖片以及顯示狀態完全不變。
+- `cloak-fitting-workbench.html` 的男女前層也採相同值，頁面的 X/Y 共用滑桿作為額外位移；後層則維持 0。
+- 這是工作台位置資料的整合，不代表披風美術核准，也不會改一般遊戲預設顯示、衣物、身體、頭部、存檔或裝備穿脫功能。
