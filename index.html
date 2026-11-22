@@ -3781,10 +3781,9 @@ html.stage-locked #app .paperdoll-stage .paperdoll-condition-canvas{z-index:6}
 html.stage-locked #app .paperdoll-stage.skin-tinted .male-base,
 html.stage-locked #app .paperdoll-stage.skin-tinted .male-face,
 html.stage-locked #app .paperdoll-stage.eyes-tinted .male-eyes{display:none}
-/* Independent male/female 64x160 neck bridges recolor together with body.
-   A tinted neck is drawn by skin canvas, so hide the original sprite. */
-html.stage-locked #app .paperdoll-stage.skin-tinted .paperdoll-female-neck,
-html.stage-locked #app .paperdoll-stage.skin-tinted .paperdoll-male-neck{display:none}
+/* The female-only neck bridge is drawn by her skin tint canvas. Male has
+   only the neck included in the approved body sprite. */
+html.stage-locked #app .paperdoll-stage.skin-tinted .paperdoll-female-neck{display:none}
 /* Unconscious hides legacy external eye sprites. Male V9 overrides its own
    face iris with CLOSED eyelids and puts one floating spiral above the hair;
    female / male V8 retain their existing eye-replacement behavior. */
@@ -5892,9 +5891,8 @@ function paintPaperDollSkin(){
  const preset=PAPERDOLL_SKIN_TONES.find(t=>t.id===choice);if(!preset?.rgb)return;
  const sources=s.appearanceV1?.gender==='female'&&FEMALE_REPLACEMENT_HEAD_LAYERS?
   [paperDollSprite('body'),'./assets/female_neck_v1.svg?v=1',paperDollSprite('face')]:
-  isMaleSharedFaceReady()?
-  [paperDollSprite('body'),'./assets/male_neck_v1.svg?v=1',paperDollSprite('face')]:
-  ['body','face'].map(key=>paperDollSprite(key));
+  // Male face beneath body: the body supplies the only neck.
+  [paperDollSprite('face'),paperDollSprite('body')];
  if(!paperDollSkinImages||sources.some((url,i)=>paperDollSkinImages.sources[i]!==url)){
   const imgs=sources.map(()=>new Image());paperDollSkinImages={sources,imgs};
   for(let i=0;i<imgs.length;i++){
@@ -5904,8 +5902,8 @@ function paintPaperDollSkin(){
  if(paperDollSkinImages.imgs.some(im=>!im.complete||im.naturalWidth!==64))return;
  const work=document.createElement('canvas');work.width=64;work.height=160;
  const ctx=work.getContext('2d',{willReadFrequently:true});ctx.imageSmoothingEnabled=false;
- // The revised round male face is already aligned. Skin shading must use
- // original pixel positions, without a second squash/offset.
+ // Female skin: body -> female neck -> head; male skin: head -> body,
+ // keeping pixel alignment while avoiding a duplicated male neck bridge.
  for(const img of paperDollSkinImages.imgs)ctx.drawImage(img,0,0);
  const pixels=ctx.getImageData(0,0,64,160),d=pixels.data;
  for(let i=0;i<d.length;i+=4){
@@ -5936,16 +5934,19 @@ function equipmentGuideHTML(sceneMode='equipment'){
   if(show('outer'))indexes.push(5);
  }
  // Approved white-fringe-cleaned tank sprite and shorts remain separate from the unchanged naked base.
- // Neck bridges follow the original x32 paper-doll anchor and render under
- // their respective face layers, without editing head, hair or clothing.
+ // The female keeps her original neck bridge; male head goes under his
+ // original body, which already supplies the single visible neck.
  const femaleNeck=s.appearanceV1?.gender==='female'&&FEMALE_REPLACEMENT_HEAD_LAYERS?
   '<span class="paperdoll-asset-layer paperdoll-female-neck" aria-hidden="true" style="background-image:url(./assets/female_neck_v1.svg?v=1)"></span>':'';
- const maleNeck=isMaleSharedFaceReady()?
-  '<span class="paperdoll-asset-layer paperdoll-male-neck" aria-hidden="true" style="background-image:url(./assets/male_neck_v1.svg?v=1)"></span>':'';
- const base=maleTemplateLayer(character.layers.body,'male-base')+
-  femaleNeck+maleNeck+
-  maleTemplateLayer(character.layers.face,'male-face')+
-  '<canvas class="paperdoll-skin-canvas" width="64" height="160" aria-hidden="true"></canvas>';
+ const base=s.appearanceV1?.gender==='female'?
+  (maleTemplateLayer(character.layers.body,'male-base')+
+   femaleNeck+
+   maleTemplateLayer(character.layers.face,'male-face')+
+   '<canvas class="paperdoll-skin-canvas" width="64" height="160" aria-hidden="true"></canvas>'):
+  // Render male head first; body then masks the duplicate neck pixels.
+  (maleTemplateLayer(character.layers.face,'male-face')+
+   maleTemplateLayer(character.layers.body,'male-base')+
+   '<canvas class="paperdoll-skin-canvas" width="64" height="160" aria-hidden="true"></canvas>');
  // Independent underwear sprites: never owned/equipped gear.
  // The base tank and shorts remain visible underneath empty outerwear slots.
  // Base underwear remains visible until new approved outerwear sprites exist.
