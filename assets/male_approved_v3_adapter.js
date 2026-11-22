@@ -91,9 +91,10 @@
   const closed=!!opts.unconscious||!!opts.closed||!!opts.blink;
   const pose=opts.brows||'original',eyeExpression=opts.eyeExpression||'original';
   const tone=opts.skinTone||'original';
-  // With hair equipped, the 3px edge of the forehead brow must not leak through
-  // the silver fringe. In BALD mode, keep the full approved brow and motions.
-  const showBrows=stage.classList.contains('paperdoll-bald');
+  // The approved V3 bald composite never contained the extra forehead brow
+  // introduced during eye/lash splitting. Preserve that exact appearance in
+  // bald and hair modes; the corrected standalone eye/lash sprite still works.
+  const showBrows=false;
   const gaze=opts.circleEyes||closed?'center':opts.gaze||'center';
   const color=opts.eyeColor||'purple';
   // The V3 expression controller supplies the eye state as well as brow state.
