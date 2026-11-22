@@ -145,7 +145,10 @@ a.back{border:1px solid #ad9160;border-radius:8px;padding:9px 12px;text-decorati
   draw(pre+'Body');
   draw(pre+'Shorts');draw(pre+'Tank');
   if(dressed&&settings.frontOn){
-   draw(pre+'Front',settings.x,settings.y);
+   // Use the same sex-specific front-layer position as the user-supplied
+   // developer-studio JSON. Workbench X/Y controls are additive to these.
+   const approvedFrontY=gender==='male'?-8:-6;
+   draw(pre+'Front',settings.x,settings.y+approvedFrontY);
    drawOriginalBodyHands(ctx,gender);
   }
   if(gender==='male'){
@@ -171,7 +174,7 @@ a.back{border:1px solid #ad9160;border-radius:8px;padding:9px 12px;text-decorati
    $(gender+'Section').hidden=settings.gender!=='both'&&gender!==settings.gender;
   }
   $('status').textContent='已載入男女底模與披風原圖 V2。披風 '+(settings.cloakOn?'顯示':'隱藏')+
-   '；X '+settings.x+'px、Y '+settings.y+'px；同一組原圖分件，男女位置可在裝備庫單獨微調。尚未正式核准。';
+   '；本頁 X '+settings.x+'px、Y '+settings.y+'px 是額外位移；男女前層預設另加 -8／-6px，後層預設 0。此版仍待美術驗收。';
  }
  function download(canvas,name){
   canvas.toBlob(blob=>{
