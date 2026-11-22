@@ -81,7 +81,12 @@
    {dx:0,dy:0,length:1},
    {dx:0,dy:1,length:2+extraLength},
    {dx:0,dy:2,length:3+extraLength},
-   {dx:1,dy:4,length:3+extraLength}
+   // V3 eyes start at y32; with sweatY=26 the old final 4px drip
+   // at x38/y30..33 overlapped the right upper eyelid at (38,33).
+   // Keep downward-only motion: the fading tail moves from y28 to y29,
+   // and ends at y31 instead of retracting upward or touching the eye.
+   opt.sweatEyeSafe===true?{dx:1,dy:3,length:2+extraLength}:
+     {dx:1,dy:4,length:3+extraLength}
   ];
   const s=stages[frame];
   ctx.save();
