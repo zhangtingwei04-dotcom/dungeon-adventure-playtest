@@ -3705,6 +3705,21 @@ html.stage-locked #app .paperdoll-stage .paperdoll-asset-layer{
  pointer-events:none;background-repeat:no-repeat;
  background-size:100% 100%;background-position:0 0;image-rendering:pixelated;
 }
+/* Full-size approved character arm pixels appear ABOVE trial cloak only.
+   Positions are native 64×160: left x0..23, right x40..63, y70..101.
+   These original body-sprite regions preserve hand and arm posture. */
+html.stage-locked #app .paperdoll-stage .paperdoll-original-arm-left{
+ clip-path:inset(43.75% 62.5% 36.25% 0%);
+}
+html.stage-locked #app .paperdoll-stage .paperdoll-original-arm-right{
+ clip-path:inset(43.75% 0% 36.25% 62.5%);
+}
+html.stage-locked #app .paperdoll-stage .paperdoll-original-arms-tinted{
+ position:absolute;inset:0;width:100%;height:100%;
+ pointer-events:none;image-rendering:pixelated;
+}
+html.stage-locked #app .paperdoll-stage.skin-tinted .paperdoll-original-arm-left,
+html.stage-locked #app .paperdoll-stage.skin-tinted .paperdoll-original-arm-right{display:none}
 /* The separate V3 hair and its fallback share exactly the same source-grid
    transform as face/brows/eyes. Never shift fallback 2px when a cache loads. */
 html.stage-locked #app .equip-guide .paperdoll-stage.paperdoll-male > .paperdoll-hair-fallback{
@@ -5889,7 +5904,13 @@ function paintPaperDollEyes(){
 function paintPaperDollSkin(){
  const stages=document.querySelectorAll('.paperdoll-stage');if(!stages.length)return;
  const choice=s.appearanceV1?.skinTone||'original';
- if(choice==='original'){stages.forEach(st=>st.classList.remove('skin-tinted'));return;}
+ if(choice==='original'){
+  stages.forEach(st=>{
+   st.classList.remove('skin-tinted');
+   st.querySelector('.paperdoll-original-arms-tinted')?.getContext('2d')?.clearRect(0,0,64,160);
+  });
+  return;
+ }
  const preset=PAPERDOLL_SKIN_TONES.find(t=>t.id===choice);if(!preset?.rgb)return;
  // One body neck for both sexes, also when tinting the skin.
  const sources=[paperDollSprite('face'),paperDollSprite('body')];
@@ -5916,6 +5937,13 @@ function paintPaperDollSkin(){
  for(const stage of stages){
   const canvas=stage.querySelector('.paperdoll-skin-canvas');if(!canvas)continue;
   const c=canvas.getContext('2d');c.imageSmoothingEnabled=false;c.clearRect(0,0,64,160);c.drawImage(work,0,0);
+  const arms=stage.querySelector('.paperdoll-original-arms-tinted');
+  if(arms){
+   const a=arms.getContext('2d');a.clearRect(0,0,64,160);
+   a.imageSmoothingEnabled=false;a.save();a.beginPath();
+   a.rect(0,70,24,32);a.rect(40,70,24,32);a.clip();
+   a.drawImage(work,0,0);a.restore();
+  }
   stage.classList.add('skin-tinted');
  }
  paintPaperDollFemaleEyes();
@@ -5962,6 +5990,11 @@ function equipmentGuideHTML(sceneMode='equipment'){
     window.DungeonTravelerCloakTrialV1.sprites[s.appearanceV1?.gender==='female'?'female':'male']:null):null;
  const cloakBack=cloakArt?'<span class="paperdoll-asset-layer paperdoll-cloak-trial-back" aria-hidden="true" style="background-image:url('+cloakArt.back+')"></span>':'';
  const cloakFront=cloakArt?'<span class="paperdoll-asset-layer paperdoll-cloak-trial-front" aria-hidden="true" style="background-image:url('+cloakArt.front+')"></span>':'';
+ // True sprite original arms are composited above the trial cloak. No pose edit.
+ const nativeArms=cloakArt?
+  (maleTemplateLayer(character.layers.body,'paperdoll-original-arm-left')+
+   maleTemplateLayer(character.layers.body,'paperdoll-original-arm-right')+
+   '<canvas class="paperdoll-original-arms-tinted" width="64" height="160" aria-hidden="true"></canvas>'):'';
  const extras=paperDollExtraLayerHTML('front');
  const behind=paperDollExtraLayerHTML('back');
  // Private scenes must cover the pelvis even when garment layers are absent.
@@ -5986,7 +6019,7 @@ function equipmentGuideHTML(sceneMode='equipment'){
    (sharedHead&&window.DungeonMaleV9Equipment?.version==='v3-accepted'?' paperdoll-v3':'')+
    (s.appearanceV1?.parts?.hairStyle==='bald'?' paperdoll-bald':'')+(currentPaperDollAbnormalStates().includes('unconscious')?' eyes-unconscious':'')+'" role="img" aria-label="'+
   (paperDollTryOn?'主角旅行裝試穿預覽':(s.appearanceV1?.gender==='female'?'女性':'男性')+'標準型紙娃娃，依實際裝備顯示')+'">'+
-  behind+cloakBack+base+shorts+tank+outfit+cloakFront+satchel+extras+veil+brows+eyes+mouth+healthMarks+hair+
+  behind+cloakBack+base+shorts+tank+outfit+cloakFront+nativeArms+satchel+extras+veil+brows+eyes+mouth+healthMarks+hair+
   (paperDollTryOn?'<span class="paperdoll-preview-label">試穿</span>':'')+'</div>';
 }
 function setOwnedEquipmentEquipped(slotId,equip){
