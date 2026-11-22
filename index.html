@@ -1,7 +1,11 @@
 <!doctype html>
-<html lang="zh-Hant" class="stage-locked" data-layout-version="fixed-0.8.12-landscape">
+<html lang="zh-Hant" class="stage-locked" data-layout-version="fixed-0.8.11">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no"><meta name="theme-color" content="#101b1d">
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="迷宮盡頭的燈火">
 <title>殘車之後｜第一章與城鎮 V0.5.1</title>
 <style>
 /* Fixed reference-stage mode is opt-out with ?layout=fluid.
@@ -1858,7 +1862,7 @@ html.stage-locked #app{
  min-width:1536px!important;min-height:707px!important;
  max-width:none!important;max-height:none!important;
  transform-origin:0 0!important;
- transform:translate3d(var(--stage-left,0px),var(--stage-top,0px),0) rotate(var(--stage-rotation,0deg)) scale(var(--stage-scale,1))!important;
+ transform:translate3d(var(--stage-left,0px),var(--stage-top,0px),0) scale(var(--stage-scale,1))!important;
  overflow:hidden;
 }
 /* Keep the last confirmed gold frame inset while attaching both
@@ -2074,7 +2078,7 @@ html.stage-locked #app #sceneInspection{
 html.stage-locked:not(.stage-wide) #app{
  width:1536px!important;height:707px!important;
  transform-origin:0 0!important;
- transform:translate3d(var(--stage-left,0px),var(--stage-top,0px),0) rotate(var(--stage-rotation,0deg)) scale(var(--stage-scale,1))!important;
+ transform:translate3d(var(--stage-left,0px),var(--stage-top,0px),0) scale(var(--stage-scale,1))!important;
 }
 
 
@@ -3776,8 +3780,6 @@ html.stage-locked #app .paperdoll-stage.skin-tinted .paperdoll-male-neck{display
 /* Hide any additional customized mouth while unconscious; only the
    approved neutral mouth is permitted even if the outfit stays unchanged. */
 html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="mouthShape"]{display:none!important}
-/* iPhone portrait: keep the landscape stage rotated instead of covering the game with a turn-phone prompt. */
-html.stage-locked #app .orientation{display:none!important}
 </style>
 </head>
 <body>
@@ -4063,28 +4065,23 @@ html.stage-locked #app .orientation{display:none!important}
 const STAGE_WIDTH=1536, STAGE_HEIGHT=707;
 // Fixed layout is now authoritative in landscape: do not let an old
 // ?layout=fluid URL override the player's chosen design.
-const STAGE_LAYOUT_VERSION='fixed-0.8.12-landscape';
+const STAGE_LAYOUT_VERSION='fixed-0.8.13-landscape-app';
 function syncDesignStage(){
  const visual=window.visualViewport;
  const viewportWidth=Math.max(1,visual?.width||window.innerWidth);
  const viewportHeight=Math.max(1,visual?.height||window.innerHeight);
- // iPhone Safari does not reliably provide native orientation lock.
- // In portrait, rotate only the rendered 1536x707 stage. When the phone
- // actually rotates, return to its unrotated landscape presentation.
  const portraitPhone=viewportWidth<viewportHeight&&viewportWidth<=700;
+ const lock=!portraitPhone;
+ // Preserve the approved stage without rotating artwork or controls in CSS.
  const root=document.documentElement;
  root.dataset.layoutVersion=STAGE_LAYOUT_VERSION;
- root.dataset.stageMode=portraitPhone?'rotated-landscape':'fixed';
- root.classList.add('stage-locked');
- root.classList.toggle('stage-rotated',portraitPhone);
- const logicalViewportWidth=portraitPhone?viewportHeight:viewportWidth;
- const logicalViewportHeight=portraitPhone?viewportWidth:viewportHeight;
- const scale=Math.min(logicalViewportWidth/STAGE_WIDTH,logicalViewportHeight/STAGE_HEIGHT);
- // Rotating clockwise about the stage top-left maps the old bottom-left
- // to x=-STAGE_HEIGHT*scale, so the left origin must be shifted right.
- const dx=(portraitPhone?(viewportWidth+STAGE_HEIGHT*scale):(viewportWidth-STAGE_WIDTH*scale))/2+(visual?.offsetLeft||0);
- const dy=(portraitPhone?(viewportHeight-STAGE_WIDTH*scale):(viewportHeight-STAGE_HEIGHT*scale))/2+(visual?.offsetTop||0);
- root.style.setProperty('--stage-rotation',portraitPhone?'90deg':'0deg');
+ root.dataset.stageMode=lock?'fixed':'portrait';
+ root.classList.toggle('stage-locked',lock);
+ if(!lock){root.style.removeProperty('--stage-scale');
+  root.style.removeProperty('--stage-left');root.style.removeProperty('--stage-top');return;}
+ const scale=Math.min(viewportWidth/STAGE_WIDTH,viewportHeight/STAGE_HEIGHT);
+ const dx=(viewportWidth-STAGE_WIDTH*scale)/2+(visual?.offsetLeft||0);
+ const dy=(viewportHeight-STAGE_HEIGHT*scale)/2+(visual?.offsetTop||0);
  root.style.setProperty('--stage-scale',String(scale));
  root.style.setProperty('--stage-left',dx.toFixed(3)+'px');
  root.style.setProperty('--stage-top',dy.toFixed(3)+'px');
@@ -4095,6 +4092,22 @@ window.addEventListener('orientationchange',syncDesignStage,{passive:true});
 if(window.visualViewport){
  window.visualViewport.addEventListener('resize',syncDesignStage,{passive:true});
  window.visualViewport.addEventListener('scroll',syncDesignStage,{passive:true});
+}
+// Standalone launch: ask compatible engines to select landscape automatically.
+// Safari may deny or omit orientation lock; its portrait reminder remains
+// the fallback. Do not rotate UI or change gameplay state.
+function requestLandscapeIfAvailable(){
+ try{
+  if(typeof screen.orientation?.lock!=='function')return;
+  const request=screen.orientation.lock('landscape');
+  if(request&&typeof request.catch==='function')request.catch(()=>{});
+ }catch(_){}
+}
+if(window.matchMedia('(display-mode: standalone)').matches||navigator.standalone){
+ requestLandscapeIfAvailable();
+ document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden)requestLandscapeIfAvailable();
+ });
 }
 })();
 (()=>{'use strict';
@@ -6253,10 +6266,7 @@ function bindLocationPreviewSwipe(card){
   if(!start||event.changedTouches.length!==1)return;
   const dx=event.changedTouches[0].clientX-start.x,dy=event.changedTouches[0].clientY-start.y;
   start=null;
-  // Touch events report physical screen coordinates even when CSS rotates the stage.
-  const rotated=document.documentElement.classList.contains('stage-rotated');
-  const horizontal=rotated?dy:dx,vertical=rotated?-dx:dy;
-  if(Math.abs(horizontal)>=35&&Math.abs(horizontal)>Math.abs(vertical)*1.25)moveLocationPreview(horizontal<0?1:-1);
+  if(Math.abs(dx)>=35&&Math.abs(dx)>Math.abs(dy)*1.25)moveLocationPreview(dx<0?1:-1);
  },{passive:true});
  card.addEventListener('touchcancel',()=>{start=null;},{passive:true});
 }
