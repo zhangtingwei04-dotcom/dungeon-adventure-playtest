@@ -9,7 +9,7 @@
  const art=root.DungeonMaleApprovedV3;
  if(mode==='v8'||mode==='v9'||!art?.head_base||!art?.eyebrows||!art?.eyes||!art?.mouth||!art?.hair_standard)return;
  const W=64,H=160,eyeCenters=[25,39],layerNames=['head_base','eyebrows','eyes','mouth','hair_standard'];
- const loaded={};let ready=false,faceData=null,baseData=null,eyeData=null,browData=null,mouthData=null;
+ const loaded={};let ready=false,baseData=null,eyeData=null;
  const skinTones=Object.freeze({fair:[252,218,187],warm:[242,188,145],tan:[207,144,102],deep:[156,99,72]});
  const scratch=document.createElement('canvas');scratch.width=W;scratch.height=H;
  const c=scratch.getContext('2d',{willReadFrequently:true});
@@ -43,25 +43,31 @@
   const dirs={left:[-1,0],right:[1,0],up:[0,-1],down:[0,1],center:[0,0]};
   const [dx,dy]=dirs[direction]||dirs.center;
   if(dx||dy){
-   // Original eye layer contains only the V3 eyes. Move its purple iris pixels,
-   // but never redraw the V3 eyebrows, lash shape or entire head.
+   // The approved V3 eye is only a few native pixels tall. Move a small
+   // reflected iris highlight INSIDE the original dark iris, leaving black
+   // contours, white glints and the eyelid untouched. Never erase the pupil
+   // to transparent, which previously revealed peach holes in the eyes.
    for(const cx of eyeCenters){
-    const pixels=[];
-    for(let y=34;y<=38;y++)for(let x=cx-4;x<=cx+4;x++){
+    const highlight=[];
+    for(let y=37;y<=38;y++)for(let x=cx-3;x<=cx+3;x++){
      const p=read(eyeData,x,y);
-     if(isIris(...p)){pixels.push({x,y,p});write(data,x,y,[0,0,0,0]);}
+     if(p[3]>150&&p[0]>=105&&p[1]>=55&&p[2]>=125&&p[2]>p[1]+25)
+      highlight.push({x,y,p});
     }
-    for(const {x,y,p} of pixels){
+    for(const {x,y,p} of highlight){
      const nx=x+dx,ny=y+dy;
-     if(nx>=cx-4&&nx<=cx+4&&ny>=34&&ny<=38)write(data,nx,ny,p);
-     else write(data,x,y,p);
+     if(nx<cx-3||nx>cx+3||ny<37||ny>38)continue;
+     const dest=read(eyeData,nx,ny);
+     if(!isIris(...dest)||dest[0]>=220)continue;
+     write(data,x,y,[clamp(p[0]*.68),clamp(p[1]*.7),clamp(p[2]*.7),p[3]]);
+     write(data,nx,ny,p);
     }
    }
   }
   if(rgb){
-   for(let y=33;y<=39;y++)for(let x=20;x<=44;x++){
+   for(let y=37;y<=38;y++)for(let x=20;x<=44;x++){
     const p=read(data,x,y);
-    if(!isIris(...p))continue;
+    if(!isIris(...p)||p[0]>=220)continue;
     const n=Math.max(.22,Math.min(1.1,(p[0]+p[1]+p[2])/340));
     write(data,x,y,[clamp(rgb[0]*n),clamp(rgb[1]*n),clamp(rgb[2]*n),p[3]]);
    }
@@ -136,15 +142,10 @@
     };im.onerror=()=>reject(Error('Missing approved V3 layer '+key));im.src=art[key];
    })));
    ec.drawImage(loaded.eyes,0,0);eyeData=ec.getImageData(0,0,W,H).data;
-   bc.drawImage(loaded.eyebrows,0,0);browData=bc.getImageData(0,0,W,H).data;
    c.drawImage(loaded.head_base,0,0);baseData=c.getImageData(0,0,W,H).data;
-   c.drawImage(loaded.eyebrows,0,0);
-   c.drawImage(loaded.eyes,0,0);
-   c.drawImage(loaded.mouth,0,0);
-   faceData=c.toDataURL('image/png');
-   // Exact same image as V3 head_bald_64x160.png, reconstructed from its
-   // original five-layer acceptance archive.
-   root.DUNGEON_MALE_SHARED_FACE_V5=faceData;
+   // Critical: do NOT bake the approved brows, eyes and mouth back into
+   // the head. The equipment page draws all five transparent PNGs separately.
+   root.DUNGEON_MALE_SHARED_FACE_V5=art.head_base;
    root.DUNGEON_MALE_HAIR_V8=art.hair_standard;
    root.DUNGEON_MALE_FACE_VERSION='v3-accepted';
    ready=true;
