@@ -4018,7 +4018,7 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <script src="./assets/approved_wagon_art_v1.js"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
-<script src="./assets/expression_motion.js?v=2.18"></script>
+<script src="./assets/expression_motion.js?v=2.19"></script>
 <script src="./assets/male_v9_unconscious_icon_v2.js?v=1"></script>
 <script src="./assets/female_head_v1.js?v=1"></script>
 <script src="./assets/female_parts_v2.js?v=4"></script>
@@ -5932,7 +5932,8 @@ function paintPaperDollPhysicalCondition(){
    },t,maleV8?{y:-1}:undefined);
   // HP condition motion is independent from all abnormal effects.
   if(effects?.sweat)window.DungeonExpressionMotion.drawFaceSweat(ctx,frame.status,effects.sweatPhase,
-   maleV3||maleV9||maleV8?{sweatY:28}:undefined);
+   maleV3?{sweatY:28,sweatLong:true}:
+   maleV9||maleV8?{sweatY:28}:undefined);
   const eyeY=maleV3?36:maleV9?39:maleV8?37:36;
   if(effects?.circleEyes&&!abnormal.includes('unconscious')){
    // Both genders use the same purple spiral sprites and 3x3 pixel size
