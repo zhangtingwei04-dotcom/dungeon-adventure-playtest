@@ -5314,8 +5314,8 @@ function paintPaperDollHair(){
   if(s.appearanceV1?.gender==='female'&&FEMALE_SPLIT_READY)
    ctx.drawImage(hairAtlasImage,0,0,64,64,0,-2,61,59);
   else if(s.appearanceV1?.gender==='male'&&isMaleSharedFaceReady())
-   // The already validated V8b hair art follows the V8c head 2px upward.
-   ctx.drawImage(hairAtlasImage,0,0,64,160,0,-2,64,160);
+   // Male V8b hair is drawn at its native position (former -2px shift reverted).
+   ctx.drawImage(hairAtlasImage,0,0,64,160,0,0,64,160);
   else ctx.drawImage(hairAtlasImage,0,0,64,160,0,0,64,160);
   const frame=ctx.getImageData(0,0,64,160),pixels=frame.data;
   for(let i=0;i<pixels.length;i+=4){
