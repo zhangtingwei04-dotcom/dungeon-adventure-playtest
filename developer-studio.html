@@ -72,7 +72,7 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 @media(orientation:landscape) and (max-height:480px){.head{padding:6px 11px}.micro{display:none}.spriteChecker{min-height:210px}.spriteChecker canvas{max-width:91px}header{position:static}}
 </style>
 <script src="./assets/cloak_workbench_bases_v1.js?v=1"></script>
-<script src="./assets/traveler_cloak_trial_v1.js?v=1"></script>
+<script src="./assets/dungeon_generated_cloak_v2.js?v=2"></script>
 <script src="./assets/male_approved_v3_layers.js?v=1"></script>
 <script src="./assets/male_v3_corrected_layers_v2.js?v=1"></script>
 <script src="./assets/male_v3_head_short5_v1.js?v=1"></script>
@@ -97,7 +97,7 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 </div>
 </section>
 <section id="page-library" data-page="library" hidden>
-<div class="hint">此處使用正式男女身體／內衣／頭髮素材。新增 PNG 可單獨定位、調整大小，並在男女預覽中測試。先前的披風程式草稿並不是已確認的披風圖，預設隱藏。調完後到「數據與備份」複製數據給我。</div>
+<div class="hint">此處使用正式男女身體／內衣／頭髮素材。新增 PNG 可單獨定位、調整大小，並在男女預覽中測試。披風 V2 使用剛生成的原圖拆成透明前後層，可分別調整男女位置和大小；正式採用前仍需驗收。調完後到「數據與備份」複製數據給我。</div>
 <div class="layout">
 <div class="panel"><h2>素材庫</h2><div class="libraryList" id="assetList" role="group" aria-label="角色與裝備素材清單"></div>
 <div class="divider"></div><h3>新增裝備／髮型</h3>
@@ -164,7 +164,7 @@ const $=id=>document.getElementById(id);
 const KEY='dungeon_dev_studio_v1_settings';
 const DB='dungeon_dev_studio_v1_png';
 const builtins=window.DungeonCloakWorkbenchBasesV1;
-const cloak=window.DungeonTravelerCloakTrialV1;
+const cloak=window.DungeonGeneratedCloakV2;
 const male=window.DungeonMaleV3CorrectedLayers||window.DungeonMaleApprovedV3;
 const sourceImages={
  maleBody:builtins?.male?.body,maleTank:builtins?.male?.tank,maleShorts:builtins?.male?.shorts,
@@ -173,12 +173,12 @@ const sourceImages={
  maleBrows:male?.eyebrows,maleEyes:male?.eyes,maleMouth:male?.mouth,
  maleHair:male?.hair_standard,
  femaleHead:window.DUNGEON_FEMALE_OFFICIAL_HEAD_V2,femaleHair:window.DUNGEON_FEMALE_HAIR_V2,
- maleCloakBack:cloak?.sprites?.male?.back,maleCloakFront:cloak?.sprites?.male?.front,
- femaleCloakBack:cloak?.sprites?.female?.back,femaleCloakFront:cloak?.sprites?.female?.front
+ maleCloakBack:cloak?.back,maleCloakFront:cloak?.front,
+ femaleCloakBack:cloak?.back,femaleCloakFront:cloak?.front
 };
 const catalogue=[
  {id:'hair_original',name:'原版頭髮',slot:'hair',layers:['front'],status:'已使用的頭髮來源'},
- {id:'starter_cloak',name:'深綠金邊披風 V1（不合格草稿）',slot:'outer',layers:['back','front'],status:'未核准草稿／與展示圖不同'},
+ {id:'starter_cloak',name:'深綠金邊披風 V2｜原圖分件',slot:'outer',layers:['back','front'],status:'原圖裁切透明 PNG；待貼合驗收'},
  {id:'starter_tunic',name:'旅人上衣',slot:'chest',layers:['front'],status:'待匯入新圖'},
  {id:'starter_trousers',name:'旅行長褲',slot:'legs',layers:['front'],status:'待匯入新圖'},
  {id:'starter_boots',name:'皮革長靴',slot:'feet',layers:['front'],status:'待匯入新圖'},
@@ -198,7 +198,7 @@ const defaultT=(asset,gender,layer)=>({
  y:asset.id==='hair_original'&&gender==='female'?-5:0,
  scale:1
 });
-let selected='hair_original',editingGender='female',editingLayer='front',guides=false,dbPromise=null,ready=false;
+let selected='starter_cloak',editingGender='female',editingLayer='front',guides=false,dbPromise=null,ready=false;
 let gameFrameInitialized=false;
 function item(id){return catalogue.find(a=>a.id===id)}
 function k(id,gender,layer){return id+':'+gender+':'+layer}
@@ -207,7 +207,7 @@ function safeNum(n,min,max,fallback){n=Number(n);return Number.isFinite(n)?Math.
 function normalize(){
  for(const a of catalogue)for(const g of ['male','female']){
   const base=a.id+':'+g;
-  if(shown[base]===undefined)shown[base]=a.id==='hair_original';
+  if(shown[base]===undefined)shown[base]=a.id==='hair_original'||a.id==='starter_cloak';
   for(const l of a.layers){
    const key=k(a.id,g,l);
    if(!transforms[key])transforms[key]=defaultT(a,g,l);
@@ -236,7 +236,7 @@ function serialize(oneId){
 }
 function persist(){
  try{
-  localStorage.setItem(KEY,JSON.stringify({catalogue,transforms,shown,layerShown,selected,editingGender,editingLayer}));
+  localStorage.setItem(KEY,JSON.stringify({catalogue,transforms,shown,layerShown,selected,editingGender,editingLayer,cloakArtVersion:'original-sheet-v2'}));
   $('persistInfo').textContent='設定已儲存在這個裝置的工作台資料中。匯入圖片另存於本機資料庫；更換手機／瀏覽器不會自動同步。';
  }catch(e){$('persistInfo').textContent='本機設定儲存失敗：'+e.message;}
 }
@@ -258,6 +258,10 @@ function restore(){
   if(catalogue.some(a=>a.id===data.selected))selected=data.selected;
   editingGender=data.editingGender==='male'?'male':'female';
   editingLayer=['front','back','side'].includes(data.editingLayer)?data.editingLayer:'front';
+  if(data.cloakArtVersion!=='original-sheet-v2'){
+    shown['starter_cloak:male']=true;shown['starter_cloak:female']=true;
+    selected='starter_cloak';editingLayer='front';
+  }
  }catch(e){console.warn('Studio local settings ignored:',e)}
 }
 function openDb(){
@@ -390,7 +394,7 @@ function updateControls(){
   stockKeys[selectedKey()]?'內建圖源：'+stockKeys[selectedKey()]:'未匯入 PNG';
  $('assetMeta').textContent='ID：'+a.id+'｜分類：'+(slots[a.slot]||a.slot)+'｜'+a.status+'｜'+a.layers.join('、');
  $('assetWarning').textContent=a.id==='starter_cloak'?
-  '注意：內建披風只是先前被你否決的程式簡化草稿，並非當時展示的披風圖。你可在此匯入新的獨立前後 PNG，再調整到滿意。':
+  '深綠金邊披風 V2 是本次生成原圖的透明前後分件，不是早期簡化草稿。請切換男女與前後層，以 X、Y、Scale 微調；確認後將 JSON 傳回。':
   '正式男女頭部、身體與內衣不動；圖層調整只影響工作台預覽，不會自動安裝到遊戲。';
 }
 function update(){normalize();renderAssetList();updateControls();drawAll();refreshJson()}
@@ -586,6 +590,7 @@ async function init(){
    }
   }catch(e){console.warn('Some local uploaded PNGs unavailable:',e);$('persistInfo').textContent='本機 PNG 圖庫無法讀取，內建圖仍可用。新素材請另行保管。'}
   ready=true;update();scaleGame();
+  if(new URLSearchParams(location.search).get('tab')==='library')setTab('library');
  }catch(e){toast('素材預載不完整：'+e.message);console.error(e);ready=true;update()}
 }
 if(window.ResizeObserver)new ResizeObserver(scaleGame).observe($('gameWindow'));
