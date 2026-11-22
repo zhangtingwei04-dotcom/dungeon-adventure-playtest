@@ -6014,6 +6014,7 @@ function paintPaperDollPhysicalCondition(){
   const maleV3=maleShared&&window.DUNGEON_MALE_FACE_VERSION==='v3-accepted';
   const maleV9=maleShared&&window.DUNGEON_MALE_FACE_VERSION==='v9-original-template';
   const maleV8=maleShared&&window.DUNGEON_MALE_FACE_VERSION==='v8-new-eyes';
+  const femaleTrial=stage.classList.contains('paperdoll-female-trial');
   // Only sleep creates visual effects; SP is a test number and blue HUD bar.
   if(!abnormal.includes('unconscious'))
    window.DungeonExpressionMotion.drawRestEffects(ctx,{
@@ -6022,27 +6023,29 @@ function paintPaperDollPhysicalCondition(){
   // HP condition motion is independent from all abnormal effects.
   if(effects?.sweat)window.DungeonExpressionMotion.drawFaceSweat(ctx,frame.status,effects.sweatPhase,
    maleV3?{sweatY:26,sweatLong:true,sweatEyeSafe:true}:
+   femaleTrial?{sweatX:42,sweatY:26,sweatEyeSafe:true}:
    maleV9||maleV8?{sweatY:28}:undefined);
-  const eyeY=maleV3?36:maleV9?39:maleV8?37:36;
+  const eyeY=maleV3?36:maleV9?39:maleV8?37:femaleTrial?37:36;
   if(effects?.circleEyes&&!abnormal.includes('unconscious')){
    // Both genders use the same purple spiral sprites and 3x3 pixel size
    // on top of their original eyes; only eye-center Y differs by head art.
-   for(const x of [25,39])
+   for(const x of (femaleTrial?[25,38]:[25,39]))
     window.DungeonExpressionMotion.drawSpiralEye(ctx,x,eyeY,effects.circlePhase);
   }
-  // Male V3/V9: unconscious = natural CLOSED eyelids on the face,
+  // Male V3/V9 and female new-head trial: unconscious = natural CLOSED eyelids,
   // plus exactly ONE slowly rotating black spiral-eye ICON above the upper-right
   // hairline. Exclude unconscious from the shared double-eye renderer. Keep
   // every other abnormal mark and the V8/female behavior untouched.
-  if((maleV3||maleV9)&&abnormal.includes('unconscious')){
+  if((maleV3||maleV9||femaleTrial)&&abnormal.includes('unconscious')){
    const otherAbnormal=abnormal.filter(id=>id!=='unconscious');
    if(otherAbnormal.length)window.DungeonExpressionMotion.drawAbnormalEffects(ctx,otherAbnormal,t,
-    {eyeCenters:maleV3?[[25,36],[39,36]]:[[25,39],[39,39]]});
+    {eyeCenters:maleV3?[[25,36],[39,36]]:femaleTrial?[[25,37],[38,37]]:[[25,39],[39,39]]});
    // Preserve the x55/y12 position and rotation; only enlarge to 8x8 pixels.
    if(!window.DungeonMaleV9UnconsciousIcon?.draw(ctx,t,55,12))
     window.DungeonExpressionMotion.drawUnconsciousEyes(ctx,t*0.45,{eyeCenters:[[55,12]]});
   }else if(abnormal.length)window.DungeonExpressionMotion.drawAbnormalEffects(ctx,abnormal,t,
    maleV3?{eyeCenters:[[25,36],[39,36]]}:
+   femaleTrial?{eyeCenters:[[25,37],[38,37]]}:
    maleV9?{eyeCenters:[[25,39],[39,39]]}:
    maleV8?{y:-1,eyeCenters:[[25,38],[39,38]]}:undefined);
  }
