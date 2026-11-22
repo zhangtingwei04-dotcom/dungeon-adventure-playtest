@@ -1,10 +1,10 @@
-/* Female mouth expressions V3 — separate face, male-aligned 64x160.
+/* Female mouth expressions V3.7 — male expressions raised by 1 native pixel, female unchanged.
  * Source mouth is at x31..33 / y44; never draw over nose or jaw.
  * Original neutral is preserved without an overlay.
  */
 (function(root){
  'use strict';
- const W=64,H=160,LEFT=29,TOP=43,MALE_TOP=44,PW=7,PH=4;
+ const W=64,H=160,LEFT=29,TOP=43,MALE_TOP=43,PW=7,PH=4;
  const poses=new Set(['neutral','smile','happy','surprised','frown','shy','talkSmall','talkOpen']);
  let base=null,loading=false,failed=false;
  let maleBase=null,maleLoading=false;
@@ -89,27 +89,27 @@
   const edge=[181,117,95,255],dark=[113,68,56,255],
         soft=[195,125,103,255],highlight=[226,157,122,255];
   // Clean only the existing male lip pixels. Eyes, nose and chin untouched.
-  for(let x=30;x<=34;x++)for(let y=45;y<=46;y++)set(x,y,get(29,y));
+  for(let x=30;x<=34;x++)for(let y=44;y<=45;y++)set(x,y,get(29,y));
   if(pose==='smile'){
    // Symmetric, understated closed-mouth smile: paired corners at the same
    // height/color, mirrored about x=31.5. No lower lip or exposed teeth.
-   set(29,44,soft);set(34,44,soft);
-   set(30,45,soft);set(33,45,soft);
-   set(31,45,edge);set(32,45,edge);
+   set(29,43,soft);set(34,43,soft);
+   set(30,44,soft);set(33,44,soft);
+   set(31,44,edge);set(32,44,edge);
   }else if(pose==='happy'){
-   set(30,45,edge);set(31,45,dark);set(32,45,dark);set(33,45,edge);
-   set(31,46,soft);set(32,46,highlight);
+   set(30,44,edge);set(31,44,dark);set(32,44,dark);set(33,44,edge);
+   set(31,45,soft);set(32,45,highlight);
   }else if(pose==='surprised'){
-   set(31,45,dark);set(32,45,dark);set(31,46,dark);set(32,46,soft);
+   set(31,44,dark);set(32,44,dark);set(31,45,dark);set(32,45,soft);
   }else if(pose==='frown'){
-   set(30,46,edge);set(31,45,dark);set(32,45,dark);set(33,46,edge);
+   set(30,45,edge);set(31,44,dark);set(32,44,dark);set(33,45,edge);
   }else if(pose==='shy'){
-   set(31,45,soft);set(32,45,edge);
+   set(31,44,soft);set(32,44,edge);
   }else if(pose==='talkSmall'){
-   set(31,45,dark);set(32,45,dark);set(32,46,soft);
+   set(31,44,dark);set(32,44,dark);set(32,45,soft);
   }else if(pose==='talkOpen'){
-   set(30,45,edge);set(31,45,dark);set(32,45,dark);set(33,45,edge);
-   set(31,46,dark);set(32,46,soft);
+   set(30,44,edge);set(31,44,dark);set(32,44,dark);set(33,44,edge);
+   set(31,45,dark);set(32,45,soft);
   }
   return new ImageData(pixels,PW,PH);
  }
@@ -135,6 +135,6 @@
   }
   ctx.putImageData(isSharedMale?malePoseFrame(skinBase,pose):poseFrame(skinBase,pose),LEFT,isSharedMale?MALE_TOP:TOP);
  }
- root.DungeonFemaleMouthMotionV1=Object.freeze({version:'3.6.0',render,prepare});
+ root.DungeonFemaleMouthMotionV1=Object.freeze({version:'3.7.0',render,prepare});
  prepare();
 })(window);
