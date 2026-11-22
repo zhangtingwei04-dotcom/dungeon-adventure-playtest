@@ -125,13 +125,17 @@
    }
   }
   if(pose==='shy'||eyeExpression==='shy'){
-   c.fillStyle='rgba(216,130,133,0.45)';c.fillRect(20,40,2,1);c.fillRect(43,40,2,1);
+   // Same shy cheek rule as the approved female trial: mirrored warm pink
+   // 2-pixel blush marks on y42; leave the male irises and lashes unchanged.
+   c.fillStyle='rgba(225,141,144,0.667)';
+   for(const x of [23,39])c.fillRect(x,42,2,1);
   }
   // Separate eyebrows now occupy y29..30, partly hidden below the hair.
   // Eyes (including formerly-mislabelled upper lashes) occupy y32..38.
   // Repaint both with the original face skin during blink or expression
   // so neither the original eyelid nor eyebrow can ghost underneath.
-  out.drawImage(scratch,18,27,30,15,18,27,30,15);
+  // Include y42 so both female-style blush marks are visible below the eyes.
+  out.drawImage(scratch,18,27,30,16,18,27,30,16);
  }
  function renderMouth(stage,opts={}){
   const target=stage?.querySelector('.paperdoll-female-mouth-motion-canvas');if(!target)return;
@@ -161,7 +165,10 @@
    c.fillRect(31,44,2,1);
   }else if(pose==='surprised'){c.fillStyle='#744744';c.fillRect(31,44,2,2);
   }else if(pose==='frown'||pose==='angry'){c.fillRect(30,44,1,1);c.fillRect(31,43,2,1);c.fillRect(33,44,1,1);
-  }else if(pose==='shy'){c.fillRect(31,44,2,1);
+  }else if(pose==='shy'){
+   // Match female trial's delicate centered two-pixel mouth at y45.
+   // Use her shade, without borrowing any female face/head bitmap.
+   c.fillStyle='#bd7964';c.fillRect(31,45,2,1);
   }else if(pose==='talkSmall'){c.fillStyle='#744744';c.fillRect(31,44,2,1);
   }else if(pose==='talkOpen'){c.fillStyle='#744744';c.fillRect(30,44,4,2)}
   out.drawImage(scratch,29,43,6,4,29,43,6,4);
