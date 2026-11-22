@@ -89,21 +89,41 @@
   out.imageSmoothingEnabled=false;out.clearRect(0,0,W,H);
   if(!ready)return;
   const closed=!!opts.unconscious||!!opts.closed||!!opts.blink;
-  const pose=opts.brows||'original',tone=opts.skinTone||'original';
+  const pose=opts.brows||'original',eyeExpression=opts.eyeExpression||'original';
+  const tone=opts.skinTone||'original';
   // With hair equipped, the 3px edge of the forehead brow must not leak through
   // the silver fringe. In BALD mode, keep the full approved brow and motions.
   const showBrows=stage.classList.contains('paperdoll-bald');
   const gaze=opts.circleEyes||closed?'center':opts.gaze||'center';
   const color=opts.eyeColor||'purple';
-  const changed=closed||(showBrows&&pose!=='original')||gaze!=='center'||color!=='purple';
+  // The V3 expression controller supplies the eye state as well as brow state.
+  // Older V3 ignored surprised/angry eyes entirely once fringe hid the brows.
+  const eyePose=eyeExpression==='surprised'||eyeExpression==='angry'||eyeExpression==='shy';
+  const changed=closed||(showBrows&&pose!=='original')||eyePose||gaze!=='center'||color!=='purple';
   if(!changed)return;
   resetBase(tone);
   if(showBrows)c.drawImage(browFrame(pose),0,0);
   if(closed){
+   // Cover both original V3 eyes (including upper-lash pixels) with head-base
+   // skin before painting calm closed lids. This must work under every hairstyle.
    c.fillStyle='#3f292d';
    c.fillRect(22,37,6,1);c.fillRect(36,37,6,1);
-  }else c.drawImage(eyeFrame(gaze,color),0,0);
-  if(pose==='shy'){
+  }else{
+   c.drawImage(eyeFrame(gaze,color),0,0);
+   // Deliberately tiny expression overlays: preserve the accepted V3 iris,
+   // eye outline, natural purple colour, eyelashes and native 64px grid.
+   // Only the live eye state changes; no new permanent face or eye images.
+   if(eyeExpression==='surprised'){
+    // Small upper-iris catchlights make the original eyes appear more alert.
+    c.fillStyle='#f8eaf5';
+    c.fillRect(24,36,1,1);c.fillRect(39,36,1,1);
+   }else if(eyeExpression==='angry'){
+    // Single-pixel inward upper-lid pressure; symmetric, never the brow art.
+    c.fillStyle='#4b3034';
+    c.fillRect(26,35,2,1);c.fillRect(36,35,2,1);
+   }
+  }
+  if(pose==='shy'||eyeExpression==='shy'){
    c.fillStyle='rgba(216,130,133,0.45)';c.fillRect(20,40,2,1);c.fillRect(43,40,2,1);
   }
   // Separate eyebrows now occupy y29..30, partly hidden below the hair.
