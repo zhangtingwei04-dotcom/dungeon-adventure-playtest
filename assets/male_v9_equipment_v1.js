@@ -45,9 +45,10 @@
   return 'rgba('+p[0]+','+p[1]+','+p[2]+','+(p[3]/255)+')';
  }
  function fillSkin(x,y,referenceY,tone){ctx.fillStyle=skinAt(x,referenceY,tone);ctx.fillRect(x,y,1,1)}
- function replaceEyes(blank,tone){
+ // Closed and unconscious share the same quiet eyelid art.
+ // Unconscious icon is drawn ABOVE the hair by the condition renderer.
+ function drawClosedEyes(tone){
   for(const cx of eyeCenters)for(let y=36;y<=41;y++)for(let x=cx-5;x<=cx+5;x++)fillSkin(x,y,43,tone);
-  if(blank)return;
   ctx.fillStyle='#3c2725';
   for(const cx of eyeCenters){ctx.fillRect(cx-3,38,7,1);ctx.fillRect(cx-2,39,5,1)}
  }
@@ -103,7 +104,7 @@
     ctx.putImageData(img,20,37);
    }
   }
-  if(closed)replaceEyes(blank,tone);
+  if(closed)drawClosedEyes(tone);
   else if(recolor)tintIris(eyeColor);
   brows(brow,tone);
   if(brow==='shy'){ctx.fillStyle='rgba(225,142,132,.56)';ctx.fillRect(20,43,2,1);ctx.fillRect(43,43,2,1)}
