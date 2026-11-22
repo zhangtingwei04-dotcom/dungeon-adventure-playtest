@@ -21,6 +21,7 @@ for(const k of order){
   h.drawImage(im,0,0,64,64,0,0,64,64);f.drawImage(im,0,0);
  }
 }
+}
 for(const k of order){const el=document.createElement('label');const c=document.createElement('input');c.type='checkbox';c.checked=true;c.onchange=()=>{active[k]=c.checked;draw()};el.append(c,labels[k]);document.querySelector('#toggles').appendChild(el)}
 for(const k of order)imgs[k]=load(assets[k],draw);
 for(const k of ['body','shorts','tank'])bodyImgs[k]=load(bodies[k],draw);
