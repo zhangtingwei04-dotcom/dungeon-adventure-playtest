@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#102b23"><meta name="robots" content="noindex,nofollow">
+<title>男性光頭母版 V1｜輪廓比較與驗收</title>
+<style>
+:root{font-family:system-ui,-apple-system,'Noto Sans TC',sans-serif;color:#f4e8cf;background:#102b23}*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(160deg,#173f33,#092019 70%);padding:18px;min-height:100vh}
+main{max-width:1060px;margin:auto}h1{font-size:clamp(20px,4vw,29px);margin:0 0 8px}
+p{line-height:1.65;font-size:13px;color:#c5d6cb}h2{font-size:16px;margin:0 0 12px;color:#f5d494}
+small{font-size:11px;color:#b9c9bb}a{color:#e8d098;text-underline-offset:3px}
+.top{display:flex;justify-content:space-between;gap:15px;align-items:start;flex-wrap:wrap}
+.status{border:1px solid #bda16f;border-radius:30px;padding:7px 11px;font-size:12px;color:#f5dcad;white-space:nowrap}
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:16px 0}
+.card{background:#214237;border:1px solid #8e815f;border-radius:12px;padding:12px;min-width:0}
+.card.new{border-color:#d6b879;box-shadow:inset 0 0 0 1px #d1b36a}
+.preview{aspect-ratio:1;display:grid;place-items:center;padding:7px;background:linear-gradient(45deg,#d5e0d8 25%,transparent 25%,transparent 75%,#d5e0d8 75%),linear-gradient(45deg,#d5e0d8 25%,#e8eee9 25%,#e8eee9 75%,#d5e0d8 75%);background-size:18px 18px;background-position:0 0,9px 9px;border-radius:7px}
+.preview canvas{width:100%;image-rendering:pixelated;aspect-ratio:1;display:block}
+.metrics{font-size:11px;line-height:1.5;color:#cedbcf;min-height:32px;margin-top:9px}
+.panel{background:#214237;border:1px solid #796f54;padding:15px;border-radius:12px;margin-top:14px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+button{background:#315b4b;border:1px solid #ba9d6b;color:#f5e7c9;padding:10px 14px;border-radius:7px;font:inherit;font-size:13px;min-height:43px}
+button:disabled{opacity:.45}button.primary{background:#d3b982;color:#183028;font-weight:700}
+.note{font-size:12px;color:#d8ccaf}
+ul{padding-left:20px;line-height:1.7;color:#d6dacf;font-size:13px}
+nav{margin-top:20px;display:flex;flex-wrap:wrap;gap:15px}
+@media(max-width:680px){body{padding:10px}.cards{grid-template-columns:1fr 1fr;gap:8px}.card{padding:8px}.card:last-child{grid-column:1/-1;max-width:390px;width:100%;justify-self:center}.preview{padding:3px}h2{font-size:13px}.panel{padding:12px}}
+</style>
+<script src="./assets/female_bald_candidate_v1.js?v=1"></script>
+<script src="./assets/male_v3_head_dome2_trial.js?v=2"></script>
+<script src="./assets/male_approved_v3_layers.js?v=1"></script>
+<script src="./assets/male_head_master_v1.js?v=1"></script>
+</head><body>
+<main>
+<div class="top"><div><h1>男性光頭母版 V1｜輪廓驗收</h1>
+<p>這次只重建男生頭部的<strong>光頭底座</strong>，不重新生成眼睛、嘴巴或頭髮。三張圖都使用 64×160 原生透明座標。</p></div>
+<div class="status">獨立試驗｜不覆蓋遊戲</div></div>
+<section class="cards">
+<div class="card"><h2>女性光頭｜輪廓參考</h2><div class="preview"><canvas id="female" width="384" height="384"></canvas></div><div id="femaleInfo" class="metrics">原圖載入中…</div></div>
+<div class="card"><h2>舊男性｜已核准 V2</h2><div class="preview"><canvas id="old" width="384" height="384"></canvas></div><div id="oldInfo" class="metrics">原圖載入中…</div></div>
+<div class="card new"><h2>新男性｜頭部母版 V1</h2><div class="preview"><canvas id="new" width="384" height="384"></canvas></div><div id="newInfo" class="metrics">載入中…</div></div>
+</section>
+<section class="panel">
+<h2>只驗收頭部結構，不驗收表情</h2>
+<ul>
+<li>頭頂圓弧是否自然，不會像帽子或尖角</li>
+<li>臉頰是否比舊版柔和，下巴是否不再過尖</li>
+<li>左右耳朵是否自然，以及下巴能否和既有脖子接合</li>
+<li>和女性頭型放在一起，頭高與整體寬度是否協調</li>
+</ul>
+<div class="actions">
+<button class="primary" id="saveNew" disabled>匯出新男性母版透明 PNG</button>
+<button id="saveCompare" disabled>匯出三頭比較 PNG</button>
+<button id="toggleGuides">顯示眼線／中心定位</button>
+</div>
+<p id="status" class="note">等待像素素材載入。</p>
+</section>
+<nav>
+<a href="./developer-workbench.html?v=2">開發者工具台</a>
+<a href="./male-v3-expression-check.html?v=14">現行男性 V3 表情驗收</a>
+<a href="./?male-head=v3">返回正式遊戲（舊男頭保留）</a>
+</nav>
+<p><small>母版 V1 尚未正式採用；眼眉嘴、銀白髮及特效會在頭型通過後再接回，避免沿用不適合的錨點。</small></p>
+</main>
+<script>
+(()=>{
+'use strict';
+const refs={
+ female:window.DungeonFemaleBaldCandidateV1?.head,
+ old:window.DungeonMaleV3DomeTrial?.image||window.DungeonMaleApprovedV3?.head_base,
+ new:window.DungeonMaleHeadMasterV1?.head_base
+};
+const images={};let showGuides=false;
+const load=(k,src)=>new Promise((ok,no)=>{
+ if(typeof src!=='string'||!src.startsWith('data:image/png;base64,')){no(Error(k+' 的母版未載入'));return}
+ const img=new Image();
+ img.onload=()=>img.naturalWidth===64&&img.naturalHeight===160?(images[k]=img,ok(img)):no(Error(k+' 檔案尺寸錯誤'));
+ img.onerror=()=>no(Error(k+' PNG 解碼失敗'));img.src=src;
+});
+function draw(k){
+ const ctx=document.getElementById(k).getContext('2d',{willReadFrequently:true});
+ ctx.imageSmoothingEnabled=false;ctx.clearRect(0,0,384,384);
+ const img=images[k];if(!img)return;
+ ctx.drawImage(img,8,10,48,48,0,0,384,384);
+ if(showGuides){
+  ctx.lineWidth=1;ctx.strokeStyle='#a4453e';
+  ctx.beginPath();ctx.moveTo(192,0);ctx.lineTo(192,384);ctx.stroke();
+  const y=(36-10)*8;ctx.strokeStyle='#7a9b49';
+  ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(384,y);ctx.stroke();
+ }
+}
+function analyze(k){
+ const img=images[k],c=document.createElement('canvas');c.width=64;c.height=160;
+ const ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0);
+ const d=ctx.getImageData(0,0,64,160).data;
+ let minX=64,minY=160,maxX=-1,maxY=-1,count=0;
+ for(let y=0;y<160;y++)for(let x=0;x<64;x++){
+  if(d[(y*64+x)*4+3]<128)continue;
+  count++;minX=Math.min(minX,x);minY=Math.min(minY,y);maxX=Math.max(maxX,x);maxY=Math.max(maxY,y);
+ }
+ return {count,bounds:maxX<0?null:[minX,minY,maxX,maxY]};
+}
+function exportPng(c,name){
+ c.toBlob(blob=>{
+  if(!blob){document.getElementById('status').textContent='PNG 匯出失敗';return}
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');
+  a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),2000);
+ },'image/png');
+}
+function native(k){const c=document.createElement('canvas');c.width=64;c.height=160;
+ c.getContext('2d').drawImage(images[k],0,0);return c;
+}
+document.getElementById('toggleGuides').onclick=()=>{
+ showGuides=!showGuides;for(const key of Object.keys(images))draw(key);
+ document.getElementById('toggleGuides').textContent=showGuides?'隱藏定位輔助線':'顯示眼線／中心定位';
+};
+document.getElementById('saveNew').onclick=()=>exportPng(native('new'),'male_head_master_v1_64x160.png');
+document.getElementById('saveCompare').onclick=()=>{
+ const c=document.createElement('canvas');c.width=192;c.height=160;
+ const ctx=c.getContext('2d');ctx.imageSmoothingEnabled=false;
+ ['female','old','new'].forEach((k,i)=>ctx.drawImage(images[k],i*64,0));
+ exportPng(c,'male_head_master_v1_threeheads_192x160.png');
+};
+Promise.all(Object.entries(refs).map(([k,v])=>load(k,v))).then(()=>{
+ for(const k of Object.keys(refs)){
+  draw(k);const report=analyze(k);
+  document.getElementById(k+'Info').textContent='不透明輪廓：'+report.count+'px｜區域：'+report.bounds.join('，');
+ }
+ document.getElementById('saveNew').disabled=false;
+ document.getElementById('saveCompare').disabled=false;
+ document.getElementById('status').textContent='三張來源已載入；V1 是獨立頭皮母版，尚未裝五官。';
+}).catch(e=>{document.getElementById('status').textContent='載入失敗：'+e.message});
+})();
+</script></body></html>
