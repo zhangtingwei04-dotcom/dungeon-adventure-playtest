@@ -90,12 +90,15 @@
   if(!ready)return;
   const closed=!!opts.unconscious||!!opts.closed||!!opts.blink;
   const pose=opts.brows||'original',tone=opts.skinTone||'original';
+  // With hair equipped, the 3px edge of the forehead brow must not leak through
+  // the silver fringe. In BALD mode, keep the full approved brow and motions.
+  const showBrows=stage.classList.contains('paperdoll-bald');
   const gaze=opts.circleEyes||closed?'center':opts.gaze||'center';
   const color=opts.eyeColor||'purple';
-  const changed=closed||pose!=='original'||gaze!=='center'||color!=='purple';
+  const changed=closed||(showBrows&&pose!=='original')||gaze!=='center'||color!=='purple';
   if(!changed)return;
   resetBase(tone);
-  c.drawImage(browFrame(pose),0,0);
+  if(showBrows)c.drawImage(browFrame(pose),0,0);
   if(closed){
    c.fillStyle='#3f292d';
    c.fillRect(22,37,6,1);c.fillRect(36,37,6,1);
