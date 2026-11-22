@@ -331,7 +331,7 @@ function restore(raw){
  state.pose=['auto','original','happy','smile','surprised','angry','shy','eyesClosed'].includes(raw.pose)?raw.pose:'auto';
  state.sweatFrame=safeNumber(raw.sweatFrame,0,5);
 }
-for(var tab of document.querySelectorAll('[data-tab]')){
+for(let tab of document.querySelectorAll('[data-tab]')){
  tab.addEventListener('click',()=>{for(var b of document.querySelectorAll('[data-tab]')){b.classList.toggle('active',b===tab)}
   for(var p of document.querySelectorAll('[data-section]'))p.hidden=p.dataset.section!==tab.dataset.tab;
   render();
@@ -347,7 +347,7 @@ $('animate').onchange=e=>changeState(()=>state.animate=e.target.checked);
 $('hp').onchange=e=>changeState(()=>state.hp=e.target.value);
 $('pose').onchange=e=>changeState(()=>state.pose=e.target.value);
 $('sweatFrame').oninput=e=>changeState(()=>state.sweatFrame=Number(e.target.value));
-for(var button of document.querySelectorAll('[data-move]'))button.onclick=()=>changeState(()=>{
+for(let button of document.querySelectorAll('[data-move]'))button.onclick=()=>changeState(()=>{
  var a=button.dataset.move.split(',').map(Number);
  state.hairX=safeNumber(state.hairX+a[0],-4,4);state.hairY=safeNumber(state.hairY+a[1],-5,3);
 });
