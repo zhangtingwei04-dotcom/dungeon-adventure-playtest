@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#16382d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="燈火開發台">
+<meta name="robots" content="noindex,nofollow">
+<link rel="manifest" href="./dev-studio.webmanifest">
+<link rel="icon" href="./assets/dev-studio-icon.svg" type="image/svg+xml">
+<title>迷宮盡頭的燈火｜開發者總工作台</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","PingFang TC",sans-serif;color:#efead9;background:#0b1c19;--panel:#15362d;--gold:#dfc487;--line:#978457;--muted:#aebfb1;--ink:#f4e5c2;--field:#24483b}
+*{box-sizing:border-box}body{margin:0;min-height:100dvh;background:radial-gradient(ellipse at 35% 0%,#275647 0%,#0b221b 56%,#071914 100%)}
+button,select,input,textarea{font:inherit}button,select,input,textarea{border:1px solid #8f805f;border-radius:8px;background:var(--field);color:var(--ink)}
+button,select{min-height:42px;padding:8px 11px}button{cursor:pointer;touch-action:manipulation}button:active{background:#406953}button.primary{background:#d8bc80;color:#173128;font-weight:750;border-color:#e8d09c}
+button.quiet{background:#15352b}button:disabled{opacity:.48;cursor:default}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{outline:2px solid #efda97;outline-offset:2px}
+a{color:#f4dba4}h1{font-size:clamp(18px,3.6vw,27px);margin:0}h2{font-size:17px;margin:0 0 12px;color:#f6d99f}h3{font-size:14px;margin:0 0 8px;color:#ecd59d}
+p{font-size:12px;line-height:1.65;color:var(--muted);margin:7px 0 12px}
+small,.small{font-size:11px;color:#b6c8b7;line-height:1.55}.muted{color:var(--muted)}
+header{position:sticky;top:0;z-index:9;border-bottom:1px solid #a88f58;background:#102a23f5;backdrop-filter:blur(12px)}
+.head{max-width:1300px;margin:auto;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
+.head .micro{color:#c5d1bf;font-size:11px;margin-top:5px}
+.pill{font-size:11px;border:1px solid #9d8657;color:#e5ca90;padding:6px 9px;border-radius:100px}
+.tabs{max-width:1300px;margin:auto;padding:0 16px 10px;display:flex;gap:7px;overflow-x:auto;scrollbar-width:none}
+.tabs button{white-space:nowrap;flex:none;border-radius:20px;min-height:38px;font-size:13px}
+.tabs button[aria-selected=true]{background:var(--gold);border-color:#fae1ab;color:#142a22;font-weight:750}
+main{max-width:1300px;margin:auto;padding:14px}
+.panel{border:1px solid #7a7656;border-radius:13px;background:linear-gradient(150deg,#193d32,#102e27);padding:14px;margin:0 0 13px;box-shadow:0 6px 20px #010f0a55}
+[hidden]{display:none!important}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.toolbar button{flex:0 0 auto}
+.gameWindow{position:relative;width:100%;aspect-ratio:1536/707;max-height:72dvh;overflow:hidden;background:#081d19;border:1px solid #c2a66f;border-radius:8px}
+.gameWindow iframe{width:1536px;height:707px;border:0;display:block;position:absolute;top:0;left:0;transform-origin:top left}
+.gameWindow.maximized{max-height:none;aspect-ratio:1536/707}
+.hint{padding:10px;border:1px solid #566954;border-radius:8px;background:#0a2720;color:#d6d5b7;font-size:12px;line-height:1.55;margin:9px 0}
+.layout{display:grid;grid-template-columns:minmax(0,290px) minmax(0,1fr) minmax(0,290px);gap:13px;align-items:start}
+.layout .panel{margin:0;min-width:0}
+.libraryList{display:flex;flex-direction:column;gap:5px;max-height:480px;overflow-y:auto}
+.assetBtn{width:100%;text-align:left;display:flex;gap:8px;justify-content:space-between;align-items:center;font-size:12px;padding:8px}
+.assetBtn[aria-pressed=true]{background:#5d613d;border-color:#e2c37e}
+.assetBtn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.status{font-size:10px;color:#b9c9b6;white-space:nowrap}
+.avatarGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.avatarCard{border:1px solid #7e7857;border-radius:9px;background:#10281f;padding:7px 4px;text-align:center}
+.avatarCard strong{display:block;font-size:12px;color:#f1d7a2;margin-bottom:7px}
+.avatarCard .sub{font-size:10px;color:#bdcbb7;margin-bottom:5px}
+.spriteChecker{width:100%;max-width:178px;margin:auto;background:linear-gradient(45deg,#344b42 25%,transparent 25%,transparent 75%,#344b42 75%),linear-gradient(45deg,#344b42 25%,#4e6558 25%,#4e6558 75%,#344b42 75%);background-size:20px 20px;background-position:0 0,10px 10px;display:flex;align-items:center;justify-content:center;min-height:340px;border-radius:5px}
+.spriteChecker canvas{width:min(100%,148px);height:auto;aspect-ratio:2/5;image-rendering:pixelated;display:block;touch-action:none}
+.editorFields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.field{display:flex;flex-direction:column;gap:5px;font-size:12px;min-width:0;color:#d6d9c6}
+.field input,.field select{width:100%;min-width:0;padding:8px;min-height:40px}
+.field.single{grid-column:1/-1}
+.checkRow{display:flex;align-items:center;gap:8px;font-size:12px;min-height:42px}
+.checkRow input{width:18px;height:18px;accent-color:var(--gold)}
+.nudges{display:flex;gap:6px;flex-wrap:wrap}
+.nudges button{min-width:47px;flex:1}
+.divider{height:1px;background:#5b694c;margin:13px 0}
+.sectionTag{color:#e9c684;font-size:12px}
+.mini{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}
+.mini select{width:100%;min-width:0}
+.fileName{font-size:11px;color:#c8d6c9;word-break:break-word;line-height:1.5}
+.assetInfo{min-height:48px}
+.warning{border-left:3px solid #e3b46a;padding:7px 9px;background:#3e35254f;color:#ead6ae;font-size:11px;line-height:1.55;margin:9px 0}
+textarea{width:100%;min-height:240px;padding:12px;resize:vertical;font:11px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;background:#0a231c;color:#e9e4d2}
+#toast{position:fixed;bottom:calc(16px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);z-index:60;background:#e6c988;color:#142e24;padding:11px 16px;border-radius:10px;box-shadow:0 10px 20px #0008;max-width:90vw;font-size:13px;font-weight:700;display:none}
+footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
+@media(max-width:970px){.layout{grid-template-columns:minmax(0,1fr) minmax(0,1.6fr)}.controlPanel{grid-column:1/-1}.libraryList{max-height:330px}}
+@media(max-width:660px){main{padding:9px}.head{padding:9px 11px}.tabs{padding:0 10px 9px}.panel{padding:11px}.layout{grid-template-columns:1fr}.controlPanel{grid-column:auto}.libraryList{max-height:188px}.spriteChecker{min-height:280px}.spriteChecker canvas{max-width:118px}.gameWindow{max-height:none}.toolbar button{flex:1}}
+@media(orientation:landscape) and (max-height:480px){.head{padding:6px 11px}.micro{display:none}.spriteChecker{min-height:210px}.spriteChecker canvas{max-width:91px}header{position:static}}
+</style>
+<script src="./assets/cloak_workbench_bases_v1.js?v=1"></script>
+<script src="./assets/traveler_cloak_trial_v1.js?v=1"></script>
+<script src="./assets/male_approved_v3_layers.js?v=1"></script>
+<script src="./assets/male_v3_corrected_layers_v2.js?v=1"></script>
+<script src="./assets/male_v3_head_short5_v1.js?v=1"></script>
+<script src="./assets/male_v3_head_dome2_trial.js?v=2"></script>
+<script src="./assets/female_parts_v2.js?v=4"></script>
+<script src="./assets/female_bald_candidate_v1.js?v=2"></script>
+</head>
+<body>
+<header><div class="head"><div><h1>迷宮盡頭的燈火 · 開發者總台</h1><div class="micro">實際遊戲預覽 · 角色裝備庫 · 圖層定位 · 參數匯出</div></div><span class="pill">獨立測試存檔｜不直接更新遊戲</span></div>
+<div class="tabs" role="tablist" aria-label="工作台功能">
+<button role="tab" id="tab-game" data-tab="game" aria-selected="true">遊戲預覽</button>
+<button role="tab" id="tab-library" data-tab="library" aria-selected="false">角色裝備庫</button>
+<button role="tab" id="tab-export" data-tab="export" aria-selected="false">數據與備份</button>
+</div></header>
+<main>
+<section id="page-game" data-page="game">
+<div class="panel"><h2>實際遊戲預覽</h2>
+<p>下方會載入目前 GitHub Pages 的正式遊戲程式，但使用獨立的開發測試存檔。此區是玩法預覽；裝備庫調整尚未寫入遊戲時，不會同步改動下方的遊戲角色。</p>
+<div class="toolbar"><button class="primary" id="reloadGame">重新載入測試</button><button id="launchGame">全頁開啟測試遊戲</button><button id="openLive">開啟正式遊戲</button><button id="clearPreview">清除測試存檔</button></div>
+<div class="hint">建議 iPhone 橫向操作。內嵌預覽保留遊戲原本 1536×707 版面；如果畫面太小，按「全頁開啟測試遊戲」。正式遊戲存檔與預覽存檔分開。</div>
+<div class="gameWindow" id="gameWindow"><iframe id="gameFrame" title="迷宮盡頭的燈火：獨立存檔的遊戲預覽" src="./?dev-preview=1&v=studio-20261122" loading="lazy" allow="fullscreen"></iframe></div>
+</div>
+</section>
+<section id="page-library" data-page="library" hidden>
+<div class="hint">此處使用正式男女身體／內衣／頭髮素材。新增 PNG 可單獨定位、調整大小，並在男女預覽中測試。**先前的披風程式草稿並不是已確認的披風圖**，預設隱藏。調完後到「數據與備份」複製數據給我。</div>
+<div class="layout">
+<div class="panel"><h2>素材庫</h2><div class="libraryList" id="assetList" role="group" aria-label="角色與裝備素材清單"></div>
+<div class="divider"></div><h3>新增裝備／髮型</h3>
+<div class="editorFields">
+<label class="field single">名稱<input id="newName" placeholder="例如：旅人披風 V2" maxlength="45"></label>
+<label class="field">分類<select id="newSlot"><option value="hair">頭髮</option><option value="head">頭部</option><option value="chest">上衣</option><option value="outer">披風／外衣</option><option value="legs">下裝</option><option value="feet">鞋子</option><option value="hands">手套</option><option value="bag">背包</option><option value="neck">飾品</option><option value="main">武器</option></select></label>
+<label class="field">圖層<select id="newLayers"><option value="front">單層</option><option value="back,front">前後兩層</option><option value="back,side,front">前／後／側三層</option></select></label>
+</div><div class="toolbar" style="margin-top:9px"><button id="addAsset">新增至素材庫</button></div>
+<p>新增的是工作台資料，不會自動新增遊戲物品。素材影像請再從右側匯入。</p>
+</div>
+<div class="panel"><h2>角色即時預覽</h2><div class="avatarGrid">
+<div class="avatarCard" id="maleCard"><strong>男性｜原版頭</strong><div class="sub">真實底模 64×160</div><div class="spriteChecker"><canvas width="64" height="160" id="maleCanvas" aria-label="男性角色即時裝備預覽，可拖曳調整所選圖層"></canvas></div></div>
+<div class="avatarCard" id="femaleCard"><strong>女性｜新版頭</strong><div class="sub">真實底模 64×160</div><div class="spriteChecker"><canvas width="64" height="160" id="femaleCanvas" aria-label="女性角色即時裝備預覽，可拖曳調整所選圖層"></canvas></div></div>
+</div><div class="toolbar" style="margin-top:10px"><button id="resetView">恢復兩性並排</button><button id="toggleGuides">肩頸輔助線：關</button></div>
+<p>直接在角色圖上拖曳，可移動目前選取性別與圖層。只修改該圖層參數，不會移動底模或頭部。</p>
+<div class="warning" id="assetWarning">目前是素材預覽，非正式穿戴驗收。既有頭部與內衣母版不會被修改。</div>
+</div>
+<div class="panel controlPanel"><h2>圖層調整</h2>
+<div class="editorFields">
+<label class="field single">目前素材<select id="assetSelect"></select></label>
+<label class="field">編輯角色<select id="editGender"><option value="male">男性</option><option value="female">女性</option></select></label>
+<label class="field">編輯圖層<select id="editLayer"></select></label>
+<label class="field">X（像素）<input id="xInput" type="number" min="-160" max="160" step="1"></label>
+<label class="field">Y（像素）<input id="yInput" type="number" min="-160" max="160" step="1"></label>
+<label class="field">Scale（倍）<input id="scaleInput" type="number" min="0.1" max="4" step="0.01"></label>
+<label class="field">目前影像<span class="fileName" id="currentFile">載入中</span></label>
+</div>
+<div class="checkRow"><input id="showAsset" type="checkbox"><label for="showAsset">顯示這件素材（該性別）</label></div>
+<div class="checkRow"><input id="showLayer" type="checkbox"><label for="showLayer">顯示目前圖層</label></div>
+<div class="nudges">
+<button data-nudge="-1,0" aria-label="左移一像素">← 1px</button>
+<button data-nudge="0,-1" aria-label="上移一像素">↑ 1px</button>
+<button data-nudge="0,1" aria-label="下移一像素">↓ 1px</button>
+<button data-nudge="1,0" aria-label="右移一像素">→ 1px</button></div>
+<div class="divider"></div><h3>匯入獨立素材圖</h3>
+<input id="pngUpload" type="file" accept="image/png" style="width:100%;padding:9px 5px;font-size:12px">
+<p>請選擇透明 PNG。匯入到「目前素材 × 性別 × 圖層」，不同角色與前後層可用不同圖片。原始檔案會保留在裝置的工作台資料庫，參數 JSON 不包含圖片本體。</p>
+<div class="toolbar"><button id="exportCurrentPng">匯出目前 PNG</button><button id="clearCurrentPng">撤回匯入圖</button></div>
+<div class="divider"></div>
+<div class="toolbar"><button id="resetLayer">重設此圖層</button><button id="copySelected" class="primary">複製目前素材數據</button></div>
+<div class="hint assetInfo" id="assetMeta">請先選擇素材。</div>
+</div></div>
+</section>
+<section id="page-export" data-page="export" hidden>
+<div class="panel"><h2>參數複製與備份</h2>
+<p>所有數據都是以 64×160 紙娃娃座標記錄，每一件裝備的男性／女性、前／後層分開。複製貼給我即可依數據安裝；如有使用你自己匯入的 PNG，請另外附上對應圖片，因為 JSON 不包含圖像像素。</p>
+<div class="toolbar"><button class="primary" id="copyAll">複製全部 JSON</button><button id="exportJson">下載 JSON</button><button id="importJsonButton">匯入 JSON</button><button id="resetAll">重設全部工作台設定</button></div>
+<input id="importJsonFile" type="file" accept=".json,application/json" hidden>
+<textarea id="jsonOutput" aria-label="工作台參數 JSON" spellcheck="false" readonly></textarea>
+<div class="hint" id="persistInfo">本機草稿會自動儲存到此瀏覽器，與玩家遊戲存檔分離。不含 GitHub 寫入權限；新素材不會自動上傳公開庫。</div>
+</div>
+<div class="panel"><h2>其他已建立的工具</h2>
+<div class="toolbar"><button id="oldWorkbench">頭部／表情工作台</button><button id="oldCloakWorkbench">早期披風對照頁</button><button id="githubRepo">GitHub 專案</button></div>
+<p>這個總台負責角色裝備資料與實際遊戲預覽，原本的完整臉部表情工具仍保留，避免既有研究成果遺失。</p>
+</div>
+</section>
+<footer>《迷宮盡頭的燈火》開發者總台｜本機資料與正式遊戲分離｜未核准素材不會正式安裝</footer>
+</main>
+<div id="toast" role="status" aria-live="polite"></div>
+<script>
+(()=>{
+'use strict';
+const $=id=>document.getElementById(id);
+const KEY='dungeon_dev_studio_v1_settings';
+const DB='dungeon_dev_studio_v1_png';
+const builtins=window.DungeonCloakWorkbenchBasesV1;
+const cloak=window.DungeonTravelerCloakTrialV1;
+const male=window.DungeonMaleV3CorrectedLayers||window.DungeonMaleApprovedV3;
+const sourceImages={
+ maleBody:builtins?.male?.body,maleTank:builtins?.male?.tank,maleShorts:builtins?.male?.shorts,
+ femaleBody:builtins?.female?.body,femaleTank:builtins?.female?.tank,femaleShorts:builtins?.female?.shorts,
+ maleHead:window.DungeonMaleV3DomeTrial?.image||male?.head_base,
+ maleBrows:male?.eyebrows,maleEyes:male?.eyes,maleMouth:male?.mouth,
+ maleHair:male?.hair_standard,
+ femaleHead:window.DUNGEON_FEMALE_OFFICIAL_HEAD_V2,femaleHair:window.DUNGEON_FEMALE_HAIR_V2,
+ maleCloakBack:cloak?.sprites?.male?.back,maleCloakFront:cloak?.sprites?.male?.front,
+ femaleCloakBack:cloak?.sprites?.female?.back,femaleCloakFront:cloak?.sprites?.female?.front
+};
+const catalogue=[
+ {id:'hair_original',name:'原版頭髮',slot:'hair',layers:['front'],status:'已使用的頭髮來源'},
+ {id:'starter_cloak',name:'深綠金邊披風 V1（不合格草稿）',slot:'outer',layers:['back','front'],status:'未核准草稿／與展示圖不同'},
+ {id:'starter_tunic',name:'旅人上衣',slot:'chest',layers:['front'],status:'待匯入新圖'},
+ {id:'starter_trousers',name:'旅行長褲',slot:'legs',layers:['front'],status:'待匯入新圖'},
+ {id:'starter_boots',name:'皮革長靴',slot:'feet',layers:['front'],status:'待匯入新圖'},
+ {id:'starter_gloves',name:'棕色皮革手套',slot:'hands',layers:['front'],status:'待匯入新圖'},
+ {id:'enchanted_satchel',name:'附魔旅行側包',slot:'bag',layers:['back','front'],status:'既有裝備資料／新美術待確認'}
+];
+const slots={hair:'頭髮',head:'頭部',chest:'上衣',outer:'外衣',legs:'下裝',feet:'鞋子',hands:'手套',bag:'背包',neck:'飾品',main:'武器'};
+const stockKeys={
+ 'hair_original:male:front':'maleHair','hair_original:female:front':'femaleHair',
+ 'starter_cloak:male:back':'maleCloakBack','starter_cloak:male:front':'maleCloakFront',
+ 'starter_cloak:female:back':'femaleCloakBack','starter_cloak:female:front':'femaleCloakFront'
+};
+const images=new Map(),userPngs=new Map(),imageInfo=new Map();
+const transforms={},shown={},layerShown={};
+const defaultT=(asset,gender,layer)=>({
+ x:asset.id==='hair_original'&&gender==='female'?-2:0,
+ y:asset.id==='hair_original'&&gender==='female'?-5:0,
+ scale:1
+});
+let selected='hair_original',editingGender='female',editingLayer='front',guides=false,dbPromise=null,ready=false;
+let gameFrameInitialized=false;
+function item(id){return catalogue.find(a=>a.id===id)}
+function k(id,gender,layer){return id+':'+gender+':'+layer}
+function toast(msg){const el=$('toast');el.textContent=msg;el.style.display='block';clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.style.display='none',2600)}
+function safeNum(n,min,max,fallback){n=Number(n);return Number.isFinite(n)?Math.min(max,Math.max(min,n)):fallback}
+function normalize(){
+ for(const a of catalogue)for(const g of ['male','female']){
+  const base=a.id+':'+g;
+  if(shown[base]===undefined)shown[base]=a.id==='hair_original';
+  for(const l of a.layers){
+   const key=k(a.id,g,l);
+   if(!transforms[key])transforms[key]=defaultT(a,g,l);
+   if(layerShown[key]===undefined)layerShown[key]=true;
+  }
+ }
+}
+function serialize(oneId){
+ const assets=catalogue.filter(a=>!oneId||a.id===oneId).map(a=>{
+  const genders={};
+  for(const g of ['male','female']){
+   const layers={};
+   for(const layer of a.layers){
+    const key=k(a.id,g,layer),stock=stockKeys[key],info=imageInfo.get(key);
+    layers[layer]={...transforms[key],visible:layerShown[key]!==false,
+     image:info?{kind:'local-png',fileName:info.fileName,width:info.width,height:info.height}:
+     stock?{kind:'builtin',key:stock}:{kind:'missing'}};
+   }
+   genders[g]={visible:shown[a.id+':'+g]!==false,layers};
+  }
+  return {id:a.id,name:a.name,category:a.slot,status:a.status,layerNames:a.layers.slice(),genders};
+ });
+ return {format:'dungeon-character-asset-library-v1',project:'迷宮盡頭的燈火',pixelCanvas:{width:64,height:160},
+  gameSaveMode:'independent-dev-preview',assets,
+  note:'參數僅為工作台草稿。匯入的 PNG 需另外附圖；不會自動更新正式遊戲。'};
+}
+function persist(){
+ try{
+  localStorage.setItem(KEY,JSON.stringify({catalogue,transforms,shown,layerShown,selected,editingGender,editingLayer}));
+  $('persistInfo').textContent='設定已儲存在這個裝置的工作台資料中。匯入圖片另存於本機資料庫；更換手機／瀏覽器不會自動同步。';
+ }catch(e){$('persistInfo').textContent='本機設定儲存失敗：'+e.message;}
+}
+function restore(){
+ try{
+  const data=JSON.parse(localStorage.getItem(KEY)||'null');if(!data||!Array.isArray(data.catalogue))return;
+  for(const a of data.catalogue){
+   if(!a||typeof a.id!=='string'||!/^[a-z0-9_-]{2,60}$/.test(a.id)||catalogue.some(x=>x.id===a.id))continue;
+   if(!Array.isArray(a.layers)||!a.layers.every(l=>['back','front','side'].includes(l)))continue;
+   if(typeof a.name!=='string'||!Object.hasOwn(slots,a.slot))continue;
+   catalogue.push({id:a.id,name:a.name.slice(0,45),slot:a.slot,layers:a.layers.slice(0,3),status:'自訂素材'});
+  }
+  for(const [key,t] of Object.entries(data.transforms||{})){
+   if(!/^[a-z0-9_-]+:(male|female):(back|front|side)$/.test(key)||!t)continue;
+   transforms[key]={x:safeNum(t.x,-160,160,0),y:safeNum(t.y,-160,160,0),scale:safeNum(t.scale,.1,4,1)};
+  }
+  for(const [key,value] of Object.entries(data.shown||{}))if(typeof value==='boolean')shown[key]=value;
+  for(const [key,value] of Object.entries(data.layerShown||{}))if(typeof value==='boolean')layerShown[key]=value;
+  if(catalogue.some(a=>a.id===data.selected))selected=data.selected;
+  editingGender=data.editingGender==='male'?'male':'female';
+  editingLayer=['front','back','side'].includes(data.editingLayer)?data.editingLayer:'front';
+ }catch(e){console.warn('Studio local settings ignored:',e)}
+}
+function openDb(){
+ if(dbPromise)return dbPromise;
+ dbPromise=new Promise((resolve,reject)=>{
+  if(!window.indexedDB){reject(Error('瀏覽器不支援本機圖片資料庫'));return}
+  const req=indexedDB.open(DB,1);
+  req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains('png'))db.createObjectStore('png',{keyPath:'key'})};
+  req.onerror=()=>reject(req.error||Error('無法開啟圖庫'));
+  req.onsuccess=()=>resolve(req.result);
+ });
+ return dbPromise;
+}
+async function dbWrite(record){
+ const db=await openDb();return new Promise((resolve,reject)=>{
+  const tx=db.transaction('png','readwrite');tx.objectStore('png').put(record);
+  tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error||Error('存入 PNG 失敗'));
+ });
+}
+async function dbDelete(key){
+ const db=await openDb();return new Promise((resolve,reject)=>{
+  const tx=db.transaction('png','readwrite');tx.objectStore('png').delete(key);
+  tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error||Error('移除 PNG 失敗'));
+ });
+}
+async function dbReadAll(){
+ const db=await openDb();return new Promise((resolve,reject)=>{
+  const tx=db.transaction('png','readonly');const req=tx.objectStore('png').getAll();
+  req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error||Error('讀取 PNG 失敗'));
+ });
+}
+function loadImage(dataUrl,key){
+ return new Promise((resolve,reject)=>{
+  if(typeof dataUrl!=='string'||!dataUrl.startsWith('data:image/png;base64,')){reject(Error('非 PNG 資料：'+key));return}
+  const img=new Image();img.onload=()=>{images.set(key,img);resolve(img)};img.onerror=()=>reject(Error('PNG 解析失敗：'+key));img.src=dataUrl;
+ });
+}
+function sourceFor(id,gender,layer){const key=k(id,gender,layer);return userPngs.get(key)||sourceImages[stockKeys[key]]||null}
+function selectedKey(){return k(selected,editingGender,editingLayer)}
+function getImage(id,gender,layer){return images.get(k(id,gender,layer))}
+function drawImageOn(ctx,img,transform){
+ if(!img)return;
+ const width=img.naturalWidth||64,height=img.naturalHeight||160;
+ const nativeScale=Math.min(64/width,160/height);
+ const scale=nativeScale*transform.scale;
+ const w=width*scale,h=height*scale;
+ ctx.drawImage(img,32-w/2+transform.x,80-h/2+transform.y,w,h);
+}
+function drawSlot(ctx,gender,slotsToDraw){
+ for(const a of catalogue){
+  if(!slotsToDraw.includes(a.slot)||shown[a.id+':'+gender]===false)continue;
+  for(const layer of a.layers){
+   if(layerShown[k(a.id,gender,layer)]===false)continue;
+   // Always preserve back/front role for cloaks and multi-layer equipment.
+   const key=k(a.id,gender,layer),img=getImage(a.id,gender,layer);
+   if(!img)continue;
+   const isBack=layer==='back',isSide=layer==='side';
+   const requested=slotsToDraw.includes(isBack?a.slot:a.slot);
+   if(!requested)continue;
+   drawImageOn(ctx,img,transforms[key]);
+  }
+ }
+}
+function drawAssetStage(gender){
+ const c=$(gender+'Canvas'),ctx=c.getContext('2d');ctx.clearRect(0,0,64,160);ctx.imageSmoothingEnabled=false;
+ const drawStatic=key=>{const img=images.get(key);if(img)ctx.drawImage(img,0,0,64,160)};
+ // Draw all rear equipment first, then body and underwear, then front equipment.
+ for(const a of catalogue)if(shown[a.id+':'+gender]!==false&&a.slot!=='hair'&&a.layers.includes('back')){
+  const key=k(a.id,gender,'back');if(layerShown[key]!==false)drawImageOn(ctx,images.get(key),transforms[key]);
+ }
+ drawStatic(gender+'Body');
+ drawStatic(gender+'Shorts');drawStatic(gender+'Tank');
+ for(const a of catalogue)if(shown[a.id+':'+gender]!==false&&a.slot!=='hair'){
+  for(const layer of a.layers)if(layer!=='back'){
+   const key=k(a.id,gender,layer);
+   if(layerShown[key]!==false)drawImageOn(ctx,images.get(key),transforms[key]);
+  }
+ }
+ drawStatic(gender+'Head');
+ if(gender==='male'){drawStatic('maleBrows');drawStatic('maleEyes');drawStatic('maleMouth')}
+ for(const a of catalogue)if(shown[a.id+':'+gender]!==false&&a.slot==='hair'){
+  for(const layer of a.layers){
+   const key=k(a.id,gender,layer);
+   if(layerShown[key]!==false)drawImageOn(ctx,images.get(key),transforms[key]);
+  }
+ }
+ if(guides){
+  ctx.save();ctx.strokeStyle='#e7a175';ctx.lineWidth=.45;ctx.beginPath();
+  ctx.moveTo(32,12);ctx.lineTo(32,145);ctx.moveTo(8,55);ctx.lineTo(56,55);
+  ctx.stroke();ctx.restore();
+ }
+}
+function drawAll(){if(!ready)return;drawAssetStage('male');drawAssetStage('female')}
+function renderAssetList(){
+ const host=$('assetList');host.replaceChildren();$('assetSelect').replaceChildren();
+ for(const a of catalogue){
+  const b=document.createElement('button');b.type='button';b.className='assetBtn';
+  b.setAttribute('aria-pressed',String(selected===a.id));
+  const label=document.createElement('span');label.textContent=(slots[a.slot]||a.slot)+' · '+a.name;
+  const marker=document.createElement('span');marker.className='status';marker.textContent=a.id===selected?'編輯中':'';
+  b.append(label,marker);b.onclick=()=>{selected=a.id;editingLayer=a.layers.includes(editingLayer)?editingLayer:a.layers[0];update();persist()};
+  host.appendChild(b);
+  const option=document.createElement('option');option.value=a.id;option.textContent=(slots[a.slot]||a.slot)+'｜'+a.name;
+  $('assetSelect').appendChild(option);
+ }
+ $('assetSelect').value=selected;
+}
+function updateControls(){
+ const a=item(selected);if(!a)return;
+ const select=$('editLayer');select.replaceChildren();
+ for(const layer of a.layers){const op=document.createElement('option');op.value=layer;op.textContent={front:'前層／主圖',back:'後層',side:'側面裝飾'}[layer];select.appendChild(op)}
+ if(!a.layers.includes(editingLayer))editingLayer=a.layers[0];
+ select.value=editingLayer;$('editGender').value=editingGender;$('assetSelect').value=selected;
+ const t=transforms[selectedKey()]||defaultT(a,editingGender,editingLayer);
+ $('xInput').value=String(t.x);$('yInput').value=String(t.y);$('scaleInput').value=String(t.scale);
+ $('showAsset').checked=shown[a.id+':'+editingGender]!==false;
+ $('showLayer').checked=layerShown[selectedKey()]!==false;
+ const info=imageInfo.get(selectedKey());
+ $('currentFile').textContent=info?'本機 PNG：'+info.fileName:
+  stockKeys[selectedKey()]?'內建圖源：'+stockKeys[selectedKey()]:'未匯入 PNG';
+ $('assetMeta').textContent='ID：'+a.id+'｜分類：'+(slots[a.slot]||a.slot)+'｜'+a.status+'｜'+a.layers.join('、');
+ $('assetWarning').textContent=a.id==='starter_cloak'?
+  '注意：內建披風只是先前被你否決的程式簡化草稿，並非當時展示的披風圖。你可在此匯入新的獨立前後 PNG，再調整到滿意。':
+  '正式男女頭部、身體與內衣不動；圖層調整只影響工作台預覽，不會自動安裝到遊戲。';
+}
+function update(){normalize();renderAssetList();updateControls();drawAll();refreshJson()}
+function refreshJson(){const el=$('jsonOutput');if(el)el.value=JSON.stringify(serialize(),null,2)}
+function updateTransform(){
+ const t=transforms[selectedKey()];
+ t.x=safeNum($('xInput').value,-160,160,0);
+ t.y=safeNum($('yInput').value,-160,160,0);
+ t.scale=Math.round(safeNum($('scaleInput').value,.1,4,1)*100)/100;
+ updateControls();drawAll();refreshJson();persist();
+}
+async function copyText(value){
+ try{if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(value);return true}}
+ catch(e){console.warn('Clipboard API fallback:',e)}
+ const ta=$('jsonOutput');ta.value=value;ta.select();
+ try{return document.execCommand('copy')}catch(e){return false}
+}
+function downloadBlob(blob,name){
+ const link=document.createElement('a');const url=URL.createObjectURL(blob);
+ link.href=url;link.download=name;link.click();setTimeout(()=>URL.revokeObjectURL(url),2500);
+}
+function fileToDataURL(file){return new Promise((resolve,reject)=>{
+ const reader=new FileReader();reader.onload=()=>resolve(String(reader.result));reader.onerror=()=>reject(Error('讀取 PNG 失敗'));reader.readAsDataURL(file);
+})}
+async function upload(){
+ const file=$('pngUpload').files?.[0];if(!file)return;
+ if(file.type!=='image/png'){toast('請選擇真正的 PNG 檔案');return}
+ if(file.size>6*1024*1024){toast('單張圖片上限 6 MB');return}
+ const key=selectedKey();
+ try{
+  const dataUrl=await fileToDataURL(file),image=await loadImage(dataUrl,key);
+  if(image.naturalWidth>2048||image.naturalHeight>2048||!image.naturalWidth||!image.naturalHeight)throw Error('PNG 尺寸須在 2048 像素內');
+  const info={key,dataUrl,fileName:file.name.slice(0,120),width:image.naturalWidth,height:image.naturalHeight};
+  await dbWrite(info);
+  userPngs.set(key,dataUrl);imageInfo.set(key,info);
+  shown[selected+':'+editingGender]=true;layerShown[key]=true;
+  $('pngUpload').value='';updateControls();drawAll();refreshJson();persist();toast('已加入目前圖層，可拖曳與縮放');
+ }catch(e){toast('匯入失敗：'+e.message)}
+}
+async function clearUpload(){
+ const key=selectedKey();if(!userPngs.has(key)){toast('這個圖層沒有本機匯入圖');return}
+ try{
+  await dbDelete(key);userPngs.delete(key);imageInfo.delete(key);
+  const stock=stockKeys[key];if(stock)await loadImage(sourceImages[stock],key);else images.delete(key);
+  updateControls();drawAll();refreshJson();persist();toast('已還原內建圖源或空白圖層');
+ }catch(e){toast('撤回失敗：'+e.message)}
+}
+function resetLayer(){
+ const a=item(selected);if(!a)return;
+ transforms[selectedKey()]=defaultT(a,editingGender,editingLayer);
+ layerShown[selectedKey()]=true;updateControls();drawAll();refreshJson();persist();toast('此圖層已重設');
+}
+function addAsset(){
+ const name=$('newName').value.trim(),slot=$('newSlot').value,layers=$('newLayers').value.split(',');
+ if(!name){toast('請先輸入裝備／髮型名稱');return}
+ const suffix=name.toLowerCase().replace(/[^a-z0-9]+/g,'').slice(0,12);
+ let idx=1,id='';
+ do{id='custom_'+slot+'_'+(suffix||'asset')+'_'+idx++;}while(catalogue.some(a=>a.id===id));
+ catalogue.push({id,name:name.slice(0,45),slot,layers,status:'自訂素材／待驗收'});
+ selected=id;editingLayer=layers[0];normalize();
+ shown[id+':'+editingGender]=true;
+ $('newName').value='';update();persist();toast('素材建立成功，接著選擇性別、圖層並匯入 PNG');
+}
+function onPointer(gender,canvas){
+ let drag=null;
+ canvas.addEventListener('pointerdown',e=>{
+  if(!ready||!getImage(selected,gender,editingLayer))return;
+  editingGender=gender;updateControls();
+  drag={x:e.clientX,y:e.clientY,baseX:transforms[selectedKey()].x,baseY:transforms[selectedKey()].y};
+  canvas.setPointerCapture?.(e.pointerId);e.preventDefault();
+ });
+ canvas.addEventListener('pointermove',e=>{
+  if(!drag)return;
+  const rect=canvas.getBoundingClientRect();
+  const t=transforms[selectedKey()];
+  t.x=safeNum(drag.baseX+Math.round((e.clientX-drag.x)*64/rect.width),-160,160,0);
+  t.y=safeNum(drag.baseY+Math.round((e.clientY-drag.y)*160/rect.height),-160,160,0);
+  $('xInput').value=t.x;$('yInput').value=t.y;drawAll();e.preventDefault();
+ });
+ const finish=()=>{if(!drag)return;drag=null;refreshJson();persist()};
+ canvas.addEventListener('pointerup',finish);canvas.addEventListener('pointercancel',finish);
+}
+function scaleGame(){
+ const host=$('gameWindow'),frame=$('gameFrame');if(!host||!frame)return;
+ const width=Math.max(150,host.clientWidth-2);const scale=width/1536;
+ frame.style.transform='scale('+scale+')';
+ host.style.height=(707*scale+2)+'px';host.style.aspectRatio='auto';
+}
+function openUrl(path){window.open(path,'_blank','noopener')}
+function setTab(id){
+ for(const btn of document.querySelectorAll('[data-tab]'))btn.setAttribute('aria-selected',String(btn.dataset.tab===id));
+ for(const page of document.querySelectorAll('[data-page]'))page.hidden=page.dataset.page!==id;
+ if(id==='game')requestAnimationFrame(scaleGame);
+ if(id==='export')refreshJson();
+}
+for(const b of document.querySelectorAll('[data-tab]'))b.onclick=()=>setTab(b.dataset.tab);
+$('reloadGame').onclick=()=>{$('gameFrame').src='./?dev-preview=1&v='+Date.now();toast('已重新載入獨立測試存檔')};
+$('launchGame').onclick=()=>openUrl('./?dev-preview=1&v=studio-full');
+$('openLive').onclick=()=>openUrl('./');
+$('clearPreview').onclick=()=>{
+ if(!confirm('確定清除開發預覽存檔？正式遊戲存檔完全不會更動。'))return;
+ localStorage.removeItem('dungeon_adventure_ch1_devpreview_v1');
+ $('gameFrame').src='./?dev-preview=1&v='+Date.now();
+ toast('開發測試存檔已清除');
+};
+$('assetSelect').onchange=e=>{selected=e.target.value;const a=item(selected);editingLayer=a.layers.includes(editingLayer)?editingLayer:a.layers[0];update();persist()};
+$('editGender').onchange=e=>{editingGender=e.target.value;updateControls();drawAll();persist()};
+$('editLayer').onchange=e=>{editingLayer=e.target.value;updateControls();drawAll();persist()};
+for(const inputId of ['xInput','yInput','scaleInput'])$(inputId).onchange=updateTransform;
+$('showAsset').onchange=e=>{shown[selected+':'+editingGender]=e.target.checked;drawAll();refreshJson();persist()};
+$('showLayer').onchange=e=>{layerShown[selectedKey()]=e.target.checked;drawAll();refreshJson();persist()};
+for(const b of document.querySelectorAll('[data-nudge]'))b.onclick=()=>{
+ const [dx,dy]=b.dataset.nudge.split(',').map(Number),t=transforms[selectedKey()];
+ t.x=safeNum(t.x+dx,-160,160,0);t.y=safeNum(t.y+dy,-160,160,0);
+ updateControls();drawAll();refreshJson();persist();
+};
+$('pngUpload').onchange=upload;
+$('clearCurrentPng').onclick=clearUpload;
+$('resetLayer').onclick=resetLayer;
+$('addAsset').onclick=addAsset;
+$('copySelected').onclick=async()=>{
+ const ok=await copyText(JSON.stringify(serialize(selected),null,2));
+ toast(ok?'已複製目前素材的男女前後圖層數據':'無法自動複製，請到數據頁手動選取');
+};
+$('exportCurrentPng').onclick=()=>{
+ const key=selectedKey(),src=sourceFor(selected,editingGender,editingLayer);
+ if(!src){toast('此圖層尚未有 PNG');return}
+ fetch(src).then(r=>r.blob()).then(blob=>downloadBlob(blob,selected+'-'+editingGender+'-'+editingLayer+'.png')).catch(e=>toast('匯出失敗：'+e.message));
+};
+$('resetView').onclick=()=>{$('maleCard').hidden=false;$('femaleCard').hidden=false;drawAll()};
+$('toggleGuides').onclick=()=>{guides=!guides;$('toggleGuides').textContent='肩頸輔助線：'+(guides?'開':'關');drawAll()};
+$('copyAll').onclick=async()=>{refreshJson();const ok=await copyText($('jsonOutput').value);toast(ok?'已複製全部素材的 JSON':'請長按 JSON 欄位複製')};
+$('exportJson').onclick=()=>{refreshJson();downloadBlob(new Blob([$('jsonOutput').value],{type:'application/json'}),'dungeon-character-assets-config.json')};
+$('importJsonButton').onclick=()=>$('importJsonFile').click();
+$('importJsonFile').onchange=async e=>{
+ const file=e.target.files?.[0];if(!file)return;
+ try{
+  const doc=JSON.parse(await file.text());
+  if(doc.format!=='dungeon-character-asset-library-v1'||!Array.isArray(doc.assets))throw Error('不是本工作台的 JSON');
+  for(const a of doc.assets){
+   if(!a||typeof a.id!=='string'||!/^[a-z0-9_-]{2,60}$/.test(a.id))continue;
+   let target=item(a.id);
+   if(!target&&Object.hasOwn(slots,a.category)&&Array.isArray(a.layerNames)){
+    const layers=a.layerNames.filter(l=>['back','front','side'].includes(l)).slice(0,3);
+    if(!layers.length)continue;
+    target={id:a.id,name:String(a.name||a.id).slice(0,45),slot:a.category,layers,status:'匯入參數／待驗收'};
+    catalogue.push(target);
+   }
+   if(!target)continue;
+   for(const g of ['male','female']){
+    const genderData=a.genders?.[g];
+    if(!genderData)continue;
+    shown[target.id+':'+g]=genderData.visible!==false;
+    for(const layer of target.layers){
+     const row=genderData.layers?.[layer];if(!row)continue;
+     const key=k(target.id,g,layer);
+     transforms[key]={x:safeNum(row.x,-160,160,0),y:safeNum(row.y,-160,160,0),scale:safeNum(row.scale,.1,4,1)};
+     layerShown[key]=row.visible!==false;
+    }
+   }
+  }
+  normalize();update();persist();toast('已匯入參數；本機 PNG 仍須另外匯入');
+ }catch(err){toast('JSON 匯入失敗：'+err.message)}
+ finally{$('importJsonFile').value=''}
+};
+$('resetAll').onclick=()=>{
+ if(!confirm('重設工作台所有位置、縮放及自訂項目？本機上傳圖片仍會保留，正式遊戲完全不變。'))return;
+ localStorage.removeItem(KEY);location.reload();
+};
+$('oldWorkbench').onclick=()=>openUrl('./developer-workbench.html');
+$('oldCloakWorkbench').onclick=()=>openUrl('./cloak-fitting-workbench.html');
+$('githubRepo').onclick=()=>openUrl('https://github.com/zhangtingwei04-dotcom/dungeon-adventure-playtest');
+for(const g of ['male','female'])onPointer(g,$(g+'Canvas'));
+async function init(){
+ restore();normalize();
+ try{
+  const keys=Object.entries(sourceImages).filter(([key,value])=>!!value&&key.endsWith('Head')||!!value&&/Body|Tank|Shorts|Hair|Brows|Eyes|Mouth|Cloak/.test(key));
+  await Promise.all(keys.map(([key,value])=>loadImage(value,key)));
+  for(const [key,stock] of Object.entries(stockKeys)){
+   const img=images.get(stock);if(img)images.set(key,img);
+  }
+  try{
+   for(const record of await dbReadAll()){
+    if(!record?.key||!record.dataUrl||!record.fileName)continue;
+    const parts=record.key.split(':');
+    if(parts.length!==3||!item(parts[0])||!['male','female'].includes(parts[1])||!item(parts[0]).layers.includes(parts[2]))continue;
+    await loadImage(record.dataUrl,record.key);
+    userPngs.set(record.key,record.dataUrl);imageInfo.set(record.key,record);
+   }
+  }catch(e){console.warn('Some local uploaded PNGs unavailable:',e);$('persistInfo').textContent='本機 PNG 圖庫無法讀取，內建圖仍可用。新素材請另行保管。'}
+  ready=true;update();scaleGame();
+ }catch(e){toast('素材預載不完整：'+e.message);console.error(e);ready=true;update()}
+}
+if(window.ResizeObserver)new ResizeObserver(scaleGame).observe($('gameWindow'));
+else window.addEventListener('resize',scaleGame);
+window.addEventListener('orientationchange',scaleGame);
+init();
+})();
+</script>
+</body></html>
