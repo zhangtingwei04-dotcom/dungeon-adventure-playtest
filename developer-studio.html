@@ -337,11 +337,9 @@ function drawAssetStage(gender){
  for(const a of catalogue)if(shown[a.id+':'+gender]!==false&&a.slot!=='hair'&&a.layers.includes('back')){
   const key=k(a.id,gender,'back');if(layerShown[key]!==false)drawImageOn(ctx,images.get(key),transforms[key]);
  }
- // Male head beneath the body (which has its own neck).
- // Female keeps the original body -> neck -> face sequence.
- if(gender==='male')drawStatic('maleHead');
+ // The head goes beneath the body on both sexes. Body supplies one neck.
+ drawStatic(gender+'Head');
  drawStatic(gender+'Body');
- if(gender==='female')drawStatic('femaleNeck');
  drawStatic(gender+'Shorts');drawStatic(gender+'Tank');
  for(const a of catalogue)if(shown[a.id+':'+gender]!==false&&a.slot!=='hair'){
   for(const layer of a.layers)if(layer!=='back'){
@@ -349,7 +347,6 @@ function drawAssetStage(gender){
    if(layerShown[key]!==false)drawImageOn(ctx,images.get(key),transforms[key]);
   }
  }
- if(gender==='female')drawStatic('femaleHead');
  if(gender==='male'){drawStatic('maleBrows');drawStatic('maleEyes');drawStatic('maleMouth')}
  for(const a of catalogue)if(shown[a.id+':'+gender]!==false&&a.slot==='hair'){
   for(const layer of a.layers){
@@ -574,7 +571,7 @@ async function init(){
    typeof value==='string'&&value.startsWith('data:image/png;base64,'));
   await Promise.all([
    ...keys.map(([key,value])=>loadImage(value,key)),
-   loadNeck('female')
+   // No independent neck bridge: both original bodies already have neck pixels.
   ]);
   for(const [key,stock] of Object.entries(stockKeys)){
    const img=images.get(stock);if(img)images.set(key,img);
