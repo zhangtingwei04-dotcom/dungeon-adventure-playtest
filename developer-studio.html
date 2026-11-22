@@ -335,11 +335,18 @@ function drawSlot(ctx,gender,slotsToDraw){
   }
  }
 }
-// This overlays the original approved body hand pixels; no generated pose.
+// Recompose exactly the original approved body + shorts + tank inside the
+// forearm strip. Drawing body alone OVER the cape hid original underwear
+// pixels, incorrectly making the shorts look smaller.
 function drawOriginalBodyHands(ctx,gender){
  const body=images.get(gender+'Body');if(!body)return;
  ctx.save();ctx.beginPath();ctx.rect(0,70,24,32);ctx.rect(40,70,24,32);
- ctx.clip();ctx.drawImage(body,0,0,64,160);ctx.restore();
+ ctx.clip();
+ for(const name of ['Body','Shorts','Tank']){
+  const im=images.get(gender+name);
+  if(im)ctx.drawImage(im,0,0,64,160);
+ }
+ ctx.restore();
 }
 function drawAssetStage(gender){
  const c=$(gender+'Canvas'),ctx=c.getContext('2d');ctx.clearRect(0,0,64,160);ctx.imageSmoothingEnabled=false;
