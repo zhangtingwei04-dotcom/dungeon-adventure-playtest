@@ -14,7 +14,7 @@
  let malePixels=null,malePending=false;
  // Male and female facial pixels have independent sources. Never import
  // the female eye appearance or skin color into a male eyelid patch.
- const src=()=>root.DUNGEON_FEMALE_FACE_V2||root.DUNGEON_FEMALE_HEAD_V1;
+ const src=()=>root.DUNGEON_FEMALE_OFFICIAL_HEAD_V2||root.DUNGEON_FEMALE_FACE_V2;
  const colorHex=hex=>/^#[0-9a-f]{6}$/i.test(hex||'')?[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)):null;
  const isIris=(r,g,b)=>(b>=g+14&&r>=g+12&&r<=206&&b>=65);
  function prepare(){
