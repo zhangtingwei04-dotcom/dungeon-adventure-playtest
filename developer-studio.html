@@ -196,7 +196,8 @@ const images=new Map(),userPngs=new Map(),imageInfo=new Map();
 const transforms={},shown={},layerShown={};
 const defaultT=(asset,gender,layer)=>({
  x:asset.id==='hair_original'&&gender==='female'?-2:0,
- y:asset.id==='hair_original'&&gender==='female'?-5:0,
+ y:asset.id==='hair_original'&&gender==='female'?-5:
+   asset.id==='starter_cloak'&&layer==='front'?(gender==='male'?-8:-6):0,
  scale:1
 });
 let selected='starter_cloak',editingGender='female',editingLayer='front',guides=false,dbPromise=null,ready=false;
@@ -418,7 +419,7 @@ function updateControls(){
   stockKeys[selectedKey()]?'內建圖源：'+stockKeys[selectedKey()]:'未匯入 PNG';
  $('assetMeta').textContent='ID：'+a.id+'｜分類：'+(slots[a.slot]||a.slot)+'｜'+a.status+'｜'+a.layers.join('、');
  $('assetWarning').textContent=a.id==='starter_cloak'?
-  '披風 V2 原圖分件已經幾乎佔滿 64px 寬度；請先對照男女身體（男 55×92、女 55×90px），放大過多會裁掉左右金邊。建議先確認肩部輪廓，再用 X／Y／Scale 微調，最後複製 JSON。':
+  '已收到工作台參數：男性前層 x0、y-8、scale1；女性前層 x0、y-6、scale1；男女後層皆 x0、y0、scale1。這些數值已用在正式遊戲的 V2 試穿入口（尚未解除美術驗收）；工作台會保留你的本機調整。':
   '正式男女頭部、身體與內衣不動；圖層調整只影響工作台預覽，不會自動安裝到遊戲。';
 }
 function update(){normalize();renderAssetList();updateControls();drawAll();refreshJson()}
