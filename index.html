@@ -5193,6 +5193,7 @@ function paintPaperDollFemaleEyes(){
   if(maleV9&&stage.classList.contains('paperdoll-shared-male-face'))
    window.DungeonMaleV9Equipment.renderEyes(stage,{
     closed,blink,gaze,eyeColor,unconscious,circleEyes,
+    eyeExpression:parts.eyes||'original',
     brows:parts.brows||'original',skinTone:s.appearanceV1?.skinTone||'original'
    });
   else motion.render(stage,{closed,blink,gaze,eyeColor,unconscious,circleEyes});
@@ -5214,7 +5215,9 @@ function paintPaperDollFemaleMouth(){
  else if(part==='surprised')pose='surprised';
  else if(part==='shy')pose='shy';
  else if(part==='angry')pose='frown';
- if(['nightmare_mild','nightmare_severe'].includes(paperDollRestPreview.sleep))pose='frown';
+ // SleepFacePriority already supplies the mild/severe nightmare mouth
+ // separately (shy vs angry), plus waking transitions. Do not replace both
+ // with one forced frown and discard the approved three-step distinction.
  for(const stage of document.querySelectorAll('.paperdoll-stage.paperdoll-female, .paperdoll-stage.paperdoll-shared-male-face')){
   const opts={pose,unconscious,talking:paperDollTalkPreview&&paperDollRestPreview.sleep==='awake',time:performance.now()};
   if(window.DungeonMaleV9Equipment?.active&&stage.classList.contains('paperdoll-shared-male-face'))
@@ -5601,7 +5604,7 @@ function renderPaperDollRestControls(){
  summary.textContent='睡眠與活力測試｜'+restPreviewLabel();
  details.appendChild(summary);
  const note=document.createElement('p');note.className='paperdoll-expression-note';
- note.textContent='V2.16：新增美夢、睡夢中的微笑及美夢醒來（柔和微笑、少量夢境星光、慢慢睜眼）；惡夢三段與正常睡眠都保留。玩家和 NPC 共用狀態。活力 SP 只顯示藍色數值條，沒有特效、不寫入存檔。';
+ note.textContent='睡眠與活力沿用已確認規則：正常入睡、美夢微笑與醒來、輕微／嚴重惡夢及驚醒分開呈現；活力 SP 為藍色數值條，不加特效。測試選項不會更動存檔。';
  details.appendChild(note);
  for(const [kind,title,values] of [
   ['sleep','睡眠狀態',window.DungeonExpressionMotion.restSleep],
