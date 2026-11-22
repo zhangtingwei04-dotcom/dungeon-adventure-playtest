@@ -203,7 +203,7 @@ a{color:#f0dca8}
     if(others.length)motion.drawAbnormalEffects(ctx,others,t,{eyeCenters:[[25,39],[39,39]]});
     // Render exactly one small rotating black spiral as a STATUS ICON.
     // It floats upper-right of the hair, not over either eye.
-    motion.drawUnconsciousEyes(ctx,t,{eyeCenters:[[55,12]]});
+    motion.drawUnconsciousEyes(ctx,t*0.45,{eyeCenters:[[55,12]]});
    }else if(m.abnormal)motion.drawAbnormalEffects(ctx,m.abnormal,t,{eyeCenters:[[25,39],[39,39]]});
   }else if(unconscious){
    // Static fallback if the shared status controller has not loaded.
