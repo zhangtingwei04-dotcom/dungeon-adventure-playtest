@@ -71,23 +71,27 @@
   const py=Math.round((Number.isFinite(opt.y)?opt.y:0)+
     (Number.isFinite(opt.sweatY)?opt.sweatY:29));
   const frame=posMod(Math.floor(phase),6);
+  // Frames progress one way: appear -> elongate -> slide down -> disappear.
+  // Never return to the original forehead position within a cycle.
   if(frame===0||frame===5)return;
-  // Optional +1 pixel on the male V3 only; legacy female / V8 / V9
-  // and NPC sweat frames retain their existing sizes and rhythms.
+  // Keep male V3's approved +1px length without changing other sprites.
   const extraLength=opt.sweatLong===true?1:0;
+  const stages=[
+   null,
+   {dx:0,dy:0,length:1},
+   {dx:0,dy:1,length:2+extraLength},
+   {dx:0,dy:2,length:3+extraLength},
+   {dx:1,dy:4,length:3+extraLength}
+  ];
+  const s=stages[frame];
   ctx.save();
-  // A clear but compact highlight ON THE SKIN of the right forehead.
-  // Both HP states use exactly the same art. Only their frame rates differ.
-  if(frame===1||frame===4){
-   ctx.fillStyle='rgba(16,115,141,0.8)';
-   ctx.fillRect(px,py,1,1+extraLength);
-  }else{
-   ctx.fillStyle='rgba(18,118,141,0.94)';
-   ctx.fillRect(px+1,py+1,1,1);
-   ctx.fillStyle='rgba(37,207,231,0.96)';
-   ctx.fillRect(px,py+1,1,1+extraLength);
+  ctx.fillStyle=frame===4?'rgba(37,207,231,0.72)':'rgba(37,207,231,0.96)';
+  ctx.fillRect(px+s.dx,py+s.dy,1,s.length);
+  ctx.fillStyle=frame===4?'rgba(18,118,141,0.55)':'rgba(18,118,141,0.94)';
+  ctx.fillRect(px+s.dx+1,py+s.dy+Math.min(1,s.length-1),1,1);
+  if(frame===1||frame===2){
    ctx.fillStyle='#f1ffff';
-   ctx.fillRect(px,py,1,1);
+   ctx.fillRect(px+s.dx,py+s.dy,1,1);
   }
   ctx.restore();
  }
