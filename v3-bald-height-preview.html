@@ -23,9 +23,9 @@ a{color:#f5dbb0}
 </head>
 <body><main>
 <h1>男性 V3 頭頂高度｜保留五官的局部對照</h1>
-<p>目前 V3 的頭頂約從 y=13 開始，而原始眼睛位於 y=33～38。以下只壓縮 <strong>頭頂到眼睛上緣的頭皮區域</strong>，其他部位不改。你已選定<strong>縮短 3px</strong>，並且已使用獨立 PNG 接入正式遊戲。此頁仍是獨立比較工具，不會修改玩家存檔、原始 V3 圖層或表情動畫。</p>
+<p>目前 V3 的頭頂約從 y=13 開始，而原始眼睛位於 y=33～38。以下只壓縮 <strong>頭頂到眼睛上緣的頭皮區域</strong>，其他部位不改。你已選定<strong>縮短 5px</strong>，並且已使用獨立 PNG 接入正式遊戲。此頁仍是獨立比較工具，不會修改玩家存檔、原始 V3 圖層或表情動畫。</p>
 <div class="grid" id="grid"></div>
-<p class="legend">左邊是光頭，右邊是加上原本銀白髮的同一顆頭。0px 是未修改基準；其他版本只縮短額頭上半段，耳朵、眼睛與下巴的原始座標完全保留。其中 3px 是目前正式採用的男性 V3 頭頂基準；原始圖與其他高度仍留作比對。</p>
+<p class="legend">左邊是光頭，右邊是加上原本銀白髮的同一顆頭。0px 是未修改基準；其他版本只縮短額頭上半段，耳朵、眼睛與下巴的原始座標完全保留。其中 5px 是目前正式採用的男性 V3 頭頂基準；原始圖與其他高度仍留作比對。</p>
 <p id="status" aria-live="polite">載入原始已核准 V3 素材中…</p>
 <p><a href="./?male-head=v3">返回正式遊戲（沒有套用試驗版本）</a></p>
 </main><script>
@@ -76,7 +76,7 @@ a{color:#f5dbb0}
   const grid=document.querySelector('#grid');
   for(const shorten of variants){
    const card=document.createElement('section');card.className='card';
-   const h=document.createElement('h2');h.textContent=shorten===0?'原始版 · 0px':('縮短 '+shorten+'px'+(shorten===3?' · 已採用':''));card.append(h);
+   const h=document.createElement('h2');h.textContent=shorten===0?'原始版 · 0px':('縮短 '+shorten+'px'+(shorten===5?' · 已採用':''));card.append(h);
    const compare=document.createElement('div');compare.className='compare';
    for(const withHair of [false,true]){
     const cell=document.createElement('div');cell.className='cell';
@@ -88,7 +88,7 @@ a{color:#f5dbb0}
    const detail=document.createElement('div');detail.className='detail';detail.textContent=shorten===0?'原始頭頂 y13；眼、嘴、下巴保持原樣':'頭頂 y'+(13+shorten)+'；眼、嘴、下巴仍是原始座標';card.append(detail);
    grid.append(card);
   }
-  document.querySelector('#status').textContent='已載入：原始 V3 五圖層；3px 已接入正式版。這裡的切換與對比不會寫入存檔。';
+  document.querySelector('#status').textContent='已載入：原始 V3 五圖層；5px 已接入正式版。這裡的切換與對比不會寫入存檔。';
  }
  init().catch(e=>document.querySelector('#status').textContent='載入失敗：'+e.message);
 })();
