@@ -1,5 +1,6 @@
-/* Dungeon Adventure user-approved male head, separate transparent pixel pieces.
- * Default replaces MALE V3 appearance only; old default remains ?male-head=v3-old-dome2.
+/* Dungeon Adventure optional male head trial, six independent transparent pixel parts.
+ * The approved rounded male V3 head remains the default for ordinary play.
+ * Opt in to this newer trial only via ?male-head=new-six.
  * 64x160 common coordinates, nose is merged in head_base_game for V3 five-layer renderer.
  */
 (function(root){
@@ -15,7 +16,8 @@ const pieces=Object.freeze({
 });
 root.DungeonMaleNewSixV1=pieces;
 const mode=new URLSearchParams(root.location.search).get('male-head');
-if(['v8','v9','v3-original','v3-flat5','v3-round1','v3-old-dome2','v3-dome2'].includes(mode))return;
+// Never replace the previously approved male head on an ordinary game launch.
+if(mode!=='new-six')return;
 const old=root.DungeonMaleV3CorrectedLayers;
 if(!old?.head_base)return;
 root.DungeonMaleV3CorrectedLayers=Object.freeze({...old,
