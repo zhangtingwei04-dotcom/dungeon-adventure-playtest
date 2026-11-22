@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#122c26">
+<title>迷宮盡頭的燈火｜開發者工具台 V1</title>
+<style>
+:root{font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif;color:#f1e7cc;background:#0c201b}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at 45% -5%,#275143 0%,#122c25 34%,#0b201b 100%)}
+button,select,input{font:inherit}button,select,input[type=number]{min-height:44px;border-radius:8px;border:1px solid #8e8062;background:#24443a;color:#f4e8ce;padding:8px}
+button{cursor:pointer;touch-action:manipulation}button:active{background:#426c59}button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid #e9c782;outline-offset:3px}
+button.primary{background:#d2b980;color:#24382d;border-color:#e9d099;font-weight:700}
+button.small{font-size:13px;padding:7px 9px;min-height:42px}
+a{color:#e9cd94;text-underline-offset:3px}
+[hidden]{display:none!important}
+header{border-bottom:1px solid #827252;background:#132e27bb}
+.top{max-width:1220px;padding:14px 16px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+h1{font-size:clamp(18px,3.2vw,25px);line-height:1.25;margin:0 0 4px}
+.subtitle,.muted{font-size:12px;color:#b8cbbd;line-height:1.55}
+.pill{border:1px solid #b89f6d;color:#ead7a5;border-radius:20px;font-size:11px;padding:6px 10px;white-space:nowrap}
+nav{max-width:1220px;margin:auto;display:flex;gap:8px;overflow:auto;padding:0 16px 12px}
+nav button{min-width:94px;border-radius:30px;min-height:38px;white-space:nowrap;font-size:13px;padding:6px 14px}
+nav button.active{background:#d0b77b;color:#213429;border-color:#e0c58b;font-weight:750}
+main{max-width:1220px;margin:auto;padding:16px}
+.workspace{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(300px,.95fr);gap:16px;align-items:start}
+.panel{border:1px solid #7c765d;border-radius:14px;background:#18392f;box-shadow:0 8px 25px #07120f55;padding:15px}
+h2{font-size:17px;margin:0 0 10px;color:#f1d99d}h3{font-size:14px;margin:16px 0 9px;color:#e9d19c}
+p{line-height:1.6;font-size:13px;margin:8px 0;color:#c7d8cc}
+.previewWrap{border-radius:12px;min-height:320px;padding:14px;background:linear-gradient(45deg,#d4ded7 25%,transparent 25%,transparent 75%,#d4ded7 75%),linear-gradient(45deg,#d4ded7 25%,#e6eee9 25%,#e6eee9 75%,#d4ded7 75%);background-size:24px 24px;background-position:0 0,12px 12px;display:flex;align-items:center;justify-content:center;position:relative}
+#mainView{width:min(100%,360px);max-width:360px;height:auto;image-rendering:pixelated;aspect-ratio:1;display:block;touch-action:none}
+.viewFooter{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:11px}
+#liveLabel{font-size:13px;color:#f1dbad;font-weight:650}#dataLabel{font-size:12px;color:#c1d4c8}
+.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field label{font-size:12px;color:#d5dbc8}.field select,.field input[type=number]{width:100%;min-width:0}
+.single{grid-column:1/-1}
+.checks{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}
+.checks label{display:inline-flex;align-items:center;gap:7px;min-height:38px;font-size:13px;color:#e3e5d5}
+.checks input{width:18px;height:18px;accent-color:#d9bd80}
+.adjust{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;max-width:270px;margin:7px auto}
+.adjust button{min-height:44px}.offset{text-align:center;color:#ffe3a1;font-size:13px;font-weight:700;padding:4px 0}
+#hairToolNote{font-size:12px;color:#bfd4c9}
+.buttons{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.buttons button{flex:1;min-width:115px}
+.compare{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.compareItem{background:#27463b;border:1px solid #716d55;border-radius:9px;padding:10px;text-align:center}
+.compareItem strong{font-size:12px;display:block;margin-bottom:8px}
+.compareItem canvas{width:100%;max-width:220px;image-rendering:pixelated;display:block;margin:auto;aspect-ratio:1;background:#e3eee7;border-radius:5px}
+.report{font-size:12px;line-height:1.65;color:#d2ddcf;word-break:break-word;background:#102820;border:1px solid #42584a;border-radius:8px;padding:11px}
+.report code{color:#ffe0a0}
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);z-index:10;background:#e1c38a;color:#1b332a;padding:10px 15px;border-radius:10px;box-shadow:0 8px 20px #0009;font-size:13px;font-weight:750;max-width:90vw;display:none}
+.links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.links a{border:1px solid #7a795e;background:#204236;border-radius:8px;padding:12px;text-decoration:none;font-size:13px;min-height:49px}
+footer{font-size:12px;color:#9cb7a8;padding:18px 0 10px}
+@media(max-width:760px){main{padding:10px}.workspace{grid-template-columns:1fr;gap:12px}.panel{padding:12px}.previewWrap{min-height:250px;padding:8px}#mainView{max-width:300px}.top{padding:12px}.compare{gap:7px}.compareItem{padding:7px}}
+@media(max-width:370px){.fields{gap:6px}.field label{font-size:11px}.links{grid-template-columns:1fr}.buttons button{min-width:100px}}
+</style>
+<script src="./assets/female_parts_v2.js?v=4"></script>
+<script src="./assets/female_bald_candidate_v1.js?v=1"></script>
+<script src="./assets/expression_motion.js?v=2.20"></script>
+<script src="./assets/male_v9_unconscious_icon_v2.js?v=1"></script>
+<script src="./assets/male_approved_v3_layers.js?v=1"></script>
+<script src="./assets/male_v3_corrected_layers_v2.js?v=1"></script>
+<script src="./assets/male_v3_head_short5_v1.js?v=1"></script>
+<script src="./assets/male_v3_head_short5_roundtop_v1.js?v=1"></script>
+<script src="./assets/male_v3_head_dome2_trial.js?v=2"></script>
+<script src="./assets/male_approved_v3_adapter.js?v=7"></script>
+</head>
+<body>
+<header>
+<div class="top">
+<div><h1>迷宮盡頭的燈火 · 開發者工具台</h1><div class="subtitle">V1 · 像素角色工坊｜同源素材｜iPhone 橫式優先</div></div>
+<span class="pill">只在此頁試驗 · 不修改正式遊戲</span>
+</div>
+<nav aria-label="工具台分頁">
+<button class="active" data-tab="studio">角色工坊</button>
+<button data-tab="compare">前後對照</button>
+<button data-tab="exports">素材與設定</button>
+<button data-tab="links">測試入口</button>
+</nav>
+</header>
+<main>
+<div class="workspace">
+<section class="panel" aria-labelledby="previewTitle">
+<h2 id="previewTitle">即時頭部預覽</h2>
+<div class="previewWrap"><canvas id="mainView" width="512" height="512" aria-label="64×64 原生頭部像素放大預覽"></canvas></div>
+<div class="viewFooter"><span id="liveLabel">素材載入中…</span><span id="dataLabel">原生 64×160</span></div>
+<div class="checks">
+<label><input id="showGrid" type="checkbox">像素格線</label>
+<label><input id="showGuides" type="checkbox">中線／眼睛定位</label>
+<label><input id="animate" type="checkbox" checked>動畫播放</label>
+</div>
+<div class="report" id="safety">正式角色素材仍保持原樣。此工具台不會直接更新 GitHub 或遊戲存檔。</div>
+</section>
+<div>
+<section class="panel" data-section="studio">
+<h2>角色與頭型</h2>
+<div class="fields">
+<div class="field"><label for="gender">角色</label><select id="gender"><option value="female">女性</option><option value="male">男性 V3</option></select></div>
+<div class="field"><label for="version">頭部版本</label><select id="version"></select></div>
+<div class="field"><label for="hairOn">頭髮</label><select id="hairOn"><option value="on">顯示原髮</option><option value="off">光頭</option></select></div>
+<div class="field"><label for="zoom">放大倍率</label><select id="zoom"><option value="4">4 倍</option><option value="6">6 倍</option><option value="8" selected>8 倍</option></select></div>
+</div>
+<div id="femaleControls">
+<h3>女性髮片對位（每次 1px）</h3>
+<div class="offset" id="offsetValue">X −2px · Y −5px</div>
+<div class="adjust">
+<span></span><button data-move="0,-1" aria-label="頭髮上移一像素">↑</button><span></span>
+<button data-move="-1,0" aria-label="頭髮左移一像素">←</button><button id="resetOffset" class="small">重設</button><button data-move="1,0" aria-label="頭髮右移一像素">→</button>
+<span></span><button data-move="0,1" aria-label="頭髮下移一像素">↓</button><span></span>
+</div>
+<p id="hairToolNote">依你最後的微調要求，預設左移 2px、上移 5px。原始髮片與光頭都不變。</p>
+</div>
+<div id="maleControls" hidden>
+<h3>男性 V3 表情與 HP 測試</h3>
+<div class="fields">
+<div class="field"><label for="hp">狀態</label><select id="hp"><option value="healthy">HP 高｜開心</option><option value="normal" selected>正常｜中性</option><option value="weak">虛弱｜汗滴</option><option value="critical">戰敗｜圈圈眼</option></select></div>
+<div class="field"><label for="pose">表情</label><select id="pose"><option value="auto">跟隨 HP</option><option value="original">中性</option><option value="happy">開心</option><option value="smile">微笑</option><option value="surprised">驚訝</option><option value="angry">生氣</option><option value="shy">害羞</option><option value="eyesClosed">閉眼</option></select></div>
+<div class="field single"><label for="sweatFrame">汗滴動畫幀（關閉動畫後手動調整）</label><input id="sweatFrame" type="range" min="0" max="5" value="3" step="1"></div>
+</div>
+<p>男性使用現有表情控制器與眼部安全汗滴。女性表情尚未拆分完成，因此不會拿男性的五官動畫代替。</p>
+</div>
+<div class="buttons"><button id="exportPng" class="primary">匯出合成 PNG</button><button id="exportHair">匯出髮片 PNG</button></div>
+</section>
+<section class="panel" data-section="compare" hidden>
+<h2>原始／目前像素對照</h2>
+<div class="compare">
+<div class="compareItem"><strong id="beforeTitle">舊版</strong><canvas id="beforeView" width="64" height="64"></canvas></div>
+<div class="compareItem"><strong id="afterTitle">目前調整版</strong><canvas id="afterView" width="64" height="64"></canvas></div>
+</div>
+<p id="diffInfo">載入圖像後將比較 64×160 透明像素差異。</p>
+<div class="buttons"><button id="exportCompare">匯出對照 PNG</button></div>
+</section>
+<section class="panel" data-section="exports" hidden>
+<h2>開發設定（獨立儲存）</h2>
+<p>設定只在這台裝置的瀏覽器內儲存，不寫入遊戲存檔，也不會推送 GitHub。</p>
+<div class="buttons"><button id="saveSettings" class="primary">儲存本機設定</button><button id="loadSettings">讀取本機設定</button><button id="resetSettings">恢復試裝基準</button></div>
+<div class="buttons"><button id="exportJson">匯出設定 JSON</button><button id="copyJson">複製設定</button><button id="exportHead">匯出頭部底圖 PNG</button></div>
+<h3>版本及座標</h3><div class="report" id="manifest"></div>
+</section>
+<section class="panel" data-section="links" hidden>
+<h2>已有的開發測試入口</h2>
+<div class="links">
+<a href="./?male-head=v3" target="_blank" rel="noopener">正式遊戲</a>
+<a href="./male-v3-expression-check.html?v=13" target="_blank" rel="noopener">男性表情完整驗收</a>
+<a href="./female-bald-v3-trial.html?v=3" target="_blank" rel="noopener">女性髮片微調頁</a>
+<a href="./v3-bald-height-preview.html?v=7" target="_blank" rel="noopener">男性頭頂高度對照</a>
+<a href="https://github.com/zhangtingwei04-dotcom/dungeon-adventure-playtest/tree/main/docs" target="_blank" rel="noopener">GitHub 開發紀錄</a>
+<a href="https://github.com/zhangtingwei04-dotcom/dungeon-adventure-playtest" target="_blank" rel="noopener">GitHub 原始碼</a>
+</div>
+<p>這是靜態測試工具，不含帳號權限、GitHub Token 或雲端寫入功能。日後要正式安裝素材，必須先驗收再另行提交程式修改。</p>
+</section>
+</div>
+</div>
+<footer>《迷宮盡頭的燈火》專用工具台 · 與《鱗片與種子》及歐姆計劃分開 · 目前僅角色與表情工作流</footer>
+</main>
+<div id="toast" role="status" aria-live="polite"></div>
+<script>
+(function(){
+'use strict';
+var $=id=>document.getElementById(id);
+var key='dungeon-dev-workbench-v1';
+var defaults=Object.freeze({gender:'female',femaleVersion:'trial',maleVersion:'dome2',hair:true,hairX:-2,hairY:-5,showGrid:false,showGuides:false,zoom:8,animate:true,hp:'normal',pose:'auto',sweatFrame:3});
+var state={...defaults},images={},ready=false,rendering=false,lastTime=0;
+var motion=window.DungeonExpressionMotion,adapter=window.DungeonMaleV9Equipment;
+var approved=window.DungeonMaleApprovedV3,corrected=window.DungeonMaleV3CorrectedLayers;
+var short5=window.DungeonMaleV3HeadShort5,round1=window.DungeonMaleV3RoundTop5,dome2=window.DungeonMaleV3DomeTrial;
+var female=window.DungeonFemaleBaldCandidateV1;
+var actor=motion?.createActor({id:'dev-workbench-male',status:'normal',blink:true})||null;
+var eyeCv=document.createElement('canvas'),mouthCv=document.createElement('canvas');
+eyeCv.width=mouthCv.width=64;eyeCv.height=mouthCv.height=160;
+eyeCv.className='paperdoll-female-eye-motion-canvas';mouthCv.className='paperdoll-female-mouth-motion-canvas';
+var stage={classList:{contains:k=>k==='paperdoll-bald'&&!state.hair},querySelector:sel=>sel==='.paperdoll-female-eye-motion-canvas'?eyeCv:sel==='.paperdoll-female-mouth-motion-canvas'?mouthCv:null};
+var full=document.createElement('canvas');full.width=64;full.height=160;
+var previous=document.createElement('canvas');previous.width=64;previous.height=160;
+var headBase=document.createElement('canvas');headBase.width=64;headBase.height=160;
+function ctx2(c){var c2=c.getContext('2d',{willReadFrequently:true});c2.imageSmoothingEnabled=false;return c2}
+var fullCtx=ctx2(full),beforeCtx=ctx2(previous);
+function safeNumber(n,min,max){n=Number(n);return Number.isFinite(n)?Math.max(min,Math.min(max,Math.round(n))):min}
+function toast(s){var el=$('toast');el.textContent=s;el.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>el.style.display='none',2700)}
+function load(src,key){return new Promise((resolve,reject)=>{if(typeof src!=='string'||!src.startsWith('data:image/png;base64,'))return reject(Error(key+' 沒有 PNG 來源'));var img=new Image();img.onload=()=>{if(img.naturalWidth!==64||img.naturalHeight!==160)return reject(Error(key+' 尺寸非 64×160'));images[key]=img;resolve()};img.onerror=()=>reject(Error(key+' PNG 無法載入'));img.src=src})}
+function sourceData(){
+ return {
+  maleOriginal:approved?.head_base,
+  maleDome2:dome2?.image||corrected?.head_base,
+  maleRound1:round1?.roundedHead,
+  maleFlat5:short5?.adjustedHead,
+  maleEyes:corrected?.eyes,maleMouth:corrected?.mouth,maleHair:approved?.hair_standard,
+  femaleOriginal:window.DUNGEON_FEMALE_FACE_V2,femaleHair:window.DUNGEON_FEMALE_HAIR_V2,
+  femaleTrial:female?.head
+ };
+}
+function isFemale(){return state.gender==='female'}
+function activeKey(){return isFemale()?(state.femaleVersion==='original'?'femaleOriginal':'femaleTrial'):({dome2:'maleDome2',round1:'maleRound1',flat5:'maleFlat5',original:'maleOriginal'}[state.maleVersion]||'maleDome2')}
+function versionLabel(){return isFemale()?(state.femaleVersion==='trial'?'女性試裝光頭 V1':'女性現行原版'):{dome2:'男性 V3 正式圓頂 V2',round1:'男性舊修圓 V1',flat5:'男性 5px 未修圓',original:'男性 V3 原始母版'}[state.maleVersion]}
+function updateSelect(){
+ var sel=$('version'),chosen=isFemale()?state.femaleVersion:state.maleVersion;
+ var versions=isFemale()?[['trial','新光頭試裝（尚未正式採用）'],['original','原本女性頭部']]:[['dome2','圓頂 V2（正式）'],['round1','圓頂 V1（舊版）'],['flat5','頭頂縮短 5px'],['original','原始 V3 母版']];
+ sel.replaceChildren();
+ for(var entry of versions){var o=document.createElement('option');o.value=entry[0];o.textContent=entry[1];sel.append(o)}sel.value=chosen;
+ $('femaleControls').hidden=!isFemale();$('maleControls').hidden=isFemale();
+ $('hairOn').value=state.hair?'on':'off';
+ $('offsetValue').textContent='X '+(state.hairX>=0?'+':'')+state.hairX+'px · Y '+(state.hairY>=0?'+':'')+state.hairY+'px';
+ $('showGrid').checked=state.showGrid;$('showGuides').checked=state.showGuides;$('animate').checked=state.animate;
+ $('gender').value=state.gender;$('zoom').value=String(state.zoom);$('hp').value=state.hp;$('pose').value=state.pose;$('sweatFrame').value=String(state.sweatFrame);
+ $('sweatFrame').disabled=state.animate;
+}
+function blank(canvas){var c=ctx2(canvas);c.clearRect(0,0,64,160);return c}
+function paint(canvas,opts){
+ var c=blank(canvas),gender=opts.gender,head=images[opts.headKey];
+ if(!head)return;
+ c.drawImage(head,0,0);
+ if(gender==='female'){
+  if(opts.hair)c.drawImage(images.femaleHair,opts.hairX,opts.hairY);
+  return;
+ }
+ c.drawImage(images.maleEyes,0,0);c.drawImage(images.maleMouth,0,0);
+ if(adapter?.ready&&opts.expression){
+  var f=opts.frame;
+  if(f){
+   adapter.renderEyes(stage,{closed:f.parts.eyes==='eyesClosed',unconscious:false,blink:f.effects.blink,gaze:'center',eyeColor:'purple',eyeExpression:f.parts.eyes||'original',brows:f.parts.brows||'original',skinTone:'original'});
+   var mouth=f.parts.mouth==='happy'||f.parts.mouth==='smile'?'smile':f.parts.mouth==='angry'?'frown':f.parts.mouth==='original'?'neutral':f.parts.mouth||'neutral';
+   adapter.renderMouth(stage,{pose:mouth,unconscious:false,talking:false,time:opts.time,skinTone:'original'});
+   c.drawImage(eyeCv,0,0);c.drawImage(mouthCv,0,0);
+  }
+ }
+ if(opts.hair)c.drawImage(images.maleHair,0,0);
+ if(opts.expression&&opts.frame){
+  var fx=opts.frame.effects;
+  if(fx.sweat)motion.drawFaceSweat(c,opts.frame.status,opts.sweatFrame,{sweatY:26,sweatLong:true,sweatEyeSafe:true});
+  if(fx.circleEyes)for(var x of [25,39])motion.drawSpiralEye(c,x,36,fx.circlePhase);
+ }
+}
+function makeFrame(time){
+ if(!actor)return null;
+ actor.setStatus(state.hp,time);
+ actor.setExpressionOverride(state.pose==='auto'?null:state.pose,time);
+ var f=actor.sample(time);
+ return f;
+}
+function display(canvas,source,grid,guides){
+ var c=canvas.getContext('2d');c.imageSmoothingEnabled=false;
+ c.clearRect(0,0,canvas.width,canvas.height);
+ c.drawImage(source,0,0,64,64,0,0,canvas.width,canvas.height);
+ if(grid){
+  var step=canvas.width/64;c.strokeStyle='rgba(13,32,25,.25)';c.lineWidth=1;
+  c.beginPath();for(var i=0;i<=64;i++){var at=i*step+.5;c.moveTo(at,0);c.lineTo(at,canvas.height);c.moveTo(0,at);c.lineTo(canvas.width,at)}c.stroke();
+ }
+ if(guides){
+  var s=canvas.width/64;c.strokeStyle='#bd735baa';c.lineWidth=2;
+  c.beginPath();c.moveTo(s*32,0);c.lineTo(s*32,canvas.height);c.moveTo(0,s*36);c.lineTo(canvas.width,s*36);c.stroke();
+ }
+}
+function compareCount(a,b){
+ var a1=ctx2(a).getImageData(0,0,64,160).data,b1=ctx2(b).getImageData(0,0,64,160).data;
+ var total=0;for(var i=0;i<a1.length;i+=4)if(a1[i]!==b1[i]||a1[i+1]!==b1[i+1]||a1[i+2]!==b1[i+2]||a1[i+3]!==b1[i+3])total++;
+ return total;
+}
+function updateManifest(){
+ var ver=versionLabel();
+ $('manifest').replaceChildren();
+ var lines=[
+  '專案：《迷宮盡頭的燈火》','角色：'+(isFemale()?'女性':'男性 V3'),
+  '版本：'+ver,'頭部 PNG：64 × 160（透明）','頭髮：'+(state.hair?'顯示':'隱藏'),
+  '頭髮座標：'+(isFemale()?('x='+state.hairX+', y='+state.hairY):'原始固定位置'),
+  '動畫：'+(state.animate?'播放':'暫停'),
+  '正式版修改：無（僅匯出／預覽）',
+  '設定位置：裝置端獨立 LocalStorage（手動儲存才寫入）'
+ ];
+ for(var line of lines){var div=document.createElement('div');div.textContent=line;$('manifest').append(div)}
+}
+function render(){
+ if(!ready||rendering)return;rendering=true;
+ try{
+  var time=performance.now(),frame=isFemale()?null:makeFrame(time);
+  var timeFrame=state.animate&&frame?frame.effects.sweatPhase:state.sweatFrame;
+  var opts={gender:state.gender,headKey:activeKey(),hair:state.hair,hairX:state.femaleVersion==='original'?0:state.hairX,hairY:state.femaleVersion==='original'?0:state.hairY,expression:!isFemale(),frame,time,sweatFrame:timeFrame};
+  paint(full,opts);
+  if(isFemale())paint(previous,{...opts,headKey:'femaleOriginal',hairX:0,hairY:0});
+  else paint(previous,{...opts,headKey:'maleOriginal',expression:false});
+  var main=$('mainView'),size=64*state.zoom;if(main.width!==size)main.width=main.height=size;
+  display(main,full,state.showGrid,state.showGuides);
+  display($('beforeView'),previous,false,false);
+  display($('afterView'),full,false,false);
+  $('beforeTitle').textContent=isFemale()?'現行女性原始素材':'男性原始 V3 母版';
+  $('afterTitle').textContent=versionLabel();
+  $('liveLabel').textContent=versionLabel();
+  $('dataLabel').textContent=isFemale()?'髮片 x'+state.hairX+' y'+state.hairY:'HP '+state.hp+' · 汗幀 '+timeFrame;
+  $('diffInfo').textContent='合成像素差異：'+compareCount(previous,full)+' / 10,240 像素。差異包含髮片位置、五官與表情，並非純頭皮輪廓差異。';
+  updateManifest();
+ }catch(err){$('liveLabel').textContent='預覽失敗';$('safety').textContent='錯誤：'+err.message;console.error('Developer workbench:',err)}
+ finally{rendering=false}
+}
+function update(){updateSelect();render()}
+function changeState(fn){fn();update()}
+function saveFile(canvas,name){
+ try{canvas.toBlob(blob=>{if(!blob){toast('PNG 無法匯出');return}var u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1500)},'image/png')}
+ catch(e){toast('匯出失敗：'+e.message)}
+}
+function exportHead(){
+ var c=document.createElement('canvas');c.width=64;c.height=160;
+ var src=images[activeKey()];if(!src)return;
+ c.getContext('2d').drawImage(src,0,0);
+ saveFile(c,(isFemale()?'female-':'male-')+state.gender+'-'+(isFemale()?state.femaleVersion:state.maleVersion)+'-head-base.png');
+}
+function config(){return {format:'dungeon-dev-workbench-v1',project:'迷宮盡頭的燈火',updated:'2026-11-22',settings:{...state},notes:'本檔僅記錄試裝座標與表情預覽設定，無遊戲存檔與 GitHub 寫入能力。'}}
+function asJson(){return JSON.stringify(config(),null,2)}
+function exportText(textData,name){var b=new Blob([textData],{type:'application/json;charset=utf-8'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1500)}
+function restore(raw){
+ if(!raw||typeof raw!=='object')throw Error('設定格式不正確');
+ state.gender=raw.gender==='male'?'male':'female';
+ state.femaleVersion=raw.femaleVersion==='original'?'original':'trial';
+ state.maleVersion=['dome2','round1','flat5','original'].includes(raw.maleVersion)?raw.maleVersion:'dome2';
+ state.hair=raw.hair!==false;state.hairX=safeNumber(raw.hairX,-4,4);state.hairY=safeNumber(raw.hairY,-5,3);
+ for(var k of ['showGrid','showGuides','animate'])state[k]=!!raw[k];
+ state.zoom=[4,6,8].includes(Number(raw.zoom))?Number(raw.zoom):8;
+ state.hp=['healthy','normal','weak','critical'].includes(raw.hp)?raw.hp:'normal';
+ state.pose=['auto','original','happy','smile','surprised','angry','shy','eyesClosed'].includes(raw.pose)?raw.pose:'auto';
+ state.sweatFrame=safeNumber(raw.sweatFrame,0,5);
+}
+for(var tab of document.querySelectorAll('[data-tab]')){
+ tab.addEventListener('click',()=>{for(var b of document.querySelectorAll('[data-tab]')){b.classList.toggle('active',b===tab)}
+  for(var p of document.querySelectorAll('[data-section]'))p.hidden=p.dataset.section!==tab.dataset.tab;
+  render();
+ });
+}
+$('gender').onchange=e=>changeState(()=>state.gender=e.target.value);
+$('version').onchange=e=>changeState(()=>{if(isFemale())state.femaleVersion=e.target.value;else state.maleVersion=e.target.value});
+$('hairOn').onchange=e=>changeState(()=>state.hair=e.target.value==='on');
+$('zoom').onchange=e=>changeState(()=>state.zoom=Number(e.target.value));
+$('showGrid').onchange=e=>changeState(()=>state.showGrid=e.target.checked);
+$('showGuides').onchange=e=>changeState(()=>state.showGuides=e.target.checked);
+$('animate').onchange=e=>changeState(()=>state.animate=e.target.checked);
+$('hp').onchange=e=>changeState(()=>state.hp=e.target.value);
+$('pose').onchange=e=>changeState(()=>state.pose=e.target.value);
+$('sweatFrame').oninput=e=>changeState(()=>state.sweatFrame=Number(e.target.value));
+for(var button of document.querySelectorAll('[data-move]'))button.onclick=()=>changeState(()=>{
+ var a=button.dataset.move.split(',').map(Number);
+ state.hairX=safeNumber(state.hairX+a[0],-4,4);state.hairY=safeNumber(state.hairY+a[1],-5,3);
+});
+$('resetOffset').onclick=()=>changeState(()=>{state.hairX=-2;state.hairY=-5});
+$('exportPng').onclick=()=>saveFile(full,state.gender+'-'+(isFemale()?state.femaleVersion:state.maleVersion)+'-composite-64x160.png');
+$('exportHair').onclick=()=>{
+ var c=document.createElement('canvas');c.width=64;c.height=160;
+ var ctx=c.getContext('2d');ctx.imageSmoothingEnabled=false;
+ var im=isFemale()?images.femaleHair:images.maleHair;
+ ctx.drawImage(im,isFemale()?state.hairX:0,isFemale()?state.hairY:0);
+ saveFile(c,state.gender+'-hair-x'+(isFemale()?state.hairX:0)+'-y'+(isFemale()?state.hairY:0)+'.png');
+};
+$('exportHead').onclick=exportHead;
+$('saveSettings').onclick=()=>{try{localStorage.setItem(key,asJson());toast('設定已儲存於此裝置')}catch(e){toast('無法儲存：'+e.message)}};
+$('loadSettings').onclick=()=>{try{var raw=JSON.parse(localStorage.getItem(key)||'null');if(!raw?.settings)throw Error('尚未儲存');restore(raw.settings);update();toast('已載入本機設定')}catch(e){toast('載入失敗：'+e.message)}};
+$('resetSettings').onclick=()=>{state={...defaults};update();toast('已回到試裝基準；未清除已儲存資料')};
+$('exportJson').onclick=()=>exportText(asJson(),'dungeon-character-workbench-settings.json');
+$('copyJson').onclick=async()=>{try{await navigator.clipboard.writeText(asJson());toast('已複製設定 JSON')}catch(e){toast('此瀏覽器不支援複製，請使用匯出 JSON')}};
+$('exportCompare').onclick=()=>{
+ var c=document.createElement('canvas');c.width=128;c.height=160;
+ var ctx=c.getContext('2d');ctx.imageSmoothingEnabled=false;ctx.drawImage(previous,0,0);ctx.drawImage(full,64,0);
+ saveFile(c,'dungeon-head-comparison-128x160.png');
+};
+async function init(){
+ try{
+  if(!approved||!corrected||!female||!motion)throw Error('缺少現有角色素材或表情控制器');
+  await Promise.all(Object.entries(sourceData()).map(([key,value])=>load(value,key)));
+  ready=true;$('safety').textContent='素材就緒：男女頭部共用原生 64×160。這裡的調整只影響當前頁面；按「儲存本機設定」才寫入獨立設定。正式遊戲與 GitHub main 不會被本頁更動。';
+  update();
+ }catch(err){$('liveLabel').textContent='載入失敗';$('safety').textContent='素材載入失敗：'+err.message;console.error(err)}
+}
+setInterval(()=>{if(ready&&state.animate&&!isFemale()&&!document.hidden)render()},140);
+init();
+})();
+</script>
+</body></html>
