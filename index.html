@@ -3717,6 +3717,12 @@ html.stage-locked #app #placeDrawerPanel .paperdoll-physical-preview select{widt
 /* Bald V3 uses a real, complete no-hair head under the hidden hairstyle. */
 html.stage-locked #app .paperdoll-stage.paperdoll-bald .paperdoll-hair-fallback,
 html.stage-locked #app .paperdoll-stage.paperdoll-bald .paperdoll-hair-canvas{display:none!important}
+/* Male V3 natural fringe covers the three stray forehead-brow pixels visible
+   through its right-center hair gap. Keep original brows in BALD mode; only
+   suppress the independent brow sprite while the approved hair is worn.
+   This does not change the female figure, V8 or V9 heads. */
+html.stage-locked #app .paperdoll-stage.paperdoll-v3:not(.paperdoll-bald) .male-brows-fallback,
+html.stage-locked #app .paperdoll-stage.paperdoll-v3:not(.paperdoll-bald) .paperdoll-brows-canvas{display:none!important}
 
 /* Accessible, mobile-sized controls inside the existing equipment panel. */
 html.stage-locked #app .paperdoll-gender-switch{display:flex;align-items:center;gap:5px;flex-wrap:wrap;width:100%;padding:6px 1px}
@@ -5844,7 +5850,9 @@ function equipmentGuideHTML(sceneMode='equipment'){
  const healthMarks='<canvas class="paperdoll-condition-canvas" width="64" height="160" aria-hidden="true"></canvas>';
  const hair=maleTemplateLayer(character.layers.hair,'paperdoll-hair-fallback')+
   '<canvas class="paperdoll-hair-canvas" width="64" height="160" aria-hidden="true"></canvas>';
- return '<div class="paperdoll-stage '+(s.appearanceV1?.gender==='female'?'paperdoll-female':'paperdoll-male')+(sharedHead?' paperdoll-shared-male-face':'')+(s.appearanceV1?.parts?.hairStyle==='bald'?' paperdoll-bald':'')+(currentPaperDollAbnormalStates().includes('unconscious')?' eyes-unconscious':'')+'" role="img" aria-label="'+
+ return '<div class="paperdoll-stage '+(s.appearanceV1?.gender==='female'?'paperdoll-female':'paperdoll-male')+(sharedHead?' paperdoll-shared-male-face':'')+
+   (sharedHead&&window.DungeonMaleV9Equipment?.version==='v3-accepted'?' paperdoll-v3':'')+
+   (s.appearanceV1?.parts?.hairStyle==='bald'?' paperdoll-bald':'')+(currentPaperDollAbnormalStates().includes('unconscious')?' eyes-unconscious':'')+'" role="img" aria-label="'+
   (paperDollTryOn?'主角旅行裝試穿預覽':(s.appearanceV1?.gender==='female'?'女性':'男性')+'標準型紙娃娃，依實際裝備顯示')+'">'+
   behind+base+shorts+tank+outfit+satchel+extras+veil+brows+eyes+mouth+healthMarks+hair+
   (paperDollTryOn?'<span class="paperdoll-preview-label">試穿</span>':'')+'</div>';
