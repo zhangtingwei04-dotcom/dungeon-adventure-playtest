@@ -13,8 +13,8 @@ main{max-width:640px;margin:0 auto}h1{font-size:19px;margin:0 0 8px}p{font-size:
 .card{background:#24463d;border:1px solid #527c6c;border-radius:9px;padding:10px;text-align:center;min-width:0}
 .stage{position:relative;width:100%;aspect-ratio:64/88;overflow:hidden;margin:4px auto 10px;image-rendering:pixelated}
 .stage img{position:absolute;width:100%;height:auto;top:0;left:0;image-rendering:pixelated;pointer-events:none}
-/* Preview exactly the same -2 native pixel shift used by the game hair canvas. */
-#hair{transform:translateY(-1.25%)}
+/* Male hair stays at native 64x160 position without any Y offset. */
+#hair{transform:none}
 .card strong{font-size:13px}.mono{font-variant-numeric:tabular-nums}
 a{color:#f3dba9}button{border:1px solid #ae9566;border-radius:5px;background:#31564b;color:#fff1d3;padding:9px 12px;min-height:38px}
 .small{font-size:12px;color:#aebbb0}
@@ -23,7 +23,7 @@ a{color:#f3dba9}button{border:1px solid #ae9566;border-radius:5px;background:#31
 <body>
 <main>
 <h1>男性新頭 V8d｜頭部下移 1px</h1>
-<p>此頁直接載入正式遊戲的 64×160 頭部與髮型素材。目前男性新頭相對前版已下移 1px（淨上移 1px），嘴巴改為較平緩的男性專用短嘴線。頭髮沿用完整透明素材並在遊戲繪製時上移 2px。左邊沒有頭髮，右邊加上透明髮型；兩張頭部圖片完全相同。沒有使用舊髮 V7。</p>
+<p>此頁直接載入正式遊戲的 64×160 頭部與髮型素材。目前男性新頭相對前版已下移 1px（淨上移 1px），嘴巴改為較平緩的男性專用短嘴線。頭髮沿用完整透明素材，已恢復原生位置（取消先前上移 2px）。左邊沒有頭髮，右邊加上透明髮型；兩張頭部圖片完全相同。沒有使用舊髮 V7。</p>
 <div id="check" class="check" role="status">正在確認素材…</div>
 <div class="grid">
  <div class="card"><div class="stage"><img class="head" alt="同一顆男性新頭"></div><strong>新頭｜光頭</strong></div>
