@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#112c27">
-<title>男性新頭 V9｜昏迷右上角圖示與表情測試 V4</title>
+<title>男性新頭 V9｜昏迷圖示放大測試 V5</title>
 <style>
 :root{color-scheme:dark;font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC",system-ui,sans-serif;background:#102c25;color:#eee2c6}
 *{box-sizing:border-box}body{margin:0;padding:15px}main{max-width:860px;margin:0 auto;padding-bottom:25px}
@@ -42,6 +42,7 @@ a{color:#f0dca8}
 <div class="legend" id="states"></div>
 <footer>V4 測試版：昏迷時雙眼平靜閉合、嘴巴維持中性，只在頭頂右上角旋轉一個黑色圈圈眼圖示；不在臉上放圈圈眼。戰敗依然在眼睛位置顯示原紫色圈圈。自然視線、HP、睡眠及其他異常特效維持原本控制；請以手機檢查圖示是否擋到髮型。女性與 V8 回復版均未修改。</footer>
 <script src="./assets/expression_motion.js?v=2.18"></script>
+<script src="./assets/male_v9_unconscious_icon_v2.js?v=1"></script>
 <script src="./assets/male_template_v9_test.js?v=1"></script>
 <script src="./assets/male_v9_gaze_v1.js?v=1"></script>
 <script>
@@ -81,7 +82,7 @@ a{color:#f0dca8}
   {id:'fever',category:'abnormal',title:'發燒',detail:'頭頂橘紅色熱氣',status:'normal',abnormal:['fever']},
   {id:'injury',category:'abnormal',title:'受傷／流血',detail:'血滴想法，不在皮膚畫傷口',status:'normal',abnormal:['injury']},
   {id:'dizzy',category:'abnormal',title:'暈眩',detail:'環繞頭部的金色旋轉星星',status:'normal',abnormal:['dizzy']},
-  {id:'unconscious',category:'abnormal',title:'昏迷',detail:'平靜閉眼＋頭頂右上單一旋轉圈圈眼圖示',status:'normal',abnormal:['unconscious']},
+  {id:'unconscious',category:'abnormal',title:'昏迷',detail:'平靜閉眼＋頭頂右上放大 8px 的單一旋轉圈圈眼圖示',status:'normal',abnormal:['unconscious']},
   {id:'sleep_deprived',category:'abnormal',title:'睡眠不足',detail:'飄動 Z，不畫黑眼圈',status:'normal',abnormal:['sleep_deprived']},
   {id:'hunger',category:'abnormal',title:'飢餓',detail:'帶骨頭的肉想法框',status:'normal',abnormal:['hunger']},
   {id:'dehydration',category:'abnormal',title:'缺水',detail:'水滴想法框',status:'normal',abnormal:['dehydration']}
@@ -203,7 +204,8 @@ a{color:#f0dca8}
     if(others.length)motion.drawAbnormalEffects(ctx,others,t,{eyeCenters:[[25,39],[39,39]]});
     // Render exactly one small rotating black spiral as a STATUS ICON.
     // It floats upper-right of the hair, not over either eye.
-    motion.drawUnconsciousEyes(ctx,t*0.45,{eyeCenters:[[55,12]]});
+    if(!window.DungeonMaleV9UnconsciousIcon?.draw(ctx,t,55,12))
+     motion.drawUnconsciousEyes(ctx,t*0.45,{eyeCenters:[[55,12]]});
    }else if(m.abnormal)motion.drawAbnormalEffects(ctx,m.abnormal,t,{eyeCenters:[[25,39],[39,39]]});
   }else if(unconscious){
    // Static fallback if the shared status controller has not loaded.
