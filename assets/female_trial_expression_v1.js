@@ -94,22 +94,23 @@
   const closed=pose==='eyesClosed'||frame.parts?.eyes==='eyesClosed'||!!options.closed;
   const weak=status==='weak'&&pose==='weak';
   const critical=status==='critical';
-  let mouth=pose;
+  let mouth=frame.parts?.mouth||pose;
   if(critical||weak)mouth='original';
-  if(pose==='eyesClosed')mouth='original';
+  if(pose==='eyesClosed'&&!options.talking)mouth='original';
   if(['original','weak','critical'].includes(pose))mouth='original';
   if(options.talking){
    const step=Math.floor((options.time||0)/170)%4;
    mouth=step===0?'original':step===2?'talkOpen':'talkSmall';
   }
-  const mustPatch=closed||weak||mouth!=='original'||['angry','surprised','shy'].includes(pose);
+  const brows=frame.parts?.brows||pose;
+  const mustPatch=closed||weak||mouth!=='original'||['angry','surprised','shy'].includes(brows);
   if(!mustPatch)return; // neutral = exact original PNG with zero differences
   c.clearRect(0,0,W,H);c.drawImage(image,0,0);
   const original=c.getImageData(0,0,W,H);
   const modified=new Uint8ClampedArray(original.data);
   if(closed||weak)drawEyes(original.data,modified,closed?'closed':'half');
   if(mouth!=='original')drawMouth(original.data,modified,mouth);
-  if(!closed)drawEmotion(original.data,modified,pose);
+  if(!closed)drawEmotion(original.data,modified,brows);
   c.putImageData(new ImageData(modified,W,H),0,0);
   ctx.drawImage(scratch,0,0);
  }
