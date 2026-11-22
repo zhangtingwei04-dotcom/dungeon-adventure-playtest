@@ -3519,6 +3519,17 @@ html.stage-locked #app .paperdoll-stage .paperdoll-cloak-trial-front{
  image-rendering:pixelated!important;
  pointer-events:none;
 }
+/* Approved WORKBENCH PLACEMENT VALUES, not approved cloak artwork:
+   pixel canvas 64x160, original garment front shifted up by 8px for male
+   and 6px for female. CSS transform % uses full 160px sprite height,
+   preserving the existing 9 CSS px shift shared by paper doll layers.
+   Strictly V2 trial only; older geometric trial remains untouched. */
+html.stage-locked #app .equip-guide .paperdoll-stage.paperdoll-male > .paperdoll-cloak-art-v2-front{
+ transform:translateY(calc(9px - 5%))!important;
+}
+html.stage-locked #app .equip-guide .paperdoll-stage.paperdoll-female > .paperdoll-cloak-art-v2-front{
+ transform:translateY(calc(9px - 3.75%))!important;
+}
 html.stage-locked #app .equip-art-pending{
  font-size:10px;line-height:1.45;color:#c7bd9e;
  margin:4px 2px 7px;padding:0;
@@ -5993,7 +6004,7 @@ function equipmentGuideHTML(sceneMode='equipment'){
    CLOAK_PIXEL_TRIAL_ENABLED&&window.DungeonTravelerCloakTrialV1?.ready?
     window.DungeonTravelerCloakTrialV1.sprites[s.appearanceV1?.gender==='female'?'female':'male']:null):null;
  const cloakBack=cloakArt?'<span class="paperdoll-asset-layer paperdoll-cloak-trial-back" aria-hidden="true" style="background-image:url('+cloakArt.back+')"></span>':'';
- const cloakFront=cloakArt?'<span class="paperdoll-asset-layer paperdoll-cloak-trial-front" aria-hidden="true" style="background-image:url('+cloakArt.front+')"></span>':'';
+ const cloakFront=cloakArt?'<span class="paperdoll-asset-layer paperdoll-cloak-trial-front'+(CLOAK_ART_V2_TRIAL_ENABLED?' paperdoll-cloak-art-v2-front':'')+'" aria-hidden="true" style="background-image:url('+cloakArt.front+')"></span>':'';
  // The hand overlay must match the original BODY + SHORTS + TANK stack.
  // Earlier drawing body alone erased the sides of the existing underwear.
  // Copy the approved garment pixels ABOVE the hands, in the same native grid.
@@ -6275,7 +6286,7 @@ function renderSideTab(tab,out){
   const appearanceControls=renderPaperDollAppearanceControls();
   // One selected slot, then one direct "脫下／裝上" action just below it.
   const artNote=document.createElement('p');artNote.className='equip-art-pending';
-  artNote.textContent=CLOAK_ART_V2_TRIAL_ENABLED?'正使用深綠金邊披風原圖 V2 試穿；可至裝備庫調整位置和縮放，正式美術尚未驗收。':'披風原圖 V2 在開發者總台可試穿；正常遊玩仍隱藏未驗收披風圖。裝備和存檔照常使用。';
+  artNote.textContent=CLOAK_ART_V2_TRIAL_ENABLED?'披風 V2 試穿：男性前層 Y -8px、女性前層 Y -6px，前後層其餘數值維持原值；美術尚未驗收。':'披風原圖 V2 在開發者總台可試穿；正常遊玩仍隱藏未驗收披風圖。裝備和存檔照常使用。';
   footer.append(detail,equipAction,bag);
   section.append(board,footer,artNote,genderControls);
   section.append(hairControls,eyeControls,expressionControls,restControls,abnormalControls,appearanceControls);
