@@ -48,7 +48,7 @@ a.back{border:1px solid #ad9160;border-radius:8px;padding:9px 12px;text-decorati
 @media(orientation:landscape) and (max-height:510px){.stage{grid-template-columns:repeat(2,minmax(0,1fr))}.checker{min-height:185px}.checker canvas{width:min(100%,102px)}.art{padding:6px 3px}}
 </style>
 <script src="./assets/cloak_workbench_bases_v1.js?v=1"></script>
-<script src="./assets/traveler_cloak_trial_v1.js?v=1"></script>
+<script src="./assets/dungeon_generated_cloak_v2.js?v=2"></script>
 <script src="./assets/male_approved_v3_layers.js?v=1"></script>
 <script src="./assets/male_v3_corrected_layers_v2.js?v=1"></script>
 <script src="./assets/male_v3_head_short5_v1.js?v=1"></script>
@@ -64,10 +64,10 @@ a.back{border:1px solid #ad9160;border-radius:8px;padding:9px 12px;text-decorati
 <main>
 <div class="panel">
 <h2>測試設定</h2>
-<p class="note">美術差異提醒：這裡的披風目前是用 Canvas 多邊形手繪的簡化原型，<strong>並不是先前「深綠金邊披風（貼合測試）」展示圖中的披風素材</strong>。展示圖的完整金邊、植物紋與長披布尚未製成符合原始底模的透明圖層，因此此原型不應被視為正式美術。</p>
+<p class="note">深綠金邊披風 V2：已由剛生成的原圖裁切為前後兩張 64×160 透明 PNG。可在此做穿戴對照；在角色裝備庫可分別調整男女前後圖層位置與縮放。</p>
 <div class="controls">
 <label>顯示角色<select id="gender"><option value="both">男女並排</option><option value="male">只看男性</option><option value="female">只看女性</option></select></label>
-<label class="check"><input id="cloakOn" type="checkbox">顯示舊簡化披風（僅供差異比對）</label>
+<label class="check"><input id="cloakOn" type="checkbox" checked>穿上新披風 V2</label>
 <label class="check"><input id="backOn" type="checkbox" checked>後層</label>
 <label class="check"><input id="frontOn" type="checkbox" checked>前層</label>
 <label class="check"><input id="hairOn" type="checkbox" checked>顯示頭髮</label>
@@ -98,20 +98,20 @@ a.back{border:1px solid #ad9160;border-radius:8px;padding:9px 12px;text-decorati
 (()=>{
  'use strict';
  const $=id=>document.getElementById(id);
- const source=window.DungeonCloakWorkbenchBasesV1,cloak=window.DungeonTravelerCloakTrialV1;
+ const source=window.DungeonCloakWorkbenchBasesV1,cloak=window.DungeonGeneratedCloakV2;
  const male=window.DungeonMaleV3CorrectedLayers||window.DungeonMaleApprovedV3;
  const femaleHead=window.DUNGEON_FEMALE_OFFICIAL_HEAD_V2;
  const femaleHair=window.DUNGEON_FEMALE_HAIR_V2;
  const maleHead=window.DungeonMaleV3DomeTrial?.image||male?.head_base;
  let images={},ready=false;
- const settings={gender:'both',cloakOn:false,frontOn:true,backOn:true,hairOn:true,guides:false,x:0,y:0};
+ const settings={gender:'both',cloakOn:true,frontOn:true,backOn:true,hairOn:true,guides:false,x:0,y:0};
  const urls={
    maleBody:source?.male?.body,maleTank:source?.male?.tank,maleShorts:source?.male?.shorts,
    femaleBody:source?.female?.body,femaleTank:source?.female?.tank,femaleShorts:source?.female?.shorts,
    maleHead,maleBrows:male?.eyebrows,maleEyes:male?.eyes,maleMouth:male?.mouth,maleHair:male?.hair_standard,
    femaleHead,femaleHair,
-   maleBack:cloak?.sprites?.male?.back,maleFront:cloak?.sprites?.male?.front,
-   femaleBack:cloak?.sprites?.female?.back,femaleFront:cloak?.sprites?.female?.front
+   maleBack:cloak?.back,maleFront:cloak?.front,
+   femaleBack:cloak?.back,femaleFront:cloak?.front
  };
  function load(key,url){
   return new Promise((resolve,reject)=>{
@@ -156,8 +156,8 @@ a.back{border:1px solid #ad9160;border-radius:8px;padding:9px 12px;text-decorati
    }
    $(gender+'Section').hidden=settings.gender!=='both'&&gender!==settings.gender;
   }
-  $('status').textContent='已載入遊戲原始男女底模與披風 V1。披風 '+(settings.cloakOn?'顯示':'隱藏')+
-   '；X '+settings.x+'px、Y '+settings.y+'px；男女性別各自使用獨立 64×160 前後層。請注意：目前披風是簡化草稿，並非先前示意圖的正式披風。';
+  $('status').textContent='已載入男女底模與披風原圖 V2。披風 '+(settings.cloakOn?'顯示':'隱藏')+
+   '；X '+settings.x+'px、Y '+settings.y+'px；同一組原圖分件，男女位置可在裝備庫單獨微調。尚未正式核准。';
  }
  function download(canvas,name){
   canvas.toBlob(blob=>{
@@ -175,10 +175,9 @@ a.back{border:1px solid #ad9160;border-radius:8px;padding:9px 12px;text-decorati
   });
  }
  $('reset').onclick=()=>{
-  Object.assign(settings,{x:0,y:0,cloakOn:false,backOn:true,frontOn:true,hairOn:true,guides:false});
+  Object.assign(settings,{x:0,y:0,cloakOn:true,backOn:true,frontOn:true,hairOn:true,guides:false});
   $('cloakX').value='0';$('cloakY').value='0';
-  ['backOn','frontOn','hairOn'].forEach(id=>$(id).checked=true);
-  $('cloakOn').checked=false;
+  ['cloakOn','backOn','frontOn','hairOn'].forEach(id=>$(id).checked=true);
   $('guides').checked=false;render();
  };
  $('exportComparison').onclick=()=>{
@@ -201,7 +200,7 @@ a.back{border:1px solid #ad9160;border-radius:8px;padding:9px 12px;text-decorati
  };
  async function init(){
   try{
-   if(!source||!cloak?.ready||!male||!femaleHead)throw Error('缺少正式角色底模或披風試驗素材');
+   if(!source||!cloak?.back||!cloak?.front||!male||!femaleHead)throw Error('缺少底模或原圖 V2 披風素材');
    await Promise.all(Object.entries(urls).map(([key,value])=>load(key,value)));
    ready=true;render();
   }catch(error){$('status').textContent='無法預覽：'+error.message;console.error(error);}
