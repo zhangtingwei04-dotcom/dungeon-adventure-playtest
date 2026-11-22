@@ -11,7 +11,7 @@
  // Match character-specific face samples; male V8c is its own head and mouth artwork.
  function prepare(){
   if(base||loading||failed)return;
-  const uri=root.DUNGEON_FEMALE_FACE_V2||root.DUNGEON_FEMALE_HEAD_V1;
+  const uri=root.DUNGEON_FEMALE_OFFICIAL_HEAD_V2||root.DUNGEON_FEMALE_FACE_V2;
   if(!uri||!uri.startsWith('data:image/png;base64,')){failed=true;return;}
   loading=true;const img=new Image();
   img.onload=()=>{
