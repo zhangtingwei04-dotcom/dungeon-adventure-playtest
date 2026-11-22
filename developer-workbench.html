@@ -59,6 +59,7 @@ footer{font-size:12px;color:#9cb7a8;padding:18px 0 10px}
 </style>
 <script src="./assets/female_parts_v2.js?v=4"></script>
 <script src="./assets/female_bald_candidate_v1.js?v=1"></script>
+<script src="./assets/female_trial_expression_v1.js?v=2"></script>
 <script src="./assets/expression_motion.js?v=2.20"></script>
 <script src="./assets/male_v9_unconscious_icon_v2.js?v=1"></script>
 <script src="./assets/male_approved_v3_layers.js?v=1"></script>
@@ -113,14 +114,20 @@ footer{font-size:12px;color:#9cb7a8;padding:18px 0 10px}
 </div>
 <p id="hairToolNote">依你最後的微調要求，預設左移 2px、上移 5px。原始髮片與光頭都不變。</p>
 </div>
-<div id="maleControls" hidden>
-<h3>男性 V3 表情與 HP 測試</h3>
+<div id="expressionControls">
+<h3>男女表情與 HP 測試</h3>
 <div class="fields">
 <div class="field"><label for="hp">狀態</label><select id="hp"><option value="healthy">HP 高｜開心</option><option value="normal" selected>正常｜中性</option><option value="weak">虛弱｜汗滴</option><option value="critical">戰敗｜圈圈眼</option></select></div>
 <div class="field"><label for="pose">表情</label><select id="pose"><option value="auto">跟隨 HP</option><option value="original">中性</option><option value="happy">開心</option><option value="smile">微笑</option><option value="surprised">驚訝</option><option value="angry">生氣</option><option value="shy">害羞</option><option value="eyesClosed">閉眼</option></select></div>
+<div class="field"><label for="sleepMode">睡眠／夢境</label><select id="sleepMode">
+<option value="awake">清醒</option><option value="drowsy">想睡</option><option value="sleeping">正常睡眠</option><option value="nightmare_mild">輕微惡夢</option><option value="nightmare_severe">嚴重惡夢</option><option value="nightmare_waking">惡夢驚醒</option><option value="dream_good">美夢</option><option value="dream_smile">美夢微笑</option><option value="dream_waking">美夢醒來</option></select></div>
+<div class="field"><label for="abnormalMode">異常狀態</label><select id="abnormalMode"><option value="none">無異常</option>
+<option value="poison">中毒</option><option value="fever">發燒</option><option value="injury">受傷／流血</option>
+<option value="dizzy">暈眩</option><option value="unconscious">昏迷</option><option value="sleep_deprived">睡眠不足</option>
+<option value="hunger">飢餓</option><option value="dehydration">缺水</option></select></div>
 <div class="field single"><label for="sweatFrame">汗滴動畫幀（關閉動畫後手動調整）</label><input id="sweatFrame" type="range" min="0" max="5" value="3" step="1"></div>
 </div>
-<p>男性使用現有表情控制器與眼部安全汗滴。女性表情尚未拆分完成，因此不會拿男性的五官動畫代替。</p>
+<div class="checks"><label><input id="talking" type="checkbox">模擬說話口型</label></div><p>男性沿用正式 V3 表情引擎；女性使用目前女性臉圖取樣的獨立試裝表情層。女性試驗圖仍需眼、眉、嘴逐層正式驗收，不會使用男性五官素材。</p>
 </div>
 <div class="buttons"><button id="exportPng" class="primary">匯出合成 PNG</button><button id="exportHair">匯出髮片 PNG</button></div>
 </section>
@@ -162,13 +169,14 @@ footer{font-size:12px;color:#9cb7a8;padding:18px 0 10px}
 'use strict';
 var $=id=>document.getElementById(id);
 var key='dungeon-dev-workbench-v1';
-var defaults=Object.freeze({gender:'female',femaleVersion:'trial',maleVersion:'dome2',hair:true,hairX:-2,hairY:-5,showGrid:false,showGuides:false,zoom:8,animate:true,hp:'normal',pose:'auto',sweatFrame:3});
+var defaults=Object.freeze({gender:'female',femaleVersion:'trial',maleVersion:'dome2',hair:true,hairX:-2,hairY:-5,showGrid:false,showGuides:false,zoom:8,animate:true,hp:'normal',pose:'auto',sweatFrame:3,sleepMode:'awake',abnormalMode:'none',talking:false});
 var state={...defaults},images={},ready=false,rendering=false,lastTime=0;
-var motion=window.DungeonExpressionMotion,adapter=window.DungeonMaleV9Equipment;
+var motion=window.DungeonExpressionMotion,adapter=window.DungeonMaleV9Equipment,femaleMotion=window.DungeonFemaleTrialExpressionV1;
 var approved=window.DungeonMaleApprovedV3,corrected=window.DungeonMaleV3CorrectedLayers;
 var short5=window.DungeonMaleV3HeadShort5,round1=window.DungeonMaleV3RoundTop5,dome2=window.DungeonMaleV3DomeTrial;
 var female=window.DungeonFemaleBaldCandidateV1;
-var actor=motion?.createActor({id:'dev-workbench-male',status:'normal',blink:true})||null;
+var actor=motion?.createActor({id:'dev-workbench-character',status:'normal',blink:true})||null;
+var restChangedAt=performance.now();
 var eyeCv=document.createElement('canvas'),mouthCv=document.createElement('canvas');
 eyeCv.width=mouthCv.width=64;eyeCv.height=mouthCv.height=160;
 eyeCv.className='paperdoll-female-eye-motion-canvas';mouthCv.className='paperdoll-female-mouth-motion-canvas';
@@ -200,11 +208,12 @@ function updateSelect(){
  var versions=isFemale()?[['trial','新光頭試裝（尚未正式採用）'],['original','原本女性頭部']]:[['dome2','圓頂 V2（正式）'],['round1','圓頂 V1（舊版）'],['flat5','頭頂縮短 5px'],['original','原始 V3 母版']];
  sel.replaceChildren();
  for(var entry of versions){var o=document.createElement('option');o.value=entry[0];o.textContent=entry[1];sel.append(o)}sel.value=chosen;
- $('femaleControls').hidden=!isFemale();$('maleControls').hidden=isFemale();
+ $('femaleControls').hidden=!isFemale();
  $('hairOn').value=state.hair?'on':'off';
  $('offsetValue').textContent='X '+(state.hairX>=0?'+':'')+state.hairX+'px · Y '+(state.hairY>=0?'+':'')+state.hairY+'px';
  $('showGrid').checked=state.showGrid;$('showGuides').checked=state.showGuides;$('animate').checked=state.animate;
  $('gender').value=state.gender;$('zoom').value=String(state.zoom);$('hp').value=state.hp;$('pose').value=state.pose;$('sweatFrame').value=String(state.sweatFrame);
+ $('sleepMode').value=state.sleepMode;$('abnormalMode').value=state.abnormalMode;$('talking').checked=state.talking;
  $('sweatFrame').disabled=state.animate;
 }
 function blank(canvas){var c=ctx2(canvas);c.clearRect(0,0,64,160);return c}
@@ -213,7 +222,20 @@ function paint(canvas,opts){
  if(!head)return;
  c.drawImage(head,0,0);
  if(gender==='female'){
+  if(opts.expression&&opts.frame&&femaleMotion?.ready){
+   femaleMotion.render(c,head,opts.frame,{
+    time:opts.time,talking:state.talking,closed:opts.closed
+   });
+  }
   if(opts.hair)c.drawImage(images.femaleHair,opts.hairX,opts.hairY);
+  if(opts.expression&&opts.frame){
+   const fx=opts.frame.effects;
+   if(state.sleepMode!=='awake')motion.drawRestEffects(c,{sleep:state.sleepMode,elapsed:opts.time-restChangedAt},opts.time);
+   if(fx.sweat)motion.drawFaceSweat(c,opts.frame.status,opts.sweatFrame,{sweatX:42,sweatY:26,sweatEyeSafe:true});
+   if(fx.circleEyes&&state.abnormalMode!=='unconscious')for(const x of [25,39])motion.drawSpiralEye(c,x,37,fx.circlePhase);
+   if(state.abnormalMode==='unconscious')rootUnconscious(c,opts.time);
+   else if(state.abnormalMode!=='none')motion.drawAbnormalEffects(c,[state.abnormalMode],opts.time,{eyeCenters:[[25,37],[39,37]]});
+  }
   return;
  }
  c.drawImage(images.maleEyes,0,0);c.drawImage(images.maleMouth,0,0);
@@ -222,7 +244,7 @@ function paint(canvas,opts){
   if(f){
    adapter.renderEyes(stage,{closed:f.parts.eyes==='eyesClosed',unconscious:false,blink:f.effects.blink,gaze:'center',eyeColor:'purple',eyeExpression:f.parts.eyes||'original',brows:f.parts.brows||'original',skinTone:'original'});
    var mouth=f.parts.mouth==='happy'||f.parts.mouth==='smile'?'smile':f.parts.mouth==='angry'?'frown':f.parts.mouth==='original'?'neutral':f.parts.mouth||'neutral';
-   adapter.renderMouth(stage,{pose:mouth,unconscious:false,talking:false,time:opts.time,skinTone:'original'});
+   adapter.renderMouth(stage,{pose:mouth,unconscious:false,talking:state.talking,time:opts.time,skinTone:'original'});
    c.drawImage(eyeCv,0,0);c.drawImage(mouthCv,0,0);
   }
  }
@@ -233,11 +255,23 @@ function paint(canvas,opts){
   if(fx.circleEyes)for(var x of [25,39])motion.drawSpiralEye(c,x,36,fx.circlePhase);
  }
 }
+function rootUnconscious(ctx,time){
+ // Unconscious shows closed eyes and ONE icon above the upper-right head.
+ // Formal gender-neutral icon implementation, without painting double eye spirals.
+ if(window.DungeonMaleV9UnconsciousIcon?.draw)window.DungeonMaleV9UnconsciousIcon.draw(ctx,time,55,12);
+}
 function makeFrame(time){
  if(!actor)return null;
  actor.setStatus(state.hp,time);
  actor.setExpressionOverride(state.pose==='auto'?null:state.pose,time);
+ actor.setBlink(state.animate);
  var f=actor.sample(time);
+ if(state.sleepMode!=='awake')motion.applySleepFacePriority(f,state.sleepMode,time-restChangedAt);
+ if(state.abnormalMode==='unconscious'){
+  motion.applyAbnormalFacePriority(f,['unconscious']);
+  f.parts.eyes='eyesClosed';f.parts.mouth='original';f.expression='original';
+  if(f.effects)f.effects.circleEyes=false;
+ }
  return f;
 }
 function display(canvas,source,grid,guides,zoom){
@@ -278,6 +312,7 @@ function updateManifest(){
   '版本：'+ver,'頭部 PNG：64 × 160（透明）','頭髮：'+(state.hair?'顯示':'隱藏'),
   '頭髮座標：'+(isFemale()?('x='+state.hairX+', y='+state.hairY):'原始固定位置'),
   '動畫：'+(state.animate?'播放':'暫停'),
+  '表情：'+state.pose+' · HP：'+state.hp+' · 睡眠：'+state.sleepMode+' · 異常：'+state.abnormalMode,
   '正式版修改：無（僅匯出／預覽）',
   '設定位置：裝置端獨立 LocalStorage（手動儲存才寫入）'
  ];
@@ -286,11 +321,11 @@ function updateManifest(){
 function render(){
  if(!ready||rendering)return;rendering=true;
  try{
-  var time=performance.now(),frame=isFemale()?null:makeFrame(time);
+  var time=performance.now(),frame=makeFrame(time);
   var timeFrame=state.animate&&frame?frame.effects.sweatPhase:state.sweatFrame;
-  var opts={gender:state.gender,headKey:activeKey(),hair:state.hair,hairX:state.femaleVersion==='original'?0:state.hairX,hairY:state.femaleVersion==='original'?0:state.hairY,expression:!isFemale(),frame,time,sweatFrame:timeFrame};
+  var opts={gender:state.gender,headKey:activeKey(),hair:state.hair,hairX:state.femaleVersion==='original'?0:state.hairX,hairY:state.femaleVersion==='original'?0:state.hairY,expression:true,frame,time,sweatFrame:timeFrame,closed:state.abnormalMode==='unconscious'};
   paint(full,opts);
-  if(isFemale())paint(previous,{...opts,headKey:'femaleOriginal',hairX:0,hairY:0});
+  if(isFemale())paint(previous,{...opts,headKey:'femaleOriginal',hairX:0,hairY:0,expression:false});
   else paint(previous,{...opts,headKey:'maleOriginal',expression:false});
   var main=$('mainView');
   display(main,full,state.showGrid,state.showGuides,state.zoom);
@@ -299,7 +334,7 @@ function render(){
   $('beforeTitle').textContent=isFemale()?'現行女性原始素材':'男性原始 V3 母版';
   $('afterTitle').textContent=versionLabel();
   $('liveLabel').textContent=versionLabel();
-  $('dataLabel').textContent=isFemale()?'髮片 x'+state.hairX+' y'+state.hairY:'HP '+state.hp+' · 汗幀 '+timeFrame;
+  $('dataLabel').textContent=(isFemale()?'髮片 x'+state.hairX+' y'+state.hairY+' · ':'')+'HP '+state.hp+' · '+(state.pose==='auto'?'跟隨 HP':state.pose);
   $('diffInfo').textContent='合成像素差異：'+compareCount(previous,full)+' / 10,240 像素。差異包含髮片位置、五官與表情，並非純頭皮輪廓差異。';
   updateManifest();
  }catch(err){$('liveLabel').textContent='預覽失敗';$('safety').textContent='錯誤：'+err.message;console.error('Developer workbench:',err)}
@@ -331,6 +366,9 @@ function restore(raw){
  state.hp=['healthy','normal','weak','critical'].includes(raw.hp)?raw.hp:'normal';
  state.pose=['auto','original','happy','smile','surprised','angry','shy','eyesClosed'].includes(raw.pose)?raw.pose:'auto';
  state.sweatFrame=safeNumber(raw.sweatFrame,0,5);
+ state.sleepMode=Object.hasOwn(motion.restSleep,raw.sleepMode)?raw.sleepMode:'awake';
+ state.abnormalMode=raw.abnormalMode==='none'||Object.hasOwn(motion.abnormalLabels,raw.abnormalMode)?raw.abnormalMode:'none';
+ state.talking=raw.talking===true;
 }
 for(let tab of document.querySelectorAll('[data-tab]')){
  tab.addEventListener('click',()=>{for(var b of document.querySelectorAll('[data-tab]')){b.classList.toggle('active',b===tab)}
@@ -348,6 +386,9 @@ $('animate').onchange=e=>changeState(()=>state.animate=e.target.checked);
 $('hp').onchange=e=>changeState(()=>state.hp=e.target.value);
 $('pose').onchange=e=>changeState(()=>state.pose=e.target.value);
 $('sweatFrame').oninput=e=>changeState(()=>state.sweatFrame=Number(e.target.value));
+$('sleepMode').onchange=e=>changeState(()=>{state.sleepMode=e.target.value;restChangedAt=performance.now()});
+$('abnormalMode').onchange=e=>changeState(()=>state.abnormalMode=e.target.value);
+$('talking').onchange=e=>changeState(()=>state.talking=e.target.checked);
 for(let button of document.querySelectorAll('[data-move]'))button.onclick=()=>changeState(()=>{
  var a=button.dataset.move.split(',').map(Number);
  state.hairX=safeNumber(state.hairX+a[0],-4,4);state.hairY=safeNumber(state.hairY+a[1],-5,3);
@@ -374,13 +415,13 @@ $('exportCompare').onclick=()=>{
 };
 async function init(){
  try{
-  if(!approved||!corrected||!female||!motion)throw Error('缺少現有角色素材或表情控制器');
+  if(!approved||!corrected||!female||!motion||!femaleMotion?.ready)throw Error('缺少現有女性專用／男性表情控制器');
   await Promise.all(Object.entries(sourceData()).map(([key,value])=>load(value,key)));
   ready=true;$('safety').textContent='素材就緒：男女頭部共用原生 64×160。這裡的調整只影響當前頁面；按「儲存本機設定」才寫入獨立設定。正式遊戲與 GitHub main 不會被本頁更動。';
   update();
  }catch(err){$('liveLabel').textContent='載入失敗';$('safety').textContent='素材載入失敗：'+err.message;console.error(err)}
 }
-setInterval(()=>{if(ready&&state.animate&&!isFemale()&&!document.hidden)render()},140);
+setInterval(()=>{if(ready&&state.animate&&!document.hidden)render()},140);
 init();
 })();
 </script>
