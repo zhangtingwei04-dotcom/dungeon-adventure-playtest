@@ -3510,6 +3510,15 @@ html.stage-locked #app .equip-detail-title{
 html.stage-locked #app .equip-detail-note{
  display:block;color:#d4cbb2;font-size:10px;line-height:1.3;margin-top:2px;
 }
+/* Cloak's back layer is behind the underlying body; front layer is over
+   chest/underwear, below the separately-rendered hair and expression layers. */
+html.stage-locked #app .paperdoll-stage .paperdoll-cloak-trial-back,
+html.stage-locked #app .paperdoll-stage .paperdoll-cloak-trial-front{
+ background-size:100% 100%!important;
+ background-position:0 0!important;
+ image-rendering:pixelated!important;
+ pointer-events:none;
+}
 html.stage-locked #app .equip-art-pending{
  font-size:10px;line-height:1.45;color:#c7bd9e;
  margin:4px 2px 7px;padding:0;
@@ -4060,6 +4069,7 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <script src="./assets/male_approved_v3_adapter.js?v=8"></script>
 <script src="./assets/female_eye_motion_v1.js?v=10"></script>
 <script src="./assets/female_mouth_motion_v1.js?v=10"></script>
+<script src="./assets/traveler_cloak_trial_v1.js?v=1"></script>
 <script>
 (()=>{'use strict';
 // Fixed design canvas: use the approved screenshot's exact 1536×707 ratio,
@@ -5017,6 +5027,7 @@ const TRAVEL_OUTFIT_IMAGE_IDS=STARTER_OUTFIT_V2;
 // Rejected equipment graphics are no longer rendered by the live paper doll.
 // Inventory ownership/wearing must remain independent of unfinished graphics.
 const LEGACY_EQUIPMENT_ART_ENABLED=false;
+const CLOAK_PIXEL_TRIAL_ENABLED=new URLSearchParams(location.search).get('cloak')!=='off';
 let paperDollTryOn=false;
 
 /* Hair tint belongs to the player appearance, not equipment or the source PNG.
@@ -5941,6 +5952,13 @@ function equipmentGuideHTML(sceneMode='equipment'){
    String(i*12.5)+'% 0"></span>').join('');
  const satchel=LEGACY_EQUIPMENT_ART_ENABLED&&!privateScene&&show('bag')?
   '<span class="paperdoll-layer paperdoll-approved-bag" aria-hidden="true"></span>':'';
+ // This is a NEW reversible cloak prototype. Other rejected gear art stays off.
+ // The test follows equipped state, never a preview or a second inventory.
+ const cloakArt=CLOAK_PIXEL_TRIAL_ENABLED&&!privateScene&&
+   s.equipmentV1?.outer==='starter_cloak'&&window.DungeonTravelerCloakTrialV1?.ready?
+   window.DungeonTravelerCloakTrialV1.sprites[s.appearanceV1?.gender==='female'?'female':'male']:null;
+ const cloakBack=cloakArt?'<span class="paperdoll-asset-layer paperdoll-cloak-trial-back" aria-hidden="true" style="background-image:url('+cloakArt.back+')"></span>':'';
+ const cloakFront=cloakArt?'<span class="paperdoll-asset-layer paperdoll-cloak-trial-front" aria-hidden="true" style="background-image:url('+cloakArt.front+')"></span>':'';
  const extras=paperDollExtraLayerHTML('front');
  const behind=paperDollExtraLayerHTML('back');
  // Private scenes must cover the pelvis even when garment layers are absent.
@@ -5968,7 +5986,7 @@ function equipmentGuideHTML(sceneMode='equipment'){
    (sharedHead&&window.DungeonMaleV9Equipment?.version==='v3-accepted'?' paperdoll-v3':'')+
    (s.appearanceV1?.parts?.hairStyle==='bald'?' paperdoll-bald':'')+(currentPaperDollAbnormalStates().includes('unconscious')?' eyes-unconscious':'')+'" role="img" aria-label="'+
   (paperDollTryOn?'主角旅行裝試穿預覽':(s.appearanceV1?.gender==='female'?'女性':'男性')+'標準型紙娃娃，依實際裝備顯示')+'">'+
-  behind+base+shorts+tank+outfit+satchel+extras+veil+brows+eyes+mouth+femaleTrialFace+healthMarks+hair+
+  behind+cloakBack+base+shorts+tank+outfit+cloakFront+satchel+extras+veil+brows+eyes+mouth+femaleTrialFace+healthMarks+hair+
   (paperDollTryOn?'<span class="paperdoll-preview-label">試穿</span>':'')+'</div>';
 }
 function setOwnedEquipmentEquipped(slotId,equip){
@@ -6214,7 +6232,7 @@ function renderSideTab(tab,out){
   const appearanceControls=renderPaperDollAppearanceControls();
   // One selected slot, then one direct "脫下／裝上" action just below it.
   const artNote=document.createElement('p');artNote.className='equip-art-pending';
-  artNote.textContent='穿脫與存檔已開放；舊裝備圖已停用，新圖完成前僅顯示內衣底層。';
+  artNote.textContent='披風已接入新版前後層貼合測試；其餘舊裝備圖仍停用。衣物穿脫與存檔照常使用。';
   footer.append(detail,equipAction,bag);
   section.append(board,footer,artNote,genderControls);
   section.append(hairControls,eyeControls,expressionControls,restControls,abnormalControls,appearanceControls);
