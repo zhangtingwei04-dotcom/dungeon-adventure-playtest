@@ -68,6 +68,7 @@ footer{font-size:12px;color:#9cb7a8;padding:18px 0 10px}
 <script src="./assets/male_v3_head_short5_roundtop_v1.js?v=1"></script>
 <script src="./assets/male_v3_head_dome2_trial.js?v=2"></script>
 <script src="./assets/male_approved_v3_adapter.js?v=8"></script>
+<script src="./assets/male_five_layer_trial_20261122.js?v=1"></script>
 </head>
 <body>
 <header>
@@ -101,7 +102,7 @@ footer{font-size:12px;color:#9cb7a8;padding:18px 0 10px}
 <div class="fields">
 <div class="field"><label for="gender">角色</label><select id="gender"><option value="female">女性</option><option value="male">男性 V3</option></select></div>
 <div class="field"><label for="version">頭部版本</label><select id="version"></select></div>
-<div class="field"><label for="hairOn">頭髮</label><select id="hairOn"><option value="on">顯示原髮</option><option value="off">光頭</option></select></div>
+<div class="field"><label for="hairOn">頭髮</label><select id="hairOn"><option value="on">顯示髮型</option><option value="off">光頭</option></select></div>
 <div class="field"><label for="zoom">畫面放大（真正放大像素）</label><select id="zoom"><option value="4">全頭</option><option value="6">中景</option><option value="8" selected>臉部放大</option></select></div>
 </div>
 <div id="femaleControls">
@@ -127,7 +128,8 @@ footer{font-size:12px;color:#9cb7a8;padding:18px 0 10px}
 <option value="hunger">飢餓</option><option value="dehydration">缺水</option></select></div>
 <div class="field single"><label for="sweatFrame">汗滴動畫幀（關閉動畫後手動調整）</label><input id="sweatFrame" type="range" min="0" max="5" value="3" step="1"></div>
 </div>
-<div class="checks"><label><input id="talking" type="checkbox">模擬說話口型</label></div><p>男性沿用正式 V3 表情引擎；女性使用目前女性臉圖取樣的獨立試裝表情層。女性試驗圖仍需眼、眉、嘴逐層正式驗收，不會使用男性五官素材。</p>
+<div class="checks"><label><input id="talking" type="checkbox">模擬說話口型</label></div>
+<p>男性正式 V3 原版仍使用既有表情引擎；「新版男性五層」採用剛指定的短額頭、較圓下巴、藍眼與銀白亂髮的獨立 64×160 測試層。該試裝版的表情變化屬視覺原型，未替換正式遊戲素材。</p>
 </div>
 <div class="buttons"><button id="exportPng" class="primary">匯出合成 PNG</button><button id="exportHair">匯出髮片 PNG</button></div>
 </section>
@@ -172,10 +174,15 @@ var $=id=>document.getElementById(id);
 var key='dungeon-dev-workbench-v1';
 var defaults=Object.freeze({gender:'female',femaleVersion:'trial',maleVersion:'dome2',hair:true,hairX:-2,hairY:-5,showGrid:false,showGuides:false,zoom:8,animate:true,hp:'normal',pose:'auto',sweatFrame:3,sleepMode:'awake',abnormalMode:'none',talking:false});
 var state={...defaults},images={},ready=false,rendering=false,lastTime=0;
+if(new URLSearchParams(window.location.search).get('male-trial')==='1'){
+ state.gender='male';state.maleVersion='trial5';state.hair=true;
+ state.hp='normal';state.pose='original';state.animate=false;
+}
 var motion=window.DungeonExpressionMotion,adapter=window.DungeonMaleV9Equipment,femaleMotion=window.DungeonFemaleTrialExpressionV1;
 var approved=window.DungeonMaleApprovedV3,corrected=window.DungeonMaleV3CorrectedLayers;
 var short5=window.DungeonMaleV3HeadShort5,round1=window.DungeonMaleV3RoundTop5,dome2=window.DungeonMaleV3DomeTrial;
 var female=window.DungeonFemaleBaldCandidateV1;
+var maleTrial=window.DungeonMaleFiveLayerTrial20261122;
 var actor=motion?.createActor({id:'dev-workbench-character',status:'normal',blink:true})||null;
 var restChangedAt=performance.now();
 var eyeCv=document.createElement('canvas'),mouthCv=document.createElement('canvas');
@@ -192,6 +199,11 @@ function toast(s){var el=$('toast');el.textContent=s;el.style.display='block';cl
 function load(src,key){return new Promise((resolve,reject)=>{if(typeof src!=='string'||!src.startsWith('data:image/png;base64,'))return reject(Error(key+' 沒有 PNG 來源'));var img=new Image();img.onload=()=>{if(img.naturalWidth!==64||img.naturalHeight!==160)return reject(Error(key+' 尺寸非 64×160'));images[key]=img;resolve()};img.onerror=()=>reject(Error(key+' PNG 無法載入'));img.src=src})}
 function sourceData(){
  return {
+  maleTrialHead:maleTrial?.head_base,
+  maleTrialBrows:maleTrial?.eyebrows,
+  maleTrialEyes:maleTrial?.eyes,
+  maleTrialMouth:maleTrial?.mouth,
+  maleTrialHair:maleTrial?.hair_standard,
   maleOriginal:approved?.head_base,
   maleDome2:dome2?.image||corrected?.head_base,
   maleRound1:round1?.roundedHead,
@@ -202,11 +214,11 @@ function sourceData(){
  };
 }
 function isFemale(){return state.gender==='female'}
-function activeKey(){return isFemale()?(state.femaleVersion==='original'?'femaleOriginal':'femaleTrial'):({dome2:'maleDome2',round1:'maleRound1',flat5:'maleFlat5',original:'maleOriginal'}[state.maleVersion]||'maleDome2')}
-function versionLabel(){return isFemale()?(state.femaleVersion==='trial'?'女性試裝光頭 V1':'女性現行原版'):{dome2:'男性 V3 正式圓頂 V2',round1:'男性舊修圓 V1',flat5:'男性 5px 未修圓',original:'男性 V3 原始母版'}[state.maleVersion]}
+function activeKey(){return isFemale()?(state.femaleVersion==='original'?'femaleOriginal':'femaleTrial'):({trial5:'maleTrialHead',dome2:'maleDome2',round1:'maleRound1',flat5:'maleFlat5',original:'maleOriginal'}[state.maleVersion]||'maleDome2')}
+function versionLabel(){return isFemale()?(state.femaleVersion==='trial'?'女性試裝光頭 V1':'女性現行原版'):{trial5:'新版男性五層試裝｜短額頭、圓下巴、指定銀白髮',dome2:'男性 V3 正式圓頂 V2',round1:'男性舊修圓 V1',flat5:'男性 5px 未修圓',original:'男性 V3 原始母版'}[state.maleVersion]}
 function updateSelect(){
  var sel=$('version'),chosen=isFemale()?state.femaleVersion:state.maleVersion;
- var versions=isFemale()?[['trial','新光頭試裝（尚未正式採用）'],['original','原本女性頭部']]:[['dome2','圓頂 V2（正式）'],['round1','圓頂 V1（舊版）'],['flat5','頭頂縮短 5px'],['original','原始 V3 母版']];
+ var versions=isFemale()?[['trial','新光頭試裝（尚未正式採用）'],['original','原本女性頭部']]:[['trial5','新版男性五層（本次試裝）'],['dome2','圓頂 V2（正式）'],['round1','圓頂 V1（舊版）'],['flat5','頭頂縮短 5px'],['original','原始 V3 母版']];
  sel.replaceChildren();
  for(var entry of versions){var o=document.createElement('option');o.value=entry[0];o.textContent=entry[1];sel.append(o)}sel.value=chosen;
  $('femaleControls').hidden=!isFemale();
@@ -217,10 +229,60 @@ function updateSelect(){
  $('sleepMode').value=state.sleepMode;$('abnormalMode').value=state.abnormalMode;$('talking').checked=state.talking;
  $('sweatFrame').disabled=state.animate;
 }
+function paintMaleTrial(c,opts){
+ const f=opts.expression?opts.frame:null;
+ const eyesClosed=Boolean(opts.closed||f?.parts?.eyes==='eyesClosed'||f?.effects?.blink);
+ const mouthPose=f?.parts?.mouth||f?.expression||'original';
+ let mouth=mouthPose;
+ if(state.talking&&f&&!eyesClosed){
+  const step=Math.floor(opts.time/170)%4;
+  mouth=step===0?'original':step===2?'talkOpen':'talkSmall';
+ }
+ c.drawImage(images.maleTrialHead,0,0);
+ c.drawImage(images.maleTrialBrows,0,0);
+ if(eyesClosed){
+  c.fillStyle='#4d302c';
+  c.fillRect(23,38,6,1);c.fillRect(35,38,6,1);
+ }else c.drawImage(images.maleTrialEyes,0,0);
+ if(!f||['original','normal','neutral','weak','critical','eyesClosed'].includes(mouth)){
+  c.drawImage(images.maleTrialMouth,0,0);
+ }else{
+  const skin=c.getImageData(31,46,1,1).data;
+  c.fillStyle='rgb('+skin[0]+','+skin[1]+','+skin[2]+')';
+  c.fillRect(30,46,4,3);
+  c.fillStyle='#a9735e';
+  if(['happy','smile'].includes(mouth)){
+   c.fillRect(30,47,1,1);c.fillRect(33,47,1,1);c.fillRect(31,48,2,1);
+  }else if(mouth==='shy')c.fillRect(31,47,2,1);
+  else if(mouth==='surprised'||mouth==='talkOpen'){
+   c.fillStyle='#71423c';c.fillRect(31,47,2,2);
+  }else if(mouth==='angry'||mouth==='frown'){
+   c.fillRect(30,48,1,1);c.fillRect(31,47,2,1);c.fillRect(33,48,1,1);
+  }else if(mouth==='talkSmall')c.fillRect(31,47,2,1);
+  else c.drawImage(images.maleTrialMouth,0,0);
+ }
+ if(f?.expression==='shy'||f?.parts?.brows==='shy'){
+  c.fillStyle='rgba(225,141,144,.65)';
+  c.fillRect(21,44,2,1);c.fillRect(41,44,2,1);
+ }
+ if(f?.expression==='angry'){
+  c.fillStyle='#58362e';c.fillRect(27,34,2,1);c.fillRect(35,34,2,1);
+ }
+ if(opts.hair)c.drawImage(images.maleTrialHair,0,0);
+ if(f){
+  if(state.sleepMode!=='awake')motion.drawRestEffects(c,{sleep:state.sleepMode,elapsed:opts.time-restChangedAt},opts.time);
+  if(f.effects?.sweat)motion.drawFaceSweat(c,f.status,opts.sweatFrame,{sweatX:43,sweatY:26,sweatEyeSafe:true});
+  if(f.effects?.circleEyes&&!opts.closed)for(const x of [25,39])motion.drawSpiralEye(c,x,39,f.effects.circlePhase);
+  if(opts.closed)rootUnconscious(c,opts.time);
+  else if(state.abnormalMode!=='none')motion.drawAbnormalEffects(c,[state.abnormalMode],opts.time,{eyeCenters:[[25,39],[39,39]]});
+ }
+}
+
 function blank(canvas){var c=ctx2(canvas);c.clearRect(0,0,64,160);return c}
 function paint(canvas,opts){
  var c=blank(canvas),gender=opts.gender,head=images[opts.headKey];
  if(!head)return;
+ if(gender==='male'&&opts.headKey==='maleTrialHead'){paintMaleTrial(c,opts);return}
  c.drawImage(head,0,0);
  if(gender==='female'){
   if(opts.expression&&opts.frame&&femaleMotion?.ready){
@@ -314,7 +376,7 @@ function updateManifest(){
  var lines=[
   '專案：《迷宮盡頭的燈火》','角色：'+(isFemale()?'女性':'男性 V3'),
   '版本：'+ver,'頭部 PNG：64 × 160（透明）','頭髮：'+(state.hair?'顯示':'隱藏'),
-  '頭髮座標：'+(isFemale()?('x='+state.hairX+', y='+state.hairY):'原始固定位置'),
+  '頭髮座標：'+(isFemale()?('x='+state.hairX+', y='+state.hairY):state.maleVersion==='trial5'?'新版試裝 x=0, y=0（頭與下巴不平移）':'原始固定位置'),
   '動畫：'+(state.animate?'播放':'暫停'),
   '表情：'+state.pose+' · HP：'+state.hp+' · 睡眠：'+state.sleepMode+' · 異常：'+state.abnormalMode,
   '正式版修改：無（僅匯出／預覽）',
@@ -363,7 +425,7 @@ function restore(raw){
  if(!raw||typeof raw!=='object')throw Error('設定格式不正確');
  state.gender=raw.gender==='male'?'male':'female';
  state.femaleVersion=raw.femaleVersion==='original'?'original':'trial';
- state.maleVersion=['dome2','round1','flat5','original'].includes(raw.maleVersion)?raw.maleVersion:'dome2';
+ state.maleVersion=['trial5','dome2','round1','flat5','original'].includes(raw.maleVersion)?raw.maleVersion:'dome2';
  state.hair=raw.hair!==false;state.hairX=safeNumber(raw.hairX,-4,4);state.hairY=safeNumber(raw.hairY,-5,3);
  for(var k of ['showGrid','showGuides','animate'])state[k]=!!raw[k];
  state.zoom=[4,6,8].includes(Number(raw.zoom))?Number(raw.zoom):8;
@@ -402,7 +464,7 @@ $('exportPng').onclick=()=>saveFile(full,state.gender+'-'+(isFemale()?state.fema
 $('exportHair').onclick=()=>{
  var c=document.createElement('canvas');c.width=64;c.height=160;
  var ctx=c.getContext('2d');ctx.imageSmoothingEnabled=false;
- var im=isFemale()?images.femaleHair:images.maleHair;
+ var im=isFemale()?images.femaleHair:state.maleVersion==='trial5'?images.maleTrialHair:images.maleHair;
  ctx.drawImage(im,isFemale()?state.hairX:0,isFemale()?state.hairY:0);
  saveFile(c,state.gender+'-hair-x'+(isFemale()?state.hairX:0)+'-y'+(isFemale()?state.hairY:0)+'.png');
 };
@@ -419,9 +481,9 @@ $('exportCompare').onclick=()=>{
 };
 async function init(){
  try{
-  if(!approved||!corrected||!female||!motion||!femaleMotion?.ready)throw Error('缺少現有女性專用／男性表情控制器');
+  if(!approved||!corrected||!female||!motion||!maleTrial||!femaleMotion?.ready)throw Error('缺少現有女性專用／男性五層或表情控制器');
   await Promise.all(Object.entries(sourceData()).map(([key,value])=>load(value,key)));
-  ready=true;$('safety').textContent='素材就緒：男女頭部共用原生 64×160。這裡的調整只影響當前頁面；按「儲存本機設定」才寫入獨立設定。正式遊戲與 GitHub main 不會被本頁更動。';
+  ready=true;$('safety').textContent='素材就緒：新版男性五層頭部已載入，原生 64×160，五層固定同一原點。切換髮型不移動下巴。這裡的試裝只影響工具台；正式遊戲仍使用舊 V3。';
   update();
  }catch(err){$('liveLabel').textContent='載入失敗';$('safety').textContent='素材載入失敗：'+err.message;console.error(err)}
 }
