@@ -5027,7 +5027,9 @@ const TRAVEL_OUTFIT_IMAGE_IDS=STARTER_OUTFIT_V2;
 // Rejected equipment graphics are no longer rendered by the live paper doll.
 // Inventory ownership/wearing must remain independent of unfinished graphics.
 const LEGACY_EQUIPMENT_ART_ENABLED=false;
-const CLOAK_PIXEL_TRIAL_ENABLED=new URLSearchParams(location.search).get('cloak')!=='off';
+// Unapproved artwork stays in its workbench; production starts without the cloak sprite.
+// Opt-in ?cloak=trial permits an explicit comparison in the live game only.
+const CLOAK_PIXEL_TRIAL_ENABLED=new URLSearchParams(location.search).get('cloak')==='trial';
 let paperDollTryOn=false;
 
 /* Hair tint belongs to the player appearance, not equipment or the source PNG.
@@ -6232,7 +6234,7 @@ function renderSideTab(tab,out){
   const appearanceControls=renderPaperDollAppearanceControls();
   // One selected slot, then one direct "脫下／裝上" action just below it.
   const artNote=document.createElement('p');artNote.className='equip-art-pending';
-  artNote.textContent='披風已接入新版前後層貼合測試；其餘舊裝備圖仍停用。衣物穿脫與存檔照常使用。';
+  artNote.textContent='披風美術改到開發者工作台驗收；正式畫面先停用未核准披風圖，穿脫與存檔照常使用。';
   footer.append(detail,equipAction,bag);
   section.append(board,footer,artNote,genderControls);
   section.append(hairControls,eyeControls,expressionControls,restControls,abnormalControls,appearanceControls);
