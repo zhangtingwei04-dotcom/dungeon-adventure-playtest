@@ -1,5 +1,10 @@
 # 殘車之後｜地下城冒險公開測試 V0.5.1
 
+## 開發者工具台 V1（2026-11-22）
+
+已建立 iPhone 可操作的 [開發者工具台](https://zhangtingwei04-dotcom.github.io/dungeon-adventure-playtest/developer-workbench.html)。可預覽男女頭型、男性 HP／表情動畫、女性銀白髮每次 1px 對位（目前試排 x=-2、y=-5）、前後比較及透明 PNG／設定 JSON 匯出。此頁使用既有真實素材，不修改正式角色或遊戲存檔；手動設定僅存於獨立本機儲存空間，並不具備 GitHub 寫入權限。設計／限制見 [工具台開發紀錄](docs/DEVELOPER_WORKBENCH_V1_2026-11-22.md)。
+
+
 ## 身體表情 V2 與獨立異常特效（2026-11-21）
 
 已依使用者確認的四種表情與八種異常美術方向，正式更新男性紙娃娃：真實 HP 比例大於 75% 開心（微笑）、大於 50% 中性、大於 25% 中性＋微汗、至 25%（含）以下小圈圈眼＋全身汗水。圈圈眼只在原 64×160 頭部眼睛內少量畫素呈現，不放大眼框；不更動原有男女身體、背心、短褲、側包或原始五官 PNG。\n\n異常狀態 `poison,fever,injury,dizzy,unconscious,sleep_deprived,hunger,dehydration` 均以獨立 Canvas 特效疊加。**異常不會改變由 HP 判定的眉毛、眼睛及嘴巴**，多種異常可同時顯示。裝備欄增加「異常狀態」多選測試及清除預覽；測試資料僅存在當前頁面、不修改 HP、不寫入存檔。正式異常機制目前尚未啟用；日後若遊戲規則實作，繪製端可讀取 `s.physicalStatusEffects` 中已存在的實際狀態 ID，不代表已有異常數值或遊戲效果。女性先僅套用原五官之外的提示，不混入男性五官。\n\nGitHub `main` 提交 `5eb5087a3c403d874978bf53c912349acef0cc8e`。已重讀程式，驗證四階段 HP、八個疊圖分支、測試 UI 不調用 `save()`、五段 JavaScript 語法通過。手機 Safari 實機顯示仍需驗收。\n\n
