@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#112c27">
+<title>男性新頭 V9｜既有表情系統驗收</title>
+<style>
+:root{color-scheme:dark;font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC",system-ui,sans-serif;background:#102c25;color:#eee2c6}
+*{box-sizing:border-box}body{margin:0;padding:15px}main{max-width:860px;margin:0 auto;padding-bottom:25px}
+h1{margin:3px 0 8px;font-size:21px;line-height:1.35}p{font-size:12px;line-height:1.65;color:#c3cfc5;margin:6px 0 10px}
+.test-tag{font-size:11px;color:#e7ce90;background:#29473d;border:1px solid #9b8354;border-radius:5px;padding:4px 7px;display:inline-block;margin:4px 0 11px}
+.preview-main{border:1px solid #907d56;border-radius:11px;background:#1c3a32;padding:12px;display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+.stage{aspect-ratio:64/62;background-color:#dce2d9;background-image:linear-gradient(45deg,#ccd3ca 25%,transparent 25%),linear-gradient(-45deg,#ccd3ca 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#ccd3ca 75%),linear-gradient(-45deg,transparent 75%,#ccd3ca 75%);background-size:24px 24px;background-position:0 0,0 12px,12px -12px,-12px 0;display:grid;place-items:center;overflow:hidden;border:1px solid #708378;border-radius:8px}
+.stage canvas{width:100%;height:100%;image-rendering:pixelated;display:block}
+.stage-main{width:min(100%,270px);flex:0 0 auto}
+.main-info{flex:1;min-width:180px}h2{font-size:16px;color:#f4dda5;margin:3px 0 10px}.name{font-size:18px;font-weight:700;color:#fff1cd}
+.controls{display:flex;flex-wrap:wrap;gap:8px;margin:11px 0}.toggle{background:#2d4d43;border:1px solid #77927d;border-radius:7px;padding:8px 11px;display:flex;align-items:center;gap:7px;font-size:13px}.toggle input{accent-color:#e0c18b}
+.legend{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:11px}
+.state-btn{display:block;text-align:left;background:#1e3e34;border:1px solid #708a76;border-radius:9px;color:#f5e5c6;padding:9px;cursor:pointer;min-width:0}.state-btn.active{border-color:#e9c184;background:#345645;outline:1px solid #e9c184}
+.thumb{max-width:180px;margin:auto}.state-btn strong{display:block;font-size:14px;margin-top:6px}.state-btn small{display:block;color:#b6c7ba;margin-top:4px;font-size:11px;line-height:1.35}
+footer{font-size:11px;color:#b9cabe;margin-top:14px;border-top:1px solid #67847575;padding-top:12px;line-height:1.7}
+a{color:#f0dca8}
+@media(min-width:700px){.legend{grid-template-columns:repeat(5,minmax(0,1fr))}}
+@media(max-width:390px){h1{font-size:19px}.stage-main{width:min(100%,220px)}.preview-main{justify-content:center}.legend{gap:7px}}
+</style>
+</head><body><main>
+<h1>男性新頭 V9｜表情系統第一批驗收</h1>
+<div class="test-tag">獨立測試頁・正式角色未替換</div>
+<p>使用已確認的原模板臉部＋獨立銀白髮（原生 64×160）。HP、眨眼、戰敗與昏迷由遊戲既有的 <code>DungeonExpressionMotion</code> 控制；這個測試頁只負責對齊新頭的眼睛及嘴巴像素。</p>
+<div class="preview-main">
+ <div class="stage stage-main"><canvas width="64" height="62" id="mainAvatar" aria-label="目前選取的男性表情動態預覽"></canvas></div>
+ <div class="main-info"><div class="name" id="mainLabel">中性</div><p id="mainDescription">原生臉部，含自然眨眼。</p><div id="readiness" style="font-size:12px;color:#d6be89">載入頭部素材中…</div><div class="controls"><label class="toggle"><input type="checkbox" checked id="showHair"> 顯示頭髮</label><label class="toggle"><input type="checkbox" checked id="animate"> 動態播放</label></div><p>所有表情都使用同一張臉與同一張頭髮；切換狀態不會移動頭部、改變下巴或髮型。</p></div>
+</div>
+<h2>五種核心狀態</h2>
+<div class="legend" id="states"></div>
+<footer>驗收範圍：中性、微笑、閉眼、戰敗紫色圈圈眼、昏迷黑色圈圈眼。頭髮、下巴以原模板為準；未修改女性角色、裝備、玩家存檔或正式遊戲的男性頭部。此處「昏迷」優先於其他表情；戰敗時原眼睛仍在圈圈效果下方。</footer>
+<script src="./assets/expression_motion.js?v=2.18"></script>
+<script src="./assets/male_template_v9_test.js?v=1"></script>
+<script>
+(()=>{
+ 'use strict';
+ const layers=window.DUNGEON_MALE_V9_TEST;
+ const motion=window.DungeonExpressionMotion;
+ const W=64,H=160,SHOW_H=62,eyeCenters=[25,39];
+ const modes=[
+  {id:'neutral',title:'中性',detail:'原生紫藍眼、正常眨眼',status:'normal'},
+  {id:'smile',title:'微笑',detail:'小幅對稱微笑、自然眨眼',status:'healthy',expression:'smile'},
+  {id:'closed',title:'閉眼',detail:'眼睛完整閉合，無雙重瞳孔',status:'normal',expression:'eyesClosed'},
+  {id:'defeat',title:'戰敗',detail:'保留原眼睛＋紫色旋轉圈圈',status:'critical'},
+  {id:'unconscious',title:'昏迷',detail:'原眼睛清除＋黑色旋轉圈圈',status:'normal',abnormal:['unconscious']}
+ ];
+ const byId=new Map(modes.map(m=>[m.id,m]));
+ let selected='neutral',showHair=true,animate=true,ready=false;
+ const imgs={face:new Image(),hair:new Image()};
+ const work=document.createElement('canvas');work.width=W;work.height=H;
+ const ctx=work.getContext('2d',{willReadFrequently:true});
+ const holders=new Map();
+ const actor=new Map();
+ if(motion){
+  for(const m of modes){
+   const x=motion.createActor({id:'male-v9-'+m.id,status:m.status,blink:true});
+   if(m.expression)x.setExpressionOverride(m.expression);
+   actor.set(m.id,x);
+  }
+ }
+ function getSkin(x,y){
+  const d=ctx.getImageData(Math.max(0,Math.min(W-1,x)),Math.max(0,Math.min(H-1,y)),1,1).data;
+  return d[3]>150?`rgba(${d[0]},${d[1]},${d[2]},1)`:'#f7c7a4';
+ }
+ function clearEyes(){
+  for(const cx of eyeCenters){
+   for(let y=36;y<=41;y++)for(let x=cx-5;x<=cx+5;x++){
+    // Sibling pixels on cheek row 42 carry native peach shading.
+    ctx.fillStyle=getSkin(x,42);
+    ctx.fillRect(x,y,1,1);
+   }
+  }
+ }
+ function closeEyes(){
+  clearEyes();ctx.fillStyle='#3c2725';
+  for(const cx of eyeCenters){ctx.fillRect(cx-3,38,7,1);ctx.fillRect(cx-2,39,5,1);}
+ }
+ function smile(){
+  // Neutral mouth at x31..32,y46. Only edit 5x3 pixel region.
+  for(let y=45;y<=46;y++)for(let x=30;x<=34;x++){
+   ctx.fillStyle=getSkin(x,44);ctx.fillRect(x,y,1,1);
+  }
+  ctx.fillStyle='#a36b57';ctx.fillRect(30,45,1,1);ctx.fillRect(33,45,1,1);
+  ctx.fillStyle='#9e5f50';ctx.fillRect(31,46,2,1);
+ }
+ function frameFor(m,t){
+  if(!motion||!actor.has(m.id))return {status:m.status,parts:{eyes:m.id==='closed'?'eyesClosed':'original',mouth:m.id==='smile'?'smile':'original'},effects:{blink:false,sweat:m.id==='defeat',sweatPhase:0,circleEyes:m.id==='defeat',circlePhase:0}};
+  const x=actor.get(m.id);
+  x.setBlink(animate);
+  const f=x.sample(animate?t:0);
+  if(m.abnormal)motion.applyAbnormalFacePriority(f,m.abnormal);
+  return f;
+ }
+ function drawMode(m,dest,t){
+  if(!ready)return;
+  ctx.clearRect(0,0,W,H);ctx.imageSmoothingEnabled=false;
+  ctx.drawImage(imgs.face,0,0);
+  const frame=frameFor(m,t);
+  const unconscious=m.id==='unconscious';
+  const closed=unconscious||m.id==='closed'||frame.effects?.blink||frame.parts?.eyes==='eyesClosed';
+  if(closed){if(unconscious)clearEyes();else closeEyes();}
+  if((frame.parts?.mouth==='smile'||m.id==='smile')&&!unconscious)smile();
+  if(showHair)ctx.drawImage(imgs.hair,0,0);
+  if(motion){
+   if(frame.effects?.circleEyes&&!unconscious){
+    for(const cx of eyeCenters)motion.drawSpiralEye(ctx,cx,39,frame.effects.circlePhase);
+   }
+   if(frame.effects?.sweat)motion.drawFaceSweat(ctx,frame.status,frame.effects.sweatPhase,{sweatY:28});
+   if(unconscious)motion.drawUnconsciousEyes(ctx,t,{eyeCenters:[[25,39],[39,39]]});
+  }else if(unconscious){
+   // Static fallback used only when the shared module is unavailable.
+   for(const cx of eyeCenters){ctx.fillStyle='#f6e5e3';ctx.fillRect(cx-2,37,5,5);ctx.fillStyle='#15131a';ctx.fillRect(cx-1,38,3,3);}
+  }
+  const target=dest.getContext('2d');target.imageSmoothingEnabled=false;
+  target.clearRect(0,0,W,SHOW_H);target.drawImage(work,0,0,W,SHOW_H,0,0,W,SHOW_H);
+ }
+ function addCards(){
+  const section=document.getElementById('states');
+  for(const m of modes){
+   const b=document.createElement('button');b.className='state-btn'+(m.id===selected?' active':'');
+   b.type='button';b.dataset.mode=m.id;
+   const el=document.createElement('div');el.className='stage thumb';
+   const canvas=document.createElement('canvas');canvas.width=W;canvas.height=SHOW_H;el.append(canvas);holders.set(m.id,canvas);
+   const title=document.createElement('strong');title.textContent=m.title;
+   const small=document.createElement('small');small.textContent=m.detail;
+   b.append(el,title,small);
+   b.onclick=()=>{
+    selected=m.id;
+    document.querySelectorAll('.state-btn').forEach(x=>x.classList.toggle('active',x.dataset.mode===selected));
+    document.getElementById('mainLabel').textContent=m.title;
+    document.getElementById('mainDescription').textContent=m.detail;
+    drawAll(performance.now());
+   };section.append(b);
+  }
+ }
+ function drawAll(t){if(!ready)return;for(const m of modes)drawMode(m,holders.get(m.id),t);
+  drawMode(byId.get(selected),document.getElementById('mainAvatar'),t);
+ }
+ function tick(t){drawAll(t);requestAnimationFrame(tick)}
+ addCards();
+ document.getElementById('showHair').onchange=e=>{showHair=e.target.checked;drawAll(performance.now())};
+ document.getElementById('animate').onchange=e=>{animate=e.target.checked;drawAll(performance.now())};
+ if(!layers||!layers.face||!layers.hair){document.getElementById('readiness').textContent='未找到 V9 測試圖層';return;}
+ let loaded=0;
+ for(const k of ['face','hair']){
+  imgs[k].onload=()=>{
+   if(imgs[k].naturalWidth!==W||imgs[k].naturalHeight!==H){document.getElementById('readiness').textContent=k+' 尺寸不正確';return;}
+   if(++loaded===2){ready=true;document.getElementById('readiness').textContent=motion?'已載入：新頭素材＋正式表情控制模組':'已載入：新頭素材；共享表情控制模組未載入（僅靜態）';drawAll(performance.now());requestAnimationFrame(tick)}
+  };
+  imgs[k].onerror=()=>document.getElementById('readiness').textContent=k+' 載入失敗';
+  imgs[k].src=layers[k];
+ }
+})();
+</script>
+</main></body></html>
