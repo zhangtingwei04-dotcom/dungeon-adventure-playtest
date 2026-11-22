@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#112923">
+<meta name="robots" content="noindex,nofollow">
+<title>迷宮盡頭的燈火｜披風貼合工作台</title>
+<style>
+:root{font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif;color:#f1e5c8;background:#0e201c}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(circle at top,#254839,#0d211b 55%)}
+button,select,input{font:inherit}
+button,select{min-height:44px;padding:7px 12px;background:#284a3e;color:#f5e8c6;border:1px solid #a6926d;border-radius:8px;touch-action:manipulation}
+button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid #e7c67f;outline-offset:2px}
+button.primary{background:#d9bb81;color:#172b23;font-weight:750}
+a{color:#e3c484}
+header{border-bottom:1px solid #92794e;background:#132d25}
+header .top,main{max-width:1200px;margin:auto;padding:14px}
+header .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+h1{font-size:clamp(20px,3vw,28px);margin:0 0 5px}
+h2{font-size:16px;margin:0 0 11px;color:#f1d39a}
+p{font-size:13px;line-height:1.55;color:#c5d4c6;margin:5px 0 12px}
+a.back{border:1px solid #ad9160;border-radius:8px;padding:9px 12px;text-decoration:none}
+.panel{background:#18382e;border:1px solid #7c775b;border-radius:12px;margin:12px 0;padding:14px}
+.controls{display:flex;gap:12px;flex-wrap:wrap;align-items:end}
+.controls label{display:flex;flex-direction:column;gap:6px;font-size:13px;color:#e2ddc5;min-width:130px}
+.controls label.check{min-width:0;flex-direction:row;align-items:center;min-height:44px}
+.controls input[type="checkbox"]{width:20px;height:20px;accent-color:#d3b57c}
+.controls input[type="range"]{accent-color:#d7b981;width:clamp(120px,19vw,200px)}
+.controls output{font-weight:750;color:#f2d595}
+.stage{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start}
+.genderHeading{font-weight:750;color:#f1d595;margin:0 0 7px}
+.pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.art{border:1px solid #7d7352;border-radius:9px;background:#10271f;padding:10px 4px;text-align:center}
+.art strong{display:block;font-size:12px;margin-bottom:8px;font-weight:650;color:#ead5a8}
+.checker{width:100%;max-width:190px;min-height:280px;margin:auto;display:flex;align-items:center;justify-content:center;border-radius:6px;
+ background:linear-gradient(45deg,#314338 25%,transparent 25%,transparent 75%,#314338 75%),linear-gradient(45deg,#314338 25%,#4c5b4e 25%,#4c5b4e 75%,#314338 75%);
+ background-size:20px 20px;background-position:0 0,10px 10}
+.checker canvas{display:block;width:min(100%,152px);aspect-ratio:2/5;height:auto;image-rendering:pixelated}
+.note{background:#0b2720;border:1px solid #557261;border-radius:7px;padding:10px;font-size:12px;color:#e3d8b8}
+.actions{display:flex;flex-wrap:wrap;gap:8px}
+.actions button{flex:1;min-width:140px}
+.small{font-size:12px;color:#b8cbbd}
+#status{font-weight:700;color:#f0d598}
+[hidden]{display:none!important}
+@media(max-width:720px){main{padding:9px}.stage{grid-template-columns:1fr}.panel{padding:11px}.checker{min-height:230px}.checker canvas{width:min(100%,130px)}.controls{gap:8px}}
+@media(orientation:landscape) and (max-height:510px){.stage{grid-template-columns:repeat(2,minmax(0,1fr))}.checker{min-height:185px}.checker canvas{width:min(100%,102px)}.art{padding:6px 3px}}
+</style>
+<script src="./assets/cloak_workbench_bases_v1.js?v=1"></script>
+<script src="./assets/traveler_cloak_trial_v1.js?v=1"></script>
+<script src="./assets/male_approved_v3_layers.js?v=1"></script>
+<script src="./assets/male_v3_corrected_layers_v2.js?v=1"></script>
+<script src="./assets/male_v3_head_short5_v1.js?v=1"></script>
+<script src="./assets/male_v3_head_dome2_trial.js?v=2"></script>
+<script src="./assets/female_parts_v2.js?v=4"></script>
+<script src="./assets/female_bald_candidate_v1.js?v=2"></script>
+</head>
+<body>
+<header><div class="top">
+<div><h1>深綠金邊披風｜貼合工作台</h1><p>男女原始 64×160 底模 × 獨立前後披風圖層 · 只做視覺驗收</p></div>
+<a class="back" href="./developer-workbench.html?v=cloak-workbench-1">返回開發者工作台</a>
+</div></header>
+<main>
+<div class="panel">
+<h2>測試設定</h2>
+<div class="controls">
+<label>顯示角色<select id="gender"><option value="both">男女並排</option><option value="male">只看男性</option><option value="female">只看女性</option></select></label>
+<label class="check"><input id="cloakOn" type="checkbox" checked>穿上披風</label>
+<label class="check"><input id="backOn" type="checkbox" checked>後層</label>
+<label class="check"><input id="frontOn" type="checkbox" checked>前層</label>
+<label class="check"><input id="hairOn" type="checkbox" checked>顯示頭髮</label>
+<label class="check"><input id="guides" type="checkbox">肩頸輔助線</label>
+<label>X 位移：<output id="xValue">0px</output><input id="cloakX" type="range" min="-8" max="8" step="1" value="0"></label>
+<label>Y 位移：<output id="yValue">0px</output><input id="cloakY" type="range" min="-8" max="8" step="1" value="0"></label>
+</div>
+<div class="actions" style="margin-top:12px">
+<button id="reset" type="button">恢復原始位置</button>
+<button id="exportComparison" type="button" class="primary">匯出男女對照 PNG</button>
+<button id="exportLayers" type="button">匯出披風四圖層 PNG</button>
+</div>
+</div>
+<div class="stage" id="gallery">
+<section class="panel" id="maleSection"><div class="genderHeading">男性｜現有標準底模</div>
+<div class="pair"><div class="art"><strong>未穿披風</strong><div class="checker"><canvas id="maleBefore" width="64" height="160"></canvas></div></div>
+<div class="art"><strong>披風穿戴測試</strong><div class="checker"><canvas id="maleAfter" width="64" height="160"></canvas></div></div></div></section>
+<section class="panel" id="femaleSection"><div class="genderHeading">女性｜新版正式頭部</div>
+<div class="pair"><div class="art"><strong>未穿披風</strong><div class="checker"><canvas id="femaleBefore" width="64" height="160"></canvas></div></div>
+<div class="art"><strong>披風穿戴測試</strong><div class="checker"><canvas id="femaleAfter" width="64" height="160"></canvas></div></div></div></section>
+</div>
+<div class="panel"><h2>驗收資訊</h2><div class="note" id="status" role="status">正在載入原始底模與披風圖層…</div>
+<p class="small">披風上緣 y≈53，靠近肩頸而不進入臉部。X / Y 僅調整披風圖層位置，不會改變男性或女性頭、下巴、身形、內衣或存檔。前後素材各為 64×160 透明 PNG；這裡調整不會自動修改正式遊戲。</p>
+<p class="small">目前為造型測試 V1。匯出 PNG 可用來檢查遮擋與黑邊；使用者核准之前，不要當成正式裝備美術。</p>
+</div>
+</main>
+<script>
+(()=>{
+ 'use strict';
+ const $=id=>document.getElementById(id);
+ const source=window.DungeonCloakWorkbenchBasesV1,cloak=window.DungeonTravelerCloakTrialV1;
+ const male=window.DungeonMaleV3CorrectedLayers||window.DungeonMaleApprovedV3;
+ const femaleHead=window.DUNGEON_FEMALE_OFFICIAL_HEAD_V2;
+ const femaleHair=window.DUNGEON_FEMALE_HAIR_V2;
+ const maleHead=window.DungeonMaleV3DomeTrial?.image||male?.head_base;
+ let images={},ready=false;
+ const settings={gender:'both',cloakOn:true,frontOn:true,backOn:true,hairOn:true,guides:false,x:0,y:0};
+ const urls={
+   maleBody:source?.male?.body,maleTank:source?.male?.tank,maleShorts:source?.male?.shorts,
+   femaleBody:source?.female?.body,femaleTank:source?.female?.tank,femaleShorts:source?.female?.shorts,
+   maleHead,maleBrows:male?.eyebrows,maleEyes:male?.eyes,maleMouth:male?.mouth,maleHair:male?.hair_standard,
+   femaleHead,femaleHair,
+   maleBack:cloak?.sprites?.male?.back,maleFront:cloak?.sprites?.male?.front,
+   femaleBack:cloak?.sprites?.female?.back,femaleFront:cloak?.sprites?.female?.front
+ };
+ function load(key,url){
+  return new Promise((resolve,reject)=>{
+   if(typeof url!=='string'||!url.startsWith('data:image/png;base64,'))return reject(Error('缺少素材：'+key));
+   const im=new Image();im.onload=()=>{
+    if(im.naturalWidth!==64||im.naturalHeight!==160)return reject(Error('尺寸錯誤：'+key));
+    images[key]=im;resolve();
+   };im.onerror=()=>reject(Error('圖片載入失敗：'+key));im.src=url;
+  });
+ }
+ function context(canvas){const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.imageSmoothingEnabled=false;return ctx;}
+ function makeComposite(gender,withCloak){
+  const c=document.createElement('canvas');c.width=64;c.height=160;
+  const ctx=context(c),pre=gender==='female'?'female':'male';
+  const draw=(key,x=0,y=0)=>{if(images[key])ctx.drawImage(images[key],x,y);};
+  const dressed=withCloak&&settings.cloakOn;
+  // Match the actual paper-doll layering: back cloak / body / skin neck
+  // / underlying underwear / front cloak / face details / hair.
+  if(dressed&&settings.backOn)draw(pre+'Back',settings.x,settings.y);
+  draw(pre+'Body');
+  draw(pre+'Shorts');draw(pre+'Tank');
+  if(gender==='female')draw('femaleHead');
+  else draw('maleHead');
+  if(dressed&&settings.frontOn)draw(pre+'Front',settings.x,settings.y);
+  if(gender==='male'){
+   draw('maleBrows');draw('maleEyes');draw('maleMouth');
+   if(settings.hairOn)draw('maleHair');
+  }else if(settings.hairOn)draw('femaleHair',-2,-5);
+  if(settings.guides){
+   ctx.save();ctx.strokeStyle='#e28d5e';ctx.lineWidth=.45;
+   ctx.beginPath();ctx.moveTo(5,55);ctx.lineTo(59,55);ctx.moveTo(32,10);ctx.lineTo(32,115);ctx.stroke();
+   ctx.restore();
+  }
+  return c;
+ }
+ function render(){
+  if(!ready)return;
+  $('xValue').textContent=(settings.x>0?'+':'')+settings.x+'px';
+  $('yValue').textContent=(settings.y>0?'+':'')+settings.y+'px';
+  for(const gender of ['male','female']){
+   const before=makeComposite(gender,false),after=makeComposite(gender,true);
+   for(const [name,src] of [['Before',before],['After',after]]){
+    const canvas=$(gender+name),ctx=context(canvas);ctx.clearRect(0,0,64,160);ctx.drawImage(src,0,0);
+   }
+   $(gender+'Section').hidden=settings.gender!=='both'&&gender!==settings.gender;
+  }
+  $('status').textContent='已載入遊戲原始男女底模與披風 V1。披風 '+(settings.cloakOn?'顯示':'隱藏')+
+   '；X '+settings.x+'px、Y '+settings.y+'px；男女性別各自使用獨立 64×160 前後層。正式遊戲目前不採用此未核准美術。';
+ }
+ function download(canvas,name){
+  canvas.toBlob(blob=>{
+   if(!blob){$('status').textContent='PNG 匯出失敗';return;}
+   const href=URL.createObjectURL(blob),a=document.createElement('a');
+   a.href=href;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(href),1800);
+  },'image/png');
+ }
+ for(const id of ['gender','cloakOn','backOn','frontOn','hairOn','guides','cloakX','cloakY']){
+  $(id).addEventListener('input',()=>{
+   settings.gender=$('gender').value;
+   for(const key of ['cloakOn','backOn','frontOn','hairOn','guides'])settings[key]=$(key).checked;
+   settings.x=Number($('cloakX').value);settings.y=Number($('cloakY').value);
+   render();
+  });
+ }
+ $('reset').onclick=()=>{
+  Object.assign(settings,{x:0,y:0,cloakOn:true,backOn:true,frontOn:true,hairOn:true,guides:false});
+  $('cloakX').value='0';$('cloakY').value='0';
+  ['cloakOn','backOn','frontOn','hairOn'].forEach(id=>$(id).checked=true);
+  $('guides').checked=false;render();
+ };
+ $('exportComparison').onclick=()=>{
+  if(!ready)return;
+  const c=document.createElement('canvas');c.width=256;c.height=160;
+  const ctx=context(c);
+  for(const [i,gender] of ['male','female'].entries()){
+   ctx.drawImage(makeComposite(gender,false),i*128,0);
+   ctx.drawImage(makeComposite(gender,true),i*128+64,0);
+  }
+  download(c,'cloak-fitting-male-female-before-after-64x160.png');
+ };
+ $('exportLayers').onclick=()=>{
+  if(!ready)return;
+  const c=document.createElement('canvas');c.width=256;c.height=160;
+  const ctx=context(c);
+  for(const [i,key] of ['maleBack','maleFront','femaleBack','femaleFront'].entries())
+   ctx.drawImage(images[key],i*64,0);
+  download(c,'cloak-front-back-64x160-four-layer-sprites.png');
+ };
+ async function init(){
+  try{
+   if(!source||!cloak?.ready||!male||!femaleHead)throw Error('缺少正式角色底模或披風試驗素材');
+   await Promise.all(Object.entries(urls).map(([key,value])=>load(key,value)));
+   ready=true;render();
+  }catch(error){$('status').textContent='無法預覽：'+error.message;console.error(error);}
+ }
+ init();
+})();
+</script>
+</body></html>
