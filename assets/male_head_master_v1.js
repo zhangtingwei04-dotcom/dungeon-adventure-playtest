@@ -1,0 +1,12 @@
+/* Male bald HEAD BASE master V1, 2026-11-22. New isolated sprite.
+ * Geometry guided by accepted female bald silhouette; source skin/shadows
+ * copied from male V3 palette. No eyes, brows, hair, or mouth baked into head.
+ * 64×160 RGBA; NOT active in production; old male default remains Dome V2.
+ */
+window.DungeonMaleHeadMasterV1=Object.freeze({
+ version:'v1-prototype-2026-11-22',
+ head_base:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAACgCAYAAAC8LWpcAAAEx0lEQVR42u3YTWwUZRzH8e/zzOy2XUp3a2ICoVilxiBRY8QDCRGCQQ6eJGJMvGii3rnJhQTihaMXbh5INF54Ey8aUTFpMMZAwtUDYgygEbRlu233ZWb+HmZrd9tt2ejO0urv00Mn2Z2d+b88zzPzgIiIiIiIiIiIyP+K69eFxkZLduLgbnbtnCD08Mi+A+Calzfjl0tfEiXw/dXrHDl/mZtT0+4/kYDWwLe9uD+95ELgLQlY/G/89M1XfUtE2I/gX3n3dQrFUtfnbdu3n03PPQ/AkfOXLcskuEwDf+e1NPC2inc4xha7oPXYjLl703z64enMuiHILPi3D1EolZotv5DrlmPXKRYDazkGcoMDTOzYxth8hR9+vnOsXK0e7+X9+qzGe6FYbAtk+fFKln+/UCyya+cEJw7uZmy0ZGuyA9omu717l7d6p8q3TYLWuROaw2H00XE21MtsLw73tBN8FnNAes8rVN66LP6S882ymQSDXlf/sT17msV1Syrulk+GboUMWOfsjI6PM9yY6WkXZNABS1vZVgiw2ebWefJbcWj0mO9l9UO/dBisPsOvXH3rMKSaDy6enk6IPpsGaK3cfbqgq+ov/d4aXQY7T4arL3H3WyqzmvyynQNslcC6WgWsq6GxxjvAulziulkqbT11wPqiBPT6B6vl6Z7f5O+3yusnAYMjpX90Xjz758qfebe2E3Dk/GUmr10nSu4zLdYqWG0G6rOQNNLgogYW1fD5IaKo1vG8zZs3AhDVa5S2P8nktXS36IEnYGy0ZFdOHm4PsjqHVWex+VmsUcZCD2GduDqDWcuSFjWw6gw+qqWLvfMESUw9qhHbFAxDHOaIEyNOIDZwuUFcXP/7WldOHv7XT4M93RJ7+Jmnqc3eA2BoeJiEAZJqA58kuIU/5zHn05clA0eCmUtr4Rxhow7mSaIG3kfgA2Zv38ASmP/jLkPjj6+9LbGFKnzw1kvsP7CLfCHP4PAI5tP8OovTqjsHzmM+xLmA+h+/kSuO4rwH77EkwVmEJYZzQfO7AeVfb4EZPgi5+Pkkh09dBOjJFllP5oDWG/EDBXJDRczn07deAzOHkVbeXPO1OAgJSw81k5M0u6E5GpzDeQc+AO8Z2bKV6Zkqd+5OdbzmmtgRKlerx7/78faxTUmVrVtGSRpVgkIRn9TSgFyQVhqH8wG4ME1IEoMznPNgttiSYZ4oGIK4gllELh/wxYVLvPfJtz3dHM1sV/j9Q7t59Y2XKWzcgOHw4QAODxZhuDQBSSNdDVyAD0NIYkhiInP4wUEA5u6VOXvqHEfPrJNd4YVuuHrjzrFNcY0nntpBfsNI2s7OQRLhknScEzcAw/kQfAjmMYtwLv1sbnqKsx99llnwmSWgLQmNChMTmwkCsLiOWQIkOCwd+4B3AQR58B4X5HFBnvlKlbMfX8g0+MyGQKfhcOjNgxSKG9s+S+YrWNRYds58ZY5zp7/OPPi+JGC1RCxNQD8D73sCWpPwwrPt+4cAUQKT1673Nfi+vw7fnJp2R88sf294UMH3/FG42yTkYiyXX7x0DsjF9D14ERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERFZu/4C3qNUmbvXwsYAAAAASUVORK5CYII=',
+ width:64,height:160,scalpTop:19,chinEnd:51,
+ previewOnly:true,approvedForProduction:false,
+ design:Object.freeze({reference:'female-bald-v3',skin:'male-v3',jaw:'rounded-short',ears:'balanced',eyes:'not-installed',hair:'not-installed'})
+});
