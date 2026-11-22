@@ -9,7 +9,7 @@ main{max-width:820px;margin:auto}h1{font-size:21px;margin:0 0 8px}
 p{font-size:13px;color:#cadad0;line-height:1.65}strong{color:#ffdd9f}
 .layout{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:16px 0}
 .card{min-width:0;background:#244236;border:1px solid #97815e;border-radius:8px;padding:12px}
-.card h2{font-size:15px;color:#f9db9f;margin:0 0 7px}
+.card h2{font-size:15px;color:#f9db9f;margin:0 0 7px}.card.approved{grid-column:1/-1;border-color:#d7bc79}
 .preview{border-radius:7px;background:#e7eee8;display:flex;justify-content:center;align-items:center;padding:10px;min-height:180px}
 canvas{width:100%;max-width:240px;image-rendering:pixelated;aspect-ratio:1;display:block}
 button{background:#315b4b;color:#f6e6c7;border:1px solid #9b835d;border-radius:6px;min-height:40px;padding:7px 12px}
@@ -20,16 +20,18 @@ a{color:#f9dcad}@media(max-width:480px){.layout{gap:8px}.card{padding:8px}.previ
 </head>
 <body><main>
 <h1>女性光頭新素材｜獨立試裝</h1>
-<p>左列為目前遊戲的女性 V2 原始素材，右列為依照你核准的<strong>女性光頭正面參考圖</strong>製成的 64×160 透明像素測試頭。此頁只用來驗證光頭比例與原有銀白髮的搭配，不會改動遊戲、表情系統或存檔。</p>
+<p>左列為目前遊戲的女性 V2 原始素材，右列為依照你核准的<strong>女性光頭正面參考圖</strong>製成的 64×160 透明像素測試頭。此頁只用來驗證光頭比例與原有銀白髮的對齊，不會改動遊戲、表情系統或存檔。</p>
 <div class="layout">
 <section class="card"><h2>原版光頭</h2><div class="preview"><canvas width="64" height="64" id="originalBald"></canvas></div></section>
 <section class="card"><h2>新版光頭（待完整驗收）</h2><div class="preview"><canvas width="64" height="64" id="trialBald"></canvas></div></section>
 <section class="card"><h2>原版＋原銀白髮</h2><div class="preview"><canvas width="64" height="64" id="originalHair"></canvas></div></section>
-<section class="card"><h2>新版＋原銀白髮</h2><div class="preview"><canvas width="64" height="64" id="trialHair"></canvas></div></section>
+<section class="card"><h2>新版＋原髮位置（修改前）</h2><div class="preview"><canvas width="64" height="64" id="trialHairBefore"></canvas></div></section>
+<section class="card approved"><h2>新版＋對齊銀白髮（左移 1px、上移 4px）</h2><div class="preview"><canvas width="64" height="64" id="trialHair"></canvas></div><p>保留原有髮束、顏色及像素比例，只平移位置，讓瀏海不再遮住紫金色雙眼。</p></section>
 </div>
-<p><strong>目前驗證重點：</strong>額頭高度、光頭輪廓、雙眼是否有原本神韻、頭髮遮擋、下巴與頸部銜接。新素材是依照示意圖縮放，不會憑空宣稱和原圖逐像素相同，正式安裝前需要再確定髮片、眼睛和嘴巴拆層。</p>
+<p><strong>目前驗證重點：</strong>額頭高度、光頭輪廓、雙眼是否有原本神韻、頭髮遮擋、下巴與頸部銜接。光頭素材來自參考圖縮製，不會宣稱與原圖逐像素相同；髮片只做 -1px／-4px 平移、不改顏色和尺寸。正式安裝前仍需確認眼、眉、嘴分層及表情相容。</p>
 <div class="actions">
 <button id="export" type="button">匯出新版 64×160 光頭 PNG</button>
+<button id="exportHair" type="button">匯出已對齊 64×160 髮片 PNG</button>
 <a href="./?female-head=original">返回正式遊戲（完全不修改）</a>
 </div><p id="status" aria-live="polite">正在載入對照素材…</p>
 <small>新頭作為獨立試驗，女性原版保留，男性 V2 圓頂與其表情完全不受影響。</small>
@@ -46,21 +48,32 @@ const load=url=>new Promise((resolve,reject)=>{
 const img=new Image();img.onload=()=>img.width===64&&img.height===160?resolve(img):reject(Error('素材不是 64×160'));
 img.onerror=()=>reject(Error('PNG 載入失敗'));img.src=url;
 });
-function draw(id,face,hair){
+// Apply a translation only for the candidate head. Never scale or repaint the
+// original hair; this registered 64x160 offset matches its center and eyes.
+const hairAlign=Object.freeze({x:-1,y:-4});
+function draw(id,face,hair,align=false){
 const ctx=document.getElementById(id).getContext('2d');ctx.imageSmoothingEnabled=false;
 ctx.clearRect(0,0,64,64);ctx.drawImage(face,0,0);
-if(hair)ctx.drawImage(hair,0,0);
+if(hair)ctx.drawImage(hair,align?hairAlign.x:0,align?hairAlign.y:0);
 }
 async function go(){
 const [original,hair,trial]=await Promise.all(['original','hair','trial'].map(k=>load(src[k])));
 draw('originalBald',original);draw('trialBald',trial);
-draw('originalHair',original,hair);draw('trialHair',trial,hair);
-document.getElementById('status').textContent='對照素材已載入，可比較光頭和銀白髮的比例。';
+draw('originalHair',original,hair);draw('trialHairBefore',trial,hair);
+draw('trialHair',trial,hair,true);
+document.getElementById('status').textContent='已對齊：新光頭上的銀白髮左移 1px、上移 4px；正式遊戲與原始髮片未變更。';
 document.getElementById('export').onclick=()=>{
 const canvas=document.createElement('canvas');canvas.width=64;canvas.height=160;
 canvas.getContext('2d').drawImage(trial,0,0);
 const a=document.createElement('a');a.href=canvas.toDataURL('image/png');
 a.download='female_bald_approved_reference_trial_64x160.png';a.click();
+};
+document.getElementById('exportHair').onclick=()=>{
+const canvas=document.createElement('canvas');canvas.width=64;canvas.height=160;
+const ctx=canvas.getContext('2d');ctx.imageSmoothingEnabled=false;
+ctx.drawImage(hair,hairAlign.x,hairAlign.y);
+const a=document.createElement('a');a.href=canvas.toDataURL('image/png');
+a.download='female_v3_hair_aligned_left1_up4_64x160.png';a.click();
 };
 }
 go().catch(err=>document.getElementById('status').textContent='載入失敗：'+err.message);
