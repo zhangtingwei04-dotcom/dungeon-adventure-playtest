@@ -64,9 +64,10 @@ a.back{border:1px solid #ad9160;border-radius:8px;padding:9px 12px;text-decorati
 <main>
 <div class="panel">
 <h2>測試設定</h2>
+<p class="note">美術差異提醒：這裡的披風目前是用 Canvas 多邊形手繪的簡化原型，<strong>並不是先前「深綠金邊披風（貼合測試）」展示圖中的披風素材</strong>。展示圖的完整金邊、植物紋與長披布尚未製成符合原始底模的透明圖層，因此此原型不應被視為正式美術。</p>
 <div class="controls">
 <label>顯示角色<select id="gender"><option value="both">男女並排</option><option value="male">只看男性</option><option value="female">只看女性</option></select></label>
-<label class="check"><input id="cloakOn" type="checkbox" checked>穿上披風</label>
+<label class="check"><input id="cloakOn" type="checkbox">顯示舊簡化披風（僅供差異比對）</label>
 <label class="check"><input id="backOn" type="checkbox" checked>後層</label>
 <label class="check"><input id="frontOn" type="checkbox" checked>前層</label>
 <label class="check"><input id="hairOn" type="checkbox" checked>顯示頭髮</label>
@@ -103,7 +104,7 @@ a.back{border:1px solid #ad9160;border-radius:8px;padding:9px 12px;text-decorati
  const femaleHair=window.DUNGEON_FEMALE_HAIR_V2;
  const maleHead=window.DungeonMaleV3DomeTrial?.image||male?.head_base;
  let images={},ready=false;
- const settings={gender:'both',cloakOn:true,frontOn:true,backOn:true,hairOn:true,guides:false,x:0,y:0};
+ const settings={gender:'both',cloakOn:false,frontOn:true,backOn:true,hairOn:true,guides:false,x:0,y:0};
  const urls={
    maleBody:source?.male?.body,maleTank:source?.male?.tank,maleShorts:source?.male?.shorts,
    femaleBody:source?.female?.body,femaleTank:source?.female?.tank,femaleShorts:source?.female?.shorts,
@@ -158,7 +159,7 @@ a.back{border:1px solid #ad9160;border-radius:8px;padding:9px 12px;text-decorati
    $(gender+'Section').hidden=settings.gender!=='both'&&gender!==settings.gender;
   }
   $('status').textContent='已載入遊戲原始男女底模與披風 V1。披風 '+(settings.cloakOn?'顯示':'隱藏')+
-   '；X '+settings.x+'px、Y '+settings.y+'px；男女性別各自使用獨立 64×160 前後層。正式遊戲目前不採用此未核准美術。';
+   '；X '+settings.x+'px、Y '+settings.y+'px；男女性別各自使用獨立 64×160 前後層。請注意：目前披風是簡化草稿，並非先前示意圖的正式披風。';
  }
  function download(canvas,name){
   canvas.toBlob(blob=>{
@@ -176,9 +177,10 @@ a.back{border:1px solid #ad9160;border-radius:8px;padding:9px 12px;text-decorati
   });
  }
  $('reset').onclick=()=>{
-  Object.assign(settings,{x:0,y:0,cloakOn:true,backOn:true,frontOn:true,hairOn:true,guides:false});
+  Object.assign(settings,{x:0,y:0,cloakOn:false,backOn:true,frontOn:true,hairOn:true,guides:false});
   $('cloakX').value='0';$('cloakY').value='0';
-  ['cloakOn','backOn','frontOn','hairOn'].forEach(id=>$(id).checked=true);
+  ['backOn','frontOn','hairOn'].forEach(id=>$(id).checked=true);
+  $('cloakOn').checked=false;
   $('guides').checked=false;render();
  };
  $('exportComparison').onclick=()=>{
