@@ -6,7 +6,7 @@
 (function(root){
  'use strict';
  const mode=new URLSearchParams(root.location.search).get('male-head');
- const art=root.DungeonMaleApprovedV3;
+ const art=root.DungeonMaleV3CorrectedLayers||root.DungeonMaleApprovedV3;
  if(mode==='v8'||mode==='v9'||!art?.head_base||!art?.eyebrows||!art?.eyes||!art?.mouth||!art?.hair_standard)return;
  const W=64,H=160,eyeCenters=[25,39],layerNames=['head_base','eyebrows','eyes','mouth','hair_standard'];
  const loaded={};let ready=false,baseData=null,eyeData=null;
@@ -103,8 +103,11 @@
   if(pose==='shy'){
    c.fillStyle='rgba(216,130,133,0.45)';c.fillRect(20,40,2,1);c.fillRect(43,40,2,1);
   }
-  // 30..41 includes exactly V3 original eyebrows and eyes; no jaw edits.
-  out.drawImage(scratch,18,30,30,12,18,30,30,12);
+  // Separate eyebrows now occupy y29..30, partly hidden below the hair.
+  // Eyes (including formerly-mislabelled upper lashes) occupy y32..38.
+  // Repaint both with the original face skin during blink or expression
+  // so neither the original eyelid nor eyebrow can ghost underneath.
+  out.drawImage(scratch,18,27,30,15,18,27,30,15);
  }
  function renderMouth(stage,opts={}){
   const target=stage?.querySelector('.paperdoll-female-mouth-motion-canvas');if(!target)return;
