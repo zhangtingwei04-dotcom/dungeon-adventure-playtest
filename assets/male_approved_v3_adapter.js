@@ -151,7 +151,13 @@
   for(let y=43;y<=46;y++)c.fillRect(29,y,6,1);
   c.fillStyle='#a77765';
   if(pose==='smile'||pose==='happy'){
-   c.fillRect(30,44,4,1);c.fillRect(30,43,1,1);c.fillRect(33,43,1,1);
+   // Approved happy face: option B (reserved smile), with perfectly symmetric
+   // mouth corners around the x31.5 center. Keep the expression quiet and
+   // closed-lip: two subtle lifted corners and a two-pixel natural lip line.
+   c.fillStyle='#e5aa84';
+   c.fillRect(30,43,1,1);c.fillRect(33,43,1,1);
+   c.fillStyle='#b27765';
+   c.fillRect(31,44,2,1);
   }else if(pose==='surprised'){c.fillStyle='#744744';c.fillRect(31,44,2,2);
   }else if(pose==='frown'||pose==='angry'){c.fillRect(30,44,1,1);c.fillRect(31,43,2,1);c.fillRect(33,44,1,1);
   }else if(pose==='shy'){c.fillRect(31,44,2,1);
