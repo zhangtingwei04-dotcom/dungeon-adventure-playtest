@@ -72,17 +72,20 @@
     (Number.isFinite(opt.sweatY)?opt.sweatY:29));
   const frame=posMod(Math.floor(phase),6);
   if(frame===0||frame===5)return;
+  // Optional +1 pixel on the male V3 only; legacy female / V8 / V9
+  // and NPC sweat frames retain their existing sizes and rhythms.
+  const extraLength=opt.sweatLong===true?1:0;
   ctx.save();
   // A clear but compact highlight ON THE SKIN of the right forehead.
   // Both HP states use exactly the same art. Only their frame rates differ.
   if(frame===1||frame===4){
    ctx.fillStyle='rgba(16,115,141,0.8)';
-   ctx.fillRect(px,py,1,1);
+   ctx.fillRect(px,py,1,1+extraLength);
   }else{
    ctx.fillStyle='rgba(18,118,141,0.94)';
    ctx.fillRect(px+1,py+1,1,1);
    ctx.fillStyle='rgba(37,207,231,0.96)';
-   ctx.fillRect(px,py+1,1,1);
+   ctx.fillRect(px,py+1,1,1+extraLength);
    ctx.fillStyle='#f1ffff';
    ctx.fillRect(px,py,1,1);
   }
