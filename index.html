@@ -5244,6 +5244,41 @@ function paintPaperDollFemaleMouth(){
   else motion.render(stage,opts);
  }
 }
+/* Preview-only female V3 face layer in the REAL in-game equipment paper doll.
+ * Every paint starts from the approved source PNG. No gameplay/save mutation.
+ * The original eye/mouth atlases are explicitly skipped for this trial head.
+ */
+let femaleTrialExpressionImage=null;
+function paintPaperDollFemaleTrialExpression(){
+ if(!paperDollFemaleTrialPreview||!femaleTrialHeadAvailable||
+    s.appearanceV1?.gender!=='female'||!paperDollMotionFrame)return;
+ const source=window.DungeonFemaleBaldCandidateV1?.head;
+ if(typeof source!=='string'||!source.startsWith('data:image/png;base64,'))return;
+ if(!femaleTrialExpressionImage||femaleTrialExpressionImage._src!==source){
+  const img=new Image();img._src=source;femaleTrialExpressionImage=img;
+  img.onload=()=>{
+   if(femaleTrialExpressionImage!==img||img.naturalWidth!==64||img.naturalHeight!==160)return;
+   paintPaperDollFemaleTrialExpression();
+  };
+  img.onerror=()=>console.warn('Female trial head preview could not load.');
+  img.src=source;return;
+ }
+ if(!femaleTrialExpressionImage.complete||femaleTrialExpressionImage.naturalWidth!==64)return;
+ const unconscious=currentPaperDollAbnormalStates().includes('unconscious');
+ const time=performance.now();
+ for(const stage of document.querySelectorAll('.paperdoll-stage.paperdoll-female-trial')){
+  const canvas=stage.querySelector('.paperdoll-female-trial-expression-canvas');
+  if(!canvas)continue;
+  const ctx=canvas.getContext('2d',{willReadFrequently:true});if(!ctx)continue;
+  ctx.imageSmoothingEnabled=false;ctx.clearRect(0,0,64,160);
+  window.DungeonFemaleTrialExpressionV1.render(ctx,femaleTrialExpressionImage,paperDollMotionFrame,{
+   closed:unconscious,
+   talking:paperDollTalkPreview&&paperDollRestPreview.sleep==='awake'&&!unconscious,
+   time
+  });
+ }
+}
+
 // One small visible-only tick; NPCs can sample their actors from the scene update loop.
 setInterval(()=>{if(!document.hidden)tickPaperDollMotion();},75);
 
@@ -5587,6 +5622,7 @@ function renderPaperDollExpressionControls(){
  select.onchange=()=>{paperDollPhysicalPreview=select.value==='auto'?null:select.value;paperDollPhysicalPreviewOpen=true;renderPlaceDrawer();};
  details.appendChild(select);row.appendChild(details);
  const motion=document.createElement('details');motion.className='paperdoll-physical-preview';
+  motion.open=s.appearanceV1?.gender==='female'&&paperDollFemaleTrialPreview;
  const motionSummary=document.createElement('summary');motionSummary.textContent='四種 HP 固定動態與試演（不影響 HP）';motion.appendChild(motionSummary);
  const blinkLabel=document.createElement('label');blinkLabel.className='paperdoll-customizer-field';
  const blinkInput=document.createElement('input');blinkInput.type='checkbox';blinkInput.checked=paperDollMotionEnabled;
@@ -5611,7 +5647,7 @@ function renderPaperDollExpressionControls(){
  row.appendChild(motion);
  if(s.appearanceV1?.gender==='female'){
   const limit=document.createElement('span');limit.className='paperdoll-expression-note';
-  limit.textContent='女性與男性共用頭部錨點；眼睛、嘴巴與獨立髮型皆可調整。';
+  limit.textContent=paperDollFemaleTrialPreview?'女性新版頭部：原圖中性不改像素，表情／眨眼在同一張臉上局部繪製；此為遊戲內試裝。':'女性與男性共用頭部錨點；眼睛、嘴巴與獨立髮型皆可調整。';
   row.appendChild(limit);
  }
  return row;
@@ -5709,6 +5745,35 @@ function renderPaperDollGenderControls(){
   btn.onclick=()=>setPaperDollAppearance('gender',value);row.appendChild(btn);
  }return row;
 }
+/* Original female head and the new female expression prototype coexist.
+ * This is a SESSION-ONLY switch; never write head choice into saved appearance.
+ */
+function renderPaperDollFemaleTrialControls(){
+ if(s.appearanceV1?.gender!=='female')return null;
+ const row=document.createElement('div');row.className='paperdoll-female-trial-row';
+ row.setAttribute('role','group');row.setAttribute('aria-label','女性新版頭部遊戲內測試');
+ const title=document.createElement('strong');title.textContent='女性頭部試裝';row.appendChild(title);
+ const btn=document.createElement('button');btn.type='button';
+ btn.className='paperdoll-female-trial-switch';
+ btn.textContent=paperDollFemaleTrialPreview?'新版頭部＋表情（測試中）':'使用新版頭部＋表情';
+ btn.disabled=!femaleTrialHeadAvailable;
+ btn.setAttribute('aria-pressed',String(paperDollFemaleTrialPreview));
+ btn.setAttribute('aria-label',paperDollFemaleTrialPreview?'恢復女性原始頭部與髮型':'試用女性新版頭部、對齊銀白髮及表情動畫');
+ btn.onclick=()=>{
+  if(!femaleTrialHeadAvailable)return;
+  paperDollFemaleTrialPreview=!paperDollFemaleTrialPreview;
+  resetPaperDollSpriteCaches();paperDollMotionLastKey='';
+  renderPlaceDrawer(); // No save().
+ };
+ row.appendChild(btn);
+ const note=document.createElement('span');note.className='paperdoll-expression-note';
+ note.textContent=paperDollFemaleTrialPreview?
+  '目前使用左移 2px、上移 5px 的原始銀白髮及女性獨立表情層；再次點擊即可返回原版。只在本頁試裝，不寫入存檔。':
+  '新頭部、髮束及表情獨立試裝；原本的女性素材不會被覆蓋。';
+ row.appendChild(note);
+ return row;
+}
+
 function renderPaperDollAppearanceControls(){
  normalizeAppearanceV1();
  const root=document.createElement('details');root.className='paperdoll-customizer';root.open=paperDollCustomizerOpen;
@@ -6117,12 +6182,14 @@ function renderSideTab(tab,out){
   equipAction.textContent='脫下';equipAction.hidden=true;
   const hairControls=renderPaperDollHairControls();
   const genderControls=renderPaperDollGenderControls();
+   const femaleTrialControls=renderPaperDollFemaleTrialControls();
   const eyeControls=renderPaperDollEyeControls();
   const expressionControls=renderPaperDollExpressionControls();
   const restControls=renderPaperDollRestControls();
   const abnormalControls=renderPaperDollAbnormalControls();
   const appearanceControls=renderPaperDollAppearanceControls();
-  footer.append(detail,equipAction,tryOn,bag);section.append(board,genderControls,hairControls,eyeControls,expressionControls,restControls,abnormalControls,appearanceControls,footer);out.appendChild(section);
+  footer.append(detail,equipAction,tryOn,bag);section.append(board,genderControls);if(femaleTrialControls)section.append(femaleTrialControls);
+   section.append(hairControls,eyeControls,expressionControls,restControls,abnormalControls,appearanceControls,footer);out.appendChild(section);
   renderEquipmentBoard();return;
  }
  if(tab==='inventory'){
