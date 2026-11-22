@@ -5058,7 +5058,8 @@ const PAPERDOLL_EYE_COLORS=Object.freeze([
  * Facial parts are currently combined in the replacement art; do not
  * recolor the entire hair/face as if they were still separate layers.
  */
-let paperDollFemaleTrialPreview=new URLSearchParams(location.search).get('female-head')==='trial';
+// Fixed official female head; legacy URL switch has been retired.
+const paperDollFemaleTrialPreview=true;
 const femaleTrialHeadAvailable=Boolean(window.DungeonFemaleBaldCandidateV1?.head&&window.DungeonFemaleTrialExpressionV1?.ready);
 const FEMALE_CLEAR_LAYER='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAACgCAYAAAC8LWpcAAAAP0lEQVR42u3BMQEAAADCoPVPbQo/oAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIC3AaCgAAE4j1zSAAAAAElFTkSuQmCC';
 const FEMALE_SPLIT_READY=typeof window.DUNGEON_FEMALE_FACE_V2==='string'&&
@@ -5265,9 +5266,9 @@ function paintPaperDollFemaleMouth(){
   else motion.render(stage,opts);
  }
 }
-/* Preview-only female V3 face layer in the REAL in-game equipment paper doll.
- * Every paint starts from the approved source PNG. No gameplay/save mutation.
- * The original eye/mouth atlases are explicitly skipped for this trial head.
+/* Approved new female face animation in the normal equipment paper doll.
+ * Each paint starts from the approved source PNG. No gameplay/save mutation.
+ * Legacy eye/mouth atlases are skipped for the new head.
  */
 let femaleTrialExpressionImage=null;
 function paintPaperDollFemaleTrialExpression(){
@@ -5668,7 +5669,7 @@ function renderPaperDollExpressionControls(){
  row.appendChild(motion);
  if(s.appearanceV1?.gender==='female'){
   const limit=document.createElement('span');limit.className='paperdoll-expression-note';
-  limit.textContent=paperDollFemaleTrialPreview?'女性新版頭部：原圖中性不改像素，表情／眨眼在同一張臉上局部繪製；此為遊戲內試裝。':'女性與男性共用頭部錨點；眼睛、嘴巴與獨立髮型皆可調整。';
+  limit.textContent='女性固定使用新版頭部；原始中性表情保留，眨眼及情緒在獨立動態層呈現。';
   row.appendChild(limit);
  }
  return row;
@@ -5766,34 +5767,7 @@ function renderPaperDollGenderControls(){
   btn.onclick=()=>setPaperDollAppearance('gender',value);row.appendChild(btn);
  }return row;
 }
-/* Original female head and the new female expression prototype coexist.
- * This is a SESSION-ONLY switch; never write head choice into saved appearance.
- */
-function renderPaperDollFemaleTrialControls(){
- if(s.appearanceV1?.gender!=='female')return null;
- const row=document.createElement('div');row.className='paperdoll-female-trial-row';
- row.setAttribute('role','group');row.setAttribute('aria-label','女性新版頭部遊戲內測試');
- const title=document.createElement('strong');title.textContent='女性頭部試裝';row.appendChild(title);
- const btn=document.createElement('button');btn.type='button';
- btn.className='paperdoll-female-trial-switch';
- btn.textContent=paperDollFemaleTrialPreview?'新版頭部＋表情（測試中）':'使用新版頭部＋表情';
- btn.disabled=!femaleTrialHeadAvailable;
- btn.setAttribute('aria-pressed',String(paperDollFemaleTrialPreview));
- btn.setAttribute('aria-label',paperDollFemaleTrialPreview?'恢復女性原始頭部與髮型':'試用女性新版頭部、對齊銀白髮及表情動畫');
- btn.onclick=()=>{
-  if(!femaleTrialHeadAvailable)return;
-  paperDollFemaleTrialPreview=!paperDollFemaleTrialPreview;
-  resetPaperDollSpriteCaches();paperDollMotionLastKey='';
-  renderPlaceDrawer(); // No save().
- };
- row.appendChild(btn);
- const note=document.createElement('span');note.className='paperdoll-expression-note';
- note.textContent=paperDollFemaleTrialPreview?
-  '目前使用左移 2px、上移 5px 的原始銀白髮及女性獨立表情層；再次點擊即可返回原版。只在本頁試裝，不寫入存檔。':
-  '新頭部、髮束及表情獨立試裝；原本的女性素材不會被覆蓋。';
- row.appendChild(note);
- return row;
-}
+/* Female's newer head is fixed; no old/new trial switch in equipment. */
 
 function renderPaperDollAppearanceControls(){
  normalizeAppearanceV1();
@@ -6206,13 +6180,13 @@ function renderSideTab(tab,out){
   equipAction.textContent='脫下';equipAction.hidden=true;
   const hairControls=renderPaperDollHairControls();
   const genderControls=renderPaperDollGenderControls();
-   const femaleTrialControls=renderPaperDollFemaleTrialControls();
+   // New female head is automatically selected; no manual version switch.
   const eyeControls=renderPaperDollEyeControls();
   const expressionControls=renderPaperDollExpressionControls();
   const restControls=renderPaperDollRestControls();
   const abnormalControls=renderPaperDollAbnormalControls();
   const appearanceControls=renderPaperDollAppearanceControls();
-  footer.append(detail,equipAction,tryOn,bag);section.append(board,genderControls);if(femaleTrialControls)section.append(femaleTrialControls);
+  footer.append(detail,equipAction,tryOn,bag);section.append(board,genderControls);
    section.append(hairControls,eyeControls,expressionControls,restControls,abnormalControls,appearanceControls,footer);out.appendChild(section);
   renderEquipmentBoard();return;
  }
