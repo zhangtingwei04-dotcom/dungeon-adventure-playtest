@@ -97,7 +97,7 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 </div>
 </section>
 <section id="page-library" data-page="library" hidden>
-<div class="hint">此處使用正式男女身體／內衣／頭髮素材。新增 PNG 可單獨定位、調整大小，並在男女預覽中測試。**先前的披風程式草稿並不是已確認的披風圖**，預設隱藏。調完後到「數據與備份」複製數據給我。</div>
+<div class="hint">此處使用正式男女身體／內衣／頭髮素材。新增 PNG 可單獨定位、調整大小，並在男女預覽中測試。先前的披風程式草稿並不是已確認的披風圖，預設隱藏。調完後到「數據與備份」複製數據給我。</div>
 <div class="layout">
 <div class="panel"><h2>素材庫</h2><div class="libraryList" id="assetList" role="group" aria-label="角色與裝備素材清單"></div>
 <div class="divider"></div><h3>新增裝備／髮型</h3>
@@ -295,6 +295,15 @@ function loadImage(dataUrl,key){
   const img=new Image();img.onload=()=>{images.set(key,img);resolve(img)};img.onerror=()=>reject(Error('PNG 解析失敗：'+key));img.src=dataUrl;
  });
 }
+function loadNeck(gender){
+ return new Promise((resolve,reject)=>{
+  const img=new Image();
+  img.onload=()=>{if(img.naturalWidth!==64||img.naturalHeight!==160){reject(Error('脖子素材格線不符'));return}
+   images.set(gender+'Neck',img);resolve()};
+  img.onerror=()=>reject(Error('脖子圖層載入失敗'));
+  img.src='./assets/'+gender+'_neck_v1.svg?v=1';
+ });
+}
 function sourceFor(id,gender,layer){const key=k(id,gender,layer);return userPngs.get(key)||sourceImages[stockKeys[key]]||null}
 function selectedKey(){return k(selected,editingGender,editingLayer)}
 function getImage(id,gender,layer){return images.get(k(id,gender,layer))}
@@ -329,6 +338,7 @@ function drawAssetStage(gender){
   const key=k(a.id,gender,'back');if(layerShown[key]!==false)drawImageOn(ctx,images.get(key),transforms[key]);
  }
  drawStatic(gender+'Body');
+ drawStatic(gender+'Neck');
  drawStatic(gender+'Shorts');drawStatic(gender+'Tank');
  for(const a of catalogue)if(shown[a.id+':'+gender]!==false&&a.slot!=='hair'){
   for(const layer of a.layers)if(layer!=='back'){
@@ -557,8 +567,12 @@ for(const g of ['male','female'])onPointer(g,$(g+'Canvas'));
 async function init(){
  restore();normalize();
  try{
-  const keys=Object.entries(sourceImages).filter(([key,value])=>!!value&&key.endsWith('Head')||!!value&&/Body|Tank|Shorts|Hair|Brows|Eyes|Mouth|Cloak/.test(key));
-  await Promise.all(keys.map(([key,value])=>loadImage(value,key)));
+  const keys=Object.entries(sourceImages).filter(([,value])=>
+   typeof value==='string'&&value.startsWith('data:image/png;base64,'));
+  await Promise.all([
+   ...keys.map(([key,value])=>loadImage(value,key)),
+   loadNeck('male'),loadNeck('female')
+  ]);
   for(const [key,stock] of Object.entries(stockKeys)){
    const img=images.get(stock);if(img)images.set(key,img);
   }
