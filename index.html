@@ -5059,10 +5059,12 @@ const TRAVEL_OUTFIT_IMAGE_IDS=STARTER_OUTFIT_V2;
 // Rejected equipment graphics are no longer rendered by the live paper doll.
 // Inventory ownership/wearing must remain independent of unfinished graphics.
 const LEGACY_EQUIPMENT_ART_ENABLED=false;
-// Unapproved artwork stays in its workbench; production starts without the cloak sprite.
-// Opt-in ?cloak=trial permits an explicit comparison in the live game only.
+// User approved the original-art green/gold cloak V2. Show it by default
+// whenever starter_cloak is actually equipped; ?cloak=off hides visuals
+// for before/after debugging, and ?cloak=trial keeps the old draft optional.
+// The previously rejected equipment atlas remains disabled.
 const CLOAK_PIXEL_TRIAL_ENABLED=new URLSearchParams(location.search).get('cloak')==='trial';
-const CLOAK_ART_V2_TRIAL_ENABLED=new URLSearchParams(location.search).get('cloak')==='art2';
+const CLOAK_ART_V2_ENABLED=new URLSearchParams(location.search).get('cloak')!=='off'&&!CLOAK_PIXEL_TRIAL_ENABLED;
 let paperDollTryOn=false;
 
 /* Hair tint belongs to the player appearance, not equipment or the source PNG.
@@ -5996,15 +5998,16 @@ function equipmentGuideHTML(sceneMode='equipment'){
    String(i*12.5)+'% 0"></span>').join('');
  const satchel=LEGACY_EQUIPMENT_ART_ENABLED&&!privateScene&&show('bag')?
   '<span class="paperdoll-layer paperdoll-approved-bag" aria-hidden="true"></span>':'';
- // This is a NEW reversible cloak prototype. Other rejected gear art stays off.
- // The test follows equipped state, never a preview or a second inventory.
+ // Approved V2 PNG front/back layers follow the saved equipment state.
+ // Bath/dressing privacy views remain excluded, and other rejected gear art
+ // remains disabled. The old polygon test is kept ONLY behind ?cloak=trial.
  const cloakArt=!privateScene&&s.equipmentV1?.outer==='starter_cloak'?
-  (CLOAK_ART_V2_TRIAL_ENABLED&&window.DungeonGeneratedCloakV2?.front&&window.DungeonGeneratedCloakV2?.back?
+  (CLOAK_ART_V2_ENABLED&&window.DungeonGeneratedCloakV2?.front&&window.DungeonGeneratedCloakV2?.back?
     window.DungeonGeneratedCloakV2:
    CLOAK_PIXEL_TRIAL_ENABLED&&window.DungeonTravelerCloakTrialV1?.ready?
     window.DungeonTravelerCloakTrialV1.sprites[s.appearanceV1?.gender==='female'?'female':'male']:null):null;
  const cloakBack=cloakArt?'<span class="paperdoll-asset-layer paperdoll-cloak-trial-back" aria-hidden="true" style="background-image:url('+cloakArt.back+')"></span>':'';
- const cloakFront=cloakArt?'<span class="paperdoll-asset-layer paperdoll-cloak-trial-front'+(CLOAK_ART_V2_TRIAL_ENABLED?' paperdoll-cloak-art-v2-front':'')+'" aria-hidden="true" style="background-image:url('+cloakArt.front+')"></span>':'';
+ const cloakFront=cloakArt?'<span class="paperdoll-asset-layer paperdoll-cloak-trial-front'+(CLOAK_ART_V2_ENABLED?' paperdoll-cloak-art-v2-front':'')+'" aria-hidden="true" style="background-image:url('+cloakArt.front+')"></span>':'';
  // The hand overlay must match the original BODY + SHORTS + TANK stack.
  // Earlier drawing body alone erased the sides of the existing underwear.
  // Copy the approved garment pixels ABOVE the hands, in the same native grid.
@@ -6286,7 +6289,7 @@ function renderSideTab(tab,out){
   const appearanceControls=renderPaperDollAppearanceControls();
   // One selected slot, then one direct "脫下／裝上" action just below it.
   const artNote=document.createElement('p');artNote.className='equip-art-pending';
-  artNote.textContent=CLOAK_ART_V2_TRIAL_ENABLED?'披風 V2 試穿：男性前層 Y -8px、女性前層 Y -6px，前後層其餘數值維持原值；美術尚未驗收。':'披風原圖 V2 在開發者總台可試穿；正常遊玩仍隱藏未驗收披風圖。裝備和存檔照常使用。';
+  artNote.textContent='深綠金邊披風 V2 已確認並正式啟用；男性前層 Y -8px、女性前層 Y -6px。披風可正常穿脫；其他尚未核准的裝備外觀仍維持隱藏。';
   footer.append(detail,equipAction,bag);
   section.append(board,footer,artNote,genderControls);
   section.append(hairControls,eyeControls,expressionControls,restControls,abnormalControls,appearanceControls);
