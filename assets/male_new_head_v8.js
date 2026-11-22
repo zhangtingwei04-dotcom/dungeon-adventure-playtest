@@ -1,16 +1,9 @@
-/* Aligned male head V8d (V8c art moved DOWN 1 native pixel): preserve the exact newly generated face and its
- * ORIGINAL new purple eyes (not V7 or female eyes), eyebrows, nose and mouth.
- * Native 64x160 transparent PNG. Nontransparent head bbox x17..47, y15..50
- * follows the approved V8c head +1px downward without resizing.
- * The neutral mouth is a 4px muted-brown line, replacing the single pixel.
- * Brows/eyes/mouth move together: net 1px above the female anchor.
- * Brow pixels x24..29 and x35..40 are naturally lengthened (only six new
- * pixels versus V8a). Original new purple eyes and other face pixels unchanged.
- * The image is realigned ONCE at asset build time with nearest-neighbor
- * sampling; no per-frame CSS scaling or runtime eye substitution.
- * Silver-white hair V8 is in a separate removable transparent asset.
- * V5 runtime key is preserved for expression module compatibility.
+/* Male head V8f: keep the original approved V8d head and native 64x160 alignment.
+ * Only the two eyes (native rows 35..40 -> 34..39) and neutral mouth (y45 -> y44)
+ * move UP exactly 1 native pixel; eyebrows, nose, chin, hair, skin and neck unchanged.
+ * All male eye/mouth expressions are aligned by their shared animation modules.
+ * Preserve V5 runtime image key for paper-doll compatibility.
  */
-window.DUNGEON_MALE_SHARED_FACE_V5="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAACgCAMAAACL85puAAABIFBMVEUAAAD8zKn80K/ppYQkDRQYBg316urclnXjnHorERgyFSpKJyXzu5n7+PfPiWrooH09GUMnDiJ0OXiGPojwm+ovJCdYOTN8PYORRJKtVj33wJ1ONktzU051XGGPQi6KV0WWbmDDfWfWv8LXwcPypPHhz9Hl09X2498AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABmWnzDAAAAYHRSTlMA////////////////////////////////////////////////////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA9wH6mAAABmUlEQVR42u2V2XKDMAxFkSXjhSVkI23aTtL9//+wxphAGh5sMn2qzkNCmLkHWXJwljEM8x8wRhLJdnGeaixLAEBFi+IrhAGByQoT4kII/40yTWE09umAM2iTIkCcxr2hxIS8hF95v5D4RZC6yXeG+GHUOCMQgKfYBbgOzuRdH+NKILpq4XiFkbuBVJe/KKB/vPBbMnKEQQBTQXcHUSYJxqcP2zFBcNnHIZsiWAWBrzsUv0gAw+pTK9CjYPKZIPBjhLZwBIO1RdH6MSYIPIXPF0MNka+mTkBkyBGCwy+s47aiQfHyLhtbSek7cJaVbfZvzxC7lUlDnstmbb9CBZ923ezzHDTF9IAEdAK7sw9VEFTb9cdTJwARUQPB6hGd4bCbCHZbl0d3P0qA3Rs1zzeb72Eam4PL+/sxXXCzO8Ic7pAp4roIbrW3YPxrtQWcEWioE8618iZ/TDuaVJ96PZ3OQaDSzkaS6ur5itJPaDMq9KLz3Q207tdRZEshqd0/iLJ7uC/NMAzDMAzDMAzDMAzDMAzDMAzDMMyf8QPnegzGm+Uv4QAAAABJRU5ErkJggg==";
+window.DUNGEON_MALE_SHARED_FACE_V5="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAACgCAYAAAC8LWpcAAAE7ElEQVR42u3abUxbVRgH8H+1a3nppbxUKDjjy8pgIQsalQ/yQYlhInEsS8yWZXMGEic6F92HQVQ+GdAAU0m2qUMzEiKZE8UMpiEmgxnmUIK6RchWS9wy5saAjrcWdkvN9QO0cNsCHdzblPn/fSq9vaf3POc5zz29B4CIiIiIiIjof0cT6i/MiDNLAGB3OmHQ6wEADlHEM4+vx1edv2nu6gBYBJPUWLYNKWtTEJV4HwAgMi7We9xutWFibAx5pXXomxjW3DUBsAgm6eyh16BZo0dCWurSJ2h1sPf2Iru4RvVAaNRO99Mfv7Jwx7W6uddul99hu9WGzMJKGPR61QKhUbPzrdVF0EVGyTs/v9OLmQ2I3WqDa2oSeQeOoXdkQLNqAnCzoVwCMNf5YDseIAhTI6OYHBxC0s4yxa9Xq0bnzTpBWtaoB5oibhci42IRGRcLi2CSlJ4K96hS8GqKV975AOe3VhbCIpiksA5AY9k2CEajwnk6EwTBaMSe/McQtgEw6wTJlBCr3OgHuEPsyH1S0SzQKpn6AKCLjJJfeDBBWOpz847J2g+3DGitLIRf5Xe7At7jgwqK57zZ1552Pd8TVgH4+bO3lp77yw2ET3YIRiPMOkEKuwwIuqL7BiJQpiyxSgzrdUDAC/e81urkgfCd+yp2VtUMkKbF4Ed/fjB8/w4xbci+KZhOhnj0Fc2Aafe/d17hF5rzqzEDcvbXorWy0O9OsGtfFcZvjcveaz5R5T/as/UgK/fdmUVV/DQAICY+Bl8eKpF9dGJsLPynQHrOXgCAXquF6HbLjhVsL0FzQ7lfjSjYXoLx2yMAAHFw9rzrI962LrUf8X7coNcDronwvQ1u3bIZLae+g93pRLIhEzERibg41A+HKOL3ywMBp8ULz2XDIYq4ONQPvTYeyYZMRCcloLm5CVs2PTWXARPO8HwekBFnltoOv4GEjAyIKdkAgHVr1yE1IQuDzsuI1kegpa0RSWKP/xpg1j/3pmPrph1wireRGP0wxqOv4dy5jplsutoOu9Wm6KMyxTLAIpgk0e2Ga2pS1qEU4wNoee84ovUReDmzGImpjyxa+VM2rMeLG3YDAL6vbsKD8RbZcdfUpPeHV9gEwCKYpEsdn8vmqP5qOwCgo/cMDtYfRdv7Z+6ozV8//AWHaz/F8VN1svY8teBaV70ivwqVqwFuF4Z7etD1YwfsVpvsot/+9lWUH/sI/c7rmB4aWHxO9jTj1vQoDtYfxZvfFMnasVttc+0rtGbQKJYB7Ue8DzD9HoQqxLf99Jy9K64FihXB/LRUyXNrm3Y4sMZgUDwAUyOj3o2Ugp1l+MFq04RFBvhmAgDcOH8ByY9mKjr6nqxSYuRVWQf0TQxrdu2rUuXJjaf6/3n6J0U3SVTbF7AIJumPpgrZ3t98nSfb0PnX3zOruqT7sWf38wv/znA4sHFzqSq7Q6pujfV9ckB6KOuJFbdzpasblterV9fWmCcLHKKIszXFWE4grnR1I6+0zju9Vl0AfJfJJyteCioQN85fQM7+2pBskYf8HxLy01KliqJcbHz26YB14YOv2xS5vYU1i2CSzDpB6v/iHcndfUK62VAuWQSTpPS216oJBoiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiEjuP5eP4pMh/ZK+AAAAAElFTkSuQmCC";
 window.DUNGEON_MALE_FACE_VERSION="v8-new-eyes";
 window.dispatchEvent(new Event('dungeon-male-face-ready'));
