@@ -1,5 +1,10 @@
 # 殘車之後｜地下城冒險公開測試 V0.5.1
 
+## 男性光頭母版 V1｜重新建構（2026-11-22）
+
+已依照使用者確認的女性光頭比例作為輪廓參考，以原男性 V3 膚色重建全新 **64×160 透明男性頭部底圖** `assets/male_head_master_v1.js`。目前是**沒有眼睛、眉毛、嘴巴或頭髮的獨立母版原型**，不取代已核准男性 V2。開啟 [男性新光頭 V1／女性參考／男性舊版三頭比較](https://zhangtingwei04-dotcom.github.io/dungeon-adventure-playtest/male-head-master-v1-preview.html?v=1)，可放大檢查並下載新頭透明 PNG。完整版本與保護措施見 [重建紀錄](docs/MALE_HEAD_MASTER_V1_REBUILD_2026-11-22.md)。
+
+
 ## 遊戲內女性新頭＋表情試裝（2026-11-22）
 
 已將先前只在工具台測試的女性新版光頭與獨立表情，加入正式遊戲右側**裝備欄**的可切換試裝入口。可直接開啟 [遊戲內女性新版頭部試裝](https://zhangtingwei04-dotcom.github.io/dungeon-adventure-playtest/?female-head=trial)，進入遊戲後切到「裝備」→「女性」，即可切換「女性頭部試裝」及原有 HP、表情、眨眼、說話、睡眠／異常預覽。女性原髮在試裝模式**只平移 x=-2、y=-5**，不縮放或替換原素材。一般遊戲不帶該參數仍使用舊女性頭部；切換試裝**不寫入角色存檔**。程式靜態檢查已通過，但 iPhone 實機仍需使用者驗收。見 [詳細開發紀錄](docs/FEMALE_IN_GAME_EXPRESSION_TRIAL_2026-11-22.md)。
