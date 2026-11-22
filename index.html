@@ -3708,10 +3708,14 @@ html.stage-locked #app .paperdoll-stage .paperdoll-asset-layer{
 /* Full-size approved character arm pixels appear ABOVE trial cloak only.
    Positions are native 64×160: left x0..23, right x40..63, y70..101.
    These original body-sprite regions preserve hand and arm posture. */
-html.stage-locked #app .paperdoll-stage .paperdoll-original-arm-left{
+html.stage-locked #app .paperdoll-stage .paperdoll-original-arm-left,
+html.stage-locked #app .paperdoll-stage .paperdoll-original-shorts-left,
+html.stage-locked #app .paperdoll-stage .paperdoll-original-tank-left{
  clip-path:inset(43.75% 62.5% 36.25% 0%);
 }
-html.stage-locked #app .paperdoll-stage .paperdoll-original-arm-right{
+html.stage-locked #app .paperdoll-stage .paperdoll-original-arm-right,
+html.stage-locked #app .paperdoll-stage .paperdoll-original-shorts-right,
+html.stage-locked #app .paperdoll-stage .paperdoll-original-tank-right{
  clip-path:inset(43.75% 0% 36.25% 62.5%);
 }
 html.stage-locked #app .paperdoll-stage .paperdoll-original-arms-tinted{
@@ -5990,11 +5994,17 @@ function equipmentGuideHTML(sceneMode='equipment'){
     window.DungeonTravelerCloakTrialV1.sprites[s.appearanceV1?.gender==='female'?'female':'male']:null):null;
  const cloakBack=cloakArt?'<span class="paperdoll-asset-layer paperdoll-cloak-trial-back" aria-hidden="true" style="background-image:url('+cloakArt.back+')"></span>':'';
  const cloakFront=cloakArt?'<span class="paperdoll-asset-layer paperdoll-cloak-trial-front" aria-hidden="true" style="background-image:url('+cloakArt.front+')"></span>':'';
- // True sprite original arms are composited above the trial cloak. No pose edit.
+ // The hand overlay must match the original BODY + SHORTS + TANK stack.
+ // Earlier drawing body alone erased the sides of the existing underwear.
+ // Copy the approved garment pixels ABOVE the hands, in the same native grid.
  const nativeArms=cloakArt?
   (maleTemplateLayer(character.layers.body,'paperdoll-original-arm-left')+
    maleTemplateLayer(character.layers.body,'paperdoll-original-arm-right')+
-   '<canvas class="paperdoll-original-arms-tinted" width="64" height="160" aria-hidden="true"></canvas>'):'';
+   '<canvas class="paperdoll-original-arms-tinted" width="64" height="160" aria-hidden="true"></canvas>'+
+   maleTemplateLayer(character.layers.shorts,'paperdoll-original-shorts-left')+
+   maleTemplateLayer(character.layers.shorts,'paperdoll-original-shorts-right')+
+   maleTemplateLayer(character.layers.tank,'paperdoll-original-tank-left')+
+   maleTemplateLayer(character.layers.tank,'paperdoll-original-tank-right')):'';
  const extras=paperDollExtraLayerHTML('front');
  const behind=paperDollExtraLayerHTML('back');
  // Private scenes must cover the pelvis even when garment layers are absent.
