@@ -4932,13 +4932,20 @@ function renderBackpackPanel(out){
  out.appendChild(foot);
 }
 
-/* Equipment diagram V1: preserved save state; no imaginary bonus or wearable loot.
-   Only the approved enchanted starter satchel is equipped by default. */
+/* Equipment diagram V1: underwear belongs to base-clothing artwork, not gear.
+   The enchanted satchel is the only equipped starter item. */
+const STARTER_SATCHEL_ID='enchanted_satchel';
+function createStartingEquipmentV1(){
+ // Fresh state for each new game. All other equipment slots are empty.
+ return {head:null,chest:null,main:null,legs:null,feet:null,
+  neck:null,outer:null,offhand:null,hands:null,
+  bag:STARTER_SATCHEL_ID,owned:[STARTER_SATCHEL_ID]};
+}
 const EQUIPMENT_PARTS=Object.freeze([
  {id:'head',name:'頭部',symbol:'♜',side:'left',hint:'帽子、頭盔等頭部裝備'},
- {id:'chest',name:'上身',symbol:'♧',side:'left',hint:'上衣、護甲等軀幹裝備'},
+ {id:'chest',name:'上身',symbol:'♧',side:'left',hint:'外穿上衣與護甲；內衣不占裝備格'},
  {id:'main',name:'主武器',symbol:'⚔',side:'left',hint:'主要持用的武器'},
- {id:'legs',name:'下裝',symbol:'▤',side:'left',hint:'褲裝及其他腿部裝備'},
+ {id:'legs',name:'下裝',symbol:'▤',side:'left',hint:'外穿褲裝與護腿；內穿短褲不占裝備格'},
  {id:'feet',name:'鞋子',symbol:'⌁',side:'left',hint:'靴子與鞋類裝備'},
  {id:'neck',name:'飾品',symbol:'◇',side:'right',hint:'項鍊、護符與飾品'},
  {id:'outer',name:'外衣',symbol:'✧',side:'right',hint:'披風、外套與外層裝備'},
@@ -4950,12 +4957,12 @@ function normalizeEquipmentV1(){
  if(!s.equipmentV1||typeof s.equipmentV1!=='object'||Array.isArray(s.equipmentV1))s.equipmentV1={};
  // Preserve equipped bag and migrate older saves into a nonduplicating owned-gear list.
  const eq=s.equipmentV1;
- if(eq.bag===undefined)eq.bag='enchanted_satchel';
- if(!Array.isArray(eq.owned))eq.owned=['enchanted_satchel'];
+ if(eq.bag===undefined)eq.bag=STARTER_SATCHEL_ID;
+ if(!Array.isArray(eq.owned))eq.owned=[STARTER_SATCHEL_ID];
  const knownIds=new Set(Object.values(EQUIPMENT_VISUAL_CATALOG).map(x=>x.id));
  eq.owned=[...new Set(eq.owned.filter(id=>typeof id==='string'&&knownIds.has(id)))];
  // Every existing player begins with this bag, even after they unequip it.
- if(!eq.owned.includes('enchanted_satchel'))eq.owned.push('enchanted_satchel');
+ if(!eq.owned.includes(STARTER_SATCHEL_ID))eq.owned.push(STARTER_SATCHEL_ID);
  for(const part of EQUIPMENT_PARTS){
   const item=EQUIPMENT_VISUAL_CATALOG[part.id];
   if(!item){if(eq[part.id]!==null)eq[part.id]=null;continue;}
@@ -5908,6 +5915,8 @@ function equipmentGuideHTML(sceneMode='equipment'){
   femaleNeck+maleNeck+
   maleTemplateLayer(character.layers.face,'male-face')+
   '<canvas class="paperdoll-skin-canvas" width="64" height="160" aria-hidden="true"></canvas>';
+ // Independent underwear sprites: never owned/equipped gear.
+ // The base tank and shorts remain visible underneath empty outerwear slots.
  const shorts=privateScene||show('legs')?'':maleTemplateLayer(character.layers.shorts,'male-shorts');
  const tank=privateScene||show('chest')?'':maleTemplateLayer(character.layers.tank,'male-tank');
  // Preview / future equippable outfits still use the previous clothing atlas.
@@ -6666,7 +6675,7 @@ function paintActorSprite(canvas,memberId,emotion='neutral',time=performance.now
 }
 function randomSeed(){return (Date.now()^((Math.random()*4294967295)>>>0))>>>0;}
 function selectFour(seed){let a=[0,1,2,3,4,5],v=seed>>>0;for(let i=a.length-1;i>0;i--){v=(Math.imul(v,1664525)+1013904223)>>>0;let j=v%(i+1);[a[i],a[j]]=[a[j],a[i]];}return a.slice(0,4).sort((x,y)=>x-y);}
-function initial(){const seed=randomSeed();return{v:1,seed,scene:'wreck',worldMinutes:960,routeDiscovery:{known:[],searchCounts:{}},placeCardsViewed:[],exploration:{counts:{},routeProgress:{},pending:{},daily:{},last:{}},recovery:{found:false,looted:false,items:[],parts:{}},forestEcology:{checkedDays:{},observed:{},ingredients:{},leafCollected:false},forestRare:{checkedDays:{},sighted:{},hints:{},ingredients:{},beetleGearTaken:false,rabbitHerbTaken:false},beetle:{questAccepted:false,questCompleted:false,captured:false,terrarium:false,seen:false,food:72,clean:85,comfort:68,lastDay:0},wallet:{silver:1,copper:12},equipmentV1:{bag:'enchanted_satchel'},appearanceV1:{hairColor:'#c8cbd0',templateId:'human_male_base_v2_shirtless'},hp:16,maxHp:16,seen:[],notes:[],items:[],party:selectFour(seed),flags:{},visits:{wreck:1},savedAt:Date.now(),sound:false,feedCollapsed:false,travelHudMode:'compact',travelLog:[{type:'daily',message:'在毀壞的馬車篷內醒來，扶著斷裂木板爬到了外面。',thought:'我怎麼會在這裡？先看看四周吧。',scene:'wreck',time:Date.now()}]};}
+function initial(){const seed=randomSeed();return{v:1,seed,scene:'wreck',worldMinutes:960,routeDiscovery:{known:[],searchCounts:{}},placeCardsViewed:[],exploration:{counts:{},routeProgress:{},pending:{},daily:{},last:{}},recovery:{found:false,looted:false,items:[],parts:{}},forestEcology:{checkedDays:{},observed:{},ingredients:{},leafCollected:false},forestRare:{checkedDays:{},sighted:{},hints:{},ingredients:{},beetleGearTaken:false,rabbitHerbTaken:false},beetle:{questAccepted:false,questCompleted:false,captured:false,terrarium:false,seen:false,food:72,clean:85,comfort:68,lastDay:0},wallet:{silver:1,copper:12},equipmentV1:createStartingEquipmentV1(),appearanceV1:{hairColor:'#c8cbd0',templateId:'human_male_base_v2_shirtless'},hp:16,maxHp:16,seen:[],notes:[],items:[],party:selectFour(seed),flags:{},visits:{wreck:1},savedAt:Date.now(),sound:false,feedCollapsed:false,travelHudMode:'compact',travelLog:[{type:'daily',message:'在毀壞的馬車篷內醒來，扶著斷裂木板爬到了外面。',thought:'我怎麼會在這裡？先看看四周吧。',scene:'wreck',time:Date.now()}]};}
 function validSave(j){return !!(j&&j.v===1&&names[j.scene]&&Number.isFinite(j.hp)&&Number.isFinite(j.maxHp)&&Array.isArray(j.party)&&j.party.length===4&&new Set(j.party).size===4&&j.party.every(i=>Number.isInteger(i)&&i>=0&&i<6)&&Array.isArray(j.seen)&&Array.isArray(j.notes)&&Array.isArray(j.items)&&j.flags&&typeof j.flags==='object'&&j.visits&&typeof j.visits==='object');}
 function load(){try{const j=JSON.parse(localStorage.getItem(KEY));return validSave(j)?j:null;}catch{return null;}}
 let s=load()||initial(), hasSave=!!load(),modal=null,showHints=false,journalTab='discoveries',toastHandle=null;
@@ -7407,9 +7416,9 @@ $('timePreviewTag').onclick=clearTimePreview;
 $('sceneDialogueNext').onclick=e=>{e.stopPropagation();nextSceneDialogue();};
 $('sceneDialogue').onclick=e=>{if(e.target.closest('button'))return;nextSceneDialogue();};
 $('soundBtn').onclick=()=>{s.sound=!s.sound;$('soundBtn').textContent='音效：'+(s.sound?'開啟':'關閉');save();beep(520);};
-$('restartBtn').onclick=()=>{if(!confirm('確定重新開始？目前本機存檔將被覆蓋。'))return;closeSceneDialogue();s=initial();previewPeriod=null;hideSceneActors();hideSceneInspection();refreshSceneFraming();$('menuVeil').classList.add('hidden');render();openWreckIntroduction();toast('已開始新的旅程');};
+$('restartBtn').onclick=()=>{if(!confirm('確定重新開始？目前本機存檔將被覆蓋。'))return;closeSceneDialogue();s=initial();paperDollTryOn=false;equipmentSelected='bag';previewPeriod=null;hideSceneActors();hideSceneInspection();refreshSceneFraming();$('menuVeil').classList.add('hidden');render();openWreckIntroduction();toast('已開始新的旅程');};
 $('exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify(s,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='dungeon-adventure-save-v02.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};$('importBtn').onclick=()=>$('fileInput').click();$('fileInput').onchange=async e=>{try{const text=await e.target.files[0].text(),j=JSON.parse(text);if(!validSave(j))throw Error('格式不相容');s=j;previewPeriod=null;normalizeGameTime();normalizeRecovery();normalizeForestRare();normalizeBeetleCare();normalizeForestEcology();normalizeRouteDiscovery();normalizeExploration();normalizePlaceCards();closePlaceDrawer();hideSceneActors();hideSceneInspection();refreshSceneFraming();if(!Array.isArray(s.travelLog))s.travelLog=[];if(typeof s.feedCollapsed!=='boolean')s.feedCollapsed=false;if(!['compact','expanded'].includes(s.travelHudMode))s.travelHudMode='compact';save();render();$('menuVeil').classList.add('hidden');toast('已匯入存檔');}catch{alert('無法讀取這份存檔。');}e.target.value='';};
-$('startBtn').onclick=()=>{closeSceneDialogue();s=initial();previewPeriod=null;refreshSceneFraming();hasSave=true;$('startVeil').classList.add('hidden');render();openWreckIntroduction();};if(hasSave){$('continueBtn').classList.remove('hidden');$('continueBtn').onclick=()=>{$('startVeil').classList.add('hidden');render();if(s.flags.inBattle)battleDialog('繼續尚未結束的遭遇戰。');else openWreckIntroduction();};}
+$('startBtn').onclick=()=>{closeSceneDialogue();s=initial();paperDollTryOn=false;equipmentSelected='bag';previewPeriod=null;refreshSceneFraming();hasSave=true;$('startVeil').classList.add('hidden');render();openWreckIntroduction();};if(hasSave){$('continueBtn').classList.remove('hidden');$('continueBtn').onclick=()=>{$('startVeil').classList.add('hidden');render();if(s.flags.inBattle)battleDialog('繼續尚未結束的遭遇戰。');else openWreckIntroduction();};}
 window.addEventListener('keydown',e=>{
 if(e.metaKey||e.ctrlKey||e.altKey||e.target.matches('input,textarea,select,[contenteditable="true"]'))return;
 if(sceneDialogueState.open){
