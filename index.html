@@ -5912,7 +5912,7 @@ function paintPaperDollPhysicalCondition(){
    const otherAbnormal=abnormal.filter(id=>id!=='unconscious');
    if(otherAbnormal.length)window.DungeonExpressionMotion.drawAbnormalEffects(ctx,otherAbnormal,t,
     {eyeCenters:[[25,39],[39,39]]});
-   window.DungeonExpressionMotion.drawUnconsciousEyes(ctx,t,{eyeCenters:[[55,12]]});
+   window.DungeonExpressionMotion.drawUnconsciousEyes(ctx,t*0.45,{eyeCenters:[[55,12]]});
   }else if(abnormal.length)window.DungeonExpressionMotion.drawAbnormalEffects(ctx,abnormal,t,
    maleV9?{eyeCenters:[[25,39],[39,39]]}:
    maleV8?{y:-1,eyeCenters:[[25,38],[39,38]]}:undefined);
