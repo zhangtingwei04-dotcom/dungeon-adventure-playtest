@@ -100,7 +100,7 @@ footer{font-size:12px;color:#9cb7a8;padding:18px 0 10px}
 <div class="field"><label for="gender">角色</label><select id="gender"><option value="female">女性</option><option value="male">男性 V3</option></select></div>
 <div class="field"><label for="version">頭部版本</label><select id="version"></select></div>
 <div class="field"><label for="hairOn">頭髮</label><select id="hairOn"><option value="on">顯示原髮</option><option value="off">光頭</option></select></div>
-<div class="field"><label for="zoom">放大倍率</label><select id="zoom"><option value="4">4 倍</option><option value="6">6 倍</option><option value="8" selected>8 倍</option></select></div>
+<div class="field"><label for="zoom">畫面放大（真正放大像素）</label><select id="zoom"><option value="4">全頭</option><option value="6">中景</option><option value="8" selected>臉部放大</option></select></div>
 </div>
 <div id="femaleControls">
 <h3>女性髮片對位（每次 1px）</h3>
@@ -239,17 +239,29 @@ function makeFrame(time){
  var f=actor.sample(time);
  return f;
 }
-function display(canvas,source,grid,guides){
+function display(canvas,source,grid,guides,zoom){
  var c=canvas.getContext('2d');c.imageSmoothingEnabled=false;
  c.clearRect(0,0,canvas.width,canvas.height);
- c.drawImage(source,0,0,64,64,0,0,canvas.width,canvas.height);
+ // Real nearest-neighbor pixel zoom around the eyes and upper face;
+ // full 64x64 crop is preserved for side-by-side comparisons and exports.
+ var crop=zoom===8?36:zoom===6?48:64;
+ var left=Math.floor((64-crop)/2),top=Math.floor((64-crop)/2);
+ var scale=canvas.width/crop;
+ c.drawImage(source,left,top,crop,crop,0,0,canvas.width,canvas.height);
  if(grid){
-  var step=canvas.width/64;c.strokeStyle='rgba(13,32,25,.25)';c.lineWidth=1;
-  c.beginPath();for(var i=0;i<=64;i++){var at=i*step+.5;c.moveTo(at,0);c.lineTo(at,canvas.height);c.moveTo(0,at);c.lineTo(canvas.width,at)}c.stroke();
+  c.strokeStyle='rgba(13,32,25,.22)';c.lineWidth=1;c.beginPath();
+  for(var i=0;i<=crop;i++){
+   var at=Math.floor(i*scale)+.5;
+   c.moveTo(at,0);c.lineTo(at,canvas.height);
+   c.moveTo(0,at);c.lineTo(canvas.width,at)
+  }
+  c.stroke();
  }
  if(guides){
-  var s=canvas.width/64;c.strokeStyle='#bd735baa';c.lineWidth=2;
-  c.beginPath();c.moveTo(s*32,0);c.lineTo(s*32,canvas.height);c.moveTo(0,s*36);c.lineTo(canvas.width,s*36);c.stroke();
+  c.strokeStyle='#bd735baa';c.lineWidth=2;c.beginPath();
+  var centerX=(32-left)*scale,eyesY=(36-top)*scale;
+  c.moveTo(centerX,0);c.lineTo(centerX,canvas.height);
+  c.moveTo(0,eyesY);c.lineTo(canvas.width,eyesY);c.stroke();
  }
 }
 function compareCount(a,b){
@@ -279,8 +291,8 @@ function render(){
   paint(full,opts);
   if(isFemale())paint(previous,{...opts,headKey:'femaleOriginal',hairX:0,hairY:0});
   else paint(previous,{...opts,headKey:'maleOriginal',expression:false});
-  var main=$('mainView'),size=64*state.zoom;if(main.width!==size)main.width=main.height=size;
-  display(main,full,state.showGrid,state.showGuides);
+  var main=$('mainView');
+  display(main,full,state.showGrid,state.showGuides,state.zoom);
   display($('beforeView'),previous,false,false);
   display($('afterView'),full,false,false);
   $('beforeTitle').textContent=isFemale()?'現行女性原始素材':'男性原始 V3 母版';
