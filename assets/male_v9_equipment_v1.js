@@ -90,9 +90,17 @@
    painter.paint(ctx,gaze);
    // Gaze frames contain original skin, so match customized skin after the patch.
    if(skinTones[tone]){
-    const img=ctx.getImageData(0,0,W,H);
-    tintSkin(img.data,tone,37,40);
-    ctx.putImageData(img,0,0);
+    // Recolor only the gaze engine's original-color patch. The rest of the
+    // face has already been tinted in resetBase() and must not be tinted twice.
+    const img=ctx.getImageData(20,37,25,4);
+    const d=img.data,target=skinTones[tone];
+    for(let i=0;i<d.length;i+=4){
+     const r=d[i],g=d[i+1],b=d[i+2],a=d[i+3];
+     if(!skin(r,g,b,a))continue;
+     const n=Math.max(.43,Math.min(1.22,(r*.36+g*.43+b*.21)/205));
+     for(let k=0;k<3;k++)d[i+k]=clamp(target[k]*n);
+    }
+    ctx.putImageData(img,20,37);
    }
   }
   if(closed)replaceEyes(blank,tone);
