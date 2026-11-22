@@ -1,6 +1,6 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>男性頭部 V3｜眉毛與眼線正確分層 V2</title><style>
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>男性頭部 V3｜瀏海眉毛露點修正 V3</title><style>
 :root{color-scheme:dark}*{box-sizing:border-box}body{background:#0f2b25;color:#f5ead5;margin:0;padding:16px;font-family:system-ui,-apple-system,sans-serif}main{max-width:800px;margin:auto}h1{font-size:21px}p{font-size:13px;line-height:1.6;color:#c5d7ca}.wrap{display:grid;grid-template-columns:1fr 1fr;gap:12px}.card{background:#1b4035;border:1px solid #a89469;border-radius:10px;padding:12px}.stage{height:310px;background:#e9f1e9;display:grid;place-items:center;border-radius:7px}.stage canvas{width:auto;height:290px;image-rendering:pixelated}.stage.head canvas{height:260px}.card h2{font-size:16px;margin:0 0 10px}.controls{display:flex;flex-wrap:wrap;gap:8px}label{background:#264d40;border:1px solid #668c7a;border-radius:6px;padding:9px;display:flex;gap:6px;align-items:center;min-height:42px;font-size:13px}button{border:1px solid #bfad7f;background:#315f4c;color:#fff0da;min-height:42px;padding:9px 12px;border-radius:8px;cursor:pointer}button:active{background:#426958}.save{display:none;margin-top:12px}.save.show{display:block}.save img{width:150px;max-width:100%;image-rendering:pixelated;display:block;margin:8px auto;background:repeating-conic-gradient(#d1d7d3 0% 25%,#f8f8f8 0% 50%) 50%/16px 16px}.save a{color:#ffd790;display:block;text-align:center;padding:10px}small{color:#b8cabc}input{accent-color:#c3a776}@media(max-width:600px){.wrap{grid-template-columns:1fr}.stage{height:280px}.stage canvas{height:250px}.stage.head canvas{height:240px}}
-</style></head><body><main><h1>男性頭部 V3 · 眉毛修正與眼線獨立檢查</h1><p>五個頭部圖層全部共享 64×160 的左上角座標；頭部實際內容位於前 64px，可另存 64×64。已把舊版誤標的眉毛（實際上是上眼線／睫毛）併入眼睛層，新增位於額頭第 29～30 列的真正獨立眉毛。頭髮層永遠在前面，會自然遮住眉毛。只關掉眼睛圖層時，不會留下半隻眼。此頁不會寫入正式遊戲或玩家存檔。</p>
+</style></head><body><main><h1>男性頭部 V3 · 眉毛修正與眼線獨立檢查</h1><p>五個頭部圖層全部共享 64×160 的左上角座標；頭部實際內容位於前 64px，可另存 64×64。已把舊版誤標的眉毛（實際上是上眼線／睫毛）併入眼睛層，新增位於額頭第 29～30 列的真正獨立眉毛。髮型顯示時，會把眉毛完整收在瀏海下，避免右側髮縫露出 3 顆深褐像素；切換光頭時才顯示完整眉毛。只關掉眼睛圖層時，也不會留下半隻眼。此頁不會寫入正式遊戲或玩家存檔。</p>
 <div class="wrap"><div class="card"><h2>頭部放大</h2><div class="stage head"><canvas id="head" width="64" height="64"></canvas></div></div><div class="card"><h2>全身疊合檢查</h2><div class="stage"><canvas id="full" width="64" height="160"></canvas></div></div></div>
 <div class="card" style="margin-top:12px"><h2>獨立圖層開關</h2><div class="controls" id="toggles"></div><p>底圖可單獨顯示；頭髮關閉後仍應看到完整光頭，沒有額頭或五官破洞。</p><button id="all">全部顯示</button><button id="bald">光頭驗收</button><button id="base">只看頭部底圖</button><button id="export">儲存目前頭部透明 PNG</button><div class="save" id="save"><img id="saveimg" alt="目前頭部透明圖"><a id="savea" download="male_head_64x64.png">另存頭部 PNG</a><small>在 iPhone 可長按上方圖片選擇儲存。</small></div></div>
 <p>驗收版本 · 尚未安裝至 GitHub 正式遊戲。頭部圖層和身體、背心、短褲沿用同一 64×160 網格。</p></main><script>
@@ -12,7 +12,15 @@ function load(src,cb){const im=new Image();im.onload=cb;im.src=src;return im}
 function draw(){const h=document.getElementById('head').getContext('2d');h.imageSmoothingEnabled=false;h.clearRect(0,0,64,64);
 const f=document.getElementById('full').getContext('2d');f.imageSmoothingEnabled=false;f.clearRect(0,0,64,160);
 for(const k of ['body','shorts','tank']){const im=bodyImgs[k];if(im?.complete&&im.naturalWidth)f.drawImage(im,0,0)}
-for(const k of order){const im=imgs[k];if(active[k]&&im?.complete&&im.naturalWidth){h.drawImage(im,0,0,64,64,0,0,64,64);f.drawImage(im,0,0)}}}
+for(const k of order){
+ const im=imgs[k];
+ // Matches live equipment renderer: brows are hidden behind bangs with hair,
+ // but independently shown in bald mode. Never edit hair pixels.
+ const underBangs=(k==='eyebrows'&&active.hair_standard);
+ if(active[k]&&!underBangs&&im?.complete&&im.naturalWidth){
+  h.drawImage(im,0,0,64,64,0,0,64,64);f.drawImage(im,0,0);
+ }
+}
 for(const k of order){const el=document.createElement('label');const c=document.createElement('input');c.type='checkbox';c.checked=true;c.onchange=()=>{active[k]=c.checked;draw()};el.append(c,labels[k]);document.querySelector('#toggles').appendChild(el)}
 for(const k of order)imgs[k]=load(assets[k],draw);
 for(const k of ['body','shorts','tank'])bodyImgs[k]=load(bodies[k],draw);
