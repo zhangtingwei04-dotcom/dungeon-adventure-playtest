@@ -3717,12 +3717,12 @@ html.stage-locked #app #placeDrawerPanel .paperdoll-physical-preview select{widt
 /* Bald V3 uses a real, complete no-hair head under the hidden hairstyle. */
 html.stage-locked #app .paperdoll-stage.paperdoll-bald .paperdoll-hair-fallback,
 html.stage-locked #app .paperdoll-stage.paperdoll-bald .paperdoll-hair-canvas{display:none!important}
-/* Male V3 natural fringe covers the three stray forehead-brow pixels visible
-   through its right-center hair gap. Keep original brows in BALD mode; only
-   suppress the independent brow sprite while the approved hair is worn.
-   This does not change the female figure, V8 or V9 heads. */
-html.stage-locked #app .paperdoll-stage.paperdoll-v3:not(.paperdoll-bald) .male-brows-fallback,
-html.stage-locked #app .paperdoll-stage.paperdoll-v3:not(.paperdoll-bald) .paperdoll-brows-canvas{display:none!important}
+/* Male V3 original approved bald/hair artwork must stay visually identical.
+   The new separated brow was not present in the approved five-layer composite;
+   it changed the bald look. Keep the corrected merged eyes+lashes, but hide
+   the extra synthetic forehead brow in BOTH bald and hair modes. */
+html.stage-locked #app .paperdoll-stage.paperdoll-v3 .male-brows-fallback,
+html.stage-locked #app .paperdoll-stage.paperdoll-v3 .paperdoll-brows-canvas{display:none!important}
 
 /* Accessible, mobile-sized controls inside the existing equipment panel. */
 html.stage-locked #app .paperdoll-gender-switch{display:flex;align-items:center;gap:5px;flex-wrap:wrap;width:100%;padding:6px 1px}
