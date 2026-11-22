@@ -4030,9 +4030,8 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
 <script src="./assets/expression_motion.js?v=2.20"></script>
 <script src="./assets/male_v9_unconscious_icon_v2.js?v=1"></script>
-<script src="./assets/female_head_v1.js?v=1"></script>
 <script src="./assets/female_parts_v2.js?v=4"></script>
-<script src="./assets/female_bald_candidate_v1.js?v=1"></script>
+<script src="./assets/female_bald_candidate_v1.js?v=2"></script>
 <script src="./assets/female_trial_expression_v1.js?v=2"></script>
 <script src="./assets/male_round_face_v4.js?v=2"></script>
 <script src="./assets/male_approved_face_v7.js?v=1"></script>
@@ -5076,30 +5075,25 @@ const PAPERDOLL_EYE_COLORS=Object.freeze([
  {id:'green',name:'綠色',rgb:[78,175,116]},{id:'amber',name:'琥珀色',rgb:[211,150,66]},
  {id:'custom',name:'自訂',rgb:null}
 ]);
-/* Female head-only replacement in the original 64x160 coordinate space.
- * Keep the original female BODY, tank, shorts and equipment unchanged.
- * If the replacement script is unavailable, fall back to the original head.
- * Facial parts are currently combined in the replacement art; do not
- * recolor the entire hair/face as if they were still separate layers.
+/* The approved new female head is the ONLY regular female face source.
+ * It must not depend on the optional animation module being ready.
+ * Keep original body, underwear, clothing, hair anchor and equipment.
+ * Old female face variants stay in historical files but are never selected.
  */
-// Fixed official female head; legacy URL switch has been retired.
-const paperDollFemaleTrialPreview=true;
-const femaleTrialHeadAvailable=Boolean(window.DungeonFemaleBaldCandidateV1?.head&&window.DungeonFemaleTrialExpressionV1?.ready);
+const femaleOfficialHeadEnabled=true;
 const FEMALE_CLEAR_LAYER='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAACgCAYAAAC8LWpcAAAAP0lEQVR42u3BMQEAAADCoPVPbQo/oAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIC3AaCgAAE4j1zSAAAAAElFTkSuQmCC';
-const FEMALE_SPLIT_READY=typeof window.DUNGEON_FEMALE_FACE_V2==='string'&&
- window.DUNGEON_FEMALE_FACE_V2.startsWith('data:image/png;base64,')&&
- typeof window.DUNGEON_FEMALE_HAIR_V2==='string'&&
+const femaleOfficialHeadSource=window.DUNGEON_FEMALE_OFFICIAL_HEAD_V2;
+const femaleOfficialHeadReady=typeof femaleOfficialHeadSource==='string'&&
+ femaleOfficialHeadSource.startsWith('data:image/png;base64,');
+const femaleOfficialExpressionReady=!!window.DungeonFemaleTrialExpressionV1?.ready;
+const FEMALE_SPLIT_READY=typeof window.DUNGEON_FEMALE_HAIR_V2==='string'&&
  window.DUNGEON_FEMALE_HAIR_V2.startsWith('data:image/png;base64,');
-const FEMALE_REPLACEMENT_HEAD_LAYERS=FEMALE_SPLIT_READY?
- Object.freeze({...PAPERDOLL_FEMALE_LAYERS,
-  face:window.DUNGEON_FEMALE_FACE_V2,
-  brows:FEMALE_CLEAR_LAYER,eyes:FEMALE_CLEAR_LAYER,
-  hair:window.DUNGEON_FEMALE_HAIR_V2,mouth:FEMALE_CLEAR_LAYER}):
- typeof window.DUNGEON_FEMALE_HEAD_V1==='string'?
- Object.freeze({...PAPERDOLL_FEMALE_LAYERS,
-  face:window.DUNGEON_FEMALE_HEAD_V1,
-  brows:FEMALE_CLEAR_LAYER,eyes:FEMALE_CLEAR_LAYER,
-  hair:FEMALE_CLEAR_LAYER,mouth:FEMALE_CLEAR_LAYER}):null;
+if(!femaleOfficialHeadReady)console.error('Missing official female head V2 asset');
+const FEMALE_REPLACEMENT_HEAD_LAYERS=Object.freeze({...PAPERDOLL_FEMALE_LAYERS,
+ face:femaleOfficialHeadReady?femaleOfficialHeadSource:FEMALE_CLEAR_LAYER,
+ brows:FEMALE_CLEAR_LAYER,eyes:FEMALE_CLEAR_LAYER,
+ hair:FEMALE_SPLIT_READY?window.DUNGEON_FEMALE_HAIR_V2:FEMALE_CLEAR_LAYER,
+ mouth:FEMALE_CLEAR_LAYER});
 /* Head geometry and every face-related layer use the same original 64x160
    coordinate frame. The male scalp differs in artwork, not CSS scaling. */
 const MALE_ROUND_HEAD_LAYERS=typeof window.DUNGEON_MALE_ROUND_FACE_V4==='string'&&
@@ -5112,9 +5106,7 @@ function isMaleSharedFaceReady(){
 }
 function paperDollLayers(){
  const gender=s.appearanceV1?.gender==='female'?'female':'male';
- if(gender==='female'&&paperDollFemaleTrialPreview&&femaleTrialHeadAvailable&&FEMALE_REPLACEMENT_HEAD_LAYERS)
-  return {...FEMALE_REPLACEMENT_HEAD_LAYERS,face:window.DungeonFemaleBaldCandidateV1.head};
- if(gender==='female'&&FEMALE_REPLACEMENT_HEAD_LAYERS)return FEMALE_REPLACEMENT_HEAD_LAYERS;
+ if(gender==='female')return FEMALE_REPLACEMENT_HEAD_LAYERS;
  // Native V3 really is FIVE separate PNG layers. The old integration had
  // mistakenly merged eyebrows/eyes/mouth into the face and cleared those slots.
  if(gender==='male'&&window.DungeonMaleV9Equipment?.version==='v3-accepted'){
@@ -5296,9 +5288,9 @@ function paintPaperDollFemaleMouth(){
  */
 let femaleTrialExpressionImage=null;
 function paintPaperDollFemaleTrialExpression(){
- if(!paperDollFemaleTrialPreview||!femaleTrialHeadAvailable||
+ if(!femaleOfficialHeadEnabled||!femaleOfficialHeadReady||!femaleOfficialExpressionReady||
     s.appearanceV1?.gender!=='female'||!paperDollMotionFrame)return;
- const source=window.DungeonFemaleBaldCandidateV1?.head;
+ const source=femaleOfficialHeadSource;
  if(typeof source!=='string'||!source.startsWith('data:image/png;base64,'))return;
  if(!femaleTrialExpressionImage||femaleTrialExpressionImage._src!==source){
   const img=new Image();img._src=source;femaleTrialExpressionImage=img;
@@ -5465,7 +5457,7 @@ function paintPaperDollHair(){
   // Crop to the 64px female hair region and compress its native height by ~8%.
   // This lowers the crown while keeping the ends of the bangs and side locks
   // near their previous position. Face, neck, body and male art are unchanged.
-  if(s.appearanceV1?.gender==='female'&&paperDollFemaleTrialPreview&&femaleTrialHeadAvailable)
+  if(s.appearanceV1?.gender==='female'&&femaleOfficialHeadEnabled&&femaleOfficialHeadReady)
    ctx.drawImage(hairAtlasImage,-2,-5); // Native original hair, no resampling
   else if(s.appearanceV1?.gender==='female'&&FEMALE_SPLIT_READY)
    ctx.drawImage(hairAtlasImage,0,0,64,64,0,-2,61,59);
@@ -5668,7 +5660,7 @@ function renderPaperDollExpressionControls(){
  select.onchange=()=>{paperDollPhysicalPreview=select.value==='auto'?null:select.value;paperDollPhysicalPreviewOpen=true;renderPlaceDrawer();};
  details.appendChild(select);row.appendChild(details);
  const motion=document.createElement('details');motion.className='paperdoll-physical-preview';
-  motion.open=s.appearanceV1?.gender==='female'&&paperDollFemaleTrialPreview;
+  motion.open=s.appearanceV1?.gender==='female'&&femaleOfficialHeadEnabled;
  const motionSummary=document.createElement('summary');motionSummary.textContent='四種 HP 固定動態與試演（不影響 HP）';motion.appendChild(motionSummary);
  const blinkLabel=document.createElement('label');blinkLabel.className='paperdoll-customizer-field';
  const blinkInput=document.createElement('input');blinkInput.type='checkbox';blinkInput.checked=paperDollMotionEnabled;
@@ -5957,7 +5949,7 @@ function equipmentGuideHTML(sceneMode='equipment'){
  const mouth=(v3Head?maleTemplateLayer(character.layers.mouth,'paperdoll-mouth'):'')+
   (animatedFace?'<canvas class="paperdoll-female-mouth-motion-canvas" width="64" height="160" aria-hidden="true"></canvas>':
   s.appearanceV1?.gender==='male'?maleTemplateLayer(character.layers.mouth,'paperdoll-mouth'):'');
- const femaleTrial=s.appearanceV1?.gender==='female'&&paperDollFemaleTrialPreview&&femaleTrialHeadAvailable;
+ const femaleTrial=s.appearanceV1?.gender==='female'&&femaleOfficialHeadEnabled&&femaleOfficialHeadReady;
   const femaleTrialFace=femaleTrial?
    '<canvas class="paperdoll-female-trial-expression-canvas" width="64" height="160" aria-hidden="true"></canvas>':'';
   const healthMarks='<canvas class="paperdoll-condition-canvas" width="64" height="160" aria-hidden="true"></canvas>';
