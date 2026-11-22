@@ -3510,6 +3510,10 @@ html.stage-locked #app .equip-detail-title{
 html.stage-locked #app .equip-detail-note{
  display:block;color:#d4cbb2;font-size:10px;line-height:1.3;margin-top:2px;
 }
+html.stage-locked #app .equip-art-pending{
+ font-size:10px;line-height:1.45;color:#c7bd9e;
+ margin:4px 2px 7px;padding:0;
+}
 html.stage-locked #app #placeDrawerPanel .equip-bag-button{
  flex:none;align-self:center;min-height:35px!important;padding:4px 8px!important;
  border:1px solid #c3a366!important;border-radius:7px!important;
@@ -5007,11 +5011,12 @@ function displayEquipmentInSlot(slotId){
  const item=EQUIPMENT_VISUAL_CATALOG[slotId];
  if(!item)return null;
  if(s.equipmentV1&&s.equipmentV1[slotId]===item.id)return {item,preview:false};
- if(paperDollTryOn)return {item,preview:true};
  return null;
 }
 const TRAVEL_OUTFIT_IMAGE_IDS=STARTER_OUTFIT_V2;
-// Test only. Do not save preview clothes into equipmentV1 or inventory.
+// Rejected equipment graphics are no longer rendered by the live paper doll.
+// Inventory ownership/wearing must remain independent of unfinished graphics.
+const LEGACY_EQUIPMENT_ART_ENABLED=false;
 let paperDollTryOn=false;
 
 /* Hair tint belongs to the player appearance, not equipment or the source PNG.
@@ -5908,11 +5913,13 @@ function equipmentGuideHTML(sceneMode='equipment'){
  const show=id=>paperDollTryOn||s.equipmentV1[id]===TRAVEL_OUTFIT_IMAGE_IDS[id];
  const character=PAPERDOLL_TEMPLATE_LIBRARY.human_male_base_v2_shirtless;
  const indexes=[];
- if(show('outer'))indexes.push(1);
- if(show('legs'))indexes.push(2);
- if(show('chest'))indexes.push(3);
- if(show('feet'))indexes.push(4);
- if(show('outer'))indexes.push(5);
+ if(LEGACY_EQUIPMENT_ART_ENABLED){
+  if(show('outer'))indexes.push(1);
+  if(show('legs'))indexes.push(2);
+  if(show('chest'))indexes.push(3);
+  if(show('feet'))indexes.push(4);
+  if(show('outer'))indexes.push(5);
+ }
  // Approved white-fringe-cleaned tank sprite and shorts remain separate from the unchanged naked base.
  // Neck bridges follow the original x32 paper-doll anchor and render under
  // their respective face layers, without editing head, hair or clothing.
@@ -5926,12 +5933,14 @@ function equipmentGuideHTML(sceneMode='equipment'){
   '<canvas class="paperdoll-skin-canvas" width="64" height="160" aria-hidden="true"></canvas>';
  // Independent underwear sprites: never owned/equipped gear.
  // The base tank and shorts remain visible underneath empty outerwear slots.
- const shorts=privateScene||show('legs')?'':maleTemplateLayer(character.layers.shorts,'male-shorts');
- const tank=privateScene||show('chest')?'':maleTemplateLayer(character.layers.tank,'male-tank');
+ // Base underwear remains visible until new approved outerwear sprites exist.
+ const shorts=privateScene?'':maleTemplateLayer(character.layers.shorts,'male-shorts');
+ const tank=privateScene?'':maleTemplateLayer(character.layers.tank,'male-tank');
  // Preview / future equippable outfits still use the previous clothing atlas.
  const outfit=(privateScene?[]:indexes).map(i=>'<span class="paperdoll-layer" aria-hidden="true" style="background-position:'+
    String(i*12.5)+'% 0"></span>').join('');
- const satchel=!privateScene&&show('bag')?'<span class="paperdoll-layer paperdoll-approved-bag" aria-hidden="true"></span>':'';
+ const satchel=LEGACY_EQUIPMENT_ART_ENABLED&&!privateScene&&show('bag')?
+  '<span class="paperdoll-layer paperdoll-approved-bag" aria-hidden="true"></span>':'';
  const extras=paperDollExtraLayerHTML('front');
  const behind=paperDollExtraLayerHTML('back');
  // Private scenes must cover the pelvis even when garment layers are absent.
@@ -6092,17 +6101,16 @@ function renderEquipmentBoard(){
    const btn=document.createElement('button');btn.type='button';
    btn.className='equip-slot'+(full?' is-filled':'')+(preview?' is-preview':'');
    btn.dataset.equipPart=part.id;
-   btn.setAttribute('aria-label',part.name+'：'+(shown?shown.item.name+(preview?'（僅試穿）':'（已裝備）'):'空裝備格'));
+   const stored=EQUIPMENT_VISUAL_CATALOG[part.id];
+   const owned=!!stored&&s.equipmentV1.owned.includes(stored.id);
+   btn.setAttribute('aria-label',part.name+'：'+(shown?shown.item.name+'（已穿戴）':owned?stored.name+'（已脫下，可重新裝上）':'空裝備格'));
    const icon=document.createElement('span');icon.className='equip-slot-symbol';icon.setAttribute('aria-hidden','true');
-   if(shown&&Number.isInteger(shown.item.icon)){
-    icon.classList.add('equip-item-art');
-    icon.style.backgroundPosition=String(shown.item.icon*25)+'% 0';
-    if(part.id==='bag')icon.classList.add('equip-trileaf-bag-icon');
-   }else icon.textContent=shown?.item.glyph||part.symbol;
+   // Text glyphs instead of the user's rejected legacy item artwork.
+   icon.textContent=shown?.item.glyph||part.symbol;
    const words=document.createElement('span');words.className='equip-slot-words';
    const title=document.createElement('span');title.className='equip-slot-name';title.textContent=part.name;
    const status=document.createElement('span');status.className='equip-slot-status';
-   status.textContent=shown?(preview?'試穿｜':'')+shown.item.name:'';
+   status.textContent=shown?shown.item.name:owned?'已脫下 · 可重新裝上':'';
    words.append(title,status);btn.append(icon,words);
    btn.onclick=()=>showEquipmentDetail(part.id);
    col.appendChild(btn);
@@ -6191,11 +6199,8 @@ function renderSideTab(tab,out){
   bag.className='equip-bag-button';bag.textContent='背包';
   bag.setAttribute('aria-label','切換到背包欄位');
   bag.onclick=()=>setActiveSideTab('inventory');
-  const tryOn=document.createElement('button');tryOn.type='button';
-  tryOn.className='equip-try-on-button';tryOn.textContent=paperDollTryOn?'還原':'試穿';
-  tryOn.setAttribute('aria-pressed',String(paperDollTryOn));
-  tryOn.setAttribute('aria-label',paperDollTryOn?'退出旅行裝試穿，顯示實際已穿戴裝備':'預覽整套旅行裝，不會更改或儲存裝備');
-  tryOn.onclick=()=>{paperDollTryOn=!paperDollTryOn;renderPlaceDrawer();};
+  // Keep the actual equipped state visible; obsolete try-on art is disabled.
+  paperDollTryOn=false;
   const equipAction=document.createElement('button');equipAction.type='button';
   equipAction.id='equipEquipmentAction';equipAction.className='equip-action-button';
   equipAction.textContent='脫下';equipAction.hidden=true;
@@ -6207,8 +6212,13 @@ function renderSideTab(tab,out){
   const restControls=renderPaperDollRestControls();
   const abnormalControls=renderPaperDollAbnormalControls();
   const appearanceControls=renderPaperDollAppearanceControls();
-  footer.append(detail,equipAction,tryOn,bag);section.append(board,genderControls);
-   section.append(hairControls,eyeControls,expressionControls,restControls,abnormalControls,appearanceControls,footer);out.appendChild(section);
+  // One selected slot, then one direct "脫下／裝上" action just below it.
+  const artNote=document.createElement('p');artNote.className='equip-art-pending';
+  artNote.textContent='穿脫與存檔已開放；舊裝備圖已停用，新圖完成前僅顯示內衣底層。';
+  footer.append(detail,equipAction,bag);
+  section.append(board,footer,artNote,genderControls);
+  section.append(hairControls,eyeControls,expressionControls,restControls,abnormalControls,appearanceControls);
+  out.appendChild(section);
   renderEquipmentBoard();return;
  }
  if(tab==='inventory'){
