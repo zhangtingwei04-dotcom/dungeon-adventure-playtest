@@ -4019,9 +4019,9 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <!-- Transparent new male hairstyle, registered to the same 64x160 head grid. -->
 <script src="./assets/male_hair_v8.js?v=5"></script>
 <!-- V8 keeps the new face and eyes, never old V7 eye art. -->
-<script src="./assets/male_new_head_v8.js?v=5"></script>
-<script src="./assets/female_eye_motion_v1.js?v=9"></script>
-<script src="./assets/female_mouth_motion_v1.js?v=9"></script>
+<script src="./assets/male_new_head_v8.js?v=6"></script>
+<script src="./assets/female_eye_motion_v1.js?v=10"></script>
+<script src="./assets/female_mouth_motion_v1.js?v=10"></script>
 <script>
 (()=>{'use strict';
 // Fixed design canvas: use the approved screenshot's exact 1536×707 ratio,
@@ -5871,16 +5871,16 @@ function paintPaperDollPhysicalCondition(){
   // HP condition motion is independent from all abnormal effects.
   if(effects?.sweat)window.DungeonExpressionMotion.drawFaceSweat(ctx,frame.status,effects.sweatPhase,
    maleV8?{sweatY:28}:undefined);
-  const eyeY=maleV8?38:36;
+  const eyeY=maleV8?37:36;
   if(effects?.circleEyes&&!abnormal.includes('unconscious')){
    // Both genders use the same purple spiral sprites and 3x3 pixel size
    // on top of their original eyes; only eye-center Y differs by head art.
    for(const x of [25,39])
     window.DungeonExpressionMotion.drawSpiralEye(ctx,x,eyeY,effects.circlePhase);
   }
-  // The renderer adds layout.y, so 39 - 1 = the V8d eye center at y38.
+  // The renderer adds layout.y: raised male V8f eye center is 38 - 1 = y37.
   if(abnormal.length)window.DungeonExpressionMotion.drawAbnormalEffects(ctx,abnormal,t,
-   maleV8?{y:-1,eyeCenters:[[25,39],[39,39]]}:undefined);
+   maleV8?{y:-1,eyeCenters:[[25,38],[39,38]]}:undefined);
  }
 }
 function renderEquipmentBoard(){
