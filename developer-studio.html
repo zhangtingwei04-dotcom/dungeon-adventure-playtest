@@ -113,6 +113,7 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 <div class="avatarCard" id="femaleCard"><strong>女性｜新版頭</strong><div class="sub">真實底模 64×160</div><div class="spriteChecker"><canvas width="64" height="160" id="femaleCanvas" aria-label="女性角色即時裝備預覽，可拖曳調整所選圖層"></canvas></div></div>
 </div><div class="toolbar" style="margin-top:10px"><button id="resetView">恢復兩性並排</button><button id="toggleGuides">肩頸輔助線：關</button></div>
 <p>直接在角色圖上拖曳，可移動目前選取性別與圖層。只修改該圖層參數，不會移動底模或頭部。</p>
+<div class="hint"><strong>原始身體尺寸（64×160 座標）</strong>：男性 x4–58、y49–140，實際 55×92px；女性 x4–58、y51–140，實際 55×90px。披風前層 x3–59、y53–118（57×66px），後層 x2–60、y53–135（59×83px）。披風已接近畫布最大寬度；過度放大會裁到左右金邊，應優先調整肩披、前片及衣襬輪廓。</div>
 <div class="warning" id="assetWarning">目前是素材預覽，非正式穿戴驗收。既有頭部與內衣母版不會被修改。</div>
 </div>
 <div class="panel controlPanel"><h2>圖層調整</h2>
@@ -360,7 +361,13 @@ function drawAssetStage(gender){
  }
  if(guides){
   ctx.save();ctx.strokeStyle='#e7a175';ctx.lineWidth=.45;ctx.beginPath();
-  ctx.moveTo(32,12);ctx.lineTo(32,145);ctx.moveTo(8,55);ctx.lineTo(56,55);
+  // Body bounds measured from the actual alpha of the approved base PNGs.
+  const shoulderY=gender==='male'?49:51;
+  ctx.moveTo(32,12);ctx.lineTo(32,145);
+  ctx.moveTo(4,shoulderY);ctx.lineTo(59,shoulderY);
+  ctx.moveTo(4,140);ctx.lineTo(59,140);
+  ctx.moveTo(4,shoulderY);ctx.lineTo(4,140);
+  ctx.moveTo(59,shoulderY);ctx.lineTo(59,140);
   ctx.stroke();ctx.restore();
  }
 }
@@ -394,7 +401,7 @@ function updateControls(){
   stockKeys[selectedKey()]?'內建圖源：'+stockKeys[selectedKey()]:'未匯入 PNG';
  $('assetMeta').textContent='ID：'+a.id+'｜分類：'+(slots[a.slot]||a.slot)+'｜'+a.status+'｜'+a.layers.join('、');
  $('assetWarning').textContent=a.id==='starter_cloak'?
-  '深綠金邊披風 V2 是本次生成原圖的透明前後分件，不是早期簡化草稿。請切換男女與前後層，以 X、Y、Scale 微調；確認後將 JSON 傳回。':
+  '披風 V2 原圖分件已經幾乎佔滿 64px 寬度；請先對照男女身體（男 55×92、女 55×90px），放大過多會裁掉左右金邊。建議先確認肩部輪廓，再用 X／Y／Scale 微調，最後複製 JSON。':
   '正式男女頭部、身體與內衣不動；圖層調整只影響工作台預覽，不會自動安裝到遊戲。';
 }
 function update(){normalize();renderAssetList();updateControls();drawAll();refreshJson()}
