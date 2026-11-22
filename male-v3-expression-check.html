@@ -130,7 +130,7 @@ a{color:#ffe0a0}
   ctx.drawImage(c.mouthCanvas,0,0);
   if(!c.bald)ctx.drawImage(imgs.hair_standard,0,0);
   if(test.sleep)motion.drawRestEffects(ctx,{sleep:test.sleep,elapsed:time-startAt},time);
-  if(frame.effects.sweat)motion.drawFaceSweat(ctx,frame.status,frame.effects.sweatPhase,{sweatY:28,sweatLong:true});
+  if(frame.effects.sweat)motion.drawFaceSweat(ctx,frame.status,frame.effects.sweatPhase,{sweatY:26,sweatLong:true});
   if(frame.effects.circleEyes&&!unconscious)
    for(const x of [25,39])motion.drawSpiralEye(ctx,x,36,frame.effects.circlePhase);
   if(test.abnormal&&test.abnormal!=='none'){
