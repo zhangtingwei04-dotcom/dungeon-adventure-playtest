@@ -1,4 +1,4 @@
-/* Shared eye motion V2.6: one animation controller with independently
+/* Shared eye motion V2.8: male eye box and blink profile raised by 1 native pixel; female unchanged. one animation controller with independently
  * approved male and female 64x160 eye art and eyelid profiles. */
 (function(root){
  'use strict';
@@ -7,7 +7,7 @@
  // blink-line style stay independent and can be adjusted without a fork.
  const PROFILES=Object.freeze({
   female:Object.freeze({eyes:[{cx:25,x0:20},{cx:39,x0:34}],lidHalfWidth:3,lidColor:[76,44,53,255],top:32,boxH:10,irisTop:34,irisBottom:39,clearTop:34,clearBottom:39,lidClosedY:36,lidHalfY:37,skinY:42}),
-  male:Object.freeze({eyes:[{cx:25,x0:20},{cx:39,x0:34}],lidHalfWidth:2,lidColor:[64,43,50,255],top:33,boxH:10,irisTop:37,irisBottom:40,clearTop:35,clearBottom:41,lidClosedY:37,lidHalfY:38,skinY:43})
+  male:Object.freeze({eyes:[{cx:25,x0:20},{cx:39,x0:34}],lidHalfWidth:2,lidColor:[64,43,50,255],top:32,boxH:10,irisTop:36,irisBottom:39,clearTop:34,clearBottom:40,lidClosedY:36,lidHalfY:37,skinY:43})
  });
  const boxW=11;
  let imagePixels=null,pending=false,failed=false;
@@ -79,6 +79,8 @@
    if(type==='closed'||type==='half'||type==='blank'){
     const upper=type==='closed'||type==='blank'?profile.clearTop:profile.lidHalfY;
     for(let y=upper;y<=profile.clearBottom;y++)for(let x=cx-4;x<=cx+4;x++){
+     // Protect the two V8d eyebrow-tail pixels now immediately above the raised eyes.
+     if(profile===PROFILES.male&&y===34&&(x===29||x===35))continue;
      const skin=sample(sourcePixels,x,profile.skinY);
      pix(out,x,y,skin[3]>100?skin:[252,226,209,255]);
     }
@@ -172,6 +174,6 @@
   const painted=patch(type,rgb,sourcePixels,profile);
   for(const eye of profile.eyes)ctx.putImageData(painted,0,0,eye.x0,profile.top,boxW,profile.boxH);
  }
- root.DungeonFemaleEyeMotionV1=Object.freeze({version:'2.7.0',render,gaze,prepare});
+ root.DungeonFemaleEyeMotionV1=Object.freeze({version:'2.8.0',render,gaze,prepare});
  prepare();
 })(window);
