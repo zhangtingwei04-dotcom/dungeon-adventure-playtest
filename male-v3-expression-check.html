@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>男性 V3｜正式表情完整驗收</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif}
+*{box-sizing:border-box}
+body{margin:0;padding:16px;background:#12271f;color:#f1ead7}
+main{max-width:850px;margin:0 auto}
+h1{font-size:22px;margin:0 0 7px}h2{font-size:17px;margin:22px 0 9px}
+p{line-height:1.6;color:#c8d7cc;font-size:13px}
+.status{color:#e5c58c;font-size:12px}
+.field{display:flex;align-items:center;flex-wrap:wrap;gap:9px;padding:8px 0}
+select{min-height:40px;min-width:150px;max-width:100%;font-size:15px;padding:5px;border-radius:6px;background:#24463a;color:#fff;border:1px solid #bdad82}
+.gallery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.card{background:#213c30;border:1px solid #927f5a;border-radius:8px;padding:9px;min-width:0}
+.card h3{margin:0 0 7px;font-size:13px;color:#f6dcaa;min-height:32px}
+.preview{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+.sample{text-align:center;background:#dfe6dc;border-radius:4px;padding:5px 1px;color:#273c32}
+.sample canvas{image-rendering:pixelated;width:100%;max-width:115px;aspect-ratio:1/1;display:block;margin:auto}
+.sample small{font-size:11px;font-weight:600}
+.note{font-size:11px;color:#c6d4ca}
+a{color:#ffe0a0}
+@media(max-width:520px){.gallery{grid-template-columns:1fr}.card h3{min-height:0}.sample canvas{max-width:140px}}
+</style>
+<script src="./assets/expression_motion.js?v=2.18"></script>
+<script src="./assets/male_v9_unconscious_icon_v2.js?v=1"></script>
+<script src="./assets/male_approved_v3_layers.js?v=1"></script>
+<script src="./assets/male_v3_corrected_layers_v2.js?v=1"></script>
+<script src="./assets/male_approved_v3_adapter.js?v=5"></script>
+</head><body><main>
+<h1>男性 V3｜表情系統驗收</h1>
+<p>使用正式遊戲的 V3 原始五圖層、表情控制器與動畫繪製器。每一種狀態同時展示銀白髮與光頭。<strong>只測試畫面，不會寫入遊戲存檔。</strong></p>
+<div id="state" class="status">載入 64×160 原圖與表情模組中…</div>
+<h2>HP 四階段</h2><div id="hp" class="gallery"></div>
+<h2>表情切換</h2><div id="moods" class="gallery"></div>
+<h2>睡眠與夢境</h2>
+<div class="field"><label for="sleep">選擇睡眠狀態</label><select id="sleep"></select></div>
+<div id="sleepCase" class="gallery"></div>
+<h2>異常狀態</h2>
+<div class="field"><label for="abnormal">選擇異常狀態</label><select id="abnormal"></select></div>
+<div id="abnormalCase" class="gallery"></div>
+<p class="note">驗收重點：驚訝／生氣眼睛應與中性有所區別；有髮模式不露出眉毛殘影；光頭模式可看到眉毛；戰敗為眼睛上的紫色圈圈，昏迷則閉眼並於頭頂右上旋轉一個黑色圈圈圖示。輕微／嚴重惡夢嘴型不同，美夢睡眠帶有柔和微笑，活力 SP 不加表情特效。眨眼由共用控制器自然排程。</p>
+<p><a href="./?male-head=v3&expression=6">返回正式遊戲裝備欄</a></p>
+</main>
+<script>
+'use strict';
+(function(){
+ const motion=window.DungeonExpressionMotion;
+ const adapter=window.DungeonMaleV9Equipment;
+ const art=window.DungeonMaleV3CorrectedLayers;
+ const imgs={};
+ const cases=[
+  {id:'hp-happy',group:'hp',title:'HP > 75%｜開心',status:'healthy'},
+  {id:'hp-normal',group:'hp',title:'HP 50～75%｜中性',status:'normal'},
+  {id:'hp-weak',group:'hp',title:'HP 25～50%｜虛弱＋細汗',status:'weak'},
+  {id:'hp-defeat',group:'hp',title:'HP ≤ 25%｜戰敗圈圈眼',status:'critical'},
+  {id:'surprised',group:'moods',title:'驚訝',status:'normal',pose:'surprised'},
+  {id:'angry',group:'moods',title:'生氣',status:'normal',pose:'angry'},
+  {id:'shy',group:'moods',title:'害羞',status:'normal',pose:'shy'},
+  {id:'closed',group:'moods',title:'平靜閉眼',status:'normal',pose:'eyesClosed'},
+  {id:'sleep',group:'sleepCase',title:'睡眠',status:'normal',sleep:'sleeping'},
+  {id:'abnormal',group:'abnormalCase',title:'異常',status:'normal',abnormal:'unconscious'}
+ ];
+ const sleep=document.querySelector('#sleep'),abnormal=document.querySelector('#abnormal');
+ for(const [k,v] of Object.entries(motion.restSleep)){const o=document.createElement('option');o.value=k;o.textContent=v;sleep.append(o)}
+ sleep.value='sleeping';sleep.onchange=()=>{cases.find(c=>c.id==='sleep').sleep=sleep.value;startAt=performance.now();};
+ const abnormalStates={none:'無異常',...motion.abnormalLabels};
+ for(const [k,v] of Object.entries(abnormalStates)){const o=document.createElement('option');o.value=k;o.textContent=v;abnormal.append(o)}
+ abnormal.value='unconscious';abnormal.onchange=()=>{cases.find(c=>c.id==='abnormal').abnormal=abnormal.value;};
+ const cards=[];
+ let startAt=performance.now(),lastFrame=-1;
+ for(const test of cases){
+  test.actor=motion.createActor({id:'qa-'+test.id,status:test.status,blink:true});
+  if(test.pose)test.actor.setExpressionOverride(test.pose);
+  const card=document.createElement('div');card.className='card';
+  const title=document.createElement('h3');title.textContent=test.title;card.append(title);
+  const previews=document.createElement('div');previews.className='preview';
+  for(const bald of [false,true]){
+   const sample=document.createElement('div');sample.className='sample';
+   const canvas=document.createElement('canvas');canvas.width=64;canvas.height=64;
+   const label=document.createElement('small');label.textContent=bald?'光頭':'銀白髮';
+   sample.append(canvas,label);previews.append(sample);
+   const eyeCanvas=document.createElement('canvas');eyeCanvas.width=64;eyeCanvas.height=160;
+   eyeCanvas.className='paperdoll-female-eye-motion-canvas';
+   const mouthCanvas=document.createElement('canvas');mouthCanvas.width=64;mouthCanvas.height=160;
+   mouthCanvas.className='paperdoll-female-mouth-motion-canvas';
+   const stage={
+    classList:{contains:(key)=>key==='paperdoll-bald'&&bald},
+    querySelector:(selector)=>selector==='.paperdoll-female-eye-motion-canvas'?eyeCanvas:
+                                  selector==='.paperdoll-female-mouth-motion-canvas'?mouthCanvas:null
+   };
+   cards.push({test,bald,canvas,eyeCanvas,mouthCanvas,stage});
+  }
+  card.append(previews);document.querySelector('#'+test.group).append(card);
+ }
+ function facePose(frame){
+  const name=frame.parts.mouth;
+  if(name==='happy'||name==='smile')return 'smile';
+  if(name==='surprised')return 'surprised';
+  if(name==='angry')return 'frown';
+  if(name==='shy')return 'shy';
+  return 'neutral';
+ }
+ function frameOf(test,time){
+  const frame=test.actor.sample(time);
+  if(test.sleep)motion.applySleepFacePriority(frame,test.sleep,time-startAt);
+  if(test.abnormal==='unconscious')motion.applyAbnormalFacePriority(frame,['unconscious']);
+  return frame;
+ }
+ function paintCard(c,frame,time){
+  const ctx=c.canvas.getContext('2d');ctx.imageSmoothingEnabled=false;ctx.clearRect(0,0,64,64);
+  const test=c.test,unconscious=test.abnormal==='unconscious';
+  adapter.renderEyes(c.stage,{
+   closed:unconscious||frame.parts.eyes==='eyesClosed',unconscious,blink:frame.effects.blink,
+   gaze:'center',eyeColor:'purple',circleEyes:frame.effects.circleEyes,
+   eyeExpression:frame.parts.eyes||'original',brows:frame.parts.brows||'original',skinTone:'original'
+  });
+  adapter.renderMouth(c.stage,{
+   pose:facePose(frame),unconscious,talking:false,time,skinTone:'original'
+  });
+  ctx.drawImage(imgs.head_base,0,0);
+  if(c.bald)ctx.drawImage(imgs.eyebrows,0,0);
+  ctx.drawImage(imgs.eyes,0,0);
+  ctx.drawImage(imgs.mouth,0,0);
+  ctx.drawImage(c.eyeCanvas,0,0);
+  ctx.drawImage(c.mouthCanvas,0,0);
+  if(!c.bald)ctx.drawImage(imgs.hair_standard,0,0);
+  if(test.sleep)motion.drawRestEffects(ctx,{sleep:test.sleep,elapsed:time-startAt},time);
+  if(frame.effects.sweat)motion.drawFaceSweat(ctx,frame.status,frame.effects.sweatPhase,{sweatY:28});
+  if(frame.effects.circleEyes&&!unconscious)
+   for(const x of [25,39])motion.drawSpiralEye(ctx,x,36,frame.effects.circlePhase);
+  if(test.abnormal&&test.abnormal!=='none'){
+   if(unconscious)window.DungeonMaleV9UnconsciousIcon?.draw(ctx,time,55,12);
+   else motion.drawAbnormalEffects(ctx,[test.abnormal],time,{eyeCenters:[[25,36],[39,36]]});
+  }
+ }
+ function run(){
+  const now=performance.now();
+  if(!adapter?.ready||Object.keys(imgs).length!==5)return;
+  if(Math.floor(now/90)===lastFrame)return;
+  lastFrame=Math.floor(now/90);
+  const frames=new Map(cases.map(test=>[test,frameOf(test,now)]));
+  for(const sample of cards)paintCard(sample,frames.get(sample.test),now);
+  document.querySelector('#state').textContent='五圖層載入完成｜與正式遊戲共用表情規則｜動畫運作中';
+ }
+ for(const [key,url] of Object.entries(art||{})){
+  const im=new Image();
+  im.onload=()=>{imgs[key]=im;run()};
+  im.onerror=()=>document.querySelector('#state').textContent='頭部圖層載入失敗：'+key;
+  im.src=url;
+ }
+ window.addEventListener('dungeon-male-v9-ready',run);
+ setInterval(()=>{if(!document.hidden)run()},90);
+})();
+</script>
+</body></html>
