@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#142e29">
-<title>男性頭髮 V8b｜透明素材實際載入檢查</title>
+<title>男性頭部 V8g｜下巴上收與髮型位置檢查</title>
 <style>
 *{box-sizing:border-box}body{margin:0;padding:18px;background:#122d28;color:#efe4ce;font-family:system-ui,-apple-system,sans-serif}
 main{max-width:640px;margin:0 auto}h1{font-size:19px;margin:0 0 8px}p{font-size:12px;line-height:1.6;color:#c6d0c8}
@@ -22,17 +22,17 @@ a{color:#f3dba9}button{border:1px solid #ae9566;border-radius:5px;background:#31
 </head>
 <body>
 <main>
-<h1>男性新頭 V8d｜頭部下移 1px</h1>
-<p>此頁直接載入正式遊戲的 64×160 頭部與髮型素材。目前男性新頭相對前版已下移 1px（淨上移 1px），嘴巴改為較平緩的男性專用短嘴線。頭髮沿用完整透明素材，已恢復原生位置（取消先前上移 2px）。左邊沒有頭髮，右邊加上透明髮型；兩張頭部圖片完全相同。沒有使用舊髮 V7。</p>
+<h1>男性頭部 V8g｜下巴上收 1px</h1>
+<p>此頁直接載入正式遊戲的 64×160 最新男性 V8g 頭部。頭部整體座標不動，雙眼與嘴巴維持先前各上移 1 個原生像素；只有下巴底部上收 1 個原生像素。銀白色頭髮保留原圖與原生位置，已撤銷先前向上 2px 的位移。左側是最新光頭，右側是同一顆頭疊加原位透明髮。</p>
 <div id="check" class="check" role="status">正在確認素材…</div>
 <div class="grid">
- <div class="card"><div class="stage"><img class="head" alt="同一顆男性新頭"></div><strong>新頭｜光頭</strong></div>
- <div class="card"><div class="stage"><img class="head" alt="搭配 V8b 頭髮的新男性頭"><img id="hair" alt="銀白透明新頭髮"></div><strong>新頭＋透明髮 V8b</strong></div>
+ <div class="card"><div class="stage"><img class="head" alt="同一顆男性新頭"></div><strong>V8g｜光頭</strong></div>
+ <div class="card"><div class="stage"><img class="head" alt="搭配 V8b 頭髮的新男性頭"><img id="hair" alt="銀白透明新頭髮"></div><strong>V8g＋原位髮型</strong></div>
 </div>
-<p class="small">正常遊戲的頭部和髮型也都沿用同一張 64×160 像素座標。若上方沒有出現 V8b，代表頁面或部署尚未讀到新檔案。</p>
+<p class="small">正常遊戲的頭部和髮型也都沿用同一張 64×160 像素座標。若看起來沒有變化，請留意最下方下巴只上收 1 個像素，眼嘴與頭頂均沒有再次移動。頁面若顯示載入失敗，請重新開啟。</p>
 <p><button id="reload" type="button">重新核對素材</button> <a href="./?hair-art=v8b-20261122">回到正式遊戲（重新要求新版頁面）</a></p>
 </main>
-<script src="./assets/male_new_head_v8.js?v=7"></script>
+<script src="./assets/male_new_head_v8.js?v=8"></script>
 <script src="./assets/male_hair_v8.js?v=5"></script>
 <script>
 (()=>{
@@ -41,11 +41,11 @@ a{color:#f3dba9}button{border:1px solid #ae9566;border-radius:5px;background:#31
  const head=window.DUNGEON_MALE_SHARED_FACE_V5,hair=window.DUNGEON_MALE_HAIR_V8;
  if(!(typeof head==='string'&&head.startsWith('data:image/png;base64,'))||
     !(typeof hair==='string'&&hair.startsWith('data:image/png;base64,'))){
-  check.textContent='缺少新版頭部或頭髮素材：目前不是完整 V8c，請回報此訊息。';
+  check.textContent='缺少男性 V8g 頭部或原位髮型素材，請回報此訊息。';
   return;
  }
  let ready=0;let failed=false;
- function done(){if(++ready===3&&!failed)check.textContent='載入成功：男性新頭＋獨立透明髮型 V8c（未使用 V7）';}
+ function done(){if(++ready===3&&!failed)check.textContent='載入成功：男性 V8g 頭（下巴上收 1px）＋原位透明髮型';}
  for(const img of document.querySelectorAll('img.head')){
   img.onload=()=>img.naturalWidth===64&&img.naturalHeight===160?done():check.textContent='頭部尺寸錯誤';
   img.onerror=()=>{failed=true;check.textContent='男性頭部 PNG 載入失敗'};
