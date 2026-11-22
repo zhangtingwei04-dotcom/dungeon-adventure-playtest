@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#112c27">
-<title>男性新頭 V9｜既有表情系統驗收</title>
+<title>男性新頭 V9｜完整表情與狀態測試 V2</title>
 <style>
 :root{color-scheme:dark;font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC",system-ui,sans-serif;background:#102c25;color:#eee2c6}
 *{box-sizing:border-box}body{margin:0;padding:15px}main{max-width:860px;margin:0 auto;padding-bottom:25px}
@@ -17,24 +17,29 @@ h1{margin:3px 0 8px;font-size:21px;line-height:1.35}p{font-size:12px;line-height
 .main-info{flex:1;min-width:180px}h2{font-size:16px;color:#f4dda5;margin:3px 0 10px}.name{font-size:18px;font-weight:700;color:#fff1cd}
 .controls{display:flex;flex-wrap:wrap;gap:8px;margin:11px 0}.toggle{background:#2d4d43;border:1px solid #77927d;border-radius:7px;padding:8px 11px;display:flex;align-items:center;gap:7px;font-size:13px}.toggle input{accent-color:#e0c18b}
 .legend{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:11px}
+.group-title{margin:19px 0 7px;padding-bottom:6px;border-bottom:1px solid #81998268;color:#f7deab;font-size:15px}
+.group-description{color:#c4d0c5;font-size:11px;margin-top:0}
+#states{margin-top:11px}
+#states .legend{margin-bottom:13px}
+.state-btn{touch-action:manipulation}
 .state-btn{display:block;text-align:left;background:#1e3e34;border:1px solid #708a76;border-radius:9px;color:#f5e5c6;padding:9px;cursor:pointer;min-width:0}.state-btn.active{border-color:#e9c184;background:#345645;outline:1px solid #e9c184}
 .thumb{max-width:180px;margin:auto}.state-btn strong{display:block;font-size:14px;margin-top:6px}.state-btn small{display:block;color:#b6c7ba;margin-top:4px;font-size:11px;line-height:1.35}
 footer{font-size:11px;color:#b9cabe;margin-top:14px;border-top:1px solid #67847575;padding-top:12px;line-height:1.7}
 a{color:#f0dca8}
-@media(min-width:700px){.legend{grid-template-columns:repeat(5,minmax(0,1fr))}}
+@media(min-width:700px){.legend{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media(max-width:390px){h1{font-size:19px}.stage-main{width:min(100%,220px)}.preview-main{justify-content:center}.legend{gap:7px}}
 </style>
 </head><body><main>
-<h1>男性新頭 V9｜表情系統第一批驗收</h1>
+<h1>男性新頭 V9｜表情與狀態完整測試</h1>
 <div class="test-tag">獨立測試頁・正式角色未替換</div>
-<p>使用已確認的原模板臉部＋獨立銀白髮（原生 64×160）。HP、眨眼、戰敗與昏迷由遊戲既有的 <code>DungeonExpressionMotion</code> 控制；這個測試頁只負責對齊新頭的眼睛及嘴巴像素。</p>
+<p>新頭與銀白髮均使用你確認的原模板、64×160 透明圖層。沿用正式遊戲的 <code>DungeonExpressionMotion</code> 狀態控制器，現在可以預覽 HP 四階段、情緒、睡眠、美夢／惡夢與八種異常狀態。此頁不變更玩家存檔。</p>
 <div class="preview-main">
  <div class="stage stage-main"><canvas width="64" height="62" id="mainAvatar" aria-label="目前選取的男性表情動態預覽"></canvas></div>
  <div class="main-info"><div class="name" id="mainLabel">中性</div><p id="mainDescription">原生臉部，含自然眨眼。</p><div id="readiness" style="font-size:12px;color:#d6be89">載入頭部素材中…</div><div class="controls"><label class="toggle"><input type="checkbox" checked id="showHair"> 顯示頭髮</label><label class="toggle"><input type="checkbox" checked id="animate"> 動態播放</label></div><p>所有表情都使用同一張臉與同一張頭髮；切換狀態不會移動頭部、改變下巴或髮型。</p></div>
 </div>
-<h2>五種核心狀態</h2>
+<h2>按分類切換測試</h2>
 <div class="legend" id="states"></div>
-<footer>驗收範圍：中性、微笑、閉眼、戰敗紫色圈圈眼、昏迷黑色圈圈眼。頭髮、下巴以原模板為準；未修改女性角色、裝備、玩家存檔或正式遊戲的男性頭部。此處「昏迷」優先於其他表情；戰敗時原眼睛仍在圈圈效果下方。</footer>
+<footer>V2 測試版：HP 與睡眠、異常優先序使用正式控制器；V9 新頭的眉／眼／嘴動畫以原生像素局部覆蓋方式實作，尚待手機實測驗收。睡眠與活力在此為視覺預覽，不新增永久遊戲數值。昏迷取代眼睛；戰敗保留底下的藍紫眼。完整角色、女性、裝備、存檔及正式男性頭部均未替換。</footer>
 <script src="./assets/expression_motion.js?v=2.18"></script>
 <script src="./assets/male_template_v9_test.js?v=1"></script>
 <script>
@@ -43,15 +48,44 @@ a{color:#f0dca8}
  const layers=window.DUNGEON_MALE_V9_TEST;
  const motion=window.DungeonExpressionMotion;
  const W=64,H=160,SHOW_H=62,eyeCenters=[25,39];
+
+ const groups=[
+  {id:'hp',title:'HP 四階段',description:'依目前的 HP 狀態規則：開心、中性、虛弱、戰敗'},
+  {id:'emotion',title:'手動情緒與動作',description:'同一張臉局部替換眼皮、眉毛與嘴型'},
+  {id:'sleep',title:'睡眠與夢境',description:'共用睡眠表情優先序；美夢與惡夢會顯示不同想法及特效'},
+  {id:'abnormal',title:'異常狀態',description:'共用八種異常特效，昏迷會強制取代眼睛'}
+ ];
  const modes=[
-  {id:'neutral',title:'中性',detail:'原生紫藍眼、正常眨眼',status:'normal'},
-  {id:'smile',title:'微笑',detail:'小幅對稱微笑、自然眨眼',status:'healthy',expression:'smile'},
-  {id:'closed',title:'閉眼',detail:'眼睛完整閉合，無雙重瞳孔',status:'normal',expression:'eyesClosed'},
-  {id:'defeat',title:'戰敗',detail:'保留原眼睛＋紫色旋轉圈圈',status:'critical'},
-  {id:'unconscious',title:'昏迷',detail:'原眼睛清除＋黑色旋轉圈圈',status:'normal',abnormal:['unconscious']}
+  {id:'happy',category:'hp',title:'開心',detail:'HP 高於 75%，自然微笑＋眨眼',status:'healthy'},
+  {id:'neutral',category:'hp',title:'中性',detail:'HP 50%～75%，平靜自然眨眼',status:'normal'},
+  {id:'weak',category:'hp',title:'虛弱',detail:'HP 25%～50%，慢眨眼＋細汗',status:'weak'},
+  {id:'defeat',category:'hp',title:'戰敗',detail:'HP 25% 以下，紫色圈圈眼＋細汗',status:'critical'},
+  {id:'smile',category:'emotion',title:'微笑',detail:'原本內斂的閉嘴微笑',status:'normal',expression:'smile'},
+  {id:'closed',category:'emotion',title:'閉眼',detail:'閉合眼皮，保留原眉和臉型',status:'normal',expression:'eyesClosed'},
+  {id:'surprised',category:'emotion',title:'驚訝',detail:'上揚眉毛＋小張嘴',status:'normal',expression:'surprised'},
+  {id:'angry',category:'emotion',title:'生氣',detail:'下壓眉毛＋皺眉嘴型',status:'normal',expression:'angry'},
+  {id:'shy',category:'emotion',title:'害羞',detail:'輕微臉紅與小嘴型',status:'normal',expression:'shy'},
+  {id:'talking',category:'emotion',title:'說話',detail:'短嘴型與張嘴交替，不改角色位置',status:'normal'},
+  {id:'drowsy',category:'sleep',title:'想睡',detail:'偶爾浮出 Z',status:'normal',sleep:'drowsy'},
+  {id:'sleeping',category:'sleep',title:'一般睡眠',detail:'閉眼與浮動 Z',status:'normal',sleep:'sleeping'},
+  {id:'nightmare_mild',category:'sleep',title:'輕度惡夢',detail:'閉眼、皺眉、少量汗',status:'normal',sleep:'nightmare_mild'},
+  {id:'nightmare_severe',category:'sleep',title:'嚴重惡夢',detail:'緊張表情與較快汗珠',status:'normal',sleep:'nightmare_severe'},
+  {id:'nightmare_waking',category:'sleep',title:'惡夢醒來',detail:'先驚醒，再慢慢平靜',status:'normal',sleep:'nightmare_waking'},
+  {id:'dream_good',category:'sleep',title:'美夢',detail:'閉眼、微笑與金色夢境光',status:'normal',sleep:'dream_good'},
+  {id:'dream_smile',category:'sleep',title:'夢中微笑',detail:'閉眼微笑、柔和臉頰光',status:'normal',sleep:'dream_smile'},
+  {id:'dream_waking',category:'sleep',title:'美夢醒來',detail:'慢慢睜眼、恢復平靜',status:'normal',sleep:'dream_waking'},
+  {id:'poison',category:'abnormal',title:'中毒',detail:'頭頂綠色氣體',status:'normal',abnormal:['poison']},
+  {id:'fever',category:'abnormal',title:'發燒',detail:'頭頂橘紅色熱氣',status:'normal',abnormal:['fever']},
+  {id:'injury',category:'abnormal',title:'受傷／流血',detail:'血滴想法，不在皮膚畫傷口',status:'normal',abnormal:['injury']},
+  {id:'dizzy',category:'abnormal',title:'暈眩',detail:'環繞頭部的金色旋轉星星',status:'normal',abnormal:['dizzy']},
+  {id:'unconscious',category:'abnormal',title:'昏迷',detail:'清除原眼睛＋黑色旋轉圈圈',status:'normal',abnormal:['unconscious']},
+  {id:'sleep_deprived',category:'abnormal',title:'睡眠不足',detail:'飄動 Z，不畫黑眼圈',status:'normal',abnormal:['sleep_deprived']},
+  {id:'hunger',category:'abnormal',title:'飢餓',detail:'帶骨頭的肉想法框',status:'normal',abnormal:['hunger']},
+  {id:'dehydration',category:'abnormal',title:'缺水',detail:'水滴想法框',status:'normal',abnormal:['dehydration']}
  ];
  const byId=new Map(modes.map(m=>[m.id,m]));
  let selected='neutral',showHair=true,animate=true,ready=false;
+ let freezeAt=performance.now();const enteredAt=new Map(modes.map(m=>[m.id,performance.now()]));
  const imgs={face:new Image(),hair:new Image()};
  const work=document.createElement('canvas');work.width=W;work.height=H;
  const ctx=work.getContext('2d',{willReadFrequently:true});
@@ -77,75 +111,133 @@ a{color:#f0dca8}
    }
   }
  }
+
  function closeEyes(){
   clearEyes();ctx.fillStyle='#3c2725';
   for(const cx of eyeCenters){ctx.fillRect(cx-3,38,7,1);ctx.fillRect(cx-2,39,5,1);}
  }
- function smile(){
-  // Neutral mouth at x31..32,y46. Only edit 5x3 pixel region.
-  for(let y=45;y<=46;y++)for(let x=30;x<=34;x++){
+ function drawBrows(style){
+  if(style!=='angry'&&style!=='surprised'&&style!=='shy')return;
+  // Restore the native peach forehead first; never erase hair, ears or the jaw.
+  for(const cx of eyeCenters)for(let y=32;y<=35;y++)for(let x=cx-5;x<=cx+5;x++){
+   ctx.fillStyle=getSkin(x,29);ctx.fillRect(x,y,1,1);
+  }
+  ctx.fillStyle='#674039';
+  if(style==='surprised'){
+   for(const cx of eyeCenters){ctx.fillRect(cx-4,32,7,1);ctx.fillRect(cx-3,31,5,1);}
+  }else if(style==='angry'){
+   ctx.fillRect(21,33,5,1);ctx.fillRect(24,34,5,1);
+   ctx.fillRect(35,34,5,1);ctx.fillRect(38,33,5,1);
+  }else{
+   for(const cx of eyeCenters){ctx.fillRect(cx-3,34,6,1);}
+  }
+ }
+ function drawMouth(pose,t){
+  if(!pose||pose==='neutral'||pose==='original')return;
+  // Remove ONLY the native neutral mouth. All features outside x29..35 stay intact.
+  for(let y=45;y<=47;y++)for(let x=29;x<=35;x++){
    ctx.fillStyle=getSkin(x,44);ctx.fillRect(x,y,1,1);
   }
-  ctx.fillStyle='#b9846b';ctx.fillRect(30,46,1,1);ctx.fillRect(33,46,1,1);
-  ctx.fillStyle='#936252';ctx.fillRect(31,46,2,1);
+  const muted='#936252',pale='#c18b70',dark='#623e38';
+  const px=(x,y,c=muted,w=1,h=1)=>{ctx.fillStyle=c;ctx.fillRect(x,y,w,h)};
+  if(pose==='smile'||pose==='happy'){
+   px(30,46,pale);px(31,46,muted,2);px(33,46,pale);
+  }else if(pose==='surprised'){
+   px(31,45,dark,2,2);px(31,46,pale); 
+  }else if(pose==='frown'){
+   px(30,47,pale);px(31,46,dark,2);px(33,47,pale);
+  }else if(pose==='shy'){
+   px(31,46,pale,2);
+  }else if(pose==='talkSmall'){
+   px(31,45,dark,2);px(32,46,pale);
+  }else if(pose==='talkOpen'){
+   px(30,45,dark,4,2);px(31,46,pale,2);
+  }
  }
  function frameFor(m,t){
-  if(!motion||!actor.has(m.id))return {status:m.status,parts:{eyes:m.id==='closed'?'eyesClosed':'original',mouth:m.id==='smile'?'smile':'original'},effects:{blink:false,sweat:m.id==='defeat',sweatPhase:0,circleEyes:m.id==='defeat',circlePhase:0}};
+  if(!motion||!actor.has(m.id))return {status:m.status,parts:{brows:'original',eyes:m.id==='closed'?'eyesClosed':'original',mouth:m.id==='smile'?'smile':'original'},effects:{blink:false,sweat:m.status==='weak'||m.status==='critical',sweatPhase:0,circleEyes:m.status==='critical',circlePhase:0}};
   const x=actor.get(m.id);
   x.setBlink(animate);
-  const f=x.sample(animate?t:0);
+  const f=x.sample(t);
+  const elapsed=Math.max(0,(t-enteredAt.get(m.id))%5100);
+  if(m.sleep)motion.applySleepFacePriority(f,m.sleep,elapsed);
   if(m.abnormal)motion.applyAbnormalFacePriority(f,m.abnormal);
   return f;
  }
  function drawMode(m,dest,t){
-  if(!ready)return;
+  if(!ready||!dest)return;
   ctx.clearRect(0,0,W,H);ctx.imageSmoothingEnabled=false;
   ctx.drawImage(imgs.face,0,0);
-  const frame=frameFor(m,t);
-  const unconscious=m.id==='unconscious';
-  const closed=unconscious||m.id==='closed'||frame.effects?.blink||frame.parts?.eyes==='eyesClosed';
+  const f=frameFor(m,t);
+  const unconscious=Boolean(m.abnormal?.includes('unconscious'));
+  const sleepElapsed=Math.max(0,(t-enteredAt.get(m.id))%5100);
+  const closed=unconscious||f.effects?.blink||f.parts?.eyes==='eyesClosed';
+  const isTalk=m.id==='talking';
   if(closed){if(unconscious)clearEyes();else closeEyes();}
-  if((frame.parts?.mouth==='smile'||m.id==='smile')&&!unconscious)smile();
+  drawBrows(f.parts?.brows);
+  let mouth=f.parts?.mouth||'original';
+  if(unconscious)mouth='original';
+  if(mouth==='angry')mouth='frown';
+  if(isTalk)mouth=Math.floor(t/220)%4===0?'neutral':Math.floor(t/220)%4===2?'talkOpen':'talkSmall';
+  drawMouth(mouth,t);
+  if(m.id==='shy'||m.sleep==='dream_smile'){
+   ctx.fillStyle='rgba(225,142,132,.55)';ctx.fillRect(19,43,2,1);ctx.fillRect(43,43,2,1);
+  }
   if(showHair)ctx.drawImage(imgs.hair,0,0);
   if(motion){
-   if(frame.effects?.circleEyes&&!unconscious){
-    for(const cx of eyeCenters)motion.drawSpiralEye(ctx,cx,39,frame.effects.circlePhase);
+   if(f.effects?.circleEyes&&!unconscious){
+    for(const cx of eyeCenters)motion.drawSpiralEye(ctx,cx,39,f.effects.circlePhase);
    }
-   if(frame.effects?.sweat)motion.drawFaceSweat(ctx,frame.status,frame.effects.sweatPhase,{sweatY:28});
-   if(unconscious)motion.drawUnconsciousEyes(ctx,t,{eyeCenters:[[25,39],[39,39]]});
+   if(f.effects?.sweat)motion.drawFaceSweat(ctx,f.status,f.effects.sweatPhase,{sweatY:28});
+   if(m.sleep)motion.drawRestEffects(ctx,{sleep:m.sleep,vitality:'normal',elapsed:sleepElapsed},t);
+   if(m.abnormal)motion.drawAbnormalEffects(ctx,m.abnormal,t,{eyeCenters:[[25,39],[39,39]]});
   }else if(unconscious){
-   // Static fallback used only when the shared module is unavailable.
    for(const cx of eyeCenters){ctx.fillStyle='#f6e5e3';ctx.fillRect(cx-2,37,5,5);ctx.fillStyle='#15131a';ctx.fillRect(cx-1,38,3,3);}
   }
   const target=dest.getContext('2d');target.imageSmoothingEnabled=false;
   target.clearRect(0,0,W,SHOW_H);target.drawImage(work,0,0,W,SHOW_H,0,0,W,SHOW_H);
  }
+
  function addCards(){
-  const section=document.getElementById('states');
-  for(const m of modes){
-   const b=document.createElement('button');b.className='state-btn'+(m.id===selected?' active':'');
-   b.type='button';b.dataset.mode=m.id;
-   const el=document.createElement('div');el.className='stage thumb';
-   const canvas=document.createElement('canvas');canvas.width=W;canvas.height=SHOW_H;el.append(canvas);holders.set(m.id,canvas);
-   const title=document.createElement('strong');title.textContent=m.title;
-   const small=document.createElement('small');small.textContent=m.detail;
-   b.append(el,title,small);
-   b.onclick=()=>{
-    selected=m.id;
-    document.querySelectorAll('.state-btn').forEach(x=>x.classList.toggle('active',x.dataset.mode===selected));
-    document.getElementById('mainLabel').textContent=m.title;
-    document.getElementById('mainDescription').textContent=m.detail;
-    drawAll(performance.now());
-   };section.append(b);
+  const container=document.getElementById('states');
+  for(const g of groups){
+   const title=document.createElement('h3');title.className='group-title';title.textContent=g.title;
+   const description=document.createElement('p');description.className='group-description';description.textContent=g.description;
+   const section=document.createElement('div');section.className='legend';
+   for(const m of modes.filter(v=>v.category===g.id)){
+    const b=document.createElement('button');b.className='state-btn'+(m.id===selected?' active':'');
+    b.type='button';b.dataset.mode=m.id;
+    const el=document.createElement('div');el.className='stage thumb';
+    const canvas=document.createElement('canvas');canvas.width=W;canvas.height=SHOW_H;
+    el.append(canvas);holders.set(m.id,canvas);
+    const t=document.createElement('strong');t.textContent=m.title;
+    const sub=document.createElement('small');sub.textContent=m.detail;
+    b.append(el,t,sub);
+    b.onclick=()=>{
+     selected=m.id;enteredAt.set(m.id,performance.now());
+     document.querySelectorAll('.state-btn').forEach(x=>x.classList.toggle('active',x.dataset.mode===selected));
+     document.getElementById('mainLabel').textContent=m.title;
+     document.getElementById('mainDescription').textContent=m.detail;
+     drawAll(animate?performance.now():freezeAt);
+     document.getElementById('mainAvatar').scrollIntoView({block:'nearest',behavior:'smooth'});
+    };
+    section.append(b);
+   }
+   container.append(title,description,section);
   }
  }
  function drawAll(t){if(!ready)return;for(const m of modes)drawMode(m,holders.get(m.id),t);
   drawMode(byId.get(selected),document.getElementById('mainAvatar'),t);
  }
- function tick(t){drawAll(t);requestAnimationFrame(tick)}
+ let lastFrame=-Infinity;
+ function tick(t){
+  // Keep many thumbnails light on a phone: maximum ~10 redraws/second.
+  if(ready&&animate&&t-lastFrame>=100){drawAll(t);lastFrame=t;}
+  requestAnimationFrame(tick);
+ }
  addCards();
  document.getElementById('showHair').onchange=e=>{showHair=e.target.checked;drawAll(performance.now())};
- document.getElementById('animate').onchange=e=>{animate=e.target.checked;drawAll(performance.now())};
+ document.getElementById('animate').onchange=e=>{animate=e.target.checked;freezeAt=performance.now();drawAll(animate?performance.now():freezeAt)};
  if(!layers||!layers.face||!layers.hair){document.getElementById('readiness').textContent='未找到 V9 測試圖層';return;}
  let loaded=0;
  for(const k of ['face','hair']){
