@@ -113,7 +113,7 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 <div class="avatarCard" id="femaleCard"><strong>女性｜新版頭</strong><div class="sub">真實底模 64×160</div><div class="spriteChecker"><canvas width="64" height="160" id="femaleCanvas" aria-label="女性角色即時裝備預覽，可拖曳調整所選圖層"></canvas></div></div>
 </div><div class="toolbar" style="margin-top:10px"><button id="resetView">恢復兩性並排</button><button id="toggleGuides">肩頸輔助線：關</button></div>
 <p>直接在角色圖上拖曳，可移動目前選取性別與圖層。只修改該圖層參數，不會移動底模或頭部。</p>
-<div class="hint"><strong>原始身體尺寸（64×160 座標）</strong>：男性 x4–58、y49–140，實際 55×92px；女性 x4–58、y51–140，實際 55×90px。披風前層 x3–59、y53–118（57×66px），後層 x2–60、y53–135（59×83px）。披風已接近畫布最大寬度；過度放大會裁到左右金邊，應優先調整肩披、前片及衣襬輪廓。</div>
+<div class="hint"><strong>原版手部已鎖定：</strong>披風前片繪製後會直接重疊正式底模原本的手掌與前臂像素（左右側 x0–23／x40–63，y70–101），不會另外生成手臂、更改動作或角度。<br><strong>原始身體尺寸（64×160 座標）</strong>：男性 x4–58、y49–140，實際 55×92px；女性 x4–58、y51–140，實際 55×90px。披風前層 x3–59、y53–118（57×66px），後層 x2–60、y53–135（59×83px）。披風已接近畫布最大寬度；過度放大會裁到左右金邊，應優先調整肩披、前片及衣襬輪廓。</div>
 <div class="warning" id="assetWarning">目前是素材預覽，非正式穿戴驗收。既有頭部與內衣母版不會被修改。</div>
 </div>
 <div class="panel controlPanel"><h2>圖層調整</h2>
@@ -335,6 +335,12 @@ function drawSlot(ctx,gender,slotsToDraw){
   }
  }
 }
+// This overlays the original approved body hand pixels; no generated pose.
+function drawOriginalBodyHands(ctx,gender){
+ const body=images.get(gender+'Body');if(!body)return;
+ ctx.save();ctx.beginPath();ctx.rect(0,70,24,32);ctx.rect(40,70,24,32);
+ ctx.clip();ctx.drawImage(body,0,0,64,160);ctx.restore();
+}
 function drawAssetStage(gender){
  const c=$(gender+'Canvas'),ctx=c.getContext('2d');ctx.clearRect(0,0,64,160);ctx.imageSmoothingEnabled=false;
  const drawStatic=key=>{const img=images.get(key);if(img)ctx.drawImage(img,0,0,64,160)};
@@ -352,6 +358,10 @@ function drawAssetStage(gender){
    if(layerShown[key]!==false)drawImageOn(ctx,images.get(key),transforms[key]);
   }
  }
+ // Keep real hands in front of any hanging cloak panel.
+ if(shown['starter_cloak:'+gender]!==false&&
+    layerShown[k('starter_cloak',gender,'front')]!==false&&
+    getImage('starter_cloak',gender,'front'))drawOriginalBodyHands(ctx,gender);
  if(gender==='male'){drawStatic('maleBrows');drawStatic('maleEyes');drawStatic('maleMouth')}
  for(const a of catalogue)if(shown[a.id+':'+gender]!==false&&a.slot==='hair'){
   for(const layer of a.layers){
