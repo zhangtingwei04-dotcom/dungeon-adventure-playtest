@@ -4029,7 +4029,9 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <script src="./assets/male_v9_equipment_v1.js?v=3"></script>
 <!-- Original 2026-11-21 V3 acceptance art; default male head. ?male-head=v9/v8 restores older versions. -->
 <script src="./assets/male_approved_v3_layers.js?v=1"></script>
-<script src="./assets/male_approved_v3_adapter.js?v=2"></script>
+<!-- Correct the original V3 label: its "eyebrows" were actually the upper eye line. -->
+<script src="./assets/male_v3_corrected_layers_v2.js?v=1"></script>
+<script src="./assets/male_approved_v3_adapter.js?v=3"></script>
 <script src="./assets/female_eye_motion_v1.js?v=10"></script>
 <script src="./assets/female_mouth_motion_v1.js?v=10"></script>
 <script>
@@ -5048,7 +5050,7 @@ function paperDollLayers(){
  // Native V3 really is FIVE separate PNG layers. The old integration had
  // mistakenly merged eyebrows/eyes/mouth into the face and cleared those slots.
  if(gender==='male'&&window.DungeonMaleV9Equipment?.version==='v3-accepted'){
-  const v3=window.DungeonMaleApprovedV3;
+  const v3=window.DungeonMaleV3CorrectedLayers||window.DungeonMaleApprovedV3;
   if(v3?.head_base&&v3?.eyebrows&&v3?.eyes&&v3?.mouth&&v3?.hair_standard)
    return {...PAPERDOLL_SEPARATE_LAYERS,
     face:v3.head_base,brows:v3.eyebrows,eyes:v3.eyes,
@@ -5228,8 +5230,9 @@ function paperDollSprite(key){
  // Shared head already includes all face parts. Do not stack original male
  // eye/brow/mouth art or HP-expression sprites over the female face.
  if(isMaleSharedFaceReady()&&['brows','eyes','mouth'].includes(key)){
-  // For approved V3, never blank the three original independent source layers.
-  // All expressions are applied by a separate canvas; source PNGs stay untouched.
+  // In V3, the original black "brow" pixels actually belong to upper eyelids.
+  // Corrected five-layer art keeps real forehead eyebrows (under bangs)
+  // separate from the eyes-and-lashes image; never clear either asset.
   if(window.DungeonMaleV9Equipment?.version==='v3-accepted')
    return paperDollLayers()[key];
   return FEMALE_CLEAR_LAYER;
@@ -5926,7 +5929,7 @@ function paintPaperDollPhysicalCondition(){
    for(const x of [25,39])
     window.DungeonExpressionMotion.drawSpiralEye(ctx,x,eyeY,effects.circlePhase);
   }
-  // Male V9 alone: unconscious = natural CLOSED eyelids on the face,
+  // Male V3/V9: unconscious = natural CLOSED eyelids on the face,
   // plus exactly ONE slowly rotating black spiral-eye ICON above the upper-right
   // hairline. Exclude unconscious from the shared double-eye renderer. Keep
   // every other abnormal mark and the V8/female behavior untouched.
