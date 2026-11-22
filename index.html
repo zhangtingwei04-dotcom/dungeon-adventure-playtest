@@ -4018,8 +4018,12 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <script src="./assets/male_approved_hair_v7.js?v=1"></script>
 <!-- Transparent new male hairstyle, registered to the same 64x160 head grid. -->
 <script src="./assets/male_hair_v8.js?v=5"></script>
-<!-- V8 keeps the new face and eyes, never old V7 eye art. -->
+<!-- Keep original V8 for instant rollback via ?male-head=v8. -->
 <script src="./assets/male_new_head_v8.js?v=8"></script>
+<!-- Approved male V9: same native 64x160 frame, isolated from the female head. -->
+<script src="./assets/male_template_v9_test.js?v=1"></script>
+<script src="./assets/male_v9_gaze_v1.js?v=1"></script>
+<script src="./assets/male_v9_equipment_v1.js?v=1"></script>
 <script src="./assets/female_eye_motion_v1.js?v=10"></script>
 <script src="./assets/female_mouth_motion_v1.js?v=10"></script>
 <script>
@@ -5035,8 +5039,8 @@ function isMaleSharedFaceReady(){
 function paperDollLayers(){
  const gender=s.appearanceV1?.gender==='female'?'female':'male';
  if(gender==='female'&&FEMALE_REPLACEMENT_HEAD_LAYERS)return FEMALE_REPLACEMENT_HEAD_LAYERS;
- // Male V8: new head with its own eyes and separately generated transparent hair.
- // Never silently show the previous V7 hairstyle if the new file is unavailable.
+ // Male V9 approved template, or the original V8 with ?male-head=v8.
+ // Face and independent hair remain in one native 64x160 coordinate frame.
  if(isMaleSharedFaceReady())return {...PAPERDOLL_SEPARATE_LAYERS,
   face:window.DUNGEON_MALE_SHARED_FACE_V5,
   hair:(typeof window.DUNGEON_MALE_HAIR_V8==='string'&&
@@ -5119,7 +5123,9 @@ function tickPaperDollMotion(force=false){
   abnormalStates.length?Math.floor(performance.now()/160):'no-abnormal',
   paperDollRestPreview.sleep,paperDollRestPreview.vitality,
   paperDollMotionEnabled?
-   (window.DungeonFemaleEyeMotionV1?.gaze(performance.now())||'center'):'no-gaze',
+   (window.DungeonMaleV9Equipment?.active&&s.appearanceV1?.gender==='male'?
+    (window.DungeonMaleV9Gaze?.gazeAt(performance.now())||'center'):
+    (window.DungeonFemaleEyeMotionV1?.gaze(performance.now())||'center')):'no-gaze',
   paperDollTalkPreview?Math.floor(performance.now()/170):'no-talk',
   restAnimating?Math.floor(performance.now()/160):'rest-idle'
  ].join('|');
@@ -5151,16 +5157,28 @@ function paintPaperDollFemaleEyes(){
  const closed=unconscious||parts.eyes==="eyesClosed";
  const circleEyes=Boolean(paperDollMotionFrame?.effects?.circleEyes)&&!unconscious;
  const blink=paperDollMotionEnabled&&Boolean(paperDollMotionFrame?.effects?.blink);
- const gaze=paperDollMotionEnabled?motion.gaze(performance.now()):"center";
+ const maleV9=window.DungeonMaleV9Equipment?.active&&s.appearanceV1?.gender==='male';
+ const gaze=paperDollMotionEnabled?
+  (maleV9?(window.DungeonMaleV9Gaze?.gazeAt(performance.now())||'center'):
+   motion.gaze(performance.now())):"center";
  const selected=s.appearanceV1?.eyeColor||'purple';
  const color=PAPERDOLL_EYE_COLORS.find(x=>x.id===selected);
  const eyeColor=selected==='purple'?'purple':
   selected==='custom'?s.appearanceV1.eyeCustomHex:
   '#'+color.rgb.map(x=>x.toString(16).padStart(2,'0')).join('');
- for(const stage of document.querySelectorAll(".paperdoll-stage.paperdoll-female, .paperdoll-stage.paperdoll-shared-male-face"))
-  motion.render(stage,{closed,blink,gaze,eyeColor,unconscious,circleEyes});
+ for(const stage of document.querySelectorAll(".paperdoll-stage.paperdoll-female, .paperdoll-stage.paperdoll-shared-male-face")){
+  if(maleV9&&stage.classList.contains('paperdoll-shared-male-face'))
+   window.DungeonMaleV9Equipment.renderEyes(stage,{
+    closed,blink,gaze,eyeColor,unconscious,circleEyes,
+    brows:parts.brows||'original',skinTone:s.appearanceV1?.skinTone||'original'
+   });
+  else motion.render(stage,{closed,blink,gaze,eyeColor,unconscious,circleEyes});
+ }
 }
 window.addEventListener("dungeon-female-eyes-ready",paintPaperDollFemaleEyes);
+window.addEventListener('dungeon-male-v9-ready',()=>{
+ paintPaperDollFemaleEyes();paintPaperDollFemaleMouth();
+});
 window.addEventListener("dungeon-female-mouth-ready",()=>paintPaperDollFemaleMouth());
 /* Independent female mouth animation follows HP, selected expression and dreams. */
 function paintPaperDollFemaleMouth(){
@@ -5174,8 +5192,12 @@ function paintPaperDollFemaleMouth(){
  else if(part==='shy')pose='shy';
  else if(part==='angry')pose='frown';
  if(['nightmare_mild','nightmare_severe'].includes(paperDollRestPreview.sleep))pose='frown';
- for(const stage of document.querySelectorAll('.paperdoll-stage.paperdoll-female, .paperdoll-stage.paperdoll-shared-male-face'))
-  motion.render(stage,{pose,unconscious,talking:paperDollTalkPreview&&paperDollRestPreview.sleep==='awake',time:performance.now()});
+ for(const stage of document.querySelectorAll('.paperdoll-stage.paperdoll-female, .paperdoll-stage.paperdoll-shared-male-face')){
+  const opts={pose,unconscious,talking:paperDollTalkPreview&&paperDollRestPreview.sleep==='awake',time:performance.now()};
+  if(window.DungeonMaleV9Equipment?.active&&stage.classList.contains('paperdoll-shared-male-face'))
+   window.DungeonMaleV9Equipment.renderMouth(stage,{...opts,skinTone:s.appearanceV1?.skinTone||'original'});
+  else motion.render(stage,opts);
+ }
 }
 // One small visible-only tick; NPCs can sample their actors from the scene update loop.
 setInterval(()=>{if(!document.hidden)tickPaperDollMotion();},75);
@@ -5314,7 +5336,7 @@ function paintPaperDollHair(){
   if(s.appearanceV1?.gender==='female'&&FEMALE_SPLIT_READY)
    ctx.drawImage(hairAtlasImage,0,0,64,64,0,-2,61,59);
   else if(s.appearanceV1?.gender==='male'&&isMaleSharedFaceReady())
-   // Male V8b hair is drawn at its native position (former -2px shift reverted).
+   // The V9/V8 hair remains at its native origin; no translation.
    ctx.drawImage(hairAtlasImage,0,0,64,160,0,0,64,160);
   else ctx.drawImage(hairAtlasImage,0,0,64,160,0,0,64,160);
   const frame=ctx.getImageData(0,0,64,160),pixels=frame.data;
@@ -5403,7 +5425,8 @@ function renderPaperDollHairControls(){
  const hairStyleName=document.createElement('span');hairStyleName.textContent='髮型';
  const hairStyleSelect=document.createElement('select');hairStyleSelect.className='paperdoll-choice-select';
  hairStyleSelect.setAttribute('aria-label','選擇髮型');
- for(const [id,name] of [['original',s.appearanceV1.gender==='male'?'銀白蓬鬆髮型 V8b':'原始髮型'],['bald','無髮型（光頭）']]){
+ for(const [id,name] of [['original',s.appearanceV1.gender==='male'?
+    (window.DungeonMaleV9Equipment?.active?'原始銀白亂髮 V9':'銀白蓬鬆髮型 V8b'):'原始髮型'],['bald','無髮型（光頭）']]){
   const option=document.createElement('option');option.value=id;option.textContent=name;
   option.selected=s.appearanceV1.parts?.hairStyle===id;hairStyleSelect.appendChild(option);
  }
@@ -5861,8 +5884,10 @@ function paintPaperDollPhysicalCondition(){
   const ctx=canvas.getContext('2d');if(!ctx)continue;
   ctx.imageSmoothingEnabled=false;
   ctx.clearRect(0,0,64,160);
-  // Keep all face status marks registered to the raised male V8c head.
-  const maleV8=stage.classList.contains('paperdoll-shared-male-face')&&window.DUNGEON_MALE_FACE_VERSION==='v8-new-eyes';
+  // V8 and V9 both keep the full head at its unchanged native position.
+  const maleShared=stage.classList.contains('paperdoll-shared-male-face');
+  const maleV9=maleShared&&window.DUNGEON_MALE_FACE_VERSION==='v9-original-template';
+  const maleV8=maleShared&&window.DUNGEON_MALE_FACE_VERSION==='v8-new-eyes';
   // Only sleep creates visual effects; SP is a test number and blue HUD bar.
   if(!abnormal.includes('unconscious'))
    window.DungeonExpressionMotion.drawRestEffects(ctx,{
@@ -5870,16 +5895,17 @@ function paintPaperDollPhysicalCondition(){
    },t,maleV8?{y:-1}:undefined);
   // HP condition motion is independent from all abnormal effects.
   if(effects?.sweat)window.DungeonExpressionMotion.drawFaceSweat(ctx,frame.status,effects.sweatPhase,
-   maleV8?{sweatY:28}:undefined);
-  const eyeY=maleV8?37:36;
+   maleV9||maleV8?{sweatY:28}:undefined);
+  const eyeY=maleV9?39:maleV8?37:36;
   if(effects?.circleEyes&&!abnormal.includes('unconscious')){
    // Both genders use the same purple spiral sprites and 3x3 pixel size
    // on top of their original eyes; only eye-center Y differs by head art.
    for(const x of [25,39])
     window.DungeonExpressionMotion.drawSpiralEye(ctx,x,eyeY,effects.circlePhase);
   }
-  // The renderer adds layout.y: raised male V8f eye center is 38 - 1 = y37.
+  // V9 eye center y39; preserve the older V8 y37 registration on rollback.
   if(abnormal.length)window.DungeonExpressionMotion.drawAbnormalEffects(ctx,abnormal,t,
+   maleV9?{eyeCenters:[[25,39],[39,39]]}:
    maleV8?{y:-1,eyeCenters:[[25,38],[39,38]]}:undefined);
  }
 }
