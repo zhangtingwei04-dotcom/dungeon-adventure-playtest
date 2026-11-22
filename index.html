@@ -3688,9 +3688,10 @@ html.stage-locked #app .paperdoll-stage .paperdoll-asset-layer{
  pointer-events:none;background-repeat:no-repeat;
  background-size:100% 100%;background-position:0 0;image-rendering:pixelated;
 }
-/* Keep the fallback silhouette aligned while the male V8c hair loads. */
+/* The separate V3 hair and its fallback share exactly the same source-grid
+   transform as face/brows/eyes. Never shift fallback 2px when a cache loads. */
 html.stage-locked #app .equip-guide .paperdoll-stage.paperdoll-male > .paperdoll-hair-fallback{
- transform:translateY(7px);
+ transform:translateY(9px);
 }
 html.stage-locked #app .paperdoll-stage .paperdoll-privacy-veil{
  background-size:100% 100%!important;
@@ -5044,6 +5045,15 @@ function isMaleSharedFaceReady(){
 function paperDollLayers(){
  const gender=s.appearanceV1?.gender==='female'?'female':'male';
  if(gender==='female'&&FEMALE_REPLACEMENT_HEAD_LAYERS)return FEMALE_REPLACEMENT_HEAD_LAYERS;
+ // Native V3 really is FIVE separate PNG layers. The old integration had
+ // mistakenly merged eyebrows/eyes/mouth into the face and cleared those slots.
+ if(gender==='male'&&window.DungeonMaleV9Equipment?.version==='v3-accepted'){
+  const v3=window.DungeonMaleApprovedV3;
+  if(v3?.head_base&&v3?.eyebrows&&v3?.eyes&&v3?.mouth&&v3?.hair_standard)
+   return {...PAPERDOLL_SEPARATE_LAYERS,
+    face:v3.head_base,brows:v3.eyebrows,eyes:v3.eyes,
+    mouth:v3.mouth,hair:v3.hair_standard};
+ }
  // Exact user-approved V3 head (2026-11-21), or comparison V9/V8 using
  // ?male-head=v9 or ?male-head=v8; every layer remains in 64x160 coordinates.
  if(isMaleSharedFaceReady())return {...PAPERDOLL_SEPARATE_LAYERS,
@@ -5217,8 +5227,13 @@ function paperDollSprite(key){
  const gender=s.appearanceV1?.gender==='female'?'female':'male';
  // Shared head already includes all face parts. Do not stack original male
  // eye/brow/mouth art or HP-expression sprites over the female face.
- if(isMaleSharedFaceReady()&&['brows','eyes','mouth'].includes(key))
+ if(isMaleSharedFaceReady()&&['brows','eyes','mouth'].includes(key)){
+  // For approved V3, never blank the three original independent source layers.
+  // All expressions are applied by a separate canvas; source PNGs stay untouched.
+  if(window.DungeonMaleV9Equipment?.version==='v3-accepted')
+   return paperDollLayers()[key];
   return FEMALE_CLEAR_LAYER;
+ }
  // Do not render expression-specific or customized mouths during unconsciousness.
  if(key==='mouth'&&currentPaperDollAbnormalStates().includes('unconscious'))
   return paperDollLayers().mouth||null;
@@ -5819,9 +5834,10 @@ function equipmentGuideHTML(sceneMode='equipment'){
   '<canvas class="paperdoll-eyes-canvas" width="64" height="160" aria-hidden="true"></canvas>'+
   (animatedFace?
    '<canvas class="paperdoll-female-eye-motion-canvas" width="64" height="160" aria-hidden="true"></canvas>':'');
- const mouth=animatedFace?
-  '<canvas class="paperdoll-female-mouth-motion-canvas" width="64" height="160" aria-hidden="true"></canvas>':
-  s.appearanceV1?.gender==='male'?maleTemplateLayer(character.layers.mouth,'paperdoll-mouth'):'';
+ const v3Head=sharedHead&&window.DungeonMaleV9Equipment?.version==='v3-accepted';
+ const mouth=(v3Head?maleTemplateLayer(character.layers.mouth,'paperdoll-mouth'):'')+
+  (animatedFace?'<canvas class="paperdoll-female-mouth-motion-canvas" width="64" height="160" aria-hidden="true"></canvas>':
+  s.appearanceV1?.gender==='male'?maleTemplateLayer(character.layers.mouth,'paperdoll-mouth'):'');
  const healthMarks='<canvas class="paperdoll-condition-canvas" width="64" height="160" aria-hidden="true"></canvas>';
  const hair=maleTemplateLayer(character.layers.hair,'paperdoll-hair-fallback')+
   '<canvas class="paperdoll-hair-canvas" width="64" height="160" aria-hidden="true"></canvas>';
