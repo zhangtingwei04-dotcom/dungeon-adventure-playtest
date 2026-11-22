@@ -27,7 +27,7 @@ a{color:#ffe0a0}
 <script src="./assets/male_v9_unconscious_icon_v2.js?v=1"></script>
 <script src="./assets/male_approved_v3_layers.js?v=1"></script>
 <script src="./assets/male_v3_corrected_layers_v2.js?v=1"></script>
-<script src="./assets/male_approved_v3_adapter.js?v=5"></script>
+<script src="./assets/male_approved_v3_adapter.js?v=6"></script>
 </head><body><main>
 <h1>男性 V3｜表情系統驗收</h1>
 <p>使用正式遊戲的 V3 原始五圖層、表情控制器與動畫繪製器。每一種狀態同時展示銀白髮與光頭。<strong>只測試畫面，不會寫入遊戲存檔。</strong></p>
@@ -40,7 +40,7 @@ a{color:#ffe0a0}
 <h2>異常狀態</h2>
 <div class="field"><label for="abnormal">選擇異常狀態</label><select id="abnormal"></select></div>
 <div id="abnormalCase" class="gallery"></div>
-<p class="note">驗收重點：驚訝／生氣眼睛應與中性有所區別；有髮模式不露出眉毛殘影；光頭模式可看到眉毛；戰敗為眼睛上的紫色圈圈，昏迷則閉眼並於頭頂右上旋轉一個黑色圈圈圖示。輕微／嚴重惡夢嘴型不同，美夢睡眠帶有柔和微笑，活力 SP 不加表情特效。眨眼由共用控制器自然排程。</p>
+<p class="note">驗收重點：HP 高於 75% 時是左右同幅微上揚的 B 版含蓄笑容；驚訝／生氣眼睛應與中性有所區別；有髮模式不露出眉毛殘影；光頭模式可看到眉毛；戰敗為眼睛上的紫色圈圈，昏迷則閉眼並於頭頂右上旋轉一個黑色圈圈圖示。輕微／嚴重惡夢嘴型不同，美夢睡眠帶有柔和微笑，活力 SP 不加表情特效。眨眼由共用控制器自然排程。</p>
 <p><a href="./?male-head=v3&expression=6">返回正式遊戲裝備欄</a></p>
 </main>
 <script>
@@ -51,7 +51,7 @@ a{color:#ffe0a0}
  const art=window.DungeonMaleV3CorrectedLayers;
  const imgs={};
  const cases=[
-  {id:'hp-happy',group:'hp',title:'HP > 75%｜開心',status:'healthy'},
+  {id:'hp-happy',group:'hp',title:'HP > 75%｜B 版對稱微笑',status:'healthy'},
   {id:'hp-normal',group:'hp',title:'HP 50～75%｜中性',status:'normal'},
   {id:'hp-weak',group:'hp',title:'HP 25～50%｜虛弱＋細汗',status:'weak'},
   {id:'hp-defeat',group:'hp',title:'HP ≤ 25%｜戰敗圈圈眼',status:'critical'},
