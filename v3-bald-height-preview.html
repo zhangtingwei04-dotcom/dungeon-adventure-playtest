@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>男性 V3｜頭頂高度單點修正驗收</title>
+<style>
+:root{font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif;color-scheme:dark}
+*{box-sizing:border-box}body{margin:0;padding:14px;background:#10271f;color:#f2ecd8}
+main{max-width:860px;margin:auto}h1{font-size:19px;margin:4px 0 8px}p{font-size:13px;line-height:1.6;color:#c8d8ce;margin:7px 0 12px}
+strong{color:#f5d99f}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:10px}
+.card{border:1px solid #8b795b;border-radius:9px;background:#20392f;padding:10px;min-width:0}
+.card h2{font-size:15px;margin:0 0 9px;color:#f9e3ba}.compare{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.cell{border-radius:5px;background:#e4eadf;text-align:center;color:#244137;padding:5px 2px}.cell canvas{display:block;margin:0 auto;image-rendering:pixelated;width:100%;height:auto;aspect-ratio:1/1;max-width:155px}
+.cell small{font-size:11px;font-weight:600}.detail{font-size:11px;color:#c7dbcf;margin-top:7px;line-height:1.5}
+.badge{display:inline-block;background:#8d7249;color:#fff1d7;border-radius:4px;padding:2px 6px;font-size:10px}
+button{color:#f5e6c8;border:1px solid #c2a97c;background:#275746;padding:9px 13px;border-radius:7px;min-height:40px}button:active{background:#36745a}
+.legend{font-size:12px;border-top:1px solid #567567;padding-top:12px;margin-top:18px}
+a{color:#f5dbb0}
+@media(max-width:500px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.card{padding:6px}.cell{padding:2px}.card h2{font-size:13px}}
+</style>
+<script src="./assets/male_approved_v3_layers.js?v=1"></script>
+</head>
+<body><main>
+<h1>男性 V3 頭頂高度｜保留五官的局部對照</h1>
+<p>目前 V3 的頭頂約從 y=13 開始，而原始眼睛位於 y=33～38。以下只壓縮 <strong>頭頂到眼睛上緣的頭皮區域</strong>，其他部位不改。這是<strong>獨立測試頁</strong>，不會更改正式裝備欄、玩家存檔、眼睛、嘴巴、脖子、表情動畫或既有 PNG。</p>
+<div class="grid" id="grid"></div>
+<p class="legend">左邊是光頭，右邊是加上原本銀白髮的同一顆頭。0px 是未修改基準；其他版本只縮短額頭上半段，耳朵、眼睛與下巴的原始座標完全保留。這是比例預覽，不是正式採用；定稿後再處理每幀動態與頭髮遮擋。</p>
+<p id="status" aria-live="polite">載入原始已核准 V3 素材中…</p>
+<p><a href="./?male-head=v3">返回正式遊戲（沒有套用試驗版本）</a></p>
+</main><script>
+(function(){
+ 'use strict';
+ const layer=window.DungeonMaleApprovedV3;
+ const variants=[0,2,3,4,5];
+ const img={};
+ const makeCanvas=()=>{const c=document.createElement('canvas');c.width=64;c.height=160;return c};
+ const toImage=src=>new Promise((ok,fail)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=fail;i.src=src});
+ // Cut ONLY the upper 19 native pixel rows, making the dome 0–5 px shorter.
+ // From row 32 onward, every original pixel is copied without alteration.
+ function compressScalp(base,shorten){
+  const c=makeCanvas(),ctx=c.getContext('2d',{willReadFrequently:true});
+  ctx.imageSmoothingEnabled=false;ctx.drawImage(base,0,0);
+  if(!shorten)return c;
+  const original=ctx.getImageData(0,0,64,160),changed=ctx.createImageData(64,160);
+  changed.data.set(original.data);
+  for(let y=13;y<32;y++){
+   const from=y<13+shorten?-1:13+Math.round((y-13-shorten)*(18/(18-shorten)));
+   for(let x=0;x<64;x++){
+    const to=(y*64+x)*4;
+    if(from<0){changed.data.fill(0,to,to+4)}
+    else{
+     const src=(from*64+x)*4;
+     changed.data.set(original.data.subarray(src,src+4),to);
+    }
+   }
+  }
+  ctx.putImageData(changed,0,0);return c;
+ }
+ function picture(c,shorten,withHair){
+  const ctx=c.getContext('2d');ctx.imageSmoothingEnabled=false;
+  const tmp=makeCanvas(),t=tmp.getContext('2d');t.imageSmoothingEnabled=false;
+  t.drawImage(compressScalp(img.head_base,shorten),0,0);
+  // Original approved V3 eyebrow image is actually upper eye line + lashes.
+  // Therefore use the ORIGINAL five-layer composite, not the later synthetic brow.
+  for(const key of ['eyebrows','eyes','mouth'])t.drawImage(img[key],0,0);
+  if(withHair)t.drawImage(img.hair_standard,0,0);
+  ctx.clearRect(0,0,64,64);
+  ctx.drawImage(tmp,0,0,64,64,0,0,64,64);
+ }
+ async function init(){
+  if(!layer)throw Error('原始 V3 圖層未載入');
+  const keys=['head_base','eyebrows','eyes','mouth','hair_standard'];
+  const images=await Promise.all(keys.map(k=>toImage(layer[k])));
+  keys.forEach((k,i)=>img[k]=images[i]);
+  const grid=document.querySelector('#grid');
+  for(const shorten of variants){
+   const card=document.createElement('section');card.className='card';
+   const h=document.createElement('h2');h.textContent=shorten===0?'原始版 · 0px':'縮短 '+shorten+'px';card.append(h);
+   const compare=document.createElement('div');compare.className='compare';
+   for(const withHair of [false,true]){
+    const cell=document.createElement('div');cell.className='cell';
+    const c=document.createElement('canvas');c.width=64;c.height=64;
+    picture(c,shorten,withHair);cell.append(c);
+    const lab=document.createElement('small');lab.textContent=withHair?'原銀白髮':'光頭';cell.append(lab);compare.append(cell);
+   }
+   card.append(compare);
+   const detail=document.createElement('div');detail.className='detail';detail.textContent=shorten===0?'原始頭頂 y13；眼、嘴、下巴保持原樣':'頭頂 y'+(13+shorten)+'；眼、嘴、下巴仍是原始座標';card.append(detail);
+   grid.append(card);
+  }
+  document.querySelector('#status').textContent='已載入：原始 V3 五圖層；這些都只是畫面對比，不會寫回正式遊戲。';
+ }
+ init().catch(e=>document.querySelector('#status').textContent='載入失敗：'+e.message);
+})();
+</script></body></html>
