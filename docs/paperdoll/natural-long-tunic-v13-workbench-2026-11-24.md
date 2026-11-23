@@ -11,7 +11,7 @@
 
 ## 新增
 - 素材程式：`assets/natural_long_tunic_v13.js`。
-- **衣身正面**：男女各一張獨立複製自已接受的 V3 自然衣身中心圖 `maleShirtCore`、`femaleShirtCore`。兩種衣服使用相同圖像資料作為基準，但**有不同的素材 ID、位移、穿著模式與顯示開關**。完全不修改 V3 原始 PNG。
+- **衣身正面**：男女各一張獨立複製自 V3 第三片、真正包含領口／繫帶／衣身的 `maleShirtRight`、`femaleShirtRight`。**注意：V3 歷史 key 命名有誤導性，`maleShirtCore`／`femaleShirtCore` 實際是袖片，不是衣身**。2026-11-24 已修正先前錯誤映射，修復胸口露出內衣與肌肉花紋的問題。兩種衣服使用相同圖像資料作為基準，但**有不同的素材 ID、位移、穿著模式與顯示開關**。完全不修改 V3 原始 PNG。
 - **袖子**：由 V12 左右袖 RGBA 圖，在保留肩部與布料原本顏色／皺褶的前提下重排後半段像素；最下緣從 Y93 收至 **Y88**，讓手掌多露出約 5px。男女各兩張真正透明 `64×160`，保存於 `256×160` 帶 tRNS 的 PNG 圖集。
 - 新增服裝：`starter_natural_long_tunic_v13`（僅正面 Z42）＋`starter_natural_long_tunic_v13_sleeves`（左袖 Z38、右袖 Z39）。無背面、不疊加 V3 短袖。
 - 座標預設：男性 x=-1,y=-1，女性 x=0,y=-1，scale=1；每件／每片獨立可調整。原 V3 座標不動。
@@ -31,3 +31,7 @@
 - 原 V3 短袖來源 SHA `fe18fd0af762e6d7dcecbbb4ddcd1876527194f1` 未變；遊戲 `index.html` 未被編輯。
 
 > 重要：本階段使用者只批准開始製作，**沒有批准將 V13 上架正式遊戲**。
+
+## 2026-11-24 後續修正：胸口來源對應錯誤
+
+使用者 iPhone 實拍顯示 V13 胸前缺少原本棕色系帶、露出內衣花紋。經比對 V3 384×160 圖集發現：男女各三片排列為「左袖／右袖／衣身」，其 source key 非依直觀命名；此前錯將第一片 `ShirtCore` 當衣身。已改為第三片 `maleShirtRight`／`femaleShirtRight`，並更新 `developer-studio.html` 引用的資產版本以避開瀏覽器快取。袖子 V13（Y88）不變；V3 正式原圖、衣服座標及 `index.html` 均未修改。GitHub 程式碼驗證完成，iPhone 新顯示仍需使用者確認。
