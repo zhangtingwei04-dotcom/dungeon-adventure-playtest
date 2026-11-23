@@ -243,7 +243,7 @@ function getWearMode(a,gender){
  const value=wearModes[wearModeKey(a.id,gender)];
  return a.slot==='chest'&&VALID_WEAR_MODES.includes(value)?value:defaultWearMode(a);
 }
-const APPROVED_FIT_PRESET_VERSION='wardrobe-approved-fit-20261123-v2-user-trousers';
+const APPROVED_FIT_PRESET_VERSION='wardrobe-approved-fit-20261123-v3-user-waist';
 const BUILTIN_IDS=new Set(catalogue.map(a=>a.id));
 const activeBuiltinOverrides=new Set();
 // Native 64x160 source coordinates. Shirt/cloak/hair/bag positions are from
@@ -266,7 +266,7 @@ const APPROVED_FIT_COORDS=Object.freeze({
  'starter_trousers:male:front':Object.freeze({x:-1,y:-6}),
  'starter_trousers:male:side':Object.freeze({x:-1,y:-8}),
  'starter_trousers:male:back':Object.freeze({x:0,y:-8}),
- 'starter_trousers:female:front':Object.freeze({x:0,y:-6}),
+ 'starter_trousers:female:front':Object.freeze({x:0,y:-5}),
  'starter_trousers:female:side':Object.freeze({x:0,y:-6}),
  'starter_trousers:female:back':Object.freeze({x:0,y:-6}),
  'enchanted_satchel:male:front':Object.freeze({x:0,y:-2}),
@@ -384,6 +384,19 @@ function restore(){
     for(const key of data.activeBuiltinOverrides||[]){
       if(typeof key==='string'&&stockKeys[key])activeBuiltinOverrides.add(key);
     }
+  }else if(data.approvedFitPresetVersion==='wardrobe-approved-fit-20261123-v2-user-trousers'){
+    // Update only the newly-confirmed female trousers waist; preserve
+    // all other fitted coordinates, z-values, visibility, and custom art.
+    try{if(raw&&!localStorage.getItem(KEY+'_before_user_female_waist_v3'))
+      localStorage.setItem(KEY+'_before_user_female_waist_v3',raw)}catch(e){console.warn('Female waist backup skipped:',e)}
+    for(const key of data.activeBuiltinOverrides||[]){
+      if(typeof key==='string'&&stockKeys[key])activeBuiltinOverrides.add(key);
+    }
+    const waistKey=k('starter_trousers','female','front');
+    transforms[waistKey]=defaultT(item('starter_trousers'),'female','front');
+    wearModes[wearModeKey('starter_tunic','male')]='tucked';
+    wearModes[wearModeKey('starter_tunic','female')]='tucked';
+    persist();
   }else if(data.approvedFitPresetVersion==='wardrobe-approved-fit-20261123-v1'){
     // Targeted migration of the previously confirmed V1 studio preset.
     // The user now supplied more precise positions for six trousers layers.
