@@ -141,6 +141,9 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 <div class="hint">白衣長袖 V6 真替換試驗｜沿用 V3 肩膀的像素和色票，延長袖子時停用舊短袖，不再額外疊加。只在開發者工作台顯示，正式遊戲未改動。</div>
 <div class="hint"><strong>V13 自然長袖（最新待驗收）：</strong>依照剛確認的雙人設計，保留 V3 自然衣身外觀，袖口比 V12 短 5px、手部更完整露出。男女各一件獨立服裝；衣身正面與左右袖分開，袖子在衣身後，沒有背面圖層。原版 V3 短袖和所有舊試驗皆完整保留。</div>
 <div class="toolbar"><button class="primary" type="button" id="v13On">V13 新版短袖口長袖｜男女試穿</button><button type="button" id="v13Off">切回原版 V3 短袖</button><button type="button" id="v13Cloak">V13 長袖＋披風</button></div>
+<div class="hint">V13 長袖穿法已可獨立切換：只改「正面衣身」與褲腰的遮擋；左右袖仍各自保持在衣身後、手臂照原樣。外罩式會讓衣身完整顯示在褲腰前，但不會憑空改長或放大原圖。</div>
+<div class="toolbar" role="group" aria-label="V13 長袖穿著方式"><button type="button" id="v13Tucked">V13 長袖｜紮入式</button><button type="button" id="v13Untucked">V13 長袖｜自然垂放</button><button class="primary" type="button" id="v13Outer">V13 長袖｜外罩式</button><button type="button" id="v13OuterFull">外罩＋披風＋背包（男女）</button></div>
+<div class="hint" id="v13WearStatus" role="status" aria-live="polite">選擇 V13 長袖穿著方式後，男女預覽會同步顯示。</div>
 <div class="hint">V13 圖層：左袖 Z38、右袖 Z39、正面衣身 Z42。袖口最下緣 Y88；獨立男女定位與可拖曳。先檢查肩部、衣身與露出的手掌，再決定是否晉升正式遊戲。</div>
 <div class="hint"><strong>舊 V12 對照版：</strong> 正面上衣＋兩隻長袖，沒有背面。</strong>男女各三張獨立透明 64×160；左右袖在正面衣身後層。原 V3 短袖和 V9、V10 歷史測試圖均保留。</div>
 <div class="toolbar"><button class="primary" type="button" id="v12On">V12 新長袖｜男女試穿</button><button type="button" id="v12Off">回到原版 V3 短袖</button><button type="button" id="v12Cloak">V12 長袖＋披風</button></div>
@@ -1093,6 +1096,17 @@ function updateControls(){
 }
 function update(){
  normalize();renderAssetList();updateControls();drawAll();refreshJson();
+ const wearStatus=$('v13WearStatus');
+ if(wearStatus){
+  const maleMode=getWearMode(item('starter_natural_long_tunic_v13'),'male');
+  const femaleMode=getWearMode(item('starter_natural_long_tunic_v13'),'female');
+  const label={tucked:'紮入式',untucked:'自然垂放',outer:'外罩式'};
+  wearStatus.textContent='V13 長袖：'+(naturalLongSleevesTrialV13?'試穿中':'尚未穿上')+
+   '｜男性 '+label[maleMode]+'／女性 '+label[femaleMode]+
+   '｜正面衣身在褲腰'+(maleMode==='outer'&&femaleMode==='outer'?'前方':'依各自模式排列');
+  for(const [buttonId,mode] of [['v13Tucked','tucked'],['v13Untucked','untucked'],['v13Outer','outer']])
+   $(buttonId).setAttribute('aria-pressed',String(naturalLongSleevesTrialV13&&maleMode===mode&&femaleMode===mode));
+ }
  const revealBtn=$('cloakArmRevealToggle');
  if(revealBtn){
   revealBtn.textContent='披風手臂保護：'+(cloakArmRevealTrial?'開（各種上衣）':'關');
@@ -1290,14 +1304,20 @@ $('wearModeBoth').onclick=()=>{
 };
 for(const [id,mode] of [['wearBothTucked','tucked'],['wearBothUntucked','untucked'],['wearBothOuter','outer']]){
  $(id).onclick=()=>{
+  // Apply to the actually worn torso (especially independent V13 long sleeves),
+  // not to hidden V3 short sleeves underneath an active long-sleeve trial.
+  const activeId=naturalLongSleevesTrialV13?'starter_natural_long_tunic_v13':
+   frontSleevesTrialV12?'starter_tunic_layered_v12':
+   layeredLongTunicTrialV10?'starter_tunic_layered_v10':
+   wholeLongTunicTrialV9?'starter_long_tunic_whole_v9':'starter_tunic';
   for(const gender of ['male','female']){
-   wearModes[wearModeKey('starter_tunic',gender)]=mode;
-   shown['starter_tunic:'+gender]=true;
+   wearModes[wearModeKey(activeId,gender)]=mode;
+   shown[activeId+':'+gender]=true;
    shown['starter_trousers:'+gender]=true;
   }
-  selected='starter_tunic';editingLayer='front';
+  selected=activeId;editingLayer='front';
   update();persist();
-  toast('已切換男女上衣穿著方式');
+  toast('已切換男女'+(activeId==='starter_natural_long_tunic_v13'?' V13 長袖':'上衣')+'穿著方式');
  };
 }
 for(const inputId of ['xInput','yInput','scaleInput','zInput'])$(inputId).onchange=updateTransform;
@@ -1430,6 +1450,35 @@ function setNaturalLongSleevesV13(on,withCloak=false){
 $('v13On').onclick=()=>setNaturalLongSleevesV13(true,false);
 $('v13Off').onclick=()=>setNaturalLongSleevesV13(false,false);
 $('v13Cloak').onclick=()=>setNaturalLongSleevesV13(true,true);
+// Install V13's three wear modes as real, persisted torso-only layering.
+// The sleeve sprites, native character arms, cape and satchel pixels remain intact.
+// Prior cloak visibility is preserved for ordinary mode changes; the combined
+// acceptance button intentionally equips both cloak and satchel for comparison.
+function applyV13WearMode(mode,fullOutfit=false){
+ if(!VALID_WEAR_MODES.includes(mode))return;
+ const priorCloak=Object.fromEntries(['male','female'].map(g=>[g,shown['starter_cloak:'+g]===true]));
+ if(!naturalLongSleevesTrialV13)setNaturalLongSleevesV13(true,false);
+ for(const gender of ['male','female']){
+  const shirtId='starter_natural_long_tunic_v13';
+  wearModes[wearModeKey(shirtId,gender)]=mode;
+  shown[shirtId+':'+gender]=true;
+  shown['starter_natural_long_tunic_v13_sleeves:'+gender]=true;
+  shown['starter_trousers:'+gender]=true;
+  shown['starter_cloak:'+gender]=fullOutfit?true:priorCloak[gender];
+  if(fullOutfit){
+   shown['enchanted_satchel:'+gender]=true;
+   layerShown[k('enchanted_satchel',gender,'front')]=true;
+  }
+ }
+ selected='starter_natural_long_tunic_v13';editingLayer='front';
+ update();persist();
+ const name={tucked:'紮入式',untucked:'自然垂放',outer:'外罩式'}[mode];
+ toast('男女 V13 長袖已套用'+name+(fullOutfit?'＋披風＋背包':''));
+}
+$('v13Tucked').onclick=()=>applyV13WearMode('tucked');
+$('v13Untucked').onclick=()=>applyV13WearMode('untucked');
+$('v13Outer').onclick=()=>applyV13WearMode('outer');
+$('v13OuterFull').onclick=()=>applyV13WearMode('outer',true);
 function setFrontSleevesV12(on,withCloak=false){
  frontSleevesTrialV12=on;
  naturalLongSleevesTrialV13=false;
