@@ -103,7 +103,7 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 <div class="hint">此處使用正式男女身體／內衣／頭髮素材。新增 PNG 可單獨定位、調整大小，並在男女預覽中測試。披風 V2 使用剛生成的原圖拆成透明前後層，可分別調整男女位置和大小；正式採用前仍需驗收。調完後到「數據與備份」複製數據給我。</div>
 <div class="layout">
 <div class="panel"><h2>素材庫</h2>
-<div class="hint">每件裝備每個部件可以獨立設定前後層級 Z；男女也能不同。預設保留先前穿著順序：白衣在長褲後、褲腰在褲管前、背包在披風前片後。位置沿用最新 JSON：男性褲腰(-1,-6)、左褲管(-1,-8)、右褲管(0,-8)；女性長褲三片(0,-6)。重設會恢復座標與層級，不修改正式遊戲。</div>
+<div class="hint">穿搭試驗：選白色初始布衣，切換「紮入式／自然垂放／外罩式」，男女可以不同。自然垂放只將下擺重新疊在褲腰前，不改袖子與角色；披風仍維持已核准的前後包覆。已儲存的 Z、男女座標及重設資料都保留。正式遊戲不會同步改動。</div>
 <div class="toolbar" style="margin:10px 0">
 <button class="primary" id="shirtOnly">試穿白布衣（暫隱披風）</button>
 <button id="shirtWithCloak">白布衣＋披風</button>
@@ -133,6 +133,14 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 <label class="field single">目前素材<select id="assetSelect"></select></label>
 <label class="field">編輯角色<select id="editGender"><option value="male">男性</option><option value="female">女性</option></select></label>
 <label class="field">編輯圖層<select id="editLayer"></select></label>
+<label class="field single" id="wearModeField">上衣穿著方式（該性別）
+<select id="wearModeSelect">
+<option value="tucked">紮入式｜褲腰遮住衣襬</option>
+<option value="untucked">自然垂放｜只讓衣襬蓋住褲腰</option>
+<option value="outer">外罩式｜整件上衣顯示在長褲前方</option>
+</select></label>
+<div id="wearModeHelp" class="hint">穿著方式只改變顯示遮擋，不改動原圖、X／Y、縮放或手動 Z 層級。</div>
+<div class="toolbar"><button id="wearModeBoth" type="button">將穿著方式套用至男女</button></div>
 <label class="field">X（像素）<input id="xInput" type="number" min="-160" max="160" step="1"></label>
 <label class="field">Y（像素）<input id="yInput" type="number" min="-160" max="160" step="1"></label>
 <label class="field">Scale（倍）<input id="scaleInput" type="number" min="0.1" max="4" step="0.01"></label>
@@ -225,7 +233,14 @@ const stockKeys={
  'enchanted_satchel:male:front':'approvedSatchel','enchanted_satchel:female:front':'approvedSatchel'
 };
 const images=new Map(),userPngs=new Map(),imageInfo=new Map();
-const transforms={},shown={},layerShown={};
+const transforms={},shown={},layerShown={},wearModes={};
+const VALID_WEAR_MODES=Object.freeze(['tucked','untucked','outer']);
+function defaultWearMode(a){return a.slot==='chest'?'tucked':a.slot==='outer'?'wrapped':'normal'}
+function wearModeKey(id,gender){return id+':'+gender}
+function getWearMode(a,gender){
+ const value=wearModes[wearModeKey(a.id,gender)];
+ return a.slot==='chest'&&VALID_WEAR_MODES.includes(value)?value:defaultWearMode(a);
+}
 const APPROVED_FIT_PRESET_VERSION='wardrobe-approved-fit-20261123-v2-user-trousers';
 const BUILTIN_IDS=new Set(catalogue.map(a=>a.id));
 const activeBuiltinOverrides=new Set();
@@ -299,6 +314,7 @@ function normalize(){
  for(const a of catalogue)for(const g of ['male','female']){
   const base=a.id+':'+g;
   if(shown[base]===undefined)shown[base]=defaultVisible(a.id);
+  if(wearModes[base]===undefined)wearModes[base]=defaultWearMode(a);
   for(const l of a.layers){
    const key=k(a.id,g,l);
    if(!transforms[key])transforms[key]=defaultT(a,g,l);
@@ -318,17 +334,17 @@ function serialize(oneId){
      image:info?{kind:'local-png',fileName:info.fileName,width:info.width,height:info.height}:
      stock?{kind:'builtin',key:stock}:{kind:'missing'}};
    }
-   genders[g]={visible:shown[a.id+':'+g]!==false,layers};
+   genders[g]={visible:shown[a.id+':'+g]!==false,wearMode:getWearMode(a,g),layers};
   }
   return {id:a.id,name:a.name,category:a.slot,status:a.status,layerNames:a.layers.slice(),genders};
  });
  return {format:'dungeon-character-asset-library-v1',project:'迷宮盡頭的燈火',pixelCanvas:{width:64,height:160},
   gameSaveMode:'independent-dev-preview',assets,
-  note:'工作台試穿參數包含每個部件的 z 前後層級（越大越前）；匯入的 PNG 需另外附圖，不會自動更新正式遊戲。'};
+  note:'工作台試穿參數包含每個部件的 z 和各性別的 wearMode 穿著方式；匯入的 PNG 需另外附圖，不會自動更新正式遊戲。'};
 }
 function persist(){
  try{
-  localStorage.setItem(KEY,JSON.stringify({catalogue,transforms,shown,layerShown,selected,editingGender,editingLayer,cloakArtVersion:'original-sheet-v2',approvedFitPresetVersion:APPROVED_FIT_PRESET_VERSION,activeBuiltinOverrides:[...activeBuiltinOverrides]}));
+  localStorage.setItem(KEY,JSON.stringify({catalogue,transforms,shown,layerShown,wearModes,selected,editingGender,editingLayer,cloakArtVersion:'original-sheet-v2',approvedFitPresetVersion:APPROVED_FIT_PRESET_VERSION,activeBuiltinOverrides:[...activeBuiltinOverrides]}));
   $('persistInfo').textContent='設定已儲存在這個裝置的工作台資料中。匯入圖片另存於本機資料庫；更換手機／瀏覽器不會自動同步。';
  }catch(e){$('persistInfo').textContent='本機設定儲存失敗：'+e.message;}
 }
@@ -350,6 +366,11 @@ function restore(){
   }
   for(const [key,value] of Object.entries(data.shown||{}))if(typeof value==='boolean')shown[key]=value;
   for(const [key,value] of Object.entries(data.layerShown||{}))if(typeof value==='boolean')layerShown[key]=value;
+  for(const [key,value] of Object.entries(data.wearModes||{})){
+   const parts=key.split(':'),a=item(parts[0]);
+   if(parts.length===2&&a&&['male','female'].includes(parts[1])&&a.slot==='chest'&&VALID_WEAR_MODES.includes(value))
+     wearModes[key]=value;
+  }
   if(catalogue.some(a=>a.id===data.selected))selected=data.selected;
   editingGender=data.editingGender==='male'?'male':'female';
   editingLayer=['front','back','side'].includes(data.editingLayer)?data.editingLayer:'front';
@@ -453,6 +474,21 @@ function drawImageOn(ctx,img,transform){
  const w=width*scale,h=height*scale;
  ctx.drawImage(img,32-w/2+transform.x,80-h/2+transform.y,w,h);
 }
+// Hem is intentionally clipped on the native 64x160 canvas rather than
+// producing alternate image assets. This lets different trousers coexist
+// with the same tunic without moving its shoulders, sleeves or face.
+function drawClippedGarment(ctx,img,t,minY,maxY){
+ if(!img||maxY<=minY)return;
+ ctx.save();ctx.beginPath();ctx.rect(0,minY,64,maxY-minY);ctx.clip();
+ drawImageOn(ctx,img,t);
+ ctx.restore();
+}
+function hemSplitY(img,t){
+ // Measured against the original V3 64x160 torso: the bottom of the tunic
+ // falls near its waist. Respect the layer offset without stretching pixels.
+ // The cutoff only affects display: the source PNG remains untouched.
+ return Math.max(68,Math.min(112,Math.round(85+t.y)));
+}
 function drawSlot(ctx,gender,slotsToDraw){
  for(const a of catalogue){
   if(!slotsToDraw.includes(a.slot)||shown[a.id+':'+gender]===false)continue;
@@ -514,7 +550,24 @@ function drawAssetStage(gender){
    if(layerShown[key]===false||!img)continue;
    const t=transforms[key]||defaultT(a,gender,layer);
    const z=safeNum(t.z,0,140,defaultZ(a,gender,layer));
-   enqueue(z,()=>drawImageOn(ctx,img,t));
+   // A shirt can wear three different modes without mutating its saved z.
+   // The "untucked" mode splits only the front torso at the lower hem.
+   // Side sleeves keep their original order and cannot jump over the belt.
+   const mode=getWearMode(a,gender),pants=item('starter_trousers');
+   const pantsPresent=!!pants&&shown['starter_trousers:'+gender]!==false&&pants.layers.some(l=>
+    layerShown[k('starter_trousers',gender,l)]!==false&&getImage('starter_trousers',gender,l));
+   const pantsFrontZ=pantsPresent?Math.max(...pants.layers.filter(l=>
+    layerShown[k('starter_trousers',gender,l)]!==false&&getImage('starter_trousers',gender,l))
+    .map(l=>safeNum(transforms[k('starter_trousers',gender,l)]?.z,0,140,defaultZ(pants,gender,l)))):z;
+   if(a.slot==='chest'&&pantsPresent&&mode==='untucked'&&layer==='front'){
+    const split=hemSplitY(img,t);
+    enqueue(z,()=>drawClippedGarment(ctx,img,t,0,split));
+    enqueue(Math.max(z,pantsFrontZ+0.25),()=>drawClippedGarment(ctx,img,t,split,160));
+   }else if(a.slot==='chest'&&pantsPresent&&mode==='outer'){
+    enqueue(Math.max(z,pantsFrontZ+0.25),()=>drawImageOn(ctx,img,t));
+   }else{
+    enqueue(z,()=>drawImageOn(ctx,img,t));
+   }
   }
  }
  // Restore the native visible hands when a cloak crosses their contour.
@@ -569,6 +622,18 @@ function updateControls(){
  $('zInput').value=String(safeNum(t.z,0,140,defaultZ(a,editingGender,editingLayer)));
  const p=String($('zInput').value);
  $('zPreset').value=Array.from($('zPreset').options).some(o=>o.value===p)?p:'';
+ const modeEnabled=a.slot==='chest';
+ $('wearModeField').hidden=!modeEnabled;
+ $('wearModeHelp').hidden=!modeEnabled;
+ $('wearModeBoth').hidden=!modeEnabled;
+ if(modeEnabled){
+  $('wearModeSelect').value=getWearMode(a,editingGender);
+  $('wearModeHelp').textContent=getWearMode(a,editingGender)==='tucked'?
+   '紮入式：保留目前核准的 Z 排序，褲腰蓋住衣服下擺。':
+   getWearMode(a,editingGender)==='untucked'?
+   '自然垂放：只把主衣身的下擺疊在褲腰前，袖子及上半身保持原 Z；不修改衣服圖檔。':
+   '外罩式：整件上衣的所有部件顯示在褲子前，適合外穿罩衫；披風仍獨立排序。';
+ }
  $('showAsset').checked=shown[a.id+':'+editingGender]!==false;
  $('showLayer').checked=layerShown[selectedKey()]!==false;
  const info=imageInfo.get(selectedKey());
@@ -643,6 +708,7 @@ function resetCanonicalFit(includeCustom=false){
   if(!includeCustom&&!BUILTIN_IDS.has(a.id))continue;
   for(const gender of ['male','female']){
    shown[a.id+':'+gender]=BUILTIN_IDS.has(a.id)?defaultVisible(a.id):false;
+   wearModes[wearModeKey(a.id,gender)]=defaultWearMode(a);
    for(const layer of a.layers){
     const key=k(a.id,gender,layer);
     transforms[key]=defaultT(a,gender,layer);
@@ -712,6 +778,19 @@ $('clearPreview').onclick=()=>{
 $('assetSelect').onchange=e=>{selected=e.target.value;const a=item(selected);editingLayer=a.layers.includes(editingLayer)?editingLayer:a.layers[0];update();persist()};
 $('editGender').onchange=e=>{editingGender=e.target.value;updateControls();drawAll();persist()};
 $('editLayer').onchange=e=>{editingLayer=e.target.value;updateControls();drawAll();persist()};
+$('wearModeSelect').onchange=e=>{
+ const a=item(selected);if(!a||a.slot!=='chest'||!VALID_WEAR_MODES.includes(e.target.value))return;
+ wearModes[wearModeKey(selected,editingGender)]=e.target.value;
+ updateControls();drawAll();refreshJson();persist();
+ toast('已切換'+(editingGender==='male'?'男性':'女性')+'衣服的穿著方式');
+};
+$('wearModeBoth').onclick=()=>{
+ const a=item(selected);if(!a||a.slot!=='chest')return;
+ const mode=getWearMode(a,editingGender);
+ for(const gender of ['male','female'])wearModes[wearModeKey(a.id,gender)]=mode;
+ updateControls();drawAll();refreshJson();persist();
+ toast('已將相同穿著方式套用到男女角色');
+};
 for(const inputId of ['xInput','yInput','scaleInput','zInput'])$(inputId).onchange=updateTransform;
 $('zPreset').onchange=e=>{
  if(e.target.value==='')return;
@@ -792,6 +871,8 @@ $('importJsonFile').onchange=async e=>{
     const genderData=a.genders?.[g];
     if(!genderData)continue;
     shown[target.id+':'+g]=genderData.visible!==false;
+    if(target.slot==='chest'&&VALID_WEAR_MODES.includes(genderData.wearMode))
+     wearModes[wearModeKey(target.id,g)]=genderData.wearMode;
     for(const layer of target.layers){
      const row=genderData.layers?.[layer];if(!row)continue;
      const key=k(target.id,g,layer);
@@ -882,6 +963,16 @@ async function init(){
     // because this preview link has ?trousers=2.
    }
    selected='starter_trousers';editingLayer='front';update();
+  }
+  // Optional temporary mobile trial link. Does not change any garment
+  // coordinates or z and does not auto-save until user edits the controls.
+  const wearPreview=new URLSearchParams(location.search).get('wear');
+  if(VALID_WEAR_MODES.includes(wearPreview)){
+   for(const gender of ['male','female']){
+    wearModes[wearModeKey('starter_tunic',gender)]=wearPreview;
+    shown['starter_tunic:'+gender]=true;shown['starter_trousers:'+gender]=true;
+   }
+   selected='starter_tunic';editingLayer='front';update();
   }
   if(new URLSearchParams(location.search).get('tab')==='library')setTab('library');
  }catch(e){toast('素材預載不完整：'+e.message);console.error(e);ready=true;update()}
