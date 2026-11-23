@@ -105,13 +105,14 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 <p>下方會載入目前 GitHub Pages 的正式遊戲程式，但使用獨立的開發測試存檔。此區是玩法預覽；裝備庫調整尚未寫入遊戲時，不會同步改動下方的遊戲角色。</p>
 <div class="toolbar"><button class="primary" id="reloadGame">重新載入測試</button><button id="launchGame">全頁開啟測試遊戲</button><button id="openLive">開啟正式遊戲</button><button id="clearPreview">清除測試存檔</button></div>
 <div class="hint">建議 iPhone 橫向操作。內嵌預覽保留遊戲原本 1536×707 版面；如果畫面太小，按「全頁開啟測試遊戲」。正式遊戲存檔與預覽存檔分開。</div>
-<div class="gameWindow" id="gameWindow"><iframe id="gameFrame" title="迷宮盡頭的燈火：獨立存檔的遊戲預覽" src="./?dev-preview=1&v=studio-20261122" loading="lazy" allow="fullscreen"></iframe></div>
+<div class="gameWindow" id="gameWindow"><iframe id="gameFrame" title="迷宮盡頭的燈火：獨立存檔的遊戲預覽" src="./?dev-preview=1&amp;bagSplit=trial&amp;v=studio-bag-20261124" loading="lazy" allow="fullscreen"></iframe></div>
 </div>
 </section>
 <section id="page-library" data-page="library" hidden>
 <div class="hint">此處使用正式男女身體／內衣／頭髮素材。新增 PNG 可單獨定位、調整大小，並在男女預覽中測試。披風 V2 使用剛生成的原圖拆成透明前後層，可分別調整男女位置和大小；正式採用前仍需驗收。調完後到「數據與備份」複製數據給我。</div>
 <div class="layout">
 <div class="panel"><h2>素材庫</h2>
+<div class="hint">側包新測試：使用原圖，Y97 起的包身顯示在披風前，肩帶留在披風內。下面兩位角色可一鍵預覽，獨立遊戲預覽也開啟此測試；正式遊戲預設不變。</div>
 <div class="hint">穿搭試驗：選白色初始布衣，切換「紮入式／自然垂放／外罩式」，男女可以不同。自然垂放只將下擺重新疊在褲腰前，不改袖子與角色；披風仍維持已核准的前後包覆。已儲存的 Z、男女座標及重設資料都保留。正式遊戲不會同步改動。</div>
 <div class="toolbar" style="margin:10px 0">
 <button class="primary" id="shirtOnly">試穿白布衣（暫隱披風）</button>
@@ -120,6 +121,7 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 <button class="primary" id="trousersOn">試穿新版旅行長褲 V2</button>
 <button id="trousersWithCloak">長褲＋披風</button>
 <button id="trousersOff">脫下旅行長褲</button>
+<button class="primary" id="satchelWithCloak">側包＋披風：下包在外</button><button id="satchelOnly">側包單穿</button><button id="satchelOff">脫下側包</button>
 </div><div class="libraryList" id="assetList" role="group" aria-label="角色與裝備素材清單"></div>
 <div class="divider"></div><h3>新增裝備／髮型</h3>
 <div class="editorFields">
@@ -644,6 +646,8 @@ function drawClippedGarment(ctx,img,t,minY,maxY){
  drawImageOn(ctx,img,t);
  ctx.restore();
 }
+const SATCHEL_POUCH_CUT_Y=97;
+function satchelPouchCanvasCut(t){return Math.max(0,Math.min(160,Math.round(80+(SATCHEL_POUCH_CUT_Y-80)*t.scale+t.y)))}
 function hemSplitY(img,t){
  // Measured against the original V3 64x160 torso: the bottom of the tunic
  // falls near its waist. Respect the layer offset without stretching pixels.
@@ -969,7 +973,15 @@ function drawAssetStage(gender){
    const pantsFrontZ=pantsPresent?Math.max(...pants.layers.filter(l=>
     layerShown[k('starter_trousers',gender,l)]!==false&&getImage('starter_trousers',gender,l))
     .map(l=>safeNum(transforms[k('starter_trousers',gender,l)]?.z,0,140,defaultZ(pants,gender,l)))):z;
-   if((a.id==='starter_tunic'||a.id==='starter_long_tunic_whole_v9'||a.id==='starter_tunic_layered_v10'||a.id==='starter_tunic_layered_v12'||a.id==='starter_natural_long_tunic_v13')&&pantsPresent&&mode==='untucked'&&layer==='front'){
+   if(a.id==='enchanted_satchel'&&layer==='front'){
+    const ck=k('starter_cloak',gender,'front');
+    const cape=shown['starter_cloak:'+gender]!==false&&layerShown[ck]!==false&&!!getImage('starter_cloak',gender,'front');
+    if(cape){
+     const cut=satchelPouchCanvasCut(t),capeZ=safeNum(transforms[ck]?.z,0,140,80);
+     enqueue(z,()=>drawClippedGarment(ctx,img,t,0,cut));
+     enqueue(Math.max(z,capeZ+0.25),()=>drawClippedGarment(ctx,img,t,cut,160));
+    }else enqueue(z,()=>drawImageOn(ctx,img,t));
+   }else if((a.id==='starter_tunic'||a.id==='starter_long_tunic_whole_v9'||a.id==='starter_tunic_layered_v10'||a.id==='starter_tunic_layered_v12'||a.id==='starter_natural_long_tunic_v13')&&pantsPresent&&mode==='untucked'&&layer==='front'){
     const split=hemSplitY(img,t);
     enqueue(z,()=>drawClippedGarment(ctx,img,t,0,split));
     enqueue(Math.max(z,pantsFrontZ+0.25),()=>drawClippedGarment(ctx,img,t,split,160));
@@ -1251,13 +1263,13 @@ for(const b of document.querySelectorAll('[data-tab]'))b.onclick=()=>setTab(b.da
 $('openBodyMeasure').onclick=()=>openUrl('./body-measure-studio.html?v=3');
 $('openLegacyArmScan').onclick=()=>openUrl('./arm-horizontal-scan.html?v=1');
 $('openManualArm').onclick=()=>openUrl('./arm-manual-measure.html?v=2');
-$('reloadGame').onclick=()=>{$('gameFrame').src='./?dev-preview=1&v='+Date.now();toast('已重新載入獨立測試存檔')};
-$('launchGame').onclick=()=>openUrl('./?dev-preview=1&v=studio-full');
+$('reloadGame').onclick=()=>{$('gameFrame').src='./?dev-preview=1&bagSplit=trial&v='+Date.now();toast('已重新載入獨立測試存檔')};
+$('launchGame').onclick=()=>openUrl('./?dev-preview=1&bagSplit=trial&v=studio-full');
 $('openLive').onclick=()=>openUrl('./');
 $('clearPreview').onclick=()=>{
  if(!confirm('確定清除開發預覽存檔？正式遊戲存檔完全不會更動。'))return;
  localStorage.removeItem('dungeon_adventure_ch1_devpreview_v1');
- $('gameFrame').src='./?dev-preview=1&v='+Date.now();
+ $('gameFrame').src='./?dev-preview=1&bagSplit=trial&v='+Date.now();
  toast('開發測試存檔已清除');
 };
 $('assetSelect').onchange=e=>{selected=e.target.value;const a=item(selected);editingLayer=a.layers.includes(editingLayer)?editingLayer:a.layers[0];update();persist()};
@@ -1338,6 +1350,10 @@ function applyTrousersTrial(worn,withCloak=false){
 $('trousersOn').onclick=()=>applyTrousersTrial(true,false);
 $('trousersWithCloak').onclick=()=>applyTrousersTrial(true,true);
 $('trousersOff').onclick=()=>applyTrousersTrial(false,false);
+function previewSatchel(worn,cloak){for(const g of ['male','female']){shown['enchanted_satchel:'+g]=worn;shown['starter_cloak:'+g]=cloak;layerShown[k('enchanted_satchel',g,'front')]=true;}selected='enchanted_satchel';editingLayer='front';update();persist()}
+$('satchelWithCloak').onclick=()=>previewSatchel(true,true);
+$('satchelOnly').onclick=()=>previewSatchel(true,false);
+$('satchelOff').onclick=()=>previewSatchel(false,true);
 $('addAsset').onclick=addAsset;
 $('copySelected').onclick=async()=>{
  const ok=await copyText(JSON.stringify(serialize(selected),null,2));
