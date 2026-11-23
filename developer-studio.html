@@ -123,7 +123,7 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 <div class="panel"><h2>角色即時預覽</h2><div class="avatarGrid">
 <div class="avatarCard" id="maleCard"><strong>男性｜原版頭</strong><div class="sub">真實底模 64×160</div><div class="spriteChecker"><canvas width="64" height="160" id="maleCanvas" aria-label="男性角色即時裝備預覽，可拖曳調整所選圖層"></canvas></div></div>
 <div class="avatarCard" id="femaleCard"><strong>女性｜新版頭</strong><div class="sub">真實底模 64×160</div><div class="spriteChecker"><canvas width="64" height="160" id="femaleCanvas" aria-label="女性角色即時裝備預覽，可拖曳調整所選圖層"></canvas></div></div>
-</div><div class="toolbar" style="margin-top:10px"><button id="resetView">恢復兩性並排</button><button class="primary" id="resetApprovedFit">恢復已確認服裝位置</button><button id="toggleGuides">肩頸輔助線：關</button><button id="cloakArmRevealToggle" type="button">披風前臂修正：開</button></div>
+</div><div class="toolbar" style="margin-top:10px"><button id="resetView">恢復兩性並排</button><button class="primary" id="resetApprovedFit">恢復已確認服裝位置</button><button id="toggleGuides">肩頸輔助線：關</button><button id="cloakArmRevealToggle" type="button">披風遮擋 V4：原手臂輪廓</button></div>
 <div class="hint">上衣穿搭試驗｜可一鍵同時切換男女角色，直接比較白布衣與褲腰的遮擋。</div>
 <div class="toolbar"><button type="button" id="wearBothTucked">紮入式（男女）</button><button type="button" id="wearBothUntucked">自然垂放（男女）</button><button type="button" id="wearBothOuter">外罩式（男女）</button></div>
 <p>直接在角色圖上拖曳，可移動目前選取性別與圖層。只修改該圖層參數，不會移動底模或頭部。</p>
@@ -525,46 +525,53 @@ function drawSlot(ctx,gender,slotsToDraw){
 // Recompose exactly the original approved body + shorts + tank inside the
 // forearm strip. Drawing body alone OVER the cape hid original underwear
 // pixels, incorrectly making the shorts look smaller.
+// Draw only the real arm's visible skin/outline pixels for this specific
+// approved cloak. Unlike the old rectangular redraw, this overlay does not
+// repaint shorts, tank, the torso, or uncovered thighs above the trousers.
 function drawOriginalBodyHands(ctx,gender,cloakId='starter_cloak'){
+ if(!cloakArmRevealTrial||!CLOAK_ARM_REVEAL_TRIAL_IDS.includes(cloakId))return;
  const nativeBody=images.get(gender+'Body');if(!nativeBody)return;
- const shirtWorn=shown['starter_tunic:'+gender]!==false;
- const activeCloakTrial=cloakArmRevealTrial&&CLOAK_ARM_REVEAL_TRIAL_IDS.includes(cloakId);
- ctx.save();ctx.beginPath();
- if(activeCloakTrial&&shirtWorn){
-  // V3: conservative tapered ARM-ONLY contour. Critical: never restore
-  // original naked body over the hip/thigh next to trousers. The original
-  // rectangles extended to x20/44 at Y=90..101, producing two skin streaks.
-  // Each successive band narrows INWARDS so the hand remains visible while
-  // the skin near the trouser side seams stays behind the cloak.
-  // 64x160 native pixels; both genders use the exact same outside bounds.
-  // Area y76..82: upper forearms just below the cloak/sleeve edge.
-  ctx.rect(0,76,21,7);ctx.rect(43,76,21,7);
-  // Area y83..89: middle forearms (taper towards hands).
-  ctx.rect(0,83,19,7);ctx.rect(45,83,19,7);
-  // Area y90..101: palm/fingers ONLY, away from naked thigh pixels.
-  ctx.rect(0,90,15,12);ctx.rect(49,90,15,12);
- }else if(shirtWorn){
-  // Original comparison state, retained for A/B evaluation.
-  ctx.rect(0,76,20,26);ctx.rect(44,76,20,26);
- }else{
-  // Original no-shirt handling stays available when trial is off.
-  ctx.rect(0,70,24,32);ctx.rect(40,70,24,32);
- }
- ctx.clip();
- // CRITICAL: only repaint the ORIGINAL SKIN sprite. Do not draw the
- // 64x160 shorts, tank or entire tunic through the clip -- these cause
- // ghost garment strips and incorrectly render body pixels over trousers.
- if(activeCloakTrial&&shirtWorn){
-  ctx.drawImage(nativeBody,0,0,64,160);
- }else{
-  // Exact legacy comparison, and no-shirt handling: body and original
-  // underwear layers are restored exactly as before this V3 trial.
-  for(const name of ['Body','Shorts','Tank']){
-   const image=images.get(gender+name);
-   if(image)ctx.drawImage(image,0,0,64,160);
+ const canvas=document.createElement('canvas');canvas.width=64;canvas.height=160;
+ const bctx=canvas.getContext('2d',{willReadFrequently:true});
+ bctx.drawImage(nativeBody,0,0,64,160);
+ const bodyPixels=bctx.getImageData(0,0,64,160);
+ // Dynamically rasterize currently equipped fitted trousers as an occlusion
+ // matte; even if the user moves the pants, body pixels cannot paint across
+ // visible pants fabric. No trouser art or z-values are changed.
+ const trousers=item('starter_trousers');
+ let trouserAlpha=null;
+ if(trousers&&shown['starter_trousers:'+gender]!==false){
+  const pantsCanvas=document.createElement('canvas');pantsCanvas.width=64;pantsCanvas.height=160;
+  const pantsCtx=pantsCanvas.getContext('2d',{willReadFrequently:true});
+  for(const layer of trousers.layers){
+   const key=k('starter_trousers',gender,layer);
+   if(layerShown[key]===false)continue;
+   const garment=getImage('starter_trousers',gender,layer);
+   if(garment)drawImageOn(pantsCtx,garment,transforms[key]||defaultT(trousers,gender,layer));
   }
+  trouserAlpha=pantsCtx.getImageData(0,0,64,160).data;
  }
- ctx.restore();
+ const data=bodyPixels.data;
+ const isPantNear=(x,y)=>{
+  if(!trouserAlpha)return false;
+  // A 1px guard prevents glowing skin slivers along clothing outlines.
+  for(let yy=Math.max(0,y-1);yy<=Math.min(159,y+1);yy++)
+   for(let xx=Math.max(0,x-1);xx<=Math.min(63,x+1);xx++)
+    if(trouserAlpha[(yy*64+xx)*4+3]>40)return true;
+  return false;
+ };
+ for(let y=0;y<160;y++)for(let x=0;x<64;x++){
+  const i=(y*64+x)*4;
+  if(data[i+3]===0)continue;
+  // Anatomical side bands progressively taper towards the hand; the arms
+  // terminate before the body turns into upper legs. Do not restore ANY
+  // native body pixels across waist/hip/thigh regions.
+  const limit=y<=80?22:y<=88?19:y<=94?16:14;
+  const inArm=(y>=74&&y<=99)&&(x<limit||x>=64-limit);
+  if(!inArm||isPantNear(x,y))data[i+3]=0;
+ }
+ bctx.putImageData(bodyPixels,0,0);
+ ctx.drawImage(canvas,0,0);
 }
 function drawAssetStage(gender){
  const c=$(gender+'Canvas'),ctx=c.getContext('2d');
@@ -692,7 +699,7 @@ function update(){
  normalize();renderAssetList();updateControls();drawAll();refreshJson();
  const revealBtn=$('cloakArmRevealToggle');
  if(revealBtn){
-  revealBtn.textContent='披風手臂輪廓 V3：'+(cloakArmRevealTrial?'開':'關（舊版對照）');
+  revealBtn.textContent='披風遮擋 V4：'+(cloakArmRevealTrial?'原手臂輪廓':'不補畫皮膚');
   revealBtn.setAttribute('aria-pressed',String(cloakArmRevealTrial));
  }
  for(const [id,mode] of [['wearBothTucked','tucked'],['wearBothUntucked','untucked'],['wearBothOuter','outer']]){
@@ -913,7 +920,7 @@ $('resetView').onclick=()=>{$('maleCard').hidden=false;$('femaleCard').hidden=fa
 $('resetApprovedFit').onclick=()=>resetCanonicalFit(false);
 $('cloakArmRevealToggle').onclick=()=>{
  cloakArmRevealTrial=!cloakArmRevealTrial;update();persist();
- toast(cloakArmRevealTrial?'披風 V2：手臂輪廓限定於外側':'披風 V2：已切回舊版遮罩');
+ toast(cloakArmRevealTrial?'深綠披風：只補原手臂輪廓且避開長褲':'深綠披風：已關閉額外皮膚補畫');
 };
 $('toggleGuides').onclick=()=>{guides=!guides;$('toggleGuides').textContent='肩頸輔助線：'+(guides?'開':'關');drawAll()};
 $('copyAll').onclick=async()=>{refreshJson();const ok=await copyText($('jsonOutput').value);toast(ok?'已複製全部素材的 JSON':'請長按 JSON 欄位複製')};
@@ -1031,8 +1038,9 @@ async function init(){
    }
    selected='starter_trousers';editingLayer='front';update();
   }
-  // Show this cloak only for mobile A/B trial; this URL does not
-  // persist or alter fitted coordinates, sprite files or saved Z.
+  // Show this cloak only for mobile arm-v4 trial; the link forces the
+  // safe pixel-occluded view ON even if stale local settings were OFF.
+  // It does not persist or alter fitted coords, sprites, or saved Z.
   if(new URLSearchParams(location.search).get('cloakArms')==='1'){
    cloakArmRevealTrial=true;
    for(const gender of ['male','female']){
