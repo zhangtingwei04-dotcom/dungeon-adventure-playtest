@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>迷宮盡頭的燈火｜手機手臂手動測量</title>
+<style>
+:root{color-scheme:dark;--bg:#0d2822;--panel:#1a3c32;--line:#a68e5e;--gold:#eed097;--ink:#f4f1df;--muted:#c2d1c6}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,-apple-system,"Noto Sans TC",sans-serif}
+main{width:min(100%,690px);margin:auto;padding:17px 12px 48px}
+h1{font-size:22px;margin:0 0 6px}h2{font-size:17px;margin:0 0 9px}
+p{color:var(--muted);margin:5px 0 13px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px;margin:12px 0}
+.tag{font-size:12px;color:var(--gold)}
+button,select{border:1px solid var(--line);border-radius:10px;background:#234a3d;color:var(--ink);padding:10px 11px;min-height:44px;font:inherit}
+button:disabled{opacity:.4}
+button.primary{background:#e1c489;color:#183028;font-weight:750}
+button:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid #f7e3a9;outline-offset:2px}
+button[aria-pressed=true]{background:#e1c489;color:#183028;font-weight:750}
+.toolbar{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0}
+.toolbar>*{flex:1;min-width:105px}
+.mode{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.mode label{font-size:13px;color:var(--muted)}
+.mode select{flex:1;min-width:165px}
+#step{font-size:18px;font-weight:760;color:#ffdf9c;line-height:1.45}
+#progress{font-size:13px;color:#d1dbce}
+#last{font-size:13px;color:#dce8db;min-height:19px}
+.stage{background-color:#283e35;background-image:linear-gradient(45deg,#345247 25%,transparent 25%),linear-gradient(-45deg,#345247 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#345247 75%),linear-gradient(-45deg,transparent 75%,#345247 75%);background-position:0 0,0 9px,9px -9px,-9px 0;background-size:18px 18px;border:1px solid #54705d;border-radius:12px;display:flex;justify-content:center;padding:8px 0;overflow:hidden}
+#scene{width:min(calc(100vw - 65px),384px);max-width:100%;height:auto;aspect-ratio:64/70;image-rendering:pixelated;touch-action:none;cursor:crosshair;display:block}
+#status{color:var(--gold);font-size:13px;min-height:20px}
+#feedback{font-size:13px;color:#d8e5d8}
+#measurements{font-size:13px;border-collapse:collapse;width:100%}
+#measurements th,#measurements td{padding:8px 5px;border-bottom:1px solid #456254;text-align:left}
+#measurements th{color:#dfcf9a;font-weight:600}
+textarea{width:100%;min-height:138px;background:#0b241e;color:#f2e8cf;border:1px solid var(--line);border-radius:9px;padding:9px;font:11px/1.4 ui-monospace,monospace}
+a{color:#f3d89d}
+.hint{font-size:12px;line-height:1.65;color:var(--muted)}
+.swatch{display:inline-block;width:10px;height:10px;border-radius:99px;background:#ffb64c;margin-right:5px}
+@media(min-width:540px){main{padding:22px 18px}.panel{padding:17px}}
+</style>
+<script src="./assets/cloak_workbench_bases_v1.js?v=1"></script>
+<script src="./assets/white_shirt_workbench_v3.js?v=3"></script>
+<script src="./assets/sleeve_replacement_workbench_v7.js?v=7"></script>
+</head>
+<body>
+<main>
+<div class="tag">64 × 160 原始底模 · iPhone 點選測量 · 獨立工具</div>
+<h1>自己量男女手臂的像素位置</h1>
+<p>在角色圖上依序點出每隻手臂的<strong>外邊緣、內邊緣</strong>，系統會自動記錄 X／Y。量完後複製 JSON 傳到對話框即可。只讀取原始 PNG，完全不更改遊戲。</p>
+<section class="panel">
+<div class="mode">
+<label for="reference">顯示參考</label>
+<select id="reference">
+<option value="body">原始 Body（量皮膚手臂）</option>
+<option value="v3">原 Body ＋ V3 原短袖</option>
+<option value="v7">原 Body ＋ V7 試驗長袖</option>
+</select>
+</div>
+<div class="toolbar" id="jump">
+<button type="button" data-group="male:left">男・畫面左手</button>
+<button type="button" data-group="male:right">男・畫面右手</button>
+<button type="button" data-group="female:left">女・畫面左手</button>
+<button type="button" data-group="female:right">女・畫面右手</button>
+</div>
+<div id="step">準備測量…</div>
+<div id="progress"></div>
+<div class="stage"><canvas id="scene" width="64" height="70" aria-label="點擊角色肩膀、手肘、手腕輪廓，記錄像素座標"></canvas></div>
+<p class="hint">顯示區域是原 64×160 畫布的 <strong>Y45–114</strong>，只是放大預覽，點選時仍會輸出真正的 X、Y。肩膀約 Y55–70、手肘約 Y73–88、手腕約 Y88–101；以實際原圖為準，不必硬照建議值。</p>
+<div id="last">尚未記錄座標</div><div id="status">正在載入原始 PNG…</div>
+<div class="toolbar">
+<button type="button" id="undo">撤銷上一點</button>
+<button type="button" id="skip">略過這個點</button>
+<button type="button" id="reset">全部清除</button>
+</div>
+</section>
+<section class="panel">
+<h2>已量到的寬度</h2>
+<p class="hint">每個部位要點兩次：先外緣，再內緣。左右手都分開量。可以只測量一隻手就先把資料傳給我。</p>
+<table id="measurements"><thead><tr><th>角色／手</th><th>部位</th><th>外緣</th><th>內緣</th><th>寬度</th></tr></thead><tbody></tbody></table>
+<div class="toolbar">
+<button type="button" class="primary" id="copy">複製數據 JSON</button>
+<button type="button" id="download">下載 JSON 檔</button>
+</div>
+<div id="feedback">測量值只存在這個瀏覽器的獨立暫存，不會更新遊戲設定。</div>
+<textarea id="output" aria-label="測量數據 JSON" readonly></textarea>
+</section>
+<p><a href="./arm-fit-diagnostic.html?v=2">原本的自動像素測量頁</a> · <a href="./developer-studio.html?tab=library">返回開發者工作台</a></p>
+</main>
+<script>
+(()=>{'use strict';
+const W=64,H=160,CROP_Y=45,CROP_H=70;
+const KEY='dungeon_arm_manual_measure_v1';
+const $=id=>document.getElementById(id);
+const levels=[['shoulder','肩膀'],['elbow','手肘'],['wrist','手腕']];
+const groups=[['male','left'],['male','right'],['female','left'],['female','right']];
+const steps=[];
+for(const [gender,side] of groups)for(const [level] of levels)for(const edge of ['outer','inner'])
+ steps.push({gender,side,level,edge,key:[gender,side,level,edge].join(':')});
+let data={},index=0,reference='body',src={},ready=false;
+try{const saved=JSON.parse(localStorage.getItem(KEY)||'null');if(saved&&saved.format==='dungeon-arm-manual-points-v1'&&saved.points&&typeof saved.points==='object')data=saved.points}catch(_){}
+index=Math.max(0,steps.findIndex(s=>!data[s.key]));if(steps.every(s=>data[s.key]))index=steps.length;
+const names={male:'男性',female:'女性',left:'畫面左手',right:'畫面右手',shoulder:'肩膀',elbow:'手肘',wrist:'手腕',outer:'外緣',inner:'內緣'};
+function loadImage(url){return new Promise((res,rej)=>{const img=new Image();img.onload=()=>res(img);img.onerror=()=>rej(new Error('PNG 載入失敗'));img.src=url})}
+function save(){try{localStorage.setItem(KEY,JSON.stringify({format:'dungeon-arm-manual-points-v1',points:data}))}catch(_){}}
+function exportData(){
+ const samples=[];
+ for(const [gender,side] of groups)for(const [level] of levels){
+  const outer=data[[gender,side,level,'outer'].join(':')]||null;
+  const inner=data[[gender,side,level,'inner'].join(':')]||null;
+  samples.push({gender,screenSide:side,landmark:level,outer,inner,widthPx:outer&&inner?Math.abs(outer.x-inner.x)+1:null,rowDifference:outer&&inner?Math.abs(outer.y-inner.y):null});
+ }
+ return {format:'dungeon-arm-manual-measurement-v1',project:'迷宮盡頭的燈火',
+ nativeCanvas:{width:W,height:H},cropY:CROP_Y,
+ reference:'true original male/female Body PNG; V3/V7 optionally shown for comparison',
+ completed:steps.filter(s=>data[s.key]).length,total:steps.length,samples};
+}
+function draw(){
+ if(!ready)return;
+ const entry=steps[Math.min(index,steps.length-1)],gender=entry.gender;
+ const canvas=$('scene'),ctx=canvas.getContext('2d');
+ ctx.clearRect(0,0,W,CROP_H);ctx.imageSmoothingEnabled=false;
+ ctx.drawImage(src[gender].body,0,-CROP_Y);
+ const x=gender==='male'?-1:0;
+ if(reference==='v3'){
+  const sheet=src.shirt;
+  for(let i=0;i<3;i++)ctx.drawImage(sheet,(gender==='male'?0:3)*W+i*W,0,W,H,x,-CROP_Y-1,W,H);
+ }else if(reference==='v7'){
+  const shirtIdx=gender==='male'?0:3;
+  ctx.drawImage(src.shirt,shirtIdx*W,0,W,H,x,-CROP_Y-1,W,H);
+  for(let i=0;i<2;i++)ctx.drawImage(src.sleeve,(gender==='male'?0:2)*W+i*W,0,W,H,x,-CROP_Y-1,W,H);
+ }
+ ctx.save();ctx.lineWidth=.35;
+ for(const step of steps){
+  if(step.gender!==gender)continue;
+  const p=data[step.key];if(!p)continue;
+  const y=p.y-CROP_Y;if(y<0||y>=CROP_H)continue;
+  const isCurrentSide=step.side===entry.side;
+  ctx.fillStyle=isCurrentSide?'#ffb646':'#61e1ff';
+  ctx.fillRect(p.x-1,y-1,3,3);
+ }
+ if(index<steps.length){
+  const p=data[steps[index].key];
+  if(p){
+   ctx.strokeStyle='#ffd66a';ctx.beginPath();ctx.moveTo(p.x,0);ctx.lineTo(p.x,CROP_H);ctx.moveTo(0,p.y-CROP_Y);ctx.lineTo(W,p.y-CROP_Y);ctx.stroke();
+  }
+ }
+ ctx.restore();
+}
+function renderTable(){
+ const rows=exportData().samples;
+ $('measurements').querySelector('tbody').innerHTML=rows.map(r=>{
+  const label=names[r.gender]+'・'+(r.screenSide==='left'?'左手':'右手');
+  const txt=p=>p?'('+p.x+', '+p.y+')':'—';
+  return '<tr><td>'+label+'</td><td>'+names[r.landmark]+'</td><td>'+txt(r.outer)+'</td><td>'+txt(r.inner)+'</td><td>'+(r.widthPx===null?'—':r.widthPx+'px')+'</td></tr>';
+ }).join('');
+ $('output').value=JSON.stringify(exportData(),null,2);
+}
+function refresh(){
+ const complete=steps.filter(s=>data[s.key]).length;
+ const step=steps[index];
+ $('step').textContent=step?
+  '現在請點：'+names[step.gender]+'・'+names[step.side]+'・'+names[step.level]+'「'+names[step.edge]+'」':
+  '24 個位置已標記完成；可以複製 JSON 傳給我';
+ $('progress').textContent='已完成 '+complete+' / '+steps.length+' 個座標｜目前第 '+(index>=steps.length?steps.length:index+1)+' 步';
+ for(const b of document.querySelectorAll('[data-group]')){
+  const g=b.dataset.group;
+  b.setAttribute('aria-pressed',String(step&&g===step.gender+':'+step.side));
+ }
+ $('undo').disabled=index===0;
+ $('skip').disabled=index>=steps.length;
+ draw();renderTable();save();
+}
+function mark(clientX,clientY){
+ if(!ready||index>=steps.length)return;
+ const rect=$('scene').getBoundingClientRect();
+ const x=Math.max(0,Math.min(W-1,Math.floor((clientX-rect.left)*W/rect.width)));
+ const y=Math.max(CROP_Y,Math.min(CROP_Y+CROP_H-1,Math.floor((clientY-rect.top)*CROP_H/rect.height)+CROP_Y));
+ const step=steps[index];data[step.key]={x,y};index++;
+ $('last').textContent='剛剛標記：'+names[step.gender]+'・'+names[step.side]+'・'+names[step.level]+' '+names[step.edge]+'  X='+x+'，Y='+y;
+ refresh();
+}
+$('scene').addEventListener('pointerdown',e=>{e.preventDefault();mark(e.clientX,e.clientY)});
+$('reference').onchange=e=>{reference=e.target.value;draw()};
+$('undo').onclick=()=>{if(index>0){index--;delete data[steps[index].key];refresh()}};
+$('skip').onclick=()=>{if(index<steps.length){index++;refresh()}};
+$('reset').onclick=()=>{if(confirm('要清除目前所有手臂測量點嗎？')){data={};index=0;$('last').textContent='已清除，重新開始';refresh()}};
+for(const b of document.querySelectorAll('[data-group]'))b.onclick=()=>{
+ const group=b.dataset.group;const found=steps.findIndex(s=>s.gender+':'+s.side===group&&!data[s.key]);
+ index=found<0?steps.findIndex(s=>s.gender+':'+s.side===group):found;
+ if(index<0)index=0;
+ refresh();
+};
+$('copy').onclick=async()=>{
+ const txt=JSON.stringify(exportData(),null,2);$('output').value=txt;
+ try{if(!navigator.clipboard?.writeText)throw new Error('clipboard unavailable');await navigator.clipboard.writeText(txt);$('feedback').textContent='已複製！回到 ChatGPT 對話框貼上即可。'}
+ catch(_){$('output').focus();$('output').select();$('feedback').textContent='無法自動複製；已選取下方文字，請使用 iPhone「複製」。'}
+};
+$('download').onclick=()=>{
+ const blob=new Blob([JSON.stringify(exportData(),null,2)],{type:'application/json'});
+ const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='dungeon-arm-measurement.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1200);
+};
+async function init(){
+ const base=window.DungeonCloakWorkbenchBasesV1;
+ const shirt=window.DungeonWhiteShirtWorkbenchV1;
+ const sleeve=window.DungeonSleeveReplacementV7;
+ if(!base?.male?.body||!base?.female?.body||!shirt?.sheet||!sleeve?.sheet)throw new Error('原始素材載入失敗');
+ const [male,female,v3,v7]=await Promise.all([loadImage(base.male.body),loadImage(base.female.body),loadImage(shirt.sheet),loadImage(sleeve.sheet)]);
+ if(male.width!==W||female.width!==W||male.height!==H||female.height!==H||v3.width!==384||v3.height!==H||v7.width!==256||v7.height!==H)throw new Error('圖像尺寸與原本底模不一致');
+ src={male:{body:male},female:{body:female},shirt:v3,sleeve:v7};ready=true;
+ $('status').textContent='已載入真正的男女 64×160 底模。點圖片即可量座標。';refresh();
+}
+init().catch(e=>{$('status').textContent='讀取失敗：'+e.message;console.error(e);$('output').value='請確認重新整理或檢查原始圖檔';});
+refresh();
+})();
+</script>
+</body>
+</html>
