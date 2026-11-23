@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>迷宮盡頭的燈火｜手臂與長袖逐像素對照</title>
+<style>
+:root{color-scheme:dark;--bg:#102c27;--panel:#193c32;--stroke:#a58f61;--text:#f6efd7;--muted:#b5cbbf;--gold:#f1d398}
+*{box-sizing:border-box}body{background:var(--bg);color:var(--text);margin:0;font:15px/1.55 system-ui,-apple-system,'Noto Sans TC',sans-serif}
+main{max-width:1060px;padding:18px 14px 40px;margin:auto}h1{font-size:22px;line-height:1.25;margin:0 0 8px}h2{font-size:17px;margin:0 0 12px}p{color:var(--muted);margin:4px 0 14px}a{color:var(--gold)}.tag{display:inline-block;color:var(--gold);border:1px solid var(--stroke);padding:2px 8px;border-radius:10px;margin-bottom:10px;font-size:12px}
+.controls{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 18px}button{background:#284f42;border:1px solid var(--stroke);padding:10px 12px;color:var(--text);border-radius:9px;font:inherit;min-height:42px;cursor:pointer}button[aria-pressed=true]{background:var(--gold);color:#142a23;font-weight:bold}
+.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.card{border:1px solid var(--stroke);background:var(--panel);padding:12px 8px;border-radius:14px;min-width:0}.wrap{background-color:#293d35;background-image:linear-gradient(45deg,#385249 25%,transparent 25%),linear-gradient(-45deg,#385249 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#385249 75%),linear-gradient(-45deg,transparent 75%,#385249 75%);background-size:20px 20px;background-position:0 0,0 10px,10px -10px,-10px 0;display:flex;justify-content:center;align-items:center;padding:7px;overflow:hidden}
+canvas{image-rendering:pixelated;width:min(100%,258px);aspect-ratio:2/5;display:block}.labels{color:var(--muted);font-size:12px;text-align:center;padding:8px 0 2px}.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px}.dot{width:10px;height:10px;display:inline-block;vertical-align:middle;margin-right:4px}.sheet{overflow-x:auto;border:1px solid var(--stroke);border-radius:12px;padding:8px;background:#16372f;margin-top:16px}table{border-collapse:collapse;width:100%;min-width:580px;font-size:12px;font-variant-numeric:tabular-nums}th,td{border-bottom:1px solid #416255;padding:7px 4px;text-align:center}th{position:sticky;top:0;background:#204638}td:first-child,th:first-child{text-align:left}pre{overflow:auto;background:#0b231e;border:1px solid #53654c;border-radius:8px;padding:12px;font:11px/1.4 ui-monospace,SFMono-Regular,monospace;white-space:pre-wrap;overflow-wrap:anywhere}.notes{border-top:1px solid #516e5c;padding-top:10px;margin-top:18px}#status{color:var(--gold)}
+@media(max-width:500px){main{padding:14px 9px}.card{padding:10px 5px}.wrap{padding:5px}h1{font-size:20px}}
+</style>
+<script src="./assets/cloak_workbench_bases_v1.js?v=1"></script>
+<script src="./assets/white_shirt_workbench_v3.js?v=3"></script>
+<script src="./assets/sleeve_replacement_workbench_v7.js?v=7"></script>
+</head>
+<body><main>
+<div class="tag">64 × 160 原始像素｜僅診斷，不修改遊戲</div>
+<h1>男女四隻手臂 × V3／V7 袖片對照</h1>
+<p>直接讀取《迷宮盡頭的燈火》現有男女原始 Body PNG、白衣 V3 和 V7 試驗圖集；不重新生成人物，也不更動原版衣服、披風、長褲或存檔。</p>
+<div class="controls" id="modes">
+<button type="button" data-mode="body" aria-pressed="false">原始手臂</button>
+<button type="button" data-mode="v3" aria-pressed="false">V3 短袖</button>
+<button type="button" data-mode="v7" aria-pressed="false">V7 長袖</button>
+<button type="button" data-mode="overlay" aria-pressed="true">V7＋輪廓對照</button>
+</div>
+<div class="legend"><span><i class="dot" style="background:#3ed2fa"></i>V7 袖片外框</span><span><i class="dot" style="background:#ffd35a"></i>原手臂候選區／露出像素</span></div>
+<div class="cards"><section class="card"><h2>男性原版底模</h2><div class="wrap"><canvas id="male" width="64" height="160"></canvas></div><div class="labels" id="malelabel"></div></section><section class="card"><h2>女性原版底模</h2><div class="wrap"><canvas id="female" width="64" height="160"></canvas></div><div class="labels" id="femalelabel"></div></section></div>
+<div class="sheet"><h2>原始 Body 與 V7 實測像素寬度</h2><p>範圍依畫面左側／右側手臂分開計算，不用模仿生成圖的肢體。下表每列是 64×160 的真正 Y 座標；「—」代表該列沒有該區塊的不透明像素。數據會在你的瀏覽器上直接從原始 PNG 計算。</p><table id="measure"><thead><tr><th>性別 / 側</th><th>Y</th><th>原 Body 範圍</th><th>V3 範圍</th><th>V7 範圍</th><th>V7 寬度</th></tr></thead><tbody></tbody></table></div>
+<div class="notes"><p id="status">讀取原生素材中…</p><p>注意：Body 圖本身包括軀幹與腿，靠近腰部的位置需要與手臂區域分開判讀，不能把側邊任何膚色都當成手臂。V7 是否需要收窄、縮短或改變彎曲，要以這份實測和手機畫面一起判斷。</p><button type="button" id="copy">複製測量 JSON（提供下次修正參考）</button><pre id="json" hidden></pre></div>
+<p><a href="./developer-studio.html?tab=library">返回開發者工作台</a></p>
+</main>
+<script>
+(()=>{'use strict';
+const $=id=>document.getElementById(id),W=64,H=160;
+const bodies=window.DungeonCloakWorkbenchBasesV1;
+const v3=window.DungeonWhiteShirtWorkbenchV1;
+const v7=window.DungeonSleeveReplacementV7;
+const cached={},measurements=[];
+let mode='overlay';
+function img(src){return new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>resolve(im);im.onerror=()=>reject(new Error('PNG 載入失敗'));im.src=src})}
+function crop(src,i){const cv=document.createElement('canvas');cv.width=W;cv.height=H;const c=cv.getContext('2d',{willReadFrequently:true});c.drawImage(src,i*W,0,W,H,0,0,W,H);return cv}
+function alpha(canvas){return canvas.getContext('2d',{willReadFrequently:true}).getImageData(0,0,W,H).data}
+function put(ctx,cv,x=0,y=0){ctx.drawImage(cv,x,y)}
+function rectOnLine(a,y,side){const l=side==='left'?0:32,r=side==='left'?31:63;const xs=[];for(let x=l;x<=r;x++)if(a[(y*W+x)*4+3]>70)xs.push(x);return xs.length?[xs[0],xs[xs.length-1]]:null}
+function format(r){return r?`${r[0]}–${r[1]}`:'—'}
+function outline(ctx,a,side){ctx.save();ctx.fillStyle='#41e7ff';for(let y=54;y<=100;y++)for(let x=side==='left'?0:32;x<=(side==='left'?31:63);x++){const idx=(y*W+x)*4+3;if(a[idx]<70)continue;const test=(xx,yy)=>xx<0||xx>=W||yy<0||yy>=H||a[(yy*W+xx)*4+3]<70;if(test(x-1,y)||test(x+1,y)||test(x,y-1)||test(x,y+1))ctx.fillRect(x,y,1,1)}ctx.restore()}
+function handMarker(ctx,ba,side){ctx.save();ctx.fillStyle='#ffd35a';for(let y=83;y<=100;y++){const lim=y<=88?20:y<=94?17:15;for(let x=side==='left'?0:64-lim;x<(side==='left'?lim:64);x++){if(ba[(y*W+x)*4+3]>70)ctx.fillRect(x,y,1,1)}}ctx.restore()}
+function render(g){
+ const i=g==='male'?0:3,j=g==='male'?0:2;
+ const el=$(g),c=el.getContext('2d');c.clearRect(0,0,W,H);c.imageSmoothingEnabled=false;
+ const {body,shirt,originalLeft,originalRight,newLeft,newRight}=cached[g];
+ put(c,body); const offX=g==='male'?-1:0,offY=-1;
+ if(mode!=='body'){
+  put(c,shirt,offX,offY);
+  if(mode==='v3'){put(c,originalLeft,offX,offY);put(c,originalRight,offX,offY)}
+  else {put(c,newLeft,offX,offY);put(c,newRight,offX,offY)}
+ }
+ if(mode==='overlay'){
+  const ba=alpha(body),vl=alpha(newLeft),vr=alpha(newRight);
+  for(const side of ['left','right'])handMarker(c,ba,side);
+  c.save();c.translate(offX,offY);outline(c,vl,'left');outline(c,vr,'right');c.restore();
+ }
+ $(g+'label').textContent=mode==='body'?'原始皮膚與手臂':mode==='v3'?'V3 原短袖，依核准座標':mode==='v7'?'V7 新袖片，依核准座標':'黃：原始手臂候選區　藍：V7 袖片外緣';
+}
+function table(){const rows=[];const yset=[58,62,66,70,74,78,82,86,90,94,98,100];
+ for(const gender of ['male','female']){
+  const c=cached[gender],ba=alpha(c.body);
+  for(const side of ['left','right']){
+   const v3a=alpha(side==='left'?c.originalLeft:c.originalRight);
+   const v7a=alpha(side==='left'?c.newLeft:c.newRight);
+   for(const y of yset){const offX=gender==='male'?-1:0;const b=rectOnLine(ba,y,side),sv=rectOnLine(v3a,y+1,side),vv=rectOnLine(v7a,y+1,side);const v3r=sv?[sv[0]+offX,sv[1]+offX]:null,v7r=vv?[vv[0]+offX,vv[1]+offX]:null;rows.push({gender,side,y,body:b,v3:v3r,v7:v7r,width:v7r?v7r[1]-v7r[0]+1:0})}
+  }
+ }
+ measurements.splice(0,measurements.length,...rows);
+ $('measure').querySelector('tbody').innerHTML=rows.map(x=>`<tr><td>${x.gender==='male'?'男':'女'}・${x.side==='left'?'左':'右'}</td><td>${x.y}</td><td>${format(x.body)}</td><td>${format(x.v3)}</td><td>${format(x.v7)}</td><td>${x.width||'—'}</td></tr>`).join('');
+}
+async function start(){if(!bodies?.male?.body||!bodies?.female?.body||!v3?.sheet||!v7?.sheet)throw Error('原生素材來源缺失');
+ const [maleBody,femaleBody,shirtSheet,armSheet]=await Promise.all([img(bodies.male.body),img(bodies.female.body),img(v3.sheet),img(v7.sheet)]);
+ if(maleBody.width!==W||maleBody.height!==H||femaleBody.width!==W||femaleBody.height!==H||shirtSheet.width!==384||armSheet.width!==256||shirtSheet.height!==H||armSheet.height!==H)throw Error('原生像素尺寸與預期不符');
+ for(const [g,j,k,body] of [['male',0,0,maleBody],['female',3,2,femaleBody]]){
+  // Original atlas = core / left sleeve / right sleeve for each gender.
+  cached[g]={body,shirt:crop(shirtSheet,j),originalLeft:crop(shirtSheet,j+1),originalRight:crop(shirtSheet,j+2),newLeft:crop(armSheet,k),newRight:crop(armSheet,k+1)};
+ }
+ table();render('male');render('female');
+ $('status').textContent='已讀取男女真正 Body、V3 與 V7 原生 PNG；資料逐行由 Canvas alpha 計算，不改動任何工作台設定。';
+ $('copy').onclick=async()=>{const json=JSON.stringify({format:'dungeon-arm-alpha-diagnostic-v1',canvas:[W,H],samples:measurements},null,2);$('json').textContent=json;$('json').hidden=false;try{await navigator.clipboard.writeText(json);$('status').textContent='已複製像素測量 JSON。'}catch(_){$('status').textContent='無法自動複製，請長按下方 JSON 複製。'}};
+ for(const btn of document.querySelectorAll('[data-mode]'))btn.onclick=()=>{mode=btn.dataset.mode;for(const b of document.querySelectorAll('[data-mode]'))b.setAttribute('aria-pressed',String(b===btn));render('male');render('female')};
+}
+start().catch(e=>{$('status').textContent='讀取失敗：'+e.message;console.error(e)});
+})();
+</script></body></html>
