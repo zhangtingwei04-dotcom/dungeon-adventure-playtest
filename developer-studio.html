@@ -752,11 +752,11 @@ function drawAssetStage(gender){
    const pantsFrontZ=pantsPresent?Math.max(...pants.layers.filter(l=>
     layerShown[k('starter_trousers',gender,l)]!==false&&getImage('starter_trousers',gender,l))
     .map(l=>safeNum(transforms[k('starter_trousers',gender,l)]?.z,0,140,defaultZ(pants,gender,l)))):z;
-   if(a.slot==='chest'&&pantsPresent&&mode==='untucked'&&layer==='front'){
+   if(a.id==='starter_tunic'&&pantsPresent&&mode==='untucked'&&layer==='front'){
     const split=hemSplitY(img,t);
     enqueue(z,()=>drawClippedGarment(ctx,img,t,0,split));
     enqueue(Math.max(z,pantsFrontZ+0.25),()=>drawClippedGarment(ctx,img,t,split,160));
-   }else if(a.slot==='chest'&&pantsPresent&&mode==='outer'){
+   }else if(a.id==='starter_tunic'&&pantsPresent&&mode==='outer'){
     enqueue(Math.max(z,pantsFrontZ+0.25),()=>drawImageOn(ctx,img,t));
    }else{
     enqueue(z,()=>drawImageOn(ctx,img,t));
@@ -819,7 +819,7 @@ function updateControls(){
  $('zInput').value=String(safeNum(t.z,0,140,defaultZ(a,editingGender,editingLayer)));
  const p=String($('zInput').value);
  $('zPreset').value=Array.from($('zPreset').options).some(o=>o.value===p)?p:'';
- const modeEnabled=a.slot==='chest';
+ const modeEnabled=a.slot==='chest'&&a.id!=='starter_sleeves_v6'&&a.id!=='starter_long_sleeves_v4';
  $('wearModeField').hidden=!modeEnabled;
  $('wearModeHelp').hidden=!modeEnabled;
  $('wearModeBoth').hidden=!modeEnabled;
