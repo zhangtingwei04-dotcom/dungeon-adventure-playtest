@@ -751,10 +751,12 @@ function drawOriginalBodyHands(ctx,gender,cloakId='starter_cloak'){
  // Workbench V10: shirt back -> two sleeves -> shirt front.
  // Protect sleeves from the cloak's optional hand/skin restoration.
  // Follow each layer's independently editable X/Y/scale.
- if(layeredLongTunicTrialV10||frontSleevesTrialV12){
+ if(layeredLongTunicTrialV10||frontSleevesTrialV12||naturalLongSleevesTrialV13){
   const maskCanvas=document.createElement('canvas');maskCanvas.width=64;maskCanvas.height=160;
   const maskContext=maskCanvas.getContext('2d',{willReadFrequently:true});
-  const ids=frontSleevesTrialV12?
+  const ids=naturalLongSleevesTrialV13?
+   ['starter_natural_long_tunic_v13_sleeves','starter_natural_long_tunic_v13']:
+   frontSleevesTrialV12?
    ['starter_tunic_layered_v12_sleeves','starter_tunic_layered_v12']:
    ['starter_tunic_layered_v10_sleeves','starter_tunic_layered_v10'];
   for(const id of ids){
@@ -783,7 +785,7 @@ function drawOriginalBodyHands(ctx,gender,cloakId='starter_cloak'){
   // trace only skin pixels CONNECTED to each real hand in the actual Body PNG.
   // This preserves each person's hand silhouette, finger edges and wrists.
   // A second alpha matte prevents painting over the original shirt or pants.
-  const activeShirtId=frontSleevesTrialV12?'starter_tunic_layered_v12':layeredLongTunicTrialV10?'starter_tunic_layered_v10':wholeLongTunicTrialV9?'starter_long_tunic_whole_v9':'starter_tunic';
+  const activeShirtId=naturalLongSleevesTrialV13?'starter_natural_long_tunic_v13':frontSleevesTrialV12?'starter_tunic_layered_v12':layeredLongTunicTrialV10?'starter_tunic_layered_v10':wholeLongTunicTrialV9?'starter_long_tunic_whole_v9':'starter_tunic';
   const shirt=item(activeShirtId);
   let shirtAlpha=null;
   if(shirt&&shown[activeShirtId+':'+gender]!==false){
@@ -797,8 +799,8 @@ function drawOriginalBodyHands(ctx,gender,cloakId='starter_cloak'){
    }
    // Shield both sleeves as well as the front/back tunic when masking
    // original skin. V3 and V9 retain their previous behavior.
-   const activeSleevesId=frontSleevesTrialV12?'starter_tunic_layered_v12_sleeves':'starter_tunic_layered_v10_sleeves';
-   if((layeredLongTunicTrialV10||frontSleevesTrialV12)&&shown[activeSleevesId+':'+gender]!==false){
+   const activeSleevesId=naturalLongSleevesTrialV13?'starter_natural_long_tunic_v13_sleeves':frontSleevesTrialV12?'starter_tunic_layered_v12_sleeves':'starter_tunic_layered_v10_sleeves';
+   if((layeredLongTunicTrialV10||frontSleevesTrialV12||naturalLongSleevesTrialV13)&&shown[activeSleevesId+':'+gender]!==false){
     const sleeves=item(activeSleevesId);
     for(const layer of sleeves.layers){
      const key=k(sleeves.id,gender,layer);
@@ -1132,6 +1134,7 @@ function resetCanonicalFit(includeCustom=false){
  wholeLongTunicTrialV9=false;
  layeredLongTunicTrialV10=false;
  frontSleevesTrialV12=false;
+ naturalLongSleevesTrialV13=false;
  // The earlier V4 arm contour is the accepted workbench fallback.
  // Never leave opt-in V5 enabled after restoring approved fit settings.
  cloakArmRevealTrial=true;
@@ -1267,6 +1270,7 @@ function applyShirtTrial(showShirt,showCloak){
  wholeLongTunicTrialV9=false;
  layeredLongTunicTrialV10=false;
  frontSleevesTrialV12=false;
+ naturalLongSleevesTrialV13=false;
  for(const g of ['male','female']){
   shown['starter_long_tunic_whole_v9:'+g]=false;
   shown['starter_tunic:'+g]=showShirt;
@@ -1309,6 +1313,7 @@ function setLongSleevesTrial(on){
  wholeLongTunicTrialV9=false;
  layeredLongTunicTrialV10=false;
  frontSleevesTrialV12=false;
+ naturalLongSleevesTrialV13=false;
  for(const gender of ['male','female']){
   shown['starter_tunic:'+gender]=true;
   shown['starter_sleeves_v6:'+gender]=on;
@@ -1322,7 +1327,7 @@ function setLongSleevesTrial(on){
  toast(on?'V6 左右袖可獨立拖曳；先選性別與袖片':'原版白衣 V3 已恢復');
 }
 function setV7SleevesTrial(on){
- sleeveReplaceModeV7=on;sleeveReplaceModeV6=false;wholeLongTunicTrialV9=false;layeredLongTunicTrialV10=false;frontSleevesTrialV12=false;
+ sleeveReplaceModeV7=on;sleeveReplaceModeV6=false;wholeLongTunicTrialV9=false;layeredLongTunicTrialV10=false;frontSleevesTrialV12=false;naturalLongSleevesTrialV13=false;
  for(const gender of ['male','female']){
   shown['starter_tunic:'+gender]=true;
   shown['starter_sleeves_v7:'+gender]=on;
@@ -1338,8 +1343,37 @@ function setV7SleevesTrial(on){
 // from the drawing queue while the whole long tunic is active.
 // V10: two garment assets grouped as ONE wearable outfit.
 // V12 only front torso and screen-left/right sleeves, no back asset.
+// New V13: V3 natural torso imagery copied to its own independent outfit
+// and four shortened 64x160 transparent sleeves. Neither V3 original
+// PNG nor any preapproved coordinates are modified.
+function setNaturalLongSleevesV13(on,withCloak=false){
+ naturalLongSleevesTrialV13=on;
+ frontSleevesTrialV12=false;layeredLongTunicTrialV10=false;
+ wholeLongTunicTrialV9=false;sleeveReplaceModeV6=false;sleeveReplaceModeV7=false;
+ for(const gender of ['male','female']){
+  shown['starter_tunic:'+gender]=true; // V3 retained, draw queue omits it
+  shown['starter_natural_long_tunic_v13:'+gender]=on;
+  shown['starter_natural_long_tunic_v13_sleeves:'+gender]=on;
+  shown['starter_tunic_layered_v12:'+gender]=false;
+  shown['starter_tunic_layered_v12_sleeves:'+gender]=false;
+  shown['starter_tunic_layered_v10:'+gender]=false;
+  shown['starter_tunic_layered_v10_sleeves:'+gender]=false;
+  shown['starter_long_tunic_whole_v9:'+gender]=false;
+  shown['starter_long_sleeves_v4:'+gender]=false;
+  shown['starter_sleeves_v6:'+gender]=false;
+  shown['starter_sleeves_v7:'+gender]=false;
+  shown['starter_cloak:'+gender]=on?withCloak:false;
+ }
+ selected=on?'starter_natural_long_tunic_v13':'starter_tunic';editingLayer='front';
+ update();persist();
+ toast(on?'V13 自然長袖已試穿：袖口比 V12 短，手掌露出更完整':'原版 V3 短袖已恢復');
+}
+$('v13On').onclick=()=>setNaturalLongSleevesV13(true,false);
+$('v13Off').onclick=()=>setNaturalLongSleevesV13(false,false);
+$('v13Cloak').onclick=()=>setNaturalLongSleevesV13(true,true);
 function setFrontSleevesV12(on,withCloak=false){
  frontSleevesTrialV12=on;
+ naturalLongSleevesTrialV13=false;
  layeredLongTunicTrialV10=false;wholeLongTunicTrialV9=false;
  sleeveReplaceModeV6=false;sleeveReplaceModeV7=false;
  for(const gender of ['male','female']){
@@ -1364,6 +1398,7 @@ $('v12Off').onclick=()=>setFrontSleevesV12(false,false);
 $('v12Cloak').onclick=()=>setFrontSleevesV12(true,true);
 function setLayeredLongTunicTrial(on,withCloak=false){
  layeredLongTunicTrialV10=on;
+ naturalLongSleevesTrialV13=false;
  frontSleevesTrialV12=false;
  wholeLongTunicTrialV9=false;sleeveReplaceModeV6=false;sleeveReplaceModeV7=false;
  for(const gender of ['male','female']){
@@ -1385,6 +1420,7 @@ $('layeredLongOff').onclick=()=>setLayeredLongTunicTrial(false,false);
 $('layeredLongCloak').onclick=()=>setLayeredLongTunicTrial(true,true);
 function setWholeLongTunicTrial(on,withCloak=false){
  wholeLongTunicTrialV9=on;
+ naturalLongSleevesTrialV13=false;
  layeredLongTunicTrialV10=false;
  frontSleevesTrialV12=false;
  sleeveReplaceModeV6=false;sleeveReplaceModeV7=false;
@@ -1573,6 +1609,26 @@ async function init(){
     sourceImages[v12.sliceNames[i]]=c.toDataURL('image/png');
    }
   }
+  // Build V13 after V3 has been sliced above. The front uses the
+  // actual V3 natural torso PNG as a new independent input key;
+  // only the four sleeves are shortened (Y88 cutoff).
+  const v13=window.DungeonNaturalLongTunicV13;
+  if(v13?.sleeveAtlas&&v13?.sleeveSliceNames?.length===4){
+   const atlas=new Image();
+   await new Promise((resolve,reject)=>{atlas.onload=resolve;atlas.onerror=reject;atlas.src=v13.sleeveAtlas});
+   if(atlas.naturalWidth!==256||atlas.naturalHeight!==160)throw Error('V13 袖片圖集必須為 256×160');
+   for(let i=0;i<4;i++){
+    const c=document.createElement('canvas');c.width=64;c.height=160;
+    const context=c.getContext('2d');context.imageSmoothingEnabled=false;
+    context.drawImage(atlas,i*64,0,64,160,0,0,64,160);
+    sourceImages[v13.sleeveSliceNames[i]]=c.toDataURL('image/png');
+   }
+   // SourceImages keys are shared data URLs, not shared transformations.
+   // The original male/female V3 core object is never mutated.
+   sourceImages.maleV13Front=sourceImages[v13.shirtFrontSources.male];
+   sourceImages.femaleV13Front=sourceImages[v13.shirtFrontSources.female];
+   if(!sourceImages.maleV13Front||!sourceImages.femaleV13Front)throw Error('V13 無法從 V3 取得自然衣身正面');
+  }
   const keys=Object.entries(sourceImages).filter(([,value])=>
    typeof value==='string'&&value.startsWith('data:image/png;base64,'));
   await Promise.all([
@@ -1585,7 +1641,21 @@ async function init(){
   for(const gender of ['male','female'])v3TorsoLayer[gender]=identifyV3TorsoLayer(gender);
   // Old versions stored the V6 trial flag without individual sleeve layers.
   // Carry that choice forward without resetting the user's other garments.
-  if(frontSleevesTrialV12){
+  if(naturalLongSleevesTrialV13){
+   frontSleevesTrialV12=false;layeredLongTunicTrialV10=false;wholeLongTunicTrialV9=false;
+   sleeveReplaceModeV6=false;sleeveReplaceModeV7=false;
+   for(const gender of ['male','female']){
+    shown['starter_tunic:'+gender]=true;
+    shown['starter_natural_long_tunic_v13:'+gender]=true;
+    shown['starter_natural_long_tunic_v13_sleeves:'+gender]=true;
+    for(const id of ['starter_tunic_layered_v12','starter_tunic_layered_v12_sleeves',
+      'starter_tunic_layered_v10','starter_tunic_layered_v10_sleeves',
+      'starter_long_tunic_whole_v9','starter_long_sleeves_v4',
+      'starter_sleeves_v6','starter_sleeves_v7']){
+     shown[id+':'+gender]=false;
+    }
+   }
+  }else if(frontSleevesTrialV12){
    layeredLongTunicTrialV10=false;wholeLongTunicTrialV9=false;
    sleeveReplaceModeV6=false;sleeveReplaceModeV7=false;
    for(const gender of ['male','female']){
@@ -1681,8 +1751,28 @@ async function init(){
   // overwriting user-approved offsets / z / stored personal workbench presets.
   // Direct iPhone try-on link, affects workbench preview only.
   // Explicit URL trial wins over saved local mode and opens V12 by default.
+  // Force an explicit mobile V13 try-on even if local workbench state
+  // was saved in a different mode.
+  if(new URLSearchParams(location.search).get('naturalLong')==='13'){
+   naturalLongSleevesTrialV13=true;frontSleevesTrialV12=false;
+   layeredLongTunicTrialV10=false;wholeLongTunicTrialV9=false;
+   sleeveReplaceModeV6=false;sleeveReplaceModeV7=false;
+   for(const gender of ['male','female']){
+    shown['starter_tunic:'+gender]=true;
+    shown['starter_natural_long_tunic_v13:'+gender]=true;
+    shown['starter_natural_long_tunic_v13_sleeves:'+gender]=true;
+    for(const id of ['starter_tunic_layered_v12','starter_tunic_layered_v12_sleeves',
+      'starter_tunic_layered_v10','starter_tunic_layered_v10_sleeves',
+      'starter_long_tunic_whole_v9','starter_long_sleeves_v4',
+      'starter_sleeves_v6','starter_sleeves_v7']){
+     shown[id+':'+gender]=false;
+    }
+    shown['starter_cloak:'+gender]=false;
+   }
+   selected='starter_natural_long_tunic_v13';editingGender='female';editingLayer='front';update();
+  }
   if(new URLSearchParams(location.search).get('frontSleeves')==='12'){
-   frontSleevesTrialV12=true;
+   naturalLongSleevesTrialV13=false;frontSleevesTrialV12=true;
    layeredLongTunicTrialV10=false;wholeLongTunicTrialV9=false;
    sleeveReplaceModeV6=false;sleeveReplaceModeV7=false;
    for(const gender of ['male','female']){
@@ -1700,7 +1790,7 @@ async function init(){
    selected='starter_tunic_layered_v12';editingGender='female';editingLayer='front';update();
   }
   if(new URLSearchParams(location.search).get('layeredLong')==='1'){
-   layeredLongTunicTrialV10=true;frontSleevesTrialV12=false;wholeLongTunicTrialV9=false;sleeveReplaceModeV6=false;sleeveReplaceModeV7=false;
+   naturalLongSleevesTrialV13=false;layeredLongTunicTrialV10=true;frontSleevesTrialV12=false;wholeLongTunicTrialV9=false;sleeveReplaceModeV6=false;sleeveReplaceModeV7=false;
    for(const gender of ['male','female']){
     shown['starter_tunic:'+gender]=true;
     shown['starter_tunic_layered_v10:'+gender]=true;
@@ -1714,7 +1804,7 @@ async function init(){
    selected='starter_tunic_layered_v10';editingGender='female';editingLayer='front';update();
   }
   if(new URLSearchParams(location.search).get('wholeLong')==='1'){
-   wholeLongTunicTrialV9=true;frontSleevesTrialV12=false;layeredLongTunicTrialV10=false;sleeveReplaceModeV6=false;sleeveReplaceModeV7=false;
+   naturalLongSleevesTrialV13=false;wholeLongTunicTrialV9=true;frontSleevesTrialV12=false;layeredLongTunicTrialV10=false;sleeveReplaceModeV6=false;sleeveReplaceModeV7=false;
    for(const gender of ['male','female']){
     shown['starter_long_tunic_whole_v9:'+gender]=true;
     shown['starter_long_sleeves_v4:'+gender]=false;
@@ -1725,7 +1815,7 @@ async function init(){
    selected='starter_long_tunic_whole_v9';editingGender='female';editingLayer='front';update();
   }
   if(new URLSearchParams(location.search).get('shirtSleeves')==='7'){
-   frontSleevesTrialV12=false;sleeveReplaceModeV7=true;sleeveReplaceModeV6=false;wholeLongTunicTrialV9=false;layeredLongTunicTrialV10=false;
+   naturalLongSleevesTrialV13=false;frontSleevesTrialV12=false;sleeveReplaceModeV7=true;sleeveReplaceModeV6=false;wholeLongTunicTrialV9=false;layeredLongTunicTrialV10=false;
    for(const gender of ['male','female']){
     shown['starter_tunic:'+gender]=true;
     shown['starter_sleeves_v7:'+gender]=true;
@@ -1735,7 +1825,7 @@ async function init(){
    selected='starter_sleeves_v7';editingGender='female';editingLayer='side';update();
   }
   if(new URLSearchParams(location.search).get('shirtSleeves')==='6'){
-   frontSleevesTrialV12=false;sleeveReplaceModeV6=true;sleeveReplaceModeV7=false;wholeLongTunicTrialV9=false;layeredLongTunicTrialV10=false;
+   naturalLongSleevesTrialV13=false;frontSleevesTrialV12=false;sleeveReplaceModeV6=true;sleeveReplaceModeV7=false;wholeLongTunicTrialV9=false;layeredLongTunicTrialV10=false;
    for(const gender of ['male','female']){
     shown['starter_tunic:'+gender]=true;
     shown['starter_sleeves_v6:'+gender]=true;
