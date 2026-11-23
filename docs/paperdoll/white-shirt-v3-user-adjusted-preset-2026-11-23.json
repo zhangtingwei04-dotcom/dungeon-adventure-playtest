@@ -1,0 +1,134 @@
+{
+  "format": "dungeon-paperdoll-fitting-preset-v1",
+  "project": "迷宮盡頭的燈火",
+  "timestamp": "2026-11-23",
+  "source": "user-supplied developer-studio independent-dev-preview JSON",
+  "status": "user-adjusted trial, not formally approved in-game clothing",
+  "pixelCanvas": {
+    "width": 64,
+    "height": 160
+  },
+  "characterUnderwear": "existing male/female tank remains the initial inner garment",
+  "assets": {
+    "hair_original": {
+      "male": {
+        "front": {
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "visible": true
+        }
+      },
+      "female": {
+        "front": {
+          "x": -2,
+          "y": -5,
+          "scale": 1,
+          "visible": true
+        }
+      }
+    },
+    "starter_cloak": {
+      "state": "temporarily hidden for shirt try-on",
+      "male": {
+        "visible": false,
+        "back": {
+          "x": 0,
+          "y": 0,
+          "scale": 1
+        },
+        "front": {
+          "x": 0,
+          "y": -8,
+          "scale": 1
+        }
+      },
+      "female": {
+        "visible": false,
+        "back": {
+          "x": 0,
+          "y": 0,
+          "scale": 1
+        },
+        "front": {
+          "x": 0,
+          "y": -6,
+          "scale": 1
+        }
+      }
+    },
+    "starter_tunic": {
+      "id": "starter_tunic",
+      "name": "白色初始布衣 V3｜最新生成版",
+      "category": "chest",
+      "source": "assets/white_shirt_workbench_v3.js",
+      "layerKeyNames": {
+        "front": "shirt core (front)",
+        "side": "screen-left sleeve (front)",
+        "back": "screen-right sleeve (front); legacy workbench naming, NOT a rear-facing garment"
+      },
+      "male": {
+        "visible": true,
+        "front": {
+          "x": -1,
+          "y": -1,
+          "scale": 1,
+          "visible": true,
+          "sourceKey": "maleShirtCore"
+        },
+        "side": {
+          "x": -1,
+          "y": -1,
+          "scale": 1,
+          "visible": true,
+          "sourceKey": "maleShirtLeft"
+        },
+        "back": {
+          "x": -1,
+          "y": -1,
+          "scale": 1,
+          "visible": true,
+          "sourceKey": "maleShirtRight"
+        }
+      },
+      "female": {
+        "visible": true,
+        "front": {
+          "x": 0,
+          "y": -1,
+          "scale": 1,
+          "visible": true,
+          "sourceKey": "femaleShirtCore"
+        },
+        "side": {
+          "x": 0,
+          "y": -1,
+          "scale": 1,
+          "visible": true,
+          "sourceKey": "femaleShirtLeft"
+        },
+        "back": {
+          "x": 0,
+          "y": -1,
+          "scale": 1,
+          "visible": true,
+          "sourceKey": "femaleShirtRight"
+        }
+      }
+    },
+    "pending": {
+      "starter_trousers": "missing",
+      "starter_boots": "missing",
+      "starter_gloves": "missing",
+      "enchanted_satchel": "new art missing"
+    }
+  },
+  "rules": [
+    "Use native 64x160 RGBA coordinate system",
+    "Do not change base male/female body or underwear",
+    "Preserve existing cloak male front -8 and female front -6",
+    "Work on clothing by fitting whole garment to character before splitting",
+    "Do not claim mobile visual approval without user confirmation"
+  ],
+  "studioUrl": "https://zhangtingwei04-dotcom.github.io/dungeon-adventure-playtest/developer-studio.html?tab=library&shirt=3&v=20261123-preset"
+}
