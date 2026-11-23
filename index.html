@@ -6061,6 +6061,8 @@ function equipmentGuideHTML(sceneMode='equipment'){
  const shirtIndices=shirtGender==='female'?[4,5,3]:[1,2,0];
  const shirtLayer=(i)=>'<span class="paperdoll-asset-layer paperdoll-shirt-v3" aria-hidden="true" style="background-image:url('+shirtArt.sheet+');background-size:600% 100%;background-position:'+String(i*20)+'% 0"></span>';
  const shirtLayers=shirtArt?shirtIndices.map(shirtLayer).join(''):'';
+ // Layering when worn together: shirt -> approved shoulder satchel -> cloak front.
+ // Keep the cloak's back panel behind the body and original lower hands in front.
  // The hand overlay must match the original BODY + SHORTS + TANK stack.
  // Earlier drawing body alone erased the sides of the existing underwear.
  // Copy the approved garment pixels ABOVE the hands, in the same native grid.
@@ -6096,7 +6098,7 @@ function equipmentGuideHTML(sceneMode='equipment'){
    (sharedHead&&window.DungeonMaleV9Equipment?.version==='v3-accepted'?' paperdoll-v3':'')+
    (s.appearanceV1?.parts?.hairStyle==='bald'?' paperdoll-bald':'')+(shirtArt?' paperdoll-shirt-equipped':'')+(currentPaperDollAbnormalStates().includes('unconscious')?' eyes-unconscious':'')+'" role="img" aria-label="'+
   (paperDollTryOn?'主角旅行裝試穿預覽':(s.appearanceV1?.gender==='female'?'女性':'男性')+'標準型紙娃娃，依實際裝備顯示')+'">'+
-  behind+cloakBack+base+shorts+tank+outfit+shirtLayers+cloakFront+nativeArms+satchel+extras+veil+brows+eyes+mouth+healthMarks+hair+
+  behind+cloakBack+base+shorts+tank+outfit+shirtLayers+satchel+cloakFront+nativeArms+extras+veil+brows+eyes+mouth+healthMarks+hair+
   (paperDollTryOn?'<span class="paperdoll-preview-label">試穿</span>':'')+'</div>';
 }
 function setOwnedEquipmentEquipped(slotId,equip){
