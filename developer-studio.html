@@ -1755,6 +1755,8 @@ async function init(){
   // Explicit URL trial wins over saved local mode and opens V12 by default.
   // Force an explicit mobile V13 try-on even if local workbench state
   // was saved in a different mode.
+  // Allow a direct comparison link to V13 with the already-approved
+  // V2 cloak, without changing either asset or the user's saved presets.
   if(new URLSearchParams(location.search).get('naturalLong')==='13'){
    naturalLongSleevesTrialV13=true;frontSleevesTrialV12=false;
    layeredLongTunicTrialV10=false;wholeLongTunicTrialV9=false;
@@ -1769,7 +1771,7 @@ async function init(){
       'starter_sleeves_v6','starter_sleeves_v7']){
      shown[id+':'+gender]=false;
     }
-    shown['starter_cloak:'+gender]=false;
+    shown['starter_cloak:'+gender]=new URLSearchParams(location.search).get('cloak')==='1';
    }
    selected='starter_natural_long_tunic_v13';editingGender='female';editingLayer='front';update();
   }
