@@ -1,0 +1,459 @@
+{
+  "format": "dungeon-character-asset-library-v1",
+  "project": "迷宮盡頭的燈火",
+  "pixelCanvas": {
+    "width": 64,
+    "height": 160
+  },
+  "gameSaveMode": "independent-dev-preview",
+  "assets": [
+    {
+      "id": "hair_original",
+      "name": "原版頭髮",
+      "category": "hair",
+      "status": "已使用的頭髮來源",
+      "layerNames": [
+        "front"
+      ],
+      "genders": {
+        "male": {
+          "visible": true,
+          "wearMode": "normal",
+          "layers": {
+            "front": {
+              "x": 0,
+              "y": 0,
+              "scale": 1,
+              "z": 120,
+              "visible": true,
+              "image": {
+                "kind": "builtin",
+                "key": "maleHair"
+              }
+            }
+          }
+        },
+        "female": {
+          "visible": true,
+          "wearMode": "normal",
+          "layers": {
+            "front": {
+              "x": -2,
+              "y": -5,
+              "scale": 1,
+              "z": 120,
+              "visible": true,
+              "image": {
+                "kind": "builtin",
+                "key": "femaleHair"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "starter_cloak",
+      "name": "深綠金邊披風 V2｜已核准",
+      "category": "outer",
+      "status": "已通過試穿確認／正式遊戲已啟用",
+      "layerNames": [
+        "back",
+        "front"
+      ],
+      "genders": {
+        "male": {
+          "visible": true,
+          "wearMode": "wrapped",
+          "layers": {
+            "back": {
+              "x": 0,
+              "y": 0,
+              "scale": 1,
+              "z": 10,
+              "visible": true,
+              "image": {
+                "kind": "builtin",
+                "key": "maleCloakBack"
+              }
+            },
+            "front": {
+              "x": 0,
+              "y": -6,
+              "scale": 1,
+              "z": 80,
+              "visible": true,
+              "image": {
+                "kind": "builtin",
+                "key": "maleCloakFront"
+              }
+            }
+          }
+        },
+        "female": {
+          "visible": true,
+          "wearMode": "wrapped",
+          "layers": {
+            "back": {
+              "x": 0,
+              "y": 0,
+              "scale": 1,
+              "z": 10,
+              "visible": true,
+              "image": {
+                "kind": "builtin",
+                "key": "femaleCloakBack"
+              }
+            },
+            "front": {
+              "x": 0,
+              "y": -6,
+              "scale": 1,
+              "z": 80,
+              "visible": true,
+              "image": {
+                "kind": "builtin",
+                "key": "femaleCloakFront"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "starter_tunic",
+      "name": "白色初始布衣 V3｜最新生成版",
+      "category": "chest",
+      "status": "男女最新生成白衣／依座標貼合／整衣拆分／待驗收",
+      "layerNames": [
+        "front",
+        "side",
+        "back"
+      ],
+      "genders": {
+        "male": {
+          "visible": true,
+          "wearMode": "tucked",
+          "layers": {
+            "front": {
+              "x": -1,
+              "y": -1,
+              "scale": 1,
+              "z": 42,
+              "visible": true,
+              "image": {
+                "kind": "builtin",
+                "key": "maleShirtCore"
+              }
+            },
+            "side": {
+              "x": -1,
+              "y": -1,
+              "scale": 1,
+              "z": 40,
+              "visible": true,
+              "image": {
+                "kind": "builtin",
+                "key": "maleShirtLeft"
+              }
+            },
+            "back": {
+              "x": -1,
+              "y": -1,
+              "scale": 1,
+              "z": 41,
+              "visible": true,
+              "image": {
+                "kind": "builtin",
+                "key": "maleShirtRight"
+              }
+            }
+          }
+        },
+        "female": {
+          "visible": true,
+          "wearMode": "tucked",
+          "layers": {
+            "front": {
+              "x": 0,
+              "y": -1,
+              "scale": 1,
+              "z": 42,
+              "visible": true,
+              "image": {
+                "kind": "builtin",
+                "key": "femaleShirtCore"
+              }
+            },
+            "side": {
+              "x": 0,
+              "y": -1,
+              "scale": 1,
+              "z": 40,
+              "visible": true,
+              "image": {
+                "kind": "builtin",
+                "key": "femaleShirtLeft"
+              }
+            },
+            "back": {
+              "x": 0,
+              "y": -1,
+              "scale": 1,
+              "z": 41,
+              "visible": true,
+              "image": {
+                "kind": "builtin",
+                "key": "femaleShirtRight"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "starter_trousers",
+      "name": "旅行長褲 V2｜新版透明圖試穿",
+      "category": "legs",
+      "status": "新版透明美術來源｜男／女各三張64×160｜待實機驗收",
+      "layerNames": [
+        "front",
+        "side",
+        "back"
+      ],
+      "genders": {
+        "male": {
+          "visible": true,
+          "wearMode": "normal",
+          "layers": {
+            "front": {
+              "x": -1,
+              "y": -6,
+              "scale": 1,
+              "z": 52,
+              "visible": true,
+              "image": {
+                "kind": "builtin",
+                "key": "maleTrousersWaist"
+              }
+            },
+            "side": {
+              "x": -1,
+              "y": -8,
+              "scale": 1,
+              "z": 50,
+              "visible": true,
+              "image": {
+                "kind": "builtin",
+                "key": "maleTrousersLeft"
+              }
+            },
+            "back": {
+              "x": 0,
+              "y": -8,
+              "scale": 1,
+              "z": 51,
+              "visible": true,
+              "image": {
+                "kind": "builtin",
+                "key": "maleTrousersRight"
+              }
+            }
+          }
+        },
+        "female": {
+          "visible": true,
+          "wearMode": "normal",
+          "layers": {
+            "front": {
+              "x": -17,
+              "y": 25,
+              "scale": 1,
+              "z": 52,
+              "visible": true,
+              "image": {
+                "kind": "builtin",
+                "key": "femaleTrousersWaist"
+              }
+            },
+            "side": {
+              "x": 0,
+              "y": -6,
+              "scale": 1,
+              "z": 50,
+              "visible": true,
+              "image": {
+                "kind": "builtin",
+                "key": "femaleTrousersLeft"
+              }
+            },
+            "back": {
+              "x": 0,
+              "y": -6,
+              "scale": 1,
+              "z": 51,
+              "visible": true,
+              "image": {
+                "kind": "builtin",
+                "key": "femaleTrousersRight"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "starter_boots",
+      "name": "皮革長靴",
+      "category": "feet",
+      "status": "待匯入新圖",
+      "layerNames": [
+        "front"
+      ],
+      "genders": {
+        "male": {
+          "visible": false,
+          "wearMode": "normal",
+          "layers": {
+            "front": {
+              "x": 0,
+              "y": 0,
+              "scale": 1,
+              "z": 60,
+              "visible": true,
+              "image": {
+                "kind": "missing"
+              }
+            }
+          }
+        },
+        "female": {
+          "visible": false,
+          "wearMode": "normal",
+          "layers": {
+            "front": {
+              "x": 0,
+              "y": 0,
+              "scale": 1,
+              "z": 60,
+              "visible": true,
+              "image": {
+                "kind": "missing"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "starter_gloves",
+      "name": "棕色皮革手套",
+      "category": "hands",
+      "status": "待匯入新圖",
+      "layerNames": [
+        "front"
+      ],
+      "genders": {
+        "male": {
+          "visible": false,
+          "wearMode": "normal",
+          "layers": {
+            "front": {
+              "x": 0,
+              "y": 0,
+              "scale": 1,
+              "z": 65,
+              "visible": true,
+              "image": {
+                "kind": "missing"
+              }
+            }
+          }
+        },
+        "female": {
+          "visible": false,
+          "wearMode": "normal",
+          "layers": {
+            "front": {
+              "x": 0,
+              "y": 0,
+              "scale": 1,
+              "z": 65,
+              "visible": true,
+              "image": {
+                "kind": "missing"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "enchanted_satchel",
+      "name": "附魔旅行側包｜沿用已核准原圖",
+      "category": "bag",
+      "status": "直接沿用正式遊戲64×160已核准圖，不重新生成；原本側包前層位置 y=-2",
+      "layerNames": [
+        "back",
+        "front"
+      ],
+      "genders": {
+        "male": {
+          "visible": false,
+          "wearMode": "normal",
+          "layers": {
+            "back": {
+              "x": 0,
+              "y": 0,
+              "scale": 1,
+              "z": 25,
+              "visible": true,
+              "image": {
+                "kind": "missing"
+              }
+            },
+            "front": {
+              "x": 0,
+              "y": -2,
+              "scale": 1,
+              "z": 70,
+              "visible": true,
+              "image": {
+                "kind": "builtin",
+                "key": "approvedSatchel"
+              }
+            }
+          }
+        },
+        "female": {
+          "visible": false,
+          "wearMode": "normal",
+          "layers": {
+            "back": {
+              "x": 0,
+              "y": 0,
+              "scale": 1,
+              "z": 25,
+              "visible": true,
+              "image": {
+                "kind": "missing"
+              }
+            },
+            "front": {
+              "x": 0,
+              "y": -2,
+              "scale": 1,
+              "z": 70,
+              "visible": true,
+              "image": {
+                "kind": "builtin",
+                "key": "approvedSatchel"
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "note": "工作台試穿參數包含每個部件的 z 和各性別的 wearMode 穿著方式；匯入的 PNG 需另外附圖，不會自動更新正式遊戲。"
+}
