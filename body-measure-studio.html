@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>迷宮盡頭的燈火｜通用身形自動測量</title>
+<style>
+:root{color-scheme:dark;--bg:#102b24;--panel:#1a3d32;--edge:#a18c61;--txt:#f4f0dc;--muted:#c0d1c7;--gold:#e8cc94}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.5 system-ui,-apple-system,"Noto Sans TC",sans-serif}
+main{max-width:750px;margin:auto;padding:12px 11px 40px}
+h1{font-size:21px;margin:0 0 6px}h2{font-size:17px;margin:0 0 7px}
+p{color:var(--muted);margin:6px 0 12px}
+.panel{background:var(--panel);border:1px solid var(--edge);border-radius:13px;padding:12px;margin:12px 0}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.item{min-width:0}
+label{font-size:12px;color:var(--muted);display:block;margin:0 0 5px}
+button,input,select{font:inherit;max-width:100%}
+button,select,input[type=text],input[type=number]{background:#254b3e;color:var(--txt);border:1px solid var(--edge);border-radius:9px;padding:9px 10px;min-height:43px}
+button{cursor:pointer}
+button.primary{background:var(--gold);color:#132a22;font-weight:750}
+button:disabled{opacity:.46;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid #f8da92;outline-offset:2px}
+select,input[type=text],input[type=number]{width:100%}
+.toolbar{display:flex;flex-wrap:wrap;gap:7px;margin:9px 0}
+.toolbar button{flex:1;min-width:135px}
+.hint{font-size:12px;line-height:1.55;color:var(--muted)}
+.tag{font-size:12px;color:var(--gold)}
+#status,#feedback{font-size:13px;color:var(--gold);min-height:20px}
+canvas{width:min(100%,340px);max-height:580px;image-rendering:pixelated;touch-action:none;display:block;margin:auto}
+.preview{background-color:#29483c;background-image:linear-gradient(45deg,#355b4c 25%,transparent 25%),linear-gradient(-45deg,#355b4c 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#355b4c 75%),linear-gradient(-45deg,transparent 75%,#355b4c 75%);background-size:20px 20px;background-position:0 0,0 10px,10px -10px,-10px 0;border:1px solid #5c7967;border-radius:10px;overflow:hidden;display:flex;justify-content:center;padding:6px}
+#current{font-size:16px;color:var(--gold);font-weight:750;margin:7px 0}
+#range{width:100%;accent-color:#ead099;height:34px}
+.bad{color:#ffce8b;font-weight:650}
+.good{color:#b9e4b6}
+table{border-collapse:collapse;width:100%;font-size:12px}
+th,td{border-bottom:1px solid #476958;padding:6px 4px;text-align:left}
+th{color:#f4d69d}
+.scroller{overflow:auto;max-height:340px}
+textarea{width:100%;min-height:165px;background:#08231d;color:#e9ead8;border:1px solid #9a895e;border-radius:8px;padding:8px;font:11px/1.45 ui-monospace,monospace}
+a{color:#f4d79d}
+@media(max-width:400px){.toolbar button{min-width:105px}.grid{gap:7px}}
+</style>
+<script src="./assets/cloak_workbench_bases_v1.js?v=1"></script>
+</head>
+<body><main>
+<div class="tag">《迷宮盡頭的燈火》 · 通用底模 · 像素自動掃描 · 獨立工作台資料</div>
+<h1>身形測量｜自動 + 手動校正</h1>
+<p>選擇原版底模，或匯入未來的新身形透明 PNG。自動掃描的是<strong>像素輪廓</strong>，不能直接辨識真正的關節；肩膀、手臂貼胸等交接處會標為「需要複核」。</p>
+<section class="panel">
+<h2>1. 選擇／新增身形</h2>
+<div class="grid">
+<div class="item"><label for="bodySelect">目前底模</label><select id="bodySelect"><option value="male_body_v1">男性原始 Body V1</option><option value="female_body_v1">女性原始 Body V1</option></select></div>
+<div class="item"><label for="bodyId">新身形 ID（英數／-／_）</label><input type="text" id="bodyId" placeholder="neutral_body_v1" maxlength="52" autocomplete="off"></div>
+</div>
+<div class="toolbar"><button id="uploadBtn" type="button">匯入新身形 PNG</button><button id="restore" type="button">重新讀取身形</button></div>
+<input type="file" id="upload" accept="image/png" hidden>
+<p class="hint">新身形可使用不同尺寸的透明 PNG（最長邊 512px），會保留其<strong>原生像素座標</strong>，不強制拉伸成 64×160。匯入後本機保存於 IndexedDB；瀏覽器封鎖儲存時仍可當次操作，請自行下載 JSON 備份。</p>
+<div id="status" role="status">載入原始 PNG 中…</div>
+</section>
+<section class="panel">
+<h2>2. 一鍵掃描輪廓</h2>
+<div class="toolbar"><button id="scanAll" type="button" class="primary">自動掃描所有部位</button><button id="showWarnings" type="button">查看需要複核的位置</button></div>
+<div class="grid">
+<div class="item"><label for="segment">部位</label><select id="segment">
+<option value="left_arm">畫面左手臂</option><option value="right_arm">畫面右手臂</option>
+<option value="torso">軀幹／胸腰</option><option value="left_leg">畫面左腿</option><option value="right_leg">畫面右腿</option>
+</select></div>
+<div class="item"><label for="landmark">測量高度</label><select id="landmark"></select></div>
+</div>
+<div id="current">尚未開始掃描</div>
+<div class="preview"><canvas id="sprite" width="64" height="160" aria-label="身形像素及水平掃描線，可以上下拖動"></canvas></div>
+<label for="range">目前水平 Y 座標：<strong id="yLabel">—</strong></label><input type="range" id="range" min="0" max="159" step="1" value="70">
+<div class="grid">
+<div class="item"><label for="leftX">左邊界 X（黃色）</label><input type="number" id="leftX" min="0" max="63" step="1"></div>
+<div class="item"><label for="rightX">右邊界 X（藍色）</label><input type="number" id="rightX" min="0" max="63" step="1"></div>
+</div>
+<p>自動／手動寬度：<strong id="width">—</strong></p>
+<div id="feedback">拖動橫線即可重新掃描該列；若邊界不準確可手動調整 X。</div>
+<div class="toolbar"><button id="accept" type="button" class="primary">確認此列</button><button id="next" type="button">下一個位置</button><button id="clear" type="button">清除這個位置</button></div>
+</section>
+<section class="panel">
+<h2>3. 結果與匯出</h2>
+<p class="hint" id="progress">目前尚無測量資料。</p>
+<div class="scroller"><table><thead><tr><th>部位</th><th>Y</th><th>左 X</th><th>右 X</th><th>寬度</th><th>狀態</th></tr></thead><tbody id="rows"></tbody></table></div>
+<div class="toolbar"><button id="copy" type="button" class="primary">複製本身形 JSON</button><button id="download" type="button">下載 JSON</button></div>
+<textarea id="output" readonly spellcheck="false" aria-label="身形量測 JSON"></textarea>
+<p class="hint">量測紀錄依 bodyId 各自保存，與正式遊戲存檔及裝備位置分開。即使自動掃描全部完成，仍要確認可能接到胸口、腿部重疊或被衣服覆蓋的位置。</p>
+</section>
+<p><a href="./arm-horizontal-scan.html?v=1">原版手臂水平掃描尺</a> · <a href="./arm-manual-measure.html?v=2">手動逐點標記</a> · <a href="./developer-studio.html?tab=measure">返回開發者總台</a></p>
+</main>
+<script>
+(()=>{'use strict';
+const $=id=>document.getElementById(id),K='dungeon_body_measurements_v1',DB='dungeon_body_png_presets_v1',STORE='bodies';
+const BODY=window.DungeonCloakWorkbenchBasesV1;
+const defs=[
+ {key:'left_arm',type:'arm',name:'畫面左手臂',ys:[['shoulder','肩膀',.35],['elbow','手肘',.4375],['wrist','手腕',.519]]},
+ {key:'right_arm',type:'arm',name:'畫面右手臂',ys:[['shoulder','肩膀',.35],['elbow','手肘',.4375],['wrist','手腕',.519]]},
+ {key:'torso',type:'torso',name:'軀幹',ys:[['upper','上胸',.39],['middle','胸部',.46],['waist','腰部',.57]]},
+ {key:'left_leg',type:'leg',name:'畫面左腿',ys:[['upper','大腿',.66],['middle','膝部',.755],['lower','小腿',.84]]},
+ {key:'right_leg',type:'leg',name:'畫面右腿',ys:[['upper','大腿',.66],['middle','膝部',.755],['lower','小腿',.84]]}
+];
+const tasks=defs.flatMap(def=>def.ys.map(([landmark,label,fraction])=>({key:def.key+':'+landmark,region:def.key,regionName:def.name,type:def.type,landmark,label,fraction})));
+const bodies=new Map(),bodyInfo=new Map();
+let saved={},current='male_body_v1',w=64,h=160,alpha=null,index=0,y=70,left=null,right=null,caution='',reviewed=false,edited=false,ready=false;
+try{const v=JSON.parse(localStorage.getItem(K)||'{}');if(v?.format==='dungeon-body-measurements-v1'&&v.bodies&&typeof v.bodies==='object')saved=v.bodies}catch(_){}
+function clamp(n,a,b){return Math.max(a,Math.min(b,n))}
+function store(){try{localStorage.setItem(K,JSON.stringify({format:'dungeon-body-measurements-v1',bodies:saved}))}catch(_){$('status').textContent='測量資料無法自動儲存，請下載 JSON 備份。'}}
+function putRecord(record){if(!saved[current])saved[current]={};saved[current][tasks[index].key]=record;store()}
+function getRecord(key){return saved[current]?.[key]||null}
+function decode(url){return new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>resolve(im);im.onerror=()=>reject(new Error('PNG 載入失敗'));im.src=url})}
+async function openDB(){
+ return new Promise((resolve,reject)=>{
+  const req=indexedDB.open(DB,1);
+  req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains(STORE))db.createObjectStore(STORE,{keyPath:'id'})};
+  req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error||new Error('IndexedDB error'));
+ });
+}
+async function dbGetAll(){const db=await openDB();return new Promise((res,rej)=>{const req=db.transaction(STORE,'readonly').objectStore(STORE).getAll();req.onsuccess=()=>{db.close();res(req.result)};req.onerror=()=>{db.close();rej(req.error)}})}
+async function dbPut(v){const db=await openDB();return new Promise((res,rej)=>{const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).put(v);tx.oncomplete=()=>{db.close();res(true)};tx.onerror=()=>{db.close();rej(tx.error)}})}
+function register(id,name,url,source){
+ bodyInfo.set(id,{id,name,source,url});bodies.set(id,url);
+ const opt=[...$('bodySelect').options].find(o=>o.value===id);
+ if(opt)opt.textContent=name;else{const o=document.createElement('option');o.value=id;o.textContent=name;$('bodySelect').appendChild(o)}
+}
+function nearest(value,values){return values.reduce((p,q)=>Math.abs(q-value)<Math.abs(p-value)?q:p,values[0])}
+function corridor(region){
+ const mid=Math.floor(w/2);
+ if(region==='left_arm')return [0,Math.floor(w*.43)];
+ if(region==='right_arm')return [Math.ceil(w*.57),w-1];
+ if(region==='torso')return [Math.floor(w*.12),Math.ceil(w*.88)];
+ if(region==='left_leg')return [Math.floor(w*.07),mid];
+ return [mid,Math.ceil(w*.93)];
+}
+function scan(region,row){
+ if(!alpha)return {left:null,right:null,ambiguous:true,reason:'未載入圖片'};
+ const [lo,hi]=corridor(region),threshold=90;
+ const runs=[];let start=-1;
+ for(let x=lo;x<=hi+1;x++){
+  const solid=x<=hi&&alpha[(row*w+x)*4+3]>=threshold;
+  if(solid&&start<0)start=x;
+  if(!solid&&start>=0){if(x-start>=2)runs.push([start,x-1]);start=-1}
+ }
+ if(!runs.length)return {left:null,right:null,ambiguous:true,reason:'此高度找不到有效像素；請上下移動 Y'};
+ const center=region==='left_leg'?w*.33:region==='right_leg'?w*.67:w*.5;
+ let run;
+ if(region==='left_arm')run=runs[0];
+ else if(region==='right_arm')run=runs[runs.length-1];
+ else if(region==='torso')run=runs.find(r=>r[0]<=center&&r[1]>=center)||runs.slice().sort((a,b)=>(b[1]-b[0])-(a[1]-a[0]))[0];
+ else run=runs.slice().sort((a,b)=>Math.abs((a[0]+a[1])/2-center)-Math.abs((b[0]+b[1])/2-center))[0];
+ const touches=run[0]<=lo||run[1]>=hi;
+ const wide=(run[1]-run[0]+1)>(hi-lo+1)*.72;
+ const armConnected=region==='left_arm'?run[1]>=Math.floor(w*.37):region==='right_arm'?run[0]<=Math.ceil(w*.63):false;
+ const torsoConnected=region==='torso'&&(run[0]<w*.18||run[1]>w*.82);
+ const ambiguous=touches||wide||armConnected||torsoConnected;
+ const reason=touches?'輪廓接到掃描區邊界；可能與身體相連':armConnected?'手臂內緣可能接到胸口，需要人工確認':torsoConnected?'軀幹可能包含手臂的連接像素':wide?'偵測寬度偏大；請檢查是否混入鄰近身體部位':'自動找到輪廓，請核對位置';
+ return {left:run[0],right:run[1],ambiguous,reason};
+}
+function task(){return tasks[index]}
+function loadRecord(){
+ const t=task(),existing=getRecord(t.key);
+ y=existing?.y??clamp(Math.round((h-1)*t.fraction),0,h-1);
+ if(existing&&Number.isInteger(existing.left)&&Number.isInteger(existing.right)){
+  left=existing.left;right=existing.right;caution=existing.reason||'已儲存的測量';reviewed=!!existing.reviewed;edited=!!existing.edited;
+ }else{const r=scan(t.region,y);left=r.left;right=r.right;caution=r.reason;reviewed=false;edited=false}
+ draw();
+}
+function autoAt(row){
+ y=clamp(Math.round(row),0,h-1);const r=scan(task().region,y);left=r.left;right=r.right;caution=r.reason;reviewed=false;edited=false;draw();
+}
+function widthPx(){return Number.isInteger(left)&&Number.isInteger(right)&&left<=right?right-left+1:null}
+function draw(){
+ if(!ready)return;
+ const canvas=$('sprite'),ctx=canvas.getContext('2d');ctx.clearRect(0,0,w,h);ctx.imageSmoothingEnabled=false;
+ ctx.drawImage(bodyInfo.get(current).image,0,0,w,h);
+ const row=y;
+ ctx.fillStyle='rgba(245,207,112,.24)';ctx.fillRect(0,row,w,1);
+ const [lo,hi]=corridor(task().region);
+ ctx.fillStyle='rgba(93,220,175,.26)';ctx.fillRect(lo,row,hi-lo+1,1);
+ if(Number.isInteger(left)){
+  ctx.fillStyle='#ffd253';ctx.fillRect(left-1,row-2,3,5)
+ }
+ if(Number.isInteger(right)){
+  ctx.fillStyle='#65e6ff';ctx.fillRect(right-1,row-2,3,5)
+ }
+ canvas.width=w;canvas.height=h;
+ // Canvas resizing clears pixel content. Redraw at native resolution.
+ ctx.imageSmoothingEnabled=false;
+ ctx.drawImage(bodyInfo.get(current).image,0,0,w,h);
+ ctx.fillStyle='rgba(246,211,104,.65)';ctx.fillRect(0,row,w,1);
+ ctx.fillStyle='rgba(68,217,167,.35)';ctx.fillRect(lo,row,hi-lo+1,1);
+ if(Number.isInteger(left)){ctx.fillStyle='#ffc24b';ctx.fillRect(Math.max(0,left-1),clamp(row-2,0,h-1),3,5)}
+ if(Number.isInteger(right)){ctx.fillStyle='#68e7ff';ctx.fillRect(Math.max(0,right-1),clamp(row-2,0,h-1),3,5)}
+ $('current').textContent=task().regionName+' · '+task().label+'（'+(index+1)+'／'+tasks.length+'）';
+ $('range').max=String(h-1);$('range').value=String(y);$('yLabel').textContent='Y '+y;
+ for(const [id,value] of [['leftX',left],['rightX',right]]){const inp=$(id);inp.max=String(w-1);inp.value=Number.isInteger(value)?String(value):''}
+ $('width').textContent=widthPx()===null?'無有效輪廓':widthPx()+' px';
+ $('feedback').textContent=(reviewed?'目前為已確認位置。':'自動預估，尚未人工確認。')+' '+caution;
+ $('feedback').className=/可能|偏大|邊界|檢查|相連|混入/.test(caution)?'bad':'hint';
+ $('accept').disabled=widthPx()===null;
+ updateTable();
+}
+function updateTable(){
+ const records=saved[current]||{},tbody=$('rows');tbody.replaceChildren();
+ for(const t of tasks){
+  const r=records[t.key],tr=document.createElement('tr');
+  const vals=[t.regionName+'/'+t.label,r?.y??'—',r?.left??'—',r?.right??'—',r?.widthPx??'—',r?(r.reviewed?'已複核':r.ambiguous?'需複核':'自動值'):'未掃描'];
+  for(const v of vals){const td=document.createElement('td');td.textContent=String(v);tr.appendChild(td)}
+  tbody.appendChild(tr);
+ }
+ $('progress').textContent='已掃描 '+Object.keys(records).length+'／'+tasks.length+' 項；已人工確認 '+Object.values(records).filter(r=>r.reviewed).length+' 項。';
+ $('output').value=JSON.stringify(exportData(),null,2);
+}
+function exportData(){
+ const p=bodyInfo.get(current);return {
+  format:'dungeon-body-measurement-v1',project:'迷宮盡頭的燈火',bodyId:current,bodyName:p?.name||current,
+  source:p?.source||'unknown',nativeCanvas:{width:w,height:h},
+  method:'horizontal alpha contour segmentation plus manual verification',
+  note:'Auto-detected pixel runs are only rough silhouettes; no claim of anatomical joint detection.',
+  samples:tasks.map(t=>({category:t.type,region:t.region,landmark:t.landmark,landmarkLabel:t.label,...(saved[current]?.[t.key]||{y:null,left:null,right:null,widthPx:null,reviewed:false,reason:'not scanned'})}))
+ };
+}
+function setTask(i){index=clamp(i,0,tasks.length-1);const t=task();$('segment').value=t.region;
+ $('landmark').replaceChildren();
+ const def=defs.find(v=>v.key===t.region);
+ for(const [key,label] of def.ys){const opt=document.createElement('option');opt.value=key;opt.textContent=label;$('landmark').appendChild(opt)}
+ $('landmark').value=t.landmark;loadRecord();
+}
+async function setBody(id){
+ const p=bodyInfo.get(id);if(!p)return;
+ ready=false;try{
+  const im=p.image||await decode(p.url);w=im.naturalWidth;h=im.naturalHeight;
+  if(w<32||h<64||w>512||h>512)throw Error('支援底模尺寸 32–512px 寬、64–512px 高');
+  const cv=document.createElement('canvas');cv.width=w;cv.height=h;
+  const ctx=cv.getContext('2d',{willReadFrequently:true});if(!ctx)throw Error('無法使用 2D Canvas');
+  ctx.drawImage(im,0,0,w,h);alpha=ctx.getImageData(0,0,w,h).data;
+  p.image=im;current=id;ready=true;$('bodySelect').value=id;
+  const canvas=$('sprite');canvas.width=w;canvas.height=h;canvas.style.aspectRatio=w+'/'+h;
+  $('status').textContent='已讀取 '+p.name+'（'+w+'×'+h+'）。可一鍵自動掃描，再人工複核。';
+  setTask(0);
+ }catch(e){$('status').textContent='讀取身形失敗：'+e.message;ready=false;throw e}
+}
+function saveCurrent(){
+ if(widthPx()===null)return;
+ const r=scan(task().region,y);
+ putRecord({y,left,right,widthPx:widthPx(),reviewed:true,edited,ambiguous:r.ambiguous,reason:edited?'人工修改邊界／複核':r.reason});
+ reviewed=true;caution='已人工確認這個高度的像素輪廓';draw();
+}
+$('segment').onchange=e=>setTask(tasks.findIndex(t=>t.region===e.target.value));
+$('landmark').onchange=e=>setTask(tasks.findIndex(t=>t.region===$('segment').value&&t.landmark===e.target.value));
+$('range').oninput=e=>{if(ready)autoAt(Number(e.target.value))};
+for(const id of ['leftX','rightX'])$(id).onchange=e=>{
+ const val=e.target.value;if(val==='')return;let n=clamp(Math.round(Number(val)),0,w-1);
+ if(id==='leftX')left=n;else right=n;edited=true;reviewed=false;caution='目前正在手動修改邊界，請確認';
+ draw();
+};
+$('sprite').addEventListener('pointerdown',e=>{if(!ready)return;e.preventDefault();const r=e.currentTarget.getBoundingClientRect();autoAt(Math.floor((e.clientY-r.top)*h/r.height))});
+$('sprite').addEventListener('pointermove',e=>{if(!ready||!(e.buttons&1))return;e.preventDefault();const r=e.currentTarget.getBoundingClientRect();autoAt(Math.floor((e.clientY-r.top)*h/r.height))});
+$('accept').onclick=()=>{saveCurrent();if(index<tasks.length-1)setTask(index+1)};
+$('next').onclick=()=>setTask(Math.min(index+1,tasks.length-1));
+$('clear').onclick=()=>{if(saved[current])delete saved[current][task().key];store();loadRecord()};
+$('scanAll').onclick=()=>{
+ if(!ready)return;let count=0;
+ if(!saved[current])saved[current]={};
+ for(const t of tasks){
+  if(saved[current][t.key]?.reviewed)continue;
+  const row=clamp(Math.round((h-1)*t.fraction),0,h-1),r=scan(t.region,row);
+  saved[current][t.key]={y:row,left:r.left,right:r.right,widthPx:r.left!==null&&r.right!==null?r.right-r.left+1:null,reviewed:false,edited:false,ambiguous:r.ambiguous,reason:r.reason};count++;
+ }
+ store();loadRecord();$('status').textContent='已完成 '+count+' 項新自動掃描；先檢查標記為「需複核」的項目，正式衣服不會更改。';
+};
+$('showWarnings').onclick=()=>{
+ const i=tasks.findIndex(t=>saved[current]?.[t.key]?.ambiguous&&!saved[current]?.[t.key]?.reviewed);
+ if(i>=0){setTask(i);$('status').textContent='已跳至需要複核的位置：'+task().regionName+'・'+task().label}
+ else $('status').textContent='目前沒有未複核的警示位置；不代表所有關節都已準確定位。';
+};
+$('copy').onclick=async()=>{
+ const txt=JSON.stringify(exportData(),null,2);$('output').value=txt;
+ try{if(!navigator.clipboard?.writeText)throw Error('no clipboard');await navigator.clipboard.writeText(txt);$('status').textContent='JSON 已複製，可返回對話框貼上'}
+ catch(_){$('output').focus();$('output').select();$('status').textContent='無法自動複製，已選取 JSON 文字供你長按複製'}
+};
+$('download').onclick=()=>{
+ const text=JSON.stringify(exportData(),null,2),a=document.createElement('a');
+ const url=URL.createObjectURL(new Blob([text],{type:'application/json'}));
+ a.href=url;a.download=current+'-body-measurement.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+};
+$('bodySelect').onchange=e=>{setBody(e.target.value).catch(console.error)};
+$('restore').onclick=()=>{setBody(current).catch(console.error)};
+$('uploadBtn').onclick=()=>$('upload').click();
+$('upload').onchange=async e=>{
+ const file=e.target.files?.[0];if(!file)return;
+ try{
+  if(file.type!=='image/png')throw Error('請匯入透明 PNG 圖片');
+  if(file.size>5*1024*1024)throw Error('檔案超過 5MB');
+  const id=$('bodyId').value.trim().toLowerCase()||file.name.replace(/\.png$/i,'').toLowerCase().replace(/[^a-z0-9_-]+/g,'_').slice(0,48);
+  if(!/^[a-z0-9][a-z0-9_-]{1,51}$/.test(id))throw Error('身形 ID 請使用 2–52 個英數、- 或 _');
+  if(bodyInfo.has(id))throw Error('已有這個 bodyId，請輸入其他名稱');
+  const url=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=()=>rej(new Error('無法讀取圖片'));r.readAsDataURL(file)});
+  const im=await decode(url);if(im.width<32||im.height<64||im.width>512||im.height>512)throw Error('請使用寬 32–512、高 64–512 像素圖片');
+  // Verify an alpha channel; fully opaque JPEGs renamed PNG are not suitable.
+  const c=document.createElement('canvas');c.width=im.width;c.height=im.height;const ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(im,0,0);
+  const rgba=ctx.getImageData(0,0,c.width,c.height).data;let hasTransparent=false;
+  for(let k=3;k<rgba.length;k+=4){if(rgba[k]<255){hasTransparent=true;break}}
+  if(!hasTransparent)throw Error('這張 PNG 沒有透明像素，請匯入有透明背景的底模');
+  const entry={id,name:id+'（自訂身形）',url,source:'user-local-png'};
+  register(id,entry.name,url,entry.source);
+  try{await dbPut(entry);$('status').textContent='新身形已儲存在本機 IndexedDB'}
+  catch(_){$('status').textContent='新身形已載入，但瀏覽器未允許永久保存。請保留原始 PNG。'}
+  await setBody(id);
+ }catch(err){$('status').textContent='匯入失敗：'+err.message}
+ e.target.value='';
+};
+async function init(){
+ if(!BODY?.male?.body||!BODY?.female?.body)throw Error('找不到原版男女 Body PNG');
+ register('male_body_v1','男性原始 Body V1',BODY.male.body,'game-original-body');
+ register('female_body_v1','女性原始 Body V1',BODY.female.body,'game-original-body');
+ try{const list=await dbGetAll();for(const obj of list)if(obj.id&&obj.url&&!bodyInfo.has(obj.id))register(obj.id,obj.name,obj.url,'user-local-png')}
+ catch(_){$('status').textContent='自訂身形本機資料庫不可用；仍可測量內建男女身形。'}
+ await setBody('male_body_v1');
+}
+init().catch(err=>{$('status').textContent='身形測量工具無法啟動：'+err.message;console.error(err)});
+})();
+</script>
+</body></html>
