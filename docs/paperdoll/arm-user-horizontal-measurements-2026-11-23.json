@@ -1,0 +1,227 @@
+{
+  "format": "dungeon-arm-horizontal-scan-v1",
+  "project": "迷宮盡頭的燈火",
+  "nativeCanvas": {
+    "width": 64,
+    "height": 160
+  },
+  "origin": "original 64x160 male/female Body PNG",
+  "method": "per-row alpha segmentation, corridor constrained; manual override permitted",
+  "note": "Shoulder/torso continuity can make the inner edge ambiguous. confirmed flag refers to user review, not to a biomechanical ground truth.",
+  "samples": [
+    {
+      "gender": "male",
+      "screenSide": "left",
+      "landmark": "shoulder",
+      "y": 56,
+      "outer": 15,
+      "inner": 22,
+      "widthPx": 8,
+      "confirmed": true,
+      "edited": true,
+      "ambiguous": true,
+      "reason": "人工修正／確認位置"
+    },
+    {
+      "gender": "male",
+      "screenSide": "left",
+      "landmark": "elbow",
+      "y": 70,
+      "outer": 11,
+      "inner": 19,
+      "widthPx": 9,
+      "confirmed": true,
+      "edited": false,
+      "ambiguous": false,
+      "reason": "自動找到外緣與內緣，仍請對照原圖確認"
+    },
+    {
+      "gender": "male",
+      "screenSide": "left",
+      "landmark": "wrist",
+      "y": 83,
+      "outer": 7,
+      "inner": 13,
+      "widthPx": 7,
+      "confirmed": true,
+      "edited": false,
+      "ambiguous": false,
+      "reason": "自動找到外緣與內緣，仍請對照原圖確認"
+    },
+    {
+      "gender": "male",
+      "screenSide": "right",
+      "landmark": "shoulder",
+      "y": 56,
+      "outer": 47,
+      "inner": 40,
+      "widthPx": 8,
+      "confirmed": true,
+      "edited": true,
+      "ambiguous": true,
+      "reason": "人工修正／確認位置"
+    },
+    {
+      "gender": "male",
+      "screenSide": "right",
+      "landmark": "elbow",
+      "y": 70,
+      "outer": 51,
+      "inner": 43,
+      "widthPx": 9,
+      "confirmed": true,
+      "edited": false,
+      "ambiguous": false,
+      "reason": "自動找到外緣與內緣，仍請對照原圖確認"
+    },
+    {
+      "gender": "male",
+      "screenSide": "right",
+      "landmark": "wrist",
+      "y": 83,
+      "outer": 55,
+      "inner": 49,
+      "widthPx": 7,
+      "confirmed": true,
+      "edited": false,
+      "ambiguous": false,
+      "reason": "自動找到外緣與內緣，仍請對照原圖確認"
+    },
+    {
+      "gender": "female",
+      "screenSide": "left",
+      "landmark": "shoulder",
+      "y": 56,
+      "outer": 15,
+      "inner": 22,
+      "widthPx": 8,
+      "confirmed": true,
+      "edited": true,
+      "ambiguous": true,
+      "reason": "人工修正／確認位置"
+    },
+    {
+      "gender": "female",
+      "screenSide": "left",
+      "landmark": "elbow",
+      "y": 70,
+      "outer": 12,
+      "inner": 20,
+      "widthPx": 9,
+      "confirmed": true,
+      "edited": false,
+      "ambiguous": false,
+      "reason": "自動找到外緣與內緣，仍請對照原圖確認"
+    },
+    {
+      "gender": "female",
+      "screenSide": "left",
+      "landmark": "wrist",
+      "y": 83,
+      "outer": 7,
+      "inner": 14,
+      "widthPx": 8,
+      "confirmed": true,
+      "edited": false,
+      "ambiguous": false,
+      "reason": "自動找到外緣與內緣，仍請對照原圖確認"
+    },
+    {
+      "gender": "female",
+      "screenSide": "right",
+      "landmark": "shoulder",
+      "y": 56,
+      "outer": 46,
+      "inner": 39,
+      "widthPx": 8,
+      "confirmed": true,
+      "edited": true,
+      "ambiguous": true,
+      "reason": "人工修正／確認位置"
+    },
+    {
+      "gender": "female",
+      "screenSide": "right",
+      "landmark": "elbow",
+      "y": 70,
+      "outer": 50,
+      "inner": 42,
+      "widthPx": 9,
+      "confirmed": true,
+      "edited": false,
+      "ambiguous": false,
+      "reason": "自動找到外緣與內緣，仍請對照原圖確認"
+    },
+    {
+      "gender": "female",
+      "screenSide": "right",
+      "landmark": "wrist",
+      "y": 83,
+      "outer": 55,
+      "inner": 48,
+      "widthPx": 8,
+      "confirmed": true,
+      "edited": false,
+      "ambiguous": false,
+      "reason": "自動找到外緣與內緣，仍請對照原圖確認"
+    }
+  ],
+  "review": {
+    "reviewedOn": "2026-11-23",
+    "totalConfirmed": 12,
+    "shoulderManuallyEditedAndAmbiguous": 4,
+    "wristY83StillRequiresActualCuffHandCheck": true,
+    "v7MismatchAtY83": [
+      {
+        "gender": "male",
+        "screenSide": "left",
+        "measuredSkinX": [
+          7,
+          13
+        ],
+        "v7ClothingX": [
+          10,
+          18
+        ]
+      },
+      {
+        "gender": "male",
+        "screenSide": "right",
+        "measuredSkinX": [
+          49,
+          55
+        ],
+        "v7ClothingX": [
+          46,
+          54
+        ]
+      },
+      {
+        "gender": "female",
+        "screenSide": "left",
+        "measuredSkinX": [
+          7,
+          14
+        ],
+        "v7ClothingX": [
+          11,
+          18
+        ]
+      },
+      {
+        "gender": "female",
+        "screenSide": "right",
+        "measuredSkinX": [
+          48,
+          55
+        ],
+        "v7ClothingX": [
+          46,
+          53
+        ]
+      }
+    ],
+    "prototype": "Local V8 preview built with true V3 torso/shoulder pixels and hand-scan contour; not installed or approved",
+    "warning": "The user-approved positions are skin boundaries, not garment outlines; add 1px garment allowance and check cuff vs actual hand before final installation."
+  }
+}
