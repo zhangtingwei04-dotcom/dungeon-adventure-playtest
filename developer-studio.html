@@ -526,44 +526,36 @@ function drawSlot(ctx,gender,slotsToDraw){
 // forearm strip. Drawing body alone OVER the cape hid original underwear
 // pixels, incorrectly making the shorts look smaller.
 function drawOriginalBodyHands(ctx,gender,cloakId='starter_cloak'){
- const body=images.get(gender+'Body');if(!body)return;
+ const nativeBody=images.get(gender+'Body');if(!nativeBody)return;
  const shirtWorn=shown['starter_tunic:'+gender]!==false;
- const useTrial=cloakArmRevealTrial&&CLOAK_ARM_REVEAL_TRIAL_IDS.includes(cloakId);
- // Restore EXACT old contours first. The previous trial incorrectly
- // widened the mask all the way to Y=102 and exposed naked upper-thigh
- // pixels through trousers. Do not expand any mask into waist/thighs.
- const paintNative=(rects,includeCuffs)=>{
-  ctx.save();ctx.beginPath();
-  for(const [x,y,w,h] of rects)ctx.rect(x,y,w,h);
-  ctx.clip();
-  for(const name of ['Body','Shorts','Tank']){
-   const img=images.get(gender+name);
-   if(img)ctx.drawImage(img,0,0,64,160);
-  }
-  if(includeCuffs){
-   // Sleeve fragments are original approved sprites, drawn only inside
-   // the shallow added inner-forearm strips, never across waist or legs.
-   for(const layer of ['side','back']){
-    const key=k('starter_tunic',gender,layer),img=getImage('starter_tunic',gender,layer);
-    if(layerShown[key]!==false&&img)
-     drawImageOn(ctx,img,transforms[key]||defaultT(item('starter_tunic'),gender,layer));
-   }
-  }
-  ctx.restore();
- };
- if(!shirtWorn){
-  // Existing shirtless cloak behavior stays byte-for-byte equivalent.
-  paintNative([[0,70,24,32],[40,70,24,32]],false);
-  return;
+ const activeCloakTrial=cloakArmRevealTrial&&CLOAK_ARM_REVEAL_TRIAL_IDS.includes(cloakId);
+ ctx.save();ctx.beginPath();
+ if(activeCloakTrial){
+  // V3: conservative tapered ARM-ONLY contour. Critical: never restore
+  // original naked body over the hip/thigh next to trousers. The original
+  // rectangles extended to x20/44 at Y=90..101, producing two skin streaks.
+  // Each successive band narrows INWARDS so the hand remains visible while
+  // the skin near the trouser side seams stays behind the cloak.
+  // 64x160 native pixels; both genders use the exact same outside bounds.
+  // Area y76..82: upper forearms just below the cloak/sleeve edge.
+  ctx.rect(0,76,21,7);ctx.rect(43,76,21,7);
+  // Area y83..89: middle forearms (taper towards hands).
+  ctx.rect(0,83,19,7);ctx.rect(45,83,19,7);
+  // Area y90..101: palm/fingers ONLY, away from naked thigh pixels.
+  ctx.rect(0,90,15,12);ctx.rect(49,90,15,12);
+ }else if(shirtWorn){
+  // Original comparison state, retained for A/B evaluation.
+  ctx.rect(0,76,20,26);ctx.rect(44,76,20,26);
+ }else{
+  // Original no-shirt handling stays available when trial is off.
+  ctx.rect(0,70,24,32);ctx.rect(40,70,24,32);
  }
- // Old stable mask: do not change the lower arms or their saved positions.
- paintNative([[0,76,20,26],[44,76,20,26]],false);
- if(!useTrial)return;
- // Only at Y=76..87, under the sleeve cuffs, add 3-4 INNER pixels.
- // Excludes Y>=88 completely, where trousers and exposed thigh existed.
- const innerLeft=gender==='male'?4:3;
- const innerRight=gender==='male'?40:41;
- paintNative([[20,76,innerLeft,12],[innerRight,76,44-innerRight,12]],true);
+ ctx.clip();
+ // CRITICAL: only repaint the ORIGINAL SKIN sprite. Do not draw the
+ // 64x160 shorts, tank or entire tunic through the clip -- these cause
+ // ghost garment strips and incorrectly render body pixels over trousers.
+ ctx.drawImage(nativeBody,0,0,64,160);
+ ctx.restore();
 }
 function drawAssetStage(gender){
  const c=$(gender+'Canvas'),ctx=c.getContext('2d');
@@ -691,7 +683,7 @@ function update(){
  normalize();renderAssetList();updateControls();drawAll();refreshJson();
  const revealBtn=$('cloakArmRevealToggle');
  if(revealBtn){
-  revealBtn.textContent='披風前臂微修 V2：'+(cloakArmRevealTrial?'開':'關（舊版對照）');
+  revealBtn.textContent='披風手臂輪廓 V3：'+(cloakArmRevealTrial?'開':'關（舊版對照）');
   revealBtn.setAttribute('aria-pressed',String(cloakArmRevealTrial));
  }
  for(const [id,mode] of [['wearBothTucked','tucked'],['wearBothUntucked','untucked'],['wearBothOuter','outer']]){
@@ -912,7 +904,7 @@ $('resetView').onclick=()=>{$('maleCard').hidden=false;$('femaleCard').hidden=fa
 $('resetApprovedFit').onclick=()=>resetCanonicalFit(false);
 $('cloakArmRevealToggle').onclick=()=>{
  cloakArmRevealTrial=!cloakArmRevealTrial;update();persist();
- toast(cloakArmRevealTrial?'披風 V2 前臂局部修正：開':'披風 V2 前臂局部修正：關（舊版）');
+ toast(cloakArmRevealTrial?'披風 V2：手臂輪廓限定於外側':'披風 V2：已切回舊版遮罩');
 };
 $('toggleGuides').onclick=()=>{guides=!guides;$('toggleGuides').textContent='肩頸輔助線：'+(guides?'開':'關');drawAll()};
 $('copyAll').onclick=async()=>{refreshJson();const ok=await copyText($('jsonOutput').value);toast(ok?'已複製全部素材的 JSON':'請長按 JSON 欄位複製')};
