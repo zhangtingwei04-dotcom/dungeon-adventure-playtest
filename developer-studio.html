@@ -191,7 +191,7 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 <p>現在可以自動測量原始男女角色的手臂、胸腰與腿部輪廓；未來可匯入其他透明 PNG，為每種身形建立獨立的 bodyId 和 JSON 記錄。</p>
 <div class="toolbar"><button type="button" class="primary" id="openBodyMeasure">全頁開啟身形測量（手機推薦）</button><button type="button" id="openLegacyArmScan">原手臂水平掃描尺</button><button type="button" id="openManualArm">逐點測量</button></div>
 <div class="hint">下方可直接在工作台內操作。自動掃描是讀取透明像素，不是辨識骨骼；肩膀連接胸口、手臂重疊、不同動作姿勢仍須人工確認。測量結果僅供素材製作，不會更動正式角色或遊戲存檔。</div>
-<iframe id="bodyMeasureFrame" title="原始像素自動身形測量工具" loading="lazy" style="width:100%;height:1380px;display:block;background:#102b24;border:1px solid #7a7656;border-radius:12px;margin-top:12px" data-src="./body-measure-studio.html?v=2" src="about:blank"></iframe>
+<iframe id="bodyMeasureFrame" title="原始像素自動身形測量工具" loading="lazy" style="width:100%;height:1380px;display:block;background:#102b24;border:1px solid #7a7656;border-radius:12px;margin-top:12px" data-src="./body-measure-studio.html?v=3" src="about:blank"></iframe>
 </div>
 </section>
 <section id="page-export" data-page="export" hidden>
@@ -1050,7 +1050,7 @@ function setTab(id){
  }
 }
 for(const b of document.querySelectorAll('[data-tab]'))b.onclick=()=>setTab(b.dataset.tab);
-$('openBodyMeasure').onclick=()=>openUrl('./body-measure-studio.html?v=2');
+$('openBodyMeasure').onclick=()=>openUrl('./body-measure-studio.html?v=3');
 $('openLegacyArmScan').onclick=()=>openUrl('./arm-horizontal-scan.html?v=1');
 $('openManualArm').onclick=()=>openUrl('./arm-manual-measure.html?v=2');
 $('reloadGame').onclick=()=>{$('gameFrame').src='./?dev-preview=1&v='+Date.now();toast('已重新載入獨立測試存檔')};
