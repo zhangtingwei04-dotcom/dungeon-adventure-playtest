@@ -124,6 +124,8 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 <div class="avatarCard" id="maleCard"><strong>男性｜原版頭</strong><div class="sub">真實底模 64×160</div><div class="spriteChecker"><canvas width="64" height="160" id="maleCanvas" aria-label="男性角色即時裝備預覽，可拖曳調整所選圖層"></canvas></div></div>
 <div class="avatarCard" id="femaleCard"><strong>女性｜新版頭</strong><div class="sub">真實底模 64×160</div><div class="spriteChecker"><canvas width="64" height="160" id="femaleCanvas" aria-label="女性角色即時裝備預覽，可拖曳調整所選圖層"></canvas></div></div>
 </div><div class="toolbar" style="margin-top:10px"><button id="resetView">恢復兩性並排</button><button class="primary" id="resetApprovedFit">恢復已確認服裝位置</button><button id="toggleGuides">肩頸輔助線：關</button></div>
+<div class="hint">上衣穿搭試驗｜可一鍵同時切換男女角色，直接比較白布衣與褲腰的遮擋。</div>
+<div class="toolbar"><button type="button" id="wearBothTucked">紮入式（男女）</button><button type="button" id="wearBothUntucked">自然垂放（男女）</button><button type="button" id="wearBothOuter">外罩式（男女）</button></div>
 <p>直接在角色圖上拖曳，可移動目前選取性別與圖層。只修改該圖層參數，不會移動底模或頭部。</p>
 <div class="hint"><strong>原版手部已鎖定：</strong>披風前片繪製後會直接重疊正式底模原本的手掌與前臂像素（左右側 x0–23／x40–63，y70–101），不會另外生成手臂、更改動作或角度。<br><strong>原始身體尺寸（64×160 座標）</strong>：男性 x4–58、y49–140，實際 55×92px；女性 x4–58、y51–140，實際 55×90px。披風前層 x3–59、y53–118（57×66px），後層 x2–60、y53–135（59×83px）。披風已接近畫布最大寬度；過度放大會裁到左右金邊，應優先調整肩披、前片及衣襬輪廓。</div>
 <div class="warning" id="assetWarning">目前是素材預覽，非正式穿戴驗收。既有頭部與內衣母版不會被修改。</div>
@@ -648,7 +650,13 @@ function updateControls(){
   '旅行長褲 V2：透明長褲已貼合原始男女底模並拆成褲腰、左褲管、右褲管，三張皆為64×160。現在顯示於白色上衣前方，褲腰／皮帶可遮蓋衣服下擺；只在工作台試穿，正式遊戲未變動。':
   '正式男女頭部、身體與內衣不動；每個部件可獨立調整前後層級 Z（數字越大越前）。圖層調整只影響工作台預覽，不會自動安裝到遊戲。';
 }
-function update(){normalize();renderAssetList();updateControls();drawAll();refreshJson()}
+function update(){
+ normalize();renderAssetList();updateControls();drawAll();refreshJson();
+ for(const [id,mode] of [['wearBothTucked','tucked'],['wearBothUntucked','untucked'],['wearBothOuter','outer']]){
+  const button=$(id);
+  if(button)button.setAttribute('aria-pressed',String(['male','female'].every(g=>getWearMode(item('starter_tunic'),g)===mode)));
+ }
+}
 function refreshJson(){const el=$('jsonOutput');if(el)el.value=JSON.stringify(serialize(),null,2)}
 function updateTransform(){
  const t=transforms[selectedKey()];
@@ -788,9 +796,21 @@ $('wearModeBoth').onclick=()=>{
  const a=item(selected);if(!a||a.slot!=='chest')return;
  const mode=getWearMode(a,editingGender);
  for(const gender of ['male','female'])wearModes[wearModeKey(a.id,gender)]=mode;
- updateControls();drawAll();refreshJson();persist();
+ update();persist();
  toast('已將相同穿著方式套用到男女角色');
 };
+for(const [id,mode] of [['wearBothTucked','tucked'],['wearBothUntucked','untucked'],['wearBothOuter','outer']]){
+ $(id).onclick=()=>{
+  for(const gender of ['male','female']){
+   wearModes[wearModeKey('starter_tunic',gender)]=mode;
+   shown['starter_tunic:'+gender]=true;
+   shown['starter_trousers:'+gender]=true;
+  }
+  selected='starter_tunic';editingLayer='front';
+  update();persist();
+  toast('已切換男女上衣穿著方式');
+ };
+}
 for(const inputId of ['xInput','yInput','scaleInput','zInput'])$(inputId).onchange=updateTransform;
 $('zPreset').onchange=e=>{
  if(e.target.value==='')return;
