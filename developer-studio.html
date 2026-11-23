@@ -101,7 +101,7 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 <div class="hint">此處使用正式男女身體／內衣／頭髮素材。新增 PNG 可單獨定位、調整大小，並在男女預覽中測試。披風 V2 使用剛生成的原圖拆成透明前後層，可分別調整男女位置和大小；正式採用前仍需驗收。調完後到「數據與備份」複製數據給我。</div>
 <div class="layout">
 <div class="panel"><h2>素材庫</h2>
-<div class="hint">白色初始布衣 V3（最新生成素材）已載入：男女各自先對齊完整正面衣服，再拆主衣身、左袖、右袖，三片共用 64×160 座標。可切換試穿／披風／脫下，尚待你在 iPhone 確認袖口接合。</div>
+<div class="hint">白色初始布衣 V3（最新生成素材）：依你提供的工作台設定，男性三層偏移 x=-1、y=-1；女性三層 x=0、y=-1；scale=1。披風在試穿模式暫時隱藏，原先核准的披風座標不變。仍待實際穿著效果驗收。</div>
 <div class="toolbar" style="margin:10px 0">
 <button class="primary" id="shirtOnly">試穿白布衣（暫隱披風）</button>
 <button id="shirtWithCloak">白布衣＋披風</button>
@@ -204,8 +204,12 @@ const stockKeys={
 const images=new Map(),userPngs=new Map(),imageInfo=new Map();
 const transforms={},shown={},layerShown={};
 const defaultT=(asset,gender,layer)=>({
- x:asset.id==='hair_original'&&gender==='female'?-2:0,
- y:asset.id==='hair_original'&&gender==='female'?-5:
+ // Approved-by-user workbench V3 *trial* offsets, 2026-11-23.
+ // These are not official game clothing positions yet.
+ x:asset.id==='starter_tunic'&&gender==='male'?-1:
+   asset.id==='hair_original'&&gender==='female'?-2:0,
+ y:asset.id==='starter_tunic'?-1:
+   asset.id==='hair_original'&&gender==='female'?-5:
    asset.id==='starter_cloak'&&layer==='front'?(gender==='male'?-8:-6):0,
  scale:1
 });
@@ -679,7 +683,7 @@ async function init(){
     shown['starter_tunic:'+g]=true;shown['starter_cloak:'+g]=false;
     if(['2','3'].includes(new URLSearchParams(location.search).get('shirt'))){
      for(const l of ['front','side','back']){
-      transforms[k('starter_tunic',g,l)]={x:0,y:0,scale:1};
+      transforms[k('starter_tunic',g,l)]=defaultT(item('starter_tunic'),g,l);
       layerShown[k('starter_tunic',g,l)]=true;
      }
     }
