@@ -31,7 +31,7 @@ canvas{image-rendering:pixelated;width:min(100%,258px);aspect-ratio:2/5;display:
 <div class="cards"><section class="card"><h2>男性原版底模</h2><div class="wrap"><canvas id="male" width="64" height="160"></canvas></div><div class="labels" id="malelabel"></div></section><section class="card"><h2>女性原版底模</h2><div class="wrap"><canvas id="female" width="64" height="160"></canvas></div><div class="labels" id="femalelabel"></div></section></div>
 <div class="sheet"><h2>原始 Body 與 V7 實測像素寬度</h2><p>範圍依畫面左側／右側手臂分開計算，不用模仿生成圖的肢體。下表每列是 64×160 的真正 Y 座標；「—」代表該列沒有該區塊的不透明像素。數據會在你的瀏覽器上直接從原始 PNG 計算。</p><table id="measure"><thead><tr><th>性別 / 側</th><th>Y</th><th>原 Body 範圍</th><th>V3 範圍</th><th>V7 範圍</th><th>V7 寬度</th></tr></thead><tbody></tbody></table></div>
 <div class="notes"><p id="status">讀取原生素材中…</p><p>注意：Body 圖本身包括軀幹與腿，靠近腰部的位置需要與手臂區域分開判讀，不能把側邊任何膚色都當成手臂。V7 是否需要收窄、縮短或改變彎曲，要以這份實測和手機畫面一起判斷。</p><button type="button" id="copy">複製測量 JSON（提供下次修正參考）</button><pre id="json" hidden></pre></div>
-<p><a href="./developer-studio.html?tab=library">返回開發者工作台</a></p>
+<p><a href="./arm-manual-measure.html?v=1">自己點選測量：手機版座標標記工具</a> · <a href="./developer-studio.html?tab=library">返回開發者工作台</a></p>
 </main>
 <script>
 (()=>{'use strict';
