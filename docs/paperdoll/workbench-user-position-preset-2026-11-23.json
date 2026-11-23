@@ -1,12 +1,12 @@
 {
-  "format": "dungeon-workbench-user-confirmed-fitted-positions-v3",
+  "format": "dungeon-workbench-user-confirmed-fitted-positions-v4",
   "project": "迷宮盡頭的燈火",
   "pixelCanvas": {
     "width": 64,
     "height": 160
   },
-  "source": "latest user-supplied dungeon-character-asset-library-v1 JSON on 2026-11-23, with independent Z and wearMode",
-  "status": "latest user-confirmed developer-studio fitting reset state, not formal-game clothing installation",
+  "source": "latest user supplied character asset JSON on 2026-11-23; male cloak front y:-6 is accepted, female trousers waist x:-17 y:25 preserved in separate draft pending confirmation",
+  "status": "safe approved reset baseline; anomalous waist shift preserved in independent draft but not promoted to reset",
   "resetPolicy": "preserve exact per-gender x/y/scale/z plus default chest wearMode tucked; no deletion of custom image files or game saves",
   "assets": {
     "hair_original": {
@@ -37,7 +37,7 @@
         },
         "front": {
           "x": 0,
-          "y": -8,
+          "y": -6,
           "scale": 1,
           "z": 80
         }
@@ -247,5 +247,22 @@
       "male": "normal",
       "female": "normal"
     }
+  },
+  "unconfirmedDraft": {
+    "path": "docs/paperdoll/wardrobe-export-draft-2026-11-23-1755.json",
+    "item": "starter_trousers:female:front",
+    "draft": {
+      "x": -17,
+      "y": 25,
+      "scale": 1,
+      "z": 52
+    },
+    "approvedBaseline": {
+      "x": 0,
+      "y": -5,
+      "scale": 1,
+      "z": 52
+    },
+    "reason": "32px horizontal/vertical combined displacement; visually misaligns waistband from torso. Preserve but do not silently replace verified reset."
   }
 }
