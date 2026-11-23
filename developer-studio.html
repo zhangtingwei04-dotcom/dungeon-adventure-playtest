@@ -74,6 +74,7 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 <script src="./assets/cloak_workbench_bases_v1.js?v=1"></script>
 <script src="./assets/white_shirt_workbench_v3.js?v=3"></script>
 <script src="./assets/travel_trousers_workbench_v2.js?v=2"></script>
+<script src="./assets/approved_satchel_workbench_v1.js?v=1"></script>
 <script src="./assets/dungeon_generated_cloak_v2.js?v=2"></script>
 <script src="./assets/male_approved_v3_layers.js?v=1"></script>
 <script src="./assets/male_v3_corrected_layers_v2.js?v=1"></script>
@@ -102,7 +103,7 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 <div class="hint">此處使用正式男女身體／內衣／頭髮素材。新增 PNG 可單獨定位、調整大小，並在男女預覽中測試。披風 V2 使用剛生成的原圖拆成透明前後層，可分別調整男女位置和大小；正式採用前仍需驗收。調完後到「數據與備份」複製數據給我。</div>
 <div class="layout">
 <div class="panel"><h2>素材庫</h2>
-<div class="hint">旅行長褲 V2 使用你認可的新版透明長褲；已調整為長褲顯示在白色布衣 V3 前面，褲腰和皮帶會遮住衣服下擺。男女底模、披風 V2 和正式遊戲均不變；這裡僅供試穿驗收。</div>
+<div class="hint">已建立『之前確認的服裝位置』為工作台預設與重設目標：男白衣(-1,-1)、女白衣(0,-1)、披風前片男Y-8／女Y-6、長褲原生(0,0)、女頭髮(-2,-5)、原版旅行側包Y-2。重設不會更改頭部底模或正式遊戲。長褲 V2 顯示在白衣前面。</div>
 <div class="toolbar" style="margin:10px 0">
 <button class="primary" id="shirtOnly">試穿白布衣（暫隱披風）</button>
 <button id="shirtWithCloak">白布衣＋披風</button>
@@ -122,7 +123,7 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 <div class="panel"><h2>角色即時預覽</h2><div class="avatarGrid">
 <div class="avatarCard" id="maleCard"><strong>男性｜原版頭</strong><div class="sub">真實底模 64×160</div><div class="spriteChecker"><canvas width="64" height="160" id="maleCanvas" aria-label="男性角色即時裝備預覽，可拖曳調整所選圖層"></canvas></div></div>
 <div class="avatarCard" id="femaleCard"><strong>女性｜新版頭</strong><div class="sub">真實底模 64×160</div><div class="spriteChecker"><canvas width="64" height="160" id="femaleCanvas" aria-label="女性角色即時裝備預覽，可拖曳調整所選圖層"></canvas></div></div>
-</div><div class="toolbar" style="margin-top:10px"><button id="resetView">恢復兩性並排</button><button id="toggleGuides">肩頸輔助線：關</button></div>
+</div><div class="toolbar" style="margin-top:10px"><button id="resetView">恢復兩性並排</button><button class="primary" id="resetApprovedFit">恢復已確認服裝位置</button><button id="toggleGuides">肩頸輔助線：關</button></div>
 <p>直接在角色圖上拖曳，可移動目前選取性別與圖層。只修改該圖層參數，不會移動底模或頭部。</p>
 <div class="hint"><strong>原版手部已鎖定：</strong>披風前片繪製後會直接重疊正式底模原本的手掌與前臂像素（左右側 x0–23／x40–63，y70–101），不會另外生成手臂、更改動作或角度。<br><strong>原始身體尺寸（64×160 座標）</strong>：男性 x4–58、y49–140，實際 55×92px；女性 x4–58、y51–140，實際 55×90px。披風前層 x3–59、y53–118（57×66px），後層 x2–60、y53–135（59×83px）。披風已接近畫布最大寬度；過度放大會裁到左右金邊，應優先調整肩披、前片及衣襬輪廓。</div>
 <div class="warning" id="assetWarning">目前是素材預覽，非正式穿戴驗收。既有頭部與內衣母版不會被修改。</div>
@@ -149,17 +150,17 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 <p>請選擇透明 PNG。匯入到「目前素材 × 性別 × 圖層」，不同角色與前後層可用不同圖片。原始檔案會保留在裝置的工作台資料庫，參數 JSON 不包含圖片本體。</p>
 <div class="toolbar"><button id="exportCurrentPng">匯出目前 PNG</button><button id="clearCurrentPng">撤回匯入圖</button></div>
 <div class="divider"></div>
-<div class="toolbar"><button id="resetLayer">重設此圖層</button><button id="copySelected" class="primary">複製目前素材數據</button></div>
+<div class="toolbar"><button id="resetLayer">重設此圖層（已確認位置）</button><button id="copySelected" class="primary">複製目前素材數據</button></div>
 <div class="hint assetInfo" id="assetMeta">請先選擇素材。</div>
 </div></div>
 </section>
 <section id="page-export" data-page="export" hidden>
 <div class="panel"><h2>參數複製與備份</h2>
 <p>所有數據都是以 64×160 紙娃娃座標記錄，每一件裝備的男性／女性、前／後層分開。複製貼給我即可依數據安裝；如有使用你自己匯入的 PNG，請另外附上對應圖片，因為 JSON 不包含圖像像素。</p>
-<div class="toolbar"><button class="primary" id="copyAll">複製全部 JSON</button><button id="exportJson">下載 JSON</button><button id="importJsonButton">匯入 JSON</button><button id="resetAll">重設全部工作台設定</button></div>
+<div class="toolbar"><button class="primary" id="copyAll">複製全部 JSON</button><button id="exportJson">下載 JSON</button><button id="importJsonButton">匯入 JSON</button><button id="resetAll">重設全部位置與顯示（保留圖片）</button></div>
 <input id="importJsonFile" type="file" accept=".json,application/json" hidden>
 <textarea id="jsonOutput" aria-label="工作台參數 JSON" spellcheck="false" readonly></textarea>
-<div class="hint" id="persistInfo">本機草稿會自動儲存到此瀏覽器，與玩家遊戲存檔分離。不含 GitHub 寫入權限；新素材不會自動上傳公開庫。</div>
+<div class="hint" id="persistInfo">重設會恢復之前已確認的男女上衣、披風、長褲、頭髮及背包座標，不會把全部歸零；自訂圖片及遊戲存檔不會刪除。</div>
 </div>
 <div class="panel"><h2>其他已建立的工具</h2>
 <div class="toolbar"><button id="oldWorkbench">頭部／表情工作台</button><button id="oldCloakWorkbench">早期披風對照頁</button><button id="githubRepo">GitHub 專案</button></div>
@@ -186,7 +187,8 @@ const sourceImages={
  maleHair:male?.hair_standard,
  femaleHead:window.DUNGEON_FEMALE_OFFICIAL_HEAD_V2,femaleHair:window.DUNGEON_FEMALE_HAIR_V2,
  maleCloakBack:cloak?.back,maleCloakFront:cloak?.front,
- femaleCloakBack:cloak?.back,femaleCloakFront:cloak?.front
+ femaleCloakBack:cloak?.back,femaleCloakFront:cloak?.front,
+ approvedSatchel:window.DungeonApprovedSatchelWorkbenchV1?.image
 };
 const catalogue=[
  {id:'hair_original',name:'原版頭髮',slot:'hair',layers:['front'],status:'已使用的頭髮來源'},
@@ -195,7 +197,7 @@ const catalogue=[
  {id:'starter_trousers',name:'旅行長褲 V2｜新版透明圖試穿',slot:'legs',layers:['front','side','back'],status:'新版透明美術來源｜男／女各三張64×160｜待實機驗收'},
  {id:'starter_boots',name:'皮革長靴',slot:'feet',layers:['front'],status:'待匯入新圖'},
  {id:'starter_gloves',name:'棕色皮革手套',slot:'hands',layers:['front'],status:'待匯入新圖'},
- {id:'enchanted_satchel',name:'附魔旅行側包',slot:'bag',layers:['back','front'],status:'既有裝備資料／新美術待確認'}
+ {id:'enchanted_satchel',name:'附魔旅行側包｜沿用已核准原圖',slot:'bag',layers:['back','front'],status:'直接沿用正式遊戲64×160已核准圖，不重新生成；原本側包前層位置 y=-2'}
 ];
 const slots={hair:'頭髮',head:'頭部',chest:'上衣',outer:'外衣',legs:'下裝',feet:'鞋子',hands:'手套',bag:'背包',neck:'飾品',main:'武器'};
 const stockKeys={
@@ -205,20 +207,48 @@ const stockKeys={
  'starter_tunic:male:front':'maleShirtCore','starter_tunic:male:side':'maleShirtLeft','starter_tunic:male:back':'maleShirtRight',
  'starter_tunic:female:front':'femaleShirtCore','starter_tunic:female:side':'femaleShirtLeft','starter_tunic:female:back':'femaleShirtRight',
  'starter_trousers:male:front':'maleTrousersWaist','starter_trousers:male:side':'maleTrousersLeft','starter_trousers:male:back':'maleTrousersRight',
- 'starter_trousers:female:front':'femaleTrousersWaist','starter_trousers:female:side':'femaleTrousersLeft','starter_trousers:female:back':'femaleTrousersRight'
+ 'starter_trousers:female:front':'femaleTrousersWaist','starter_trousers:female:side':'femaleTrousersLeft','starter_trousers:female:back':'femaleTrousersRight',
+ 'enchanted_satchel:male:front':'approvedSatchel','enchanted_satchel:female:front':'approvedSatchel'
 };
 const images=new Map(),userPngs=new Map(),imageInfo=new Map();
 const transforms={},shown={},layerShown={};
-const defaultT=(asset,gender,layer)=>({
- // Approved-by-user workbench V3 *trial* offsets, 2026-11-23.
- // These are not official game clothing positions yet.
- x:asset.id==='starter_tunic'&&gender==='male'?-1:
-   asset.id==='hair_original'&&gender==='female'?-2:0,
- y:asset.id==='starter_tunic'?-1:
-   asset.id==='hair_original'&&gender==='female'?-5:
-   asset.id==='starter_cloak'&&layer==='front'?(gender==='male'?-8:-6):0,
- scale:1
+const APPROVED_FIT_PRESET_VERSION='wardrobe-approved-fit-20261123-v1';
+const BUILTIN_IDS=new Set(catalogue.map(a=>a.id));
+const activeBuiltinOverrides=new Set();
+// Native 64x160 source coordinates. All these values come from earlier
+// user-confirmed workbench presets; pending boots/gloves remain without art.
+// The game-approved satchel source uses a -2px vertical offset.
+const APPROVED_FIT_COORDS=Object.freeze({
+ 'hair_original:male:front':Object.freeze({x:0,y:0}),
+ 'hair_original:female:front':Object.freeze({x:-2,y:-5}),
+ 'starter_cloak:male:front':Object.freeze({x:0,y:-8}),
+ 'starter_cloak:female:front':Object.freeze({x:0,y:-6}),
+ 'starter_cloak:male:back':Object.freeze({x:0,y:0}),
+ 'starter_cloak:female:back':Object.freeze({x:0,y:0}),
+ 'starter_tunic:male:front':Object.freeze({x:-1,y:-1}),
+ 'starter_tunic:male:side':Object.freeze({x:-1,y:-1}),
+ 'starter_tunic:male:back':Object.freeze({x:-1,y:-1}),
+ 'starter_tunic:female:front':Object.freeze({x:0,y:-1}),
+ 'starter_tunic:female:side':Object.freeze({x:0,y:-1}),
+ 'starter_tunic:female:back':Object.freeze({x:0,y:-1}),
+ 'starter_trousers:male:front':Object.freeze({x:0,y:0}),
+ 'starter_trousers:male:side':Object.freeze({x:0,y:0}),
+ 'starter_trousers:male:back':Object.freeze({x:0,y:0}),
+ 'starter_trousers:female:front':Object.freeze({x:0,y:0}),
+ 'starter_trousers:female:side':Object.freeze({x:0,y:0}),
+ 'starter_trousers:female:back':Object.freeze({x:0,y:0}),
+ 'enchanted_satchel:male:front':Object.freeze({x:0,y:-2}),
+ 'enchanted_satchel:female:front':Object.freeze({x:0,y:-2})
 });
+function defaultVisible(id){
+ // The screenshot-approved plain outfit is the initial preview;
+ // the cloak/satchel are optional, but their verified positions are kept.
+ return id==='hair_original'||id==='starter_tunic'||id==='starter_trousers';
+}
+function defaultT(asset,gender,layer){
+ const p=APPROVED_FIT_COORDS[asset.id+':'+gender+':'+layer]||{x:0,y:0};
+ return {x:p.x,y:p.y,scale:1};
+}
 let selected='starter_cloak',editingGender='female',editingLayer='front',guides=false,dbPromise=null,ready=false;
 let gameFrameInitialized=false;
 function item(id){return catalogue.find(a=>a.id===id)}
@@ -228,7 +258,7 @@ function safeNum(n,min,max,fallback){n=Number(n);return Number.isFinite(n)?Math.
 function normalize(){
  for(const a of catalogue)for(const g of ['male','female']){
   const base=a.id+':'+g;
-  if(shown[base]===undefined)shown[base]=a.id==='hair_original'||a.id==='starter_cloak'||a.id==='starter_tunic';
+  if(shown[base]===undefined)shown[base]=defaultVisible(a.id);
   for(const l of a.layers){
    const key=k(a.id,g,l);
    if(!transforms[key])transforms[key]=defaultT(a,g,l);
@@ -257,13 +287,14 @@ function serialize(oneId){
 }
 function persist(){
  try{
-  localStorage.setItem(KEY,JSON.stringify({catalogue,transforms,shown,layerShown,selected,editingGender,editingLayer,cloakArtVersion:'original-sheet-v2'}));
+  localStorage.setItem(KEY,JSON.stringify({catalogue,transforms,shown,layerShown,selected,editingGender,editingLayer,cloakArtVersion:'original-sheet-v2',approvedFitPresetVersion:APPROVED_FIT_PRESET_VERSION,activeBuiltinOverrides:[...activeBuiltinOverrides]}));
   $('persistInfo').textContent='設定已儲存在這個裝置的工作台資料中。匯入圖片另存於本機資料庫；更換手機／瀏覽器不會自動同步。';
  }catch(e){$('persistInfo').textContent='本機設定儲存失敗：'+e.message;}
 }
 function restore(){
  try{
-  const data=JSON.parse(localStorage.getItem(KEY)||'null');if(!data||!Array.isArray(data.catalogue))return;
+  const raw=localStorage.getItem(KEY);
+  const data=JSON.parse(raw||'null');if(!data||!Array.isArray(data.catalogue))return;
   for(const a of data.catalogue){
    if(!a||typeof a.id!=='string'||!/^[a-z0-9_-]{2,60}$/.test(a.id)||catalogue.some(x=>x.id===a.id))continue;
    if(!Array.isArray(a.layers)||!a.layers.every(l=>['back','front','side'].includes(l)))continue;
@@ -282,6 +313,26 @@ function restore(){
   if(data.cloakArtVersion!=='original-sheet-v2'){
     shown['starter_cloak:male']=true;shown['starter_cloak:female']=true;
     selected='starter_cloak';editingLayer='front';
+  }
+  if(data.approvedFitPresetVersion===APPROVED_FIT_PRESET_VERSION){
+    for(const key of data.activeBuiltinOverrides||[]){
+      if(typeof key==='string'&&stockKeys[key])activeBuiltinOverrides.add(key);
+    }
+  }else{
+    // Old local workbench edits may be from V1/V2/rejected outfits.
+    // Preserve a one-time backup, then bring only approved built-ins back.
+    try{if(raw&&!localStorage.getItem(KEY+'_previous_positions_backup'))
+      localStorage.setItem(KEY+'_previous_positions_backup',raw)}catch(e){console.warn('Fit backup skipped:',e)}
+    for(const a of catalogue)if(BUILTIN_IDS.has(a.id))for(const gender of ['male','female']){
+      shown[a.id+':'+gender]=defaultVisible(a.id);
+      for(const layer of a.layers){
+        const key=k(a.id,gender,layer);
+        transforms[key]=defaultT(a,gender,layer);
+        layerShown[key]=true;
+      }
+    }
+    selected='starter_trousers';editingGender='female';editingLayer='front';
+    persist();
   }
  }catch(e){console.warn('Studio local settings ignored:',e)}
 }
@@ -409,12 +460,20 @@ function drawAssetStage(gender){
    if(layerShown[key]!==false)drawImageOn(ctx,images.get(key),transforms[key]);
   }
  }
- for(const a of catalogue)if(shown[a.id+':'+gender]!==false&&a.slot!=='hair'&&a.id!=='starter_tunic'&&a.id!=='starter_trousers'){
+ // Other front equipment first; then the approved satchel UNDER
+ // cloak front, exactly as the formal game does.
+ const drawFrontLayers=a=>{
+  if(!a||shown[a.id+':'+gender]===false)return;
   for(const layer of a.layers)if(layer!=='back'){
    const key=k(a.id,gender,layer);
    if(layerShown[key]!==false)drawImageOn(ctx,images.get(key),transforms[key]);
   }
- }
+ };
+ for(const a of catalogue)if(a.slot!=='hair'&&
+    !['starter_tunic','starter_trousers','starter_cloak','enchanted_satchel'].includes(a.id))
+   drawFrontLayers(a);
+ drawFrontLayers(item('enchanted_satchel'));
+ drawFrontLayers(item('starter_cloak'));
  // Keep real hands in front of any hanging cloak panel.
  if(shown['starter_cloak:'+gender]!==false&&
     layerShown[k('starter_cloak',gender,'front')]!==false&&
@@ -508,6 +567,7 @@ async function upload(){
   const info={key,dataUrl,fileName:file.name.slice(0,120),width:image.naturalWidth,height:image.naturalHeight};
   await dbWrite(info);
   userPngs.set(key,dataUrl);imageInfo.set(key,info);
+  if(stockKeys[key])activeBuiltinOverrides.add(key);
   shown[selected+':'+editingGender]=true;layerShown[key]=true;
   $('pngUpload').value='';updateControls();drawAll();refreshJson();persist();toast('已加入目前圖層，可拖曳與縮放');
  }catch(e){toast('匯入失敗：'+e.message)}
@@ -516,6 +576,7 @@ async function clearUpload(){
  const key=selectedKey();if(!userPngs.has(key)){toast('這個圖層沒有本機匯入圖');return}
  try{
   await dbDelete(key);userPngs.delete(key);imageInfo.delete(key);
+  activeBuiltinOverrides.delete(key);
   const stock=stockKeys[key];if(stock)await loadImage(sourceImages[stock],key);else images.delete(key);
   updateControls();drawAll();refreshJson();persist();toast('已還原內建圖源或空白圖層');
  }catch(e){toast('撤回失敗：'+e.message)}
@@ -523,7 +584,27 @@ async function clearUpload(){
 function resetLayer(){
  const a=item(selected);if(!a)return;
  transforms[selectedKey()]=defaultT(a,editingGender,editingLayer);
- layerShown[selectedKey()]=true;updateControls();drawAll();refreshJson();persist();toast('此圖層已重設');
+ layerShown[selectedKey()]=true;
+ updateControls();drawAll();refreshJson();persist();
+ toast('此圖層已恢復先前確認位置');
+}
+function resetCanonicalFit(includeCustom=false){
+ for(const a of catalogue){
+  if(!includeCustom&&!BUILTIN_IDS.has(a.id))continue;
+  for(const gender of ['male','female']){
+   shown[a.id+':'+gender]=BUILTIN_IDS.has(a.id)?defaultVisible(a.id):false;
+   for(const layer of a.layers){
+    const key=k(a.id,gender,layer);
+    transforms[key]=defaultT(a,gender,layer);
+    layerShown[key]=true;
+   }
+  }
+ }
+ selected='starter_trousers';editingGender='female';editingLayer='front';
+ guides=false;$('toggleGuides').textContent='肩頸輔助線：關';
+ $('maleCard').hidden=false;$('femaleCard').hidden=false;
+ update();persist();
+ toast(includeCustom?'已重設全部位置；圖片與正式存檔保留':'已恢復男女已確認的服裝座標');
 }
 function addAsset(){
  const name=$('newName').value.trim(),slot=$('newSlot').value,layers=$('newLayers').value.split(',');
@@ -627,6 +708,7 @@ $('exportCurrentPng').onclick=()=>{
  fetch(src).then(r=>r.blob()).then(blob=>downloadBlob(blob,selected+'-'+editingGender+'-'+editingLayer+'.png')).catch(e=>toast('匯出失敗：'+e.message));
 };
 $('resetView').onclick=()=>{$('maleCard').hidden=false;$('femaleCard').hidden=false;drawAll()};
+$('resetApprovedFit').onclick=()=>resetCanonicalFit(false);
 $('toggleGuides').onclick=()=>{guides=!guides;$('toggleGuides').textContent='肩頸輔助線：'+(guides?'開':'關');drawAll()};
 $('copyAll').onclick=async()=>{refreshJson();const ok=await copyText($('jsonOutput').value);toast(ok?'已複製全部素材的 JSON':'請長按 JSON 欄位複製')};
 $('exportJson').onclick=()=>{refreshJson();downloadBlob(new Blob([$('jsonOutput').value],{type:'application/json'}),'dungeon-character-assets-config.json')};
@@ -663,8 +745,8 @@ $('importJsonFile').onchange=async e=>{
  finally{$('importJsonFile').value=''}
 };
 $('resetAll').onclick=()=>{
- if(!confirm('重設工作台所有位置、縮放及自訂項目？本機上傳圖片仍會保留，正式遊戲完全不變。'))return;
- localStorage.removeItem(KEY);location.reload();
+ if(!confirm('確定恢復男女所有裝備的預設位置、縮放和顯示狀態？已確認的上衣、披風、長褲、頭髮及側包座標會保留；自訂 PNG、素材庫及正式遊戲存檔不刪除。'))return;
+ resetCanonicalFit(true);
 };
 $('oldWorkbench').onclick=()=>openUrl('./developer-workbench.html');
 $('oldCloakWorkbench').onclick=()=>openUrl('./cloak-fitting-workbench.html');
@@ -711,11 +793,11 @@ async function init(){
   try{
    for(const record of await dbReadAll()){
     if(!record?.key||!record.dataUrl||!record.fileName)continue;
-    // Preserve earlier local uploads in IndexedDB, but do not let V1 user
-    // trial layers silently cover the new V3 built-in preview.
-    if(['2','3'].includes(new URLSearchParams(location.search).get('shirt'))&&record.key.startsWith('starter_tunic:'))continue;
-    if(new URLSearchParams(location.search).get('trousers')==='2'&&record.key.startsWith('starter_trousers:'))continue;
+    // Legacy locally uploaded art is kept in IndexedDB, but an old
+    // rejected V1 overlay must NOT replace approved stock sprites on reset.
+    // New explicit uploads are tracked and restored after this migration.
     const parts=record.key.split(':');
+    if(stockKeys[record.key]&&!activeBuiltinOverrides.has(record.key))continue;
     if(parts.length!==3||!item(parts[0])||!['male','female'].includes(parts[1])||!item(parts[0]).layers.includes(parts[2]))continue;
     await loadImage(record.dataUrl,record.key);
     userPngs.set(record.key,record.dataUrl);imageInfo.set(record.key,record);
@@ -725,12 +807,8 @@ async function init(){
   if(['1','2','3'].includes(new URLSearchParams(location.search).get('shirt'))){
    for(const g of ['male','female']){
     shown['starter_tunic:'+g]=true;shown['starter_cloak:'+g]=false;
-    if(['2','3'].includes(new URLSearchParams(location.search).get('shirt'))){
-     for(const l of ['front','side','back']){
-      transforms[k('starter_tunic',g,l)]=defaultT(item('starter_tunic'),g,l);
-      layerShown[k('starter_tunic',g,l)]=true;
-     }
-    }
+    // Existing fitted shirt coordinates are preserved by URL presets.
+    // Use the explicit reset buttons to restore official positions.
    }
    selected='starter_tunic';editingLayer='front';update();
   }
@@ -739,10 +817,8 @@ async function init(){
     shown['starter_trousers:'+g]=true;
     shown['starter_tunic:'+g]=true;
     shown['starter_cloak:'+g]=false;
-    for(const layer of ['front','side','back']){
-     transforms[k('starter_trousers',g,layer)]=defaultT(item('starter_trousers'),g,layer);
-     layerShown[k('starter_trousers',g,layer)]=true;
-    }
+    // Do not silently overwrite later manual trousers adjustments merely
+    // because this preview link has ?trousers=2.
    }
    selected='starter_trousers';editingLayer='front';update();
   }
