@@ -223,6 +223,7 @@ const catalogue=[
  {id:'starter_cloak',name:'深綠金邊披風 V2｜已核准',slot:'outer',layers:['back','front'],status:'已通過試穿確認／正式遊戲已啟用'},
  {id:'starter_tunic',name:'白色初始布衣 V3｜最新生成版',slot:'chest',layers:['front','side','back'],status:'男女最新生成白衣／依座標貼合／整衣拆分／待驗收'},
  {id:'starter_long_sleeves_v4',name:'白衣 V4｜獨立兩側長袖',slot:'chest',layers:['side','front'],status:'男女各兩片64×160真透明袖子；原V3衣身保留｜只供工作台試穿'},
+ {id:'starter_sleeves_v6',name:'白衣 V6｜可拖曳替換長袖',slot:'chest',layers:['side','front'],status:'男女各兩張64×160真正替換袖片；左右袖可分別調整 X／Y／縮放／Z；正式遊戲未改'},
  {id:'starter_trousers',name:'旅行長褲 V2｜新版透明圖試穿',slot:'legs',layers:['front','side','back'],status:'新版透明美術來源｜男／女各三張64×160｜待實機驗收'},
  {id:'starter_boots',name:'皮革長靴',slot:'feet',layers:['front'],status:'待匯入新圖'},
  {id:'starter_gloves',name:'棕色皮革手套',slot:'hands',layers:['front'],status:'待匯入新圖'},
@@ -237,6 +238,8 @@ const stockKeys={
  'starter_tunic:female:front':'femaleShirtCore','starter_tunic:female:side':'femaleShirtLeft','starter_tunic:female:back':'femaleShirtRight',
  'starter_long_sleeves_v4:male:side':'maleLongSleeveLeft','starter_long_sleeves_v4:male:front':'maleLongSleeveRight',
  'starter_long_sleeves_v4:female:side':'femaleLongSleeveLeft','starter_long_sleeves_v4:female:front':'femaleLongSleeveRight',
+ 'starter_sleeves_v6:male:side':'maleReplaceSleeveLeft','starter_sleeves_v6:male:front':'maleReplaceSleeveRight',
+ 'starter_sleeves_v6:female:side':'femaleReplaceSleeveLeft','starter_sleeves_v6:female:front':'femaleReplaceSleeveRight',
  'starter_trousers:male:front':'maleTrousersWaist','starter_trousers:male:side':'maleTrousersLeft','starter_trousers:male:back':'maleTrousersRight',
  'starter_trousers:female:front':'femaleTrousersWaist','starter_trousers:female:side':'femaleTrousersLeft','starter_trousers:female:back':'femaleTrousersRight',
  'enchanted_satchel:male:front':'approvedSatchel','enchanted_satchel:female:front':'approvedSatchel'
@@ -285,6 +288,10 @@ const APPROVED_FIT_COORDS=Object.freeze({
  'starter_long_sleeves_v4:male:front':Object.freeze({x:-1,y:-1}),
  'starter_long_sleeves_v4:female:side':Object.freeze({x:0,y:-1}),
  'starter_long_sleeves_v4:female:front':Object.freeze({x:0,y:-1}),
+ 'starter_sleeves_v6:male:side':Object.freeze({x:-1,y:-1}),
+ 'starter_sleeves_v6:male:front':Object.freeze({x:-1,y:-1}),
+ 'starter_sleeves_v6:female:side':Object.freeze({x:0,y:-1}),
+ 'starter_sleeves_v6:female:front':Object.freeze({x:0,y:-1}),
  'enchanted_satchel:male:front':Object.freeze({x:0,y:-2}),
  'enchanted_satchel:female:front':Object.freeze({x:0,y:-2})
 });
@@ -305,6 +312,7 @@ function defaultZ(asset,gender,layer){
   case 'starter_cloak':return layer==='back'?10:layer==='front'?80:76;
   case 'starter_tunic':return layer==='side'?40:layer==='back'?41:42;
   case 'starter_long_sleeves_v4':return layer==='side'?43:44;
+  case 'starter_sleeves_v6':return layer==='side'?43:44;
   case 'starter_trousers':return layer==='side'?50:layer==='back'?51:52;
   case 'enchanted_satchel':return layer==='back'?25:70;
   case 'starter_boots':return 60;
@@ -597,14 +605,15 @@ function drawOriginalBodyHands(ctx,gender,cloakId='starter_cloak'){
   }
   sleeveAlpha=sc.getImageData(0,0,64,160).data;
  }
- if(sleeveReplaceModeV6&&shown['starter_tunic:'+gender]!==false){
+ if(sleeveReplaceModeV6&&shown['starter_tunic:'+gender]!==false&&shown['starter_sleeves_v6:'+gender]!==false){
+  // The cloak arm mask must follow each sleeve's own X / Y / scale.
   const extra=document.createElement('canvas');extra.width=64;extra.height=160;
   const ect=extra.getContext('2d',{willReadFrequently:true});
-  const shirt=item('starter_tunic');
-  const base=transforms[k('starter_tunic',gender,v3TorsoLayer[gender])]||
-    defaultT(shirt,gender,v3TorsoLayer[gender]);
-  for(const part of ['ReplaceSleeveLeft','ReplaceSleeveRight']){
-   const im=images.get(gender+part);if(im)drawImageOn(ect,im,base);
+  const sleeves=item('starter_sleeves_v6');
+  for(const layer of sleeves.layers){
+   const key=k('starter_sleeves_v6',gender,layer);
+   const im=getImage('starter_sleeves_v6',gender,layer);
+   if(im&&layerShown[key]!==false)drawImageOn(ect,im,transforms[key]||defaultT(sleeves,gender,layer));
   }
   const extraPx=ect.getImageData(0,0,64,160).data;
   if(!sleeveAlpha)sleeveAlpha=extraPx;
@@ -724,6 +733,8 @@ function drawAssetStage(gender){
  for(const a of catalogue){
   if(shown[a.id+':'+gender]===false)continue;
   if(a.id==='starter_long_sleeves_v4'&&(sleeveReplaceModeV6||shown['starter_tunic:'+gender]===false))continue;
+  // V6 is an independently movable *replacement*, never an add-on.
+  if(a.id==='starter_sleeves_v6'&&(!sleeveReplaceModeV6||shown['starter_tunic:'+gender]===false))continue;
   for(const layer of a.layers){
    // Real replacement: skip the ORIGINAL short-sleeve sprite, do not draw
    // both generations. The V3 torso/neck/lacing remains byte-identical.
@@ -752,15 +763,8 @@ function drawAssetStage(gender){
    }
   }
  }
- if(sleeveReplaceModeV6&&shown['starter_tunic:'+gender]!==false){
-  const shirt=item('starter_tunic');
-  const base=transforms[k('starter_tunic',gender,v3TorsoLayer[gender])]||
-    defaultT(shirt,gender,v3TorsoLayer[gender]);
-  for(const [name,z] of [['ReplaceSleeveLeft',43],['ReplaceSleeveRight',44]]){
-   const img=images.get(gender+name);
-   if(img)enqueue(z,()=>drawImageOn(ctx,img,{...base,z}));
-  }
- }
+ // The V6 left and right arms are drawn once by the generic catalogue
+ // renderer above. Each has its own editable transform and Z value.
  // Restore the native visible hands when a cloak crosses their contour.
  // At z=90 those hands remain in front of ordinary cloak fronts, while
  // the user can still explicitly place a piece further forward (z>90).
@@ -807,7 +811,7 @@ function renderAssetList(){
 function updateControls(){
  const a=item(selected);if(!a)return;
  const select=$('editLayer');select.replaceChildren();
- for(const layer of a.layers){const op=document.createElement('option');op.value=layer;op.textContent=a.id==='starter_tunic'?{front:'主衣身（正面）',side:'左短袖（正面）',back:'右短袖（正面）'}[layer]:a.id==='starter_long_sleeves_v4'?{side:'畫面左長袖（正面）',front:'畫面右長袖（正面）'}[layer]:a.id==='starter_trousers'?{front:'褲腰與皮帶（正面）',side:'左褲管（正面）',back:'右褲管（正面）'}[layer]:{front:'前層／主圖',back:'後層',side:'側面裝飾'}[layer];select.appendChild(op)}
+ for(const layer of a.layers){const op=document.createElement('option');op.value=layer;op.textContent=a.id==='starter_tunic'?{front:'主衣身（正面）',side:'左短袖（正面）',back:'右短袖（正面）'}[layer]:a.id==='starter_long_sleeves_v4'?{side:'畫面左長袖（正面）',front:'畫面右長袖（正面）'}[layer]:a.id==='starter_sleeves_v6'?{side:'V6 左袖｜可拖曳',front:'V6 右袖｜可拖曳'}[layer]:a.id==='starter_trousers'?{front:'褲腰與皮帶（正面）',side:'左褲管（正面）',back:'右褲管（正面）'}[layer]:{front:'前層／主圖',back:'後層',side:'側面裝飾'}[layer];select.appendChild(op)}
  if(!a.layers.includes(editingLayer))editingLayer=a.layers[0];
  select.value=editingLayer;$('editGender').value=editingGender;$('assetSelect').value=selected;
  const t=transforms[selectedKey()]||defaultT(a,editingGender,editingLayer);
@@ -837,6 +841,8 @@ function updateControls(){
   '披風 V2 已由你確認並正式啟用：男性前層 x0、y-8、scale1，女性前層 x0、y-6、scale1，男女後層 x0、y0、scale1。工作台後續修改只在本機測試，未重新確認前不會自動覆蓋正式版本。':
   a.id==='starter_tunic'?
   '白色初始布衣 V3：男女最近生成的整件正面上衣先放入實測 64×160 座標，然後將同一張衣服各拆成主衣身、左袖、右袖，拆分後能像素級還原，不靠另畫袖子拼湊。此頁不會更新正式遊戲。':
+  a.id==='starter_sleeves_v6'?
+  'V6 長袖已接入可拖曳圖層。先選男性／女性與「左袖／右袖」，再直接在角色預覽上拖曳，或輸入 X、Y、Z。V3 衣身、短袖素材及正式遊戲皆保留。':
   a.id==='starter_trousers'?
   '旅行長褲 V2：透明長褲已貼合原始男女底模並拆成褲腰、左褲管、右褲管，三張皆為64×160。現在顯示於白色上衣前方，褲腰／皮帶可遮蓋衣服下擺；只在工作台試穿，正式遊戲未變動。':
   '正式男女頭部、身體與內衣不動；每個部件可獨立調整前後層級 Z（數字越大越前）。圖層調整只影響工作台預覽，不會自動安裝到遊戲。';
@@ -1099,12 +1105,14 @@ function setLongSleevesTrial(on){
  sleeveReplaceModeV6=on;
  for(const gender of ['male','female']){
   shown['starter_tunic:'+gender]=true;
+  shown['starter_sleeves_v6:'+gender]=on;
   // Retire the rejected V4 add-on overlays for BOTH modes.
   shown['starter_long_sleeves_v4:'+gender]=false;
  }
- selected='starter_tunic';editingLayer='front';
+ selected=on?'starter_sleeves_v6':'starter_tunic';
+ editingLayer=on?'side':'front';
  update();persist();
- toast(on?'長袖 V6：已真正替換 V3 短袖，衣身不動':'原版白色上衣 V3：已恢復');
+ toast(on?'V6 左右袖可獨立拖曳；先選性別與袖片':'原版白衣 V3 已恢復');
 }
 $('sleevesV4On').onclick=()=>setLongSleevesTrial(true);
 $('sleevesV4Off').onclick=()=>setLongSleevesTrial(false);
@@ -1230,6 +1238,11 @@ async function init(){
    const img=images.get(stock);if(img)images.set(key,img);
   }
   for(const gender of ['male','female'])v3TorsoLayer[gender]=identifyV3TorsoLayer(gender);
+  // Old versions stored the V6 trial flag without individual sleeve layers.
+  // Carry that choice forward without resetting the user's other garments.
+  if(sleeveReplaceModeV6){
+   for(const gender of ['male','female'])shown['starter_sleeves_v6:'+gender]=true;
+  }
   // Old V4 was an add-on which produced double sleeves. Disable it by
   // default, without touching the saved V3 clothes, coordinates or z.
   shown['starter_long_sleeves_v4:male']=false;
@@ -1289,9 +1302,10 @@ async function init(){
    sleeveReplaceModeV6=true;
    for(const gender of ['male','female']){
     shown['starter_tunic:'+gender]=true;
+    shown['starter_sleeves_v6:'+gender]=true;
     shown['starter_long_sleeves_v4:'+gender]=false;
    }
-   selected='starter_tunic';editingGender='female';editingLayer='front';update();
+   selected='starter_sleeves_v6';editingGender='female';editingLayer='side';update();
   }
   // Optional temporary mobile trial link. Does not change any garment
   // coordinates or z and does not auto-save until user edits the controls.
