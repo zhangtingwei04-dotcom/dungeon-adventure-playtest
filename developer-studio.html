@@ -529,35 +529,41 @@ function drawOriginalBodyHands(ctx,gender,cloakId='starter_cloak'){
  const body=images.get(gender+'Body');if(!body)return;
  const shirtWorn=shown['starter_tunic:'+gender]!==false;
  const useTrial=cloakArmRevealTrial&&CLOAK_ARM_REVEAL_TRIAL_IDS.includes(cloakId);
- ctx.save();ctx.beginPath();
- if(shirtWorn&&useTrial){
-  // This specific cloak may cover 3-4 pixels at the inside of each arm.
-  // Protect ONLY the original forearms (not the face or entire shirt).
-  const leftWidth=gender==='male'?24:23;
-  const rightX=gender==='male'?40:41;
-  ctx.rect(0,76,leftWidth,26);ctx.rect(rightX,76,64-rightX,26);
- }else if(shirtWorn){
-  // Old mask exactly as previously displayed: A/B comparison.
-  ctx.rect(0,76,20,26);ctx.rect(44,76,20,26);
- }else{
-  // Original approved no-shirt behavior remains unchanged.
-  ctx.rect(0,70,24,32);ctx.rect(40,70,24,32);
- }
- ctx.clip();
- for(const name of ['Body','Shorts','Tank']){
-  const img=images.get(gender+name);
-  if(img)ctx.drawImage(img,0,0,64,160);
- }
- if(shirtWorn&&useTrial){
-  // Restore original tunic cuffs within the new forearm-only mask.
-  // Existing male/female shirt art and transforms are untouched.
-  for(const layer of ['side','back']){
-   const key=k('starter_tunic',gender,layer),img=getImage('starter_tunic',gender,layer);
-   if(layerShown[key]!==false&&img)
-    drawImageOn(ctx,img,transforms[key]||defaultT(item('starter_tunic'),gender,layer));
+ // Restore EXACT old contours first. The previous trial incorrectly
+ // widened the mask all the way to Y=102 and exposed naked upper-thigh
+ // pixels through trousers. Do not expand any mask into waist/thighs.
+ const paintNative=(rects,includeCuffs)=>{
+  ctx.save();ctx.beginPath();
+  for(const [x,y,w,h] of rects)ctx.rect(x,y,w,h);
+  ctx.clip();
+  for(const name of ['Body','Shorts','Tank']){
+   const img=images.get(gender+name);
+   if(img)ctx.drawImage(img,0,0,64,160);
   }
+  if(includeCuffs){
+   // Sleeve fragments are original approved sprites, drawn only inside
+   // the shallow added inner-forearm strips, never across waist or legs.
+   for(const layer of ['side','back']){
+    const key=k('starter_tunic',gender,layer),img=getImage('starter_tunic',gender,layer);
+    if(layerShown[key]!==false&&img)
+     drawImageOn(ctx,img,transforms[key]||defaultT(item('starter_tunic'),gender,layer));
+   }
+  }
+  ctx.restore();
+ };
+ if(!shirtWorn){
+  // Existing shirtless cloak behavior stays byte-for-byte equivalent.
+  paintNative([[0,70,24,32],[40,70,24,32]],false);
+  return;
  }
- ctx.restore();
+ // Old stable mask: do not change the lower arms or their saved positions.
+ paintNative([[0,76,20,26],[44,76,20,26]],false);
+ if(!useTrial)return;
+ // Only at Y=76..87, under the sleeve cuffs, add 3-4 INNER pixels.
+ // Excludes Y>=88 completely, where trousers and exposed thigh existed.
+ const innerLeft=gender==='male'?4:3;
+ const innerRight=gender==='male'?40:41;
+ paintNative([[20,76,innerLeft,12],[innerRight,76,44-innerRight,12]],true);
 }
 function drawAssetStage(gender){
  const c=$(gender+'Canvas'),ctx=c.getContext('2d');
@@ -685,7 +691,7 @@ function update(){
  normalize();renderAssetList();updateControls();drawAll();refreshJson();
  const revealBtn=$('cloakArmRevealToggle');
  if(revealBtn){
-  revealBtn.textContent='披風前臂修正：'+(cloakArmRevealTrial?'開':'關（舊版對照）');
+  revealBtn.textContent='披風前臂微修 V2：'+(cloakArmRevealTrial?'開':'關（舊版對照）');
   revealBtn.setAttribute('aria-pressed',String(cloakArmRevealTrial));
  }
  for(const [id,mode] of [['wearBothTucked','tucked'],['wearBothUntucked','untucked'],['wearBothOuter','outer']]){
