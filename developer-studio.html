@@ -72,7 +72,7 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 @media(orientation:landscape) and (max-height:480px){.head{padding:6px 11px}.micro{display:none}.spriteChecker{min-height:210px}.spriteChecker canvas{max-width:91px}header{position:static}}
 </style>
 <script src="./assets/cloak_workbench_bases_v1.js?v=1"></script>
-<script src="./assets/white_shirt_workbench_v2.js?v=2"></script>
+<script src="./assets/white_shirt_workbench_v3.js?v=3"></script>
 <script src="./assets/dungeon_generated_cloak_v2.js?v=2"></script>
 <script src="./assets/male_approved_v3_layers.js?v=1"></script>
 <script src="./assets/male_v3_corrected_layers_v2.js?v=1"></script>
@@ -101,7 +101,7 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 <div class="hint">此處使用正式男女身體／內衣／頭髮素材。新增 PNG 可單獨定位、調整大小，並在男女預覽中測試。披風 V2 使用剛生成的原圖拆成透明前後層，可分別調整男女位置和大小；正式採用前仍需驗收。調完後到「數據與備份」複製數據給我。</div>
 <div class="layout">
 <div class="panel"><h2>素材庫</h2>
-<div class="hint">白色初始布衣 V2 已載入：先依原始男女手臂製作完整穿著外觀，再拆主衣身、左袖、右袖。左右袖分別貼合手臂，不再強制鏡像。此頁仍為試穿版。</div>
+<div class="hint">白色初始布衣 V3（最新生成素材）已載入：男女各自先對齊完整正面衣服，再拆主衣身、左袖、右袖，三片共用 64×160 座標。可切換試穿／披風／脫下，尚待你在 iPhone 確認袖口接合。</div>
 <div class="toolbar" style="margin:10px 0">
 <button class="primary" id="shirtOnly">試穿白布衣（暫隱披風）</button>
 <button id="shirtWithCloak">白布衣＋披風</button>
@@ -187,7 +187,7 @@ const sourceImages={
 const catalogue=[
  {id:'hair_original',name:'原版頭髮',slot:'hair',layers:['front'],status:'已使用的頭髮來源'},
  {id:'starter_cloak',name:'深綠金邊披風 V2｜已核准',slot:'outer',layers:['back','front'],status:'已通過試穿確認／正式遊戲已啟用'},
- {id:'starter_tunic',name:'白色初始布衣 V2｜手臂貼合試穿',slot:'chest',layers:['front','side','back'],status:'男女依原始手臂方向製作｜先完整穿著再拆三片｜待驗收'},
+ {id:'starter_tunic',name:'白色初始布衣 V3｜最新生成版',slot:'chest',layers:['front','side','back'],status:'男女最新生成白衣／依座標貼合／整衣拆分／待驗收'},
  {id:'starter_trousers',name:'旅行長褲',slot:'legs',layers:['front'],status:'待匯入新圖'},
  {id:'starter_boots',name:'皮革長靴',slot:'feet',layers:['front'],status:'待匯入新圖'},
  {id:'starter_gloves',name:'棕色皮革手套',slot:'hands',layers:['front'],status:'待匯入新圖'},
@@ -450,7 +450,7 @@ function updateControls(){
  $('assetWarning').textContent=a.id==='starter_cloak'?
   '披風 V2 已由你確認並正式啟用：男性前層 x0、y-8、scale1，女性前層 x0、y-6、scale1，男女後層 x0、y0、scale1。工作台後續修改只在本機測試，未重新確認前不會自動覆蓋正式版本。':
   a.id==='starter_tunic'?
-  '白色初始布衣 V2：依男女原始手臂方向各自製作完整正面衣服，再分成主衣身、左袖、右袖；透明領口、袖口斜度已重做。這是獨立工作台試穿，不會更新正式遊戲。':
+  '白色初始布衣 V3：男女最近生成的整件正面上衣先放入實測 64×160 座標，然後將同一張衣服各拆成主衣身、左袖、右袖，拆分後能像素級還原，不靠另畫袖子拼湊。此頁不會更新正式遊戲。':
   '正式男女頭部、身體與內衣不動；圖層調整只影響工作台預覽，不會自動安裝到遊戲。';
 }
 function update(){normalize();renderAssetList();updateControls();drawAll();refreshJson()}
@@ -665,8 +665,8 @@ async function init(){
    for(const record of await dbReadAll()){
     if(!record?.key||!record.dataUrl||!record.fileName)continue;
     // Preserve earlier local uploads in IndexedDB, but do not let V1 user
-    // trial layers silently cover the new V2 built-in preview.
-    if(new URLSearchParams(location.search).get('shirt')==='2'&&record.key.startsWith('starter_tunic:'))continue;
+    // trial layers silently cover the new V3 built-in preview.
+    if(['2','3'].includes(new URLSearchParams(location.search).get('shirt'))&&record.key.startsWith('starter_tunic:'))continue;
     const parts=record.key.split(':');
     if(parts.length!==3||!item(parts[0])||!['male','female'].includes(parts[1])||!item(parts[0]).layers.includes(parts[2]))continue;
     await loadImage(record.dataUrl,record.key);
@@ -674,10 +674,10 @@ async function init(){
    }
   }catch(e){console.warn('Some local uploaded PNGs unavailable:',e);$('persistInfo').textContent='本機 PNG 圖庫無法讀取，內建圖仍可用。新素材請另行保管。'}
   ready=true;update();scaleGame();
-  if(['1','2'].includes(new URLSearchParams(location.search).get('shirt'))){
+  if(['1','2','3'].includes(new URLSearchParams(location.search).get('shirt'))){
    for(const g of ['male','female']){
     shown['starter_tunic:'+g]=true;shown['starter_cloak:'+g]=false;
-    if(new URLSearchParams(location.search).get('shirt')==='2'){
+    if(['2','3'].includes(new URLSearchParams(location.search).get('shirt'))){
      for(const l of ['front','side','back']){
       transforms[k('starter_tunic',g,l)]={x:0,y:0,scale:1};
       layerShown[k('starter_tunic',g,l)]=true;
