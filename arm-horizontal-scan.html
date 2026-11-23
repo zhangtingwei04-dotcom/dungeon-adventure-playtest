@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>迷宮盡頭的燈火｜手臂水平掃描尺</title>
+<style>
+:root{color-scheme:dark;--bg:#0d2821;--panel:#17392f;--line:#917d55;--gold:#e8ca91;--ink:#f7f0db;--muted:#c0d3c7}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Noto Sans TC",sans-serif}
+main{max-width:760px;margin:auto;padding:20px 13px 55px}
+h1{font-size:22px;margin:2px 0 7px}h2{font-size:17px;margin:2px 0 8px}
+p{color:var(--muted);margin:8px 0}
+.card{padding:13px;margin:13px 0;background:var(--panel);border:1px solid var(--line);border-radius:12px}
+label{display:block;font-size:13px;color:var(--muted);margin-bottom:4px}
+button,input,select{font:inherit}
+button,select,input[type=number]{min-height:44px;padding:9px 11px;border-radius:9px;border:1px solid var(--line);background:#204a3b;color:var(--ink);max-width:100%}
+button.primary{background:var(--gold);color:#193026;font-weight:750}
+button:disabled{opacity:.45}
+button[aria-pressed=true]{background:var(--gold);color:#193026;font-weight:750}
+button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid #efdf9e;outline-offset:2px}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.toolbar>button{flex:1;min-width:125px}
+.selector{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.selector select{width:100%}
+#current{color:var(--gold);font-size:18px;font-weight:750}
+#count{font-size:13px;color:var(--muted)}
+.stage{display:flex;justify-content:center;padding:8px 2px;margin:11px auto;border:1px solid #5b735e;border-radius:10px;background-color:#264336;background-image:linear-gradient(45deg,#315447 25%,transparent 25%),linear-gradient(-45deg,#315447 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#315447 75%),linear-gradient(-45deg,transparent 75%,#315447 75%);background-size:18px 18px;background-position:0 0,0 9px,9px -9px,-9px 0}
+canvas{display:block;image-rendering:pixelated;touch-action:none;width:min(100%,350px);height:auto;aspect-ratio:64/106}
+input[type=range]{width:100%;height:36px;accent-color:#ead09a}
+.numbers{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.numberBox{border-radius:9px;border:1px solid #5c725c;padding:8px}
+.numberBox input{width:100%}
+.adjust{display:flex;gap:6px;margin-top:6px}.adjust button{flex:1;min-width:0}
+#widthValue{font-weight:700;color:var(--gold)}
+.help{font-size:12px;color:var(--muted)}
+#quality{font-size:13px;color:#f1d29c;line-height:1.6}
+table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:6px 4px;border-bottom:1px solid #48675a;text-align:left}th{color:#f0d59c}
+.scroll{overflow-x:auto}
+textarea{display:block;width:100%;min-height:122px;background:#10291f;color:#f3eedb;border:1px solid #8e805d;border-radius:8px;padding:9px;font:11px/1.4 ui-monospace,monospace}
+a{color:#f3d79c}
+#feedback{color:var(--gold);font-size:13px}
+</style>
+<script src="./assets/cloak_workbench_bases_v1.js?v=1"></script>
+<script src="./assets/white_shirt_workbench_v3.js?v=3"></script>
+<script src="./assets/sleeve_replacement_workbench_v7.js?v=7"></script>
+</head>
+<body><main>
+<div class="help">《迷宮盡頭的燈火》｜原始 64×160 像素｜只讀診斷工具</div>
+<h1>手臂水平掃描尺</h1>
+<p><strong>不用點 24 個標記。</strong>把橫線拉到手臂的肩膀、手肘或手腕，系統就會讀取真正底模那一列的不透明像素，自動估計外緣與內緣。你只需要檢查、必要時微調，最後複製 JSON 給我。</p>
+<section class="card">
+<div class="toolbar">
+<button type="button" id="autoAll" class="primary">一鍵掃描男女 12 個位置</button>
+<button type="button" id="keepOriginal">讀取已儲存的量測</button>
+</div>
+<div class="selector">
+<div><label for="part">選擇手臂</label><select id="part">
+<option value="male:left">男・畫面左手</option>
+<option value="male:right">男・畫面右手</option>
+<option value="female:left">女・畫面左手</option>
+<option value="female:right">女・畫面右手</option></select></div>
+<div><label for="level">選擇部位</label><select id="level">
+<option value="shoulder">肩膀</option>
+<option value="elbow">手肘</option>
+<option value="wrist">手腕</option></select></div>
+</div>
+<div class="selector" style="margin-top:9px">
+<div><label for="overlay">參考畫面</label><select id="overlay"><option value="body">原始 Body（建議先看）</option><option value="v3">Body ＋ V3 短袖</option><option value="v7">Body ＋ V7 長袖</option></select></div>
+<div><label for="alphaThreshold">輪廓透明度門檻</label><select id="alphaThreshold"><option value="96">標準（96）</option><option value="40">包含半透明外緣（40）</option><option value="180">只取實心像素（180）</option></select></div>
+</div>
+<p id="current">讀取中…</p><div id="count"></div>
+<div class="stage"><canvas id="preview" width="64" height="106" aria-label="手指上下移動水平測量線"></canvas></div>
+<label for="y">水平掃描高度：<strong id="yValue">Y 82</strong>（手指拖動畫面也可以調整）</label>
+<input type="range" id="y" min="52" max="106" step="1" value="82">
+<div class="numbers">
+<div class="numberBox"><label for="outer">外緣 X</label><input id="outer" type="number" min="0" max="63" step="1"><div class="adjust"><button type="button" data-edit="outer:-1">−1</button><button type="button" data-edit="outer:1">+1</button></div></div>
+<div class="numberBox"><label for="inner">內緣 X</label><input id="inner" type="number" min="0" max="63" step="1"><div class="adjust"><button type="button" data-edit="inner:-1">−1</button><button type="button" data-edit="inner:1">+1</button></div></div>
+</div>
+<p>目前寬度：<span id="widthValue">—</span></p>
+<div id="quality">正在分析…</div>
+<p class="help">注意：肩膀附近手臂常與胸部連成同一塊像素，**內緣可能無法自動判定**。這時請看黃色水平線，用「內緣 X」微調；數據會註明是否人工確認，避免把胸部寬度誤當手臂。</p>
+<div class="toolbar">
+<button type="button" class="primary" id="accept">確認這一段並前往下一段</button>
+<button type="button" id="prev">上一段</button>
+<button type="button" id="next">下一段</button>
+</div>
+<div id="feedback">此工具不會修改工作台或正式遊戲。</div>
+</section>
+<section class="card">
+<h2>掃描結果</h2>
+<div class="scroll"><table><thead><tr><th>角色／手</th><th>部位</th><th>Y</th><th>外 X</th><th>內 X</th><th>寬</th><th>狀態</th></tr></thead><tbody id="rows"></tbody></table></div>
+<div class="toolbar"><button class="primary" id="copy" type="button">複製所有 JSON</button><button id="download" type="button">下載 JSON</button></div>
+<textarea id="json" readonly aria-label="手臂水平掃描 JSON"></textarea>
+</section>
+<p><a href="./arm-manual-measure.html?v=2">原本的逐點標記工具</a> · <a href="./developer-studio.html?tab=library">返回開發者工作台</a></p>
+</main>
+<script>
+(()=>{'use strict';
+const $=id=>document.getElementById(id),W=64,H=160,TOP=34,CROP_H=106,KEY='dungeon_arm_horizontal_scan_v1';
+const groups=[['male','left'],['male','right'],['female','left'],['female','right']], levels=['shoulder','elbow','wrist'];
+const label={male:'男',female:'女',left:'畫面左',right:'畫面右',shoulder:'肩膀',elbow:'手肘',wrist:'手腕'};
+const tasks=groups.flatMap(([g,s])=>levels.map(l=>({g,s,l,key:g+':'+s+':'+l})));
+const defaults={male:{shoulder:65,elbow:80,wrist:94},female:{shoulder:64,elbow:80,wrist:94}};
+let images={},alpha={},saved={},idx=0,y=80,outer=null,inner=null,note='',edited=false,ready=false;
+try{const o=JSON.parse(localStorage.getItem(KEY)||'null');if(o?.format==='dungeon-arm-horizontal-scan-v1'&&o.records&&typeof o.records==='object')saved=o.records}catch(_){}
+function loadImage(data){return new Promise((res,rej)=>{const img=new Image();img.onload=()=>res(img);img.onerror=()=>rej(new Error('PNG 載入失敗'));img.src=data})}
+function bodyAlpha(img){const cv=document.createElement('canvas');cv.width=W;cv.height=H;const c=cv.getContext('2d',{willReadFrequently:true});if(!c)throw Error('Canvas 2D 不可用');c.drawImage(img,0,0,W,H);return c.getImageData(0,0,W,H).data}
+function clamp(n,min,max){return Math.max(min,Math.min(max,n))}
+function recordKey(){return tasks[idx].key}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify({format:'dungeon-arm-horizontal-scan-v1',records:saved}))}catch(_){}}
+function scan(g,side,row){
+ const data=alpha[g],th=Number($('alphaThreshold').value);
+ if(!data)return {outer:null,inner:null,ambiguous:true,reason:'原始 Body 尚未讀取'};
+ const lo=side==='left'?0:36,hi=side==='left'?27:63;
+ const segments=[];let start=-1;
+ for(let x=lo;x<=hi+1;x++){
+  const opaque=x<=hi&&data[(row*W+x)*4+3]>=th;
+  if(opaque&&start<0)start=x;
+  if(!opaque&&start>=0){if(x-start>=2)segments.push([start,x-1]);start=-1}
+ }
+ if(!segments.length)return {outer:null,inner:null,ambiguous:true,reason:'這一高度在手臂區域未偵測到輪廓，請上下移動水平線'};
+ const hit=side==='left'?segments[0]:segments[segments.length-1];
+ const outer=side==='left'?hit[0]:hit[1],inner=side==='left'?hit[1]:hit[0];
+ const clipped=side==='left'?hit[1]===hi:hit[0]===lo;
+ const tooWide=hit[1]-hit[0]+1>=17;
+ const ambiguous=clipped||tooWide;
+ return {outer,inner,ambiguous,reason:clipped?'手臂與胸口可能連成一塊，內緣被掃描區界截斷；請人工調整':tooWide?'寬度偏大，可能掃到身體；請確認內緣':'自動找到外緣與內緣，仍請對照原圖確認'};
+}
+function currentTask(){return tasks[idx]}
+function useScan(row){
+ const t=currentTask(),r=scan(t.g,t.s,row);y=row;outer=r.outer;inner=r.inner;note=r.reason;edited=false;draw();
+}
+function setTask(i){
+ idx=clamp(i,0,tasks.length-1);
+ const t=currentTask(),stored=saved[t.key];
+ $('part').value=t.g+':'+t.s;$('level').value=t.l;
+ if(stored){y=stored.y;outer=stored.outer;inner=stored.inner;note=stored.reason||'已儲存的數據';edited=stored.edited||false}
+ else {const initial=defaults[t.g][t.l],r=scan(t.g,t.s,initial);y=initial;outer=r.outer;inner=r.inner;note=r.reason;edited=false}
+ draw();
+}
+function width(){return Number.isInteger(outer)&&Number.isInteger(inner)?Math.abs(outer-inner)+1:null}
+function draw(){
+ if(!ready)return;
+ const t=currentTask(),c=$('preview'),ctx=c.getContext('2d');
+ ctx.clearRect(0,0,W,CROP_H);ctx.imageSmoothingEnabled=false;
+ ctx.drawImage(images[t.g],0,-TOP);
+ const ox=t.g==='male'?-1:0,sy=-1;
+ const mode=$('overlay').value,offset=t.g==='male'?0:3;
+ if(mode==='v3')for(let i=0;i<3;i++)ctx.drawImage(images.v3,(offset+i)*W,0,W,H,ox,-TOP+sy,W,H);
+ if(mode==='v7'){
+  ctx.drawImage(images.v3,offset*W,0,W,H,ox,-TOP+sy,W,H);
+  for(let i=0;i<2;i++)ctx.drawImage(images.v7,(t.g==='male'?i:i+2)*W,0,W,H,ox,-TOP+sy,W,H);
+ }
+ const yy=y-TOP;
+ ctx.save();
+ ctx.fillStyle='rgba(255,210,104,.30)';ctx.fillRect(0,yy,64,1);
+ ctx.fillStyle='rgba(255,205,97,.35)';ctx.fillRect(t.s==='left'?0:32,yy,32,1);
+ if(Number.isInteger(outer)){
+  ctx.fillStyle='#ffbd49';ctx.fillRect(outer-1,yy-2,3,5)
+ }
+ if(Number.isInteger(inner)){
+  ctx.fillStyle='#64eaff';ctx.fillRect(inner-1,yy-2,3,5)
+ }
+ if(Number.isInteger(outer)&&Number.isInteger(inner)){
+  ctx.strokeStyle='#faf19e';ctx.lineWidth=.3;
+  ctx.beginPath();ctx.moveTo(outer+.5,yy+.5);ctx.lineTo(inner+.5,yy+.5);ctx.stroke();
+ }
+ ctx.restore();
+ $('y').value=y;$('yValue').textContent='Y '+y;
+ $('outer').value=Number.isInteger(outer)?outer:'';
+ $('inner').value=Number.isInteger(inner)?inner:'';
+ $('current').textContent=label[t.g]+'・'+label[t.s]+'手・'+label[t.l];
+ const complete=tasks.filter(x=>saved[x.key]).length;
+ $('count').textContent='正在檢查第 '+(idx+1)+' / 12 段；已儲存 '+complete+' / 12 段';
+ $('widthValue').textContent=width()===null?'無法計算':width()+' px';
+ const wrong=outer!==null&&inner!==null&&((t.s==='left'&&outer>inner)||(t.s==='right'&&outer<inner));
+ const text=wrong?'外緣／內緣左右順序顛倒，請重新修正':note;
+ $('quality').textContent='掃描提示：'+text+(edited?'（已人工調整）':'');
+ $('accept').disabled=width()===null||wrong;
+ renderTable();
+}
+function renderTable(){
+ $('rows').replaceChildren();
+ for(const t of tasks){
+  const r=saved[t.key],tr=document.createElement('tr');
+  const cells=[label[t.g]+label[t.s],label[t.l],r?.y??'—',r?.outer??'—',r?.inner??'—',r&&r.outer!==null&&r.inner!==null?Math.abs(r.outer-r.inner)+1:'—',r?(r.confirmed?'已確認':r.ambiguous?'需確認':'自動值'):'未記錄'];
+  for(const cell of cells){const td=document.createElement('td');td.textContent=String(cell);tr.appendChild(td)}
+  $('rows').appendChild(tr);
+ }
+ $('json').value=JSON.stringify(exportData(),null,2);
+}
+function exportData(){
+ return {format:'dungeon-arm-horizontal-scan-v1',project:'迷宮盡頭的燈火',nativeCanvas:{width:W,height:H},
+ origin:'original 64x160 male/female Body PNG',method:'per-row alpha segmentation, corridor constrained; manual override permitted',
+ note:'Shoulder/torso continuity can make the inner edge ambiguous. confirmed flag refers to user review, not to a biomechanical ground truth.',
+ samples:tasks.map(t=>({gender:t.g,screenSide:t.s,landmark:t.l,...(saved[t.key]||{y:null,outer:null,inner:null,widthPx:null,confirmed:false,reason:'not measured'})}))};
+}
+function saveCurrent(){
+ const t=currentTask();
+ const wrong=outer===null||inner===null||(t.s==='left'&&outer>inner)||(t.s==='right'&&outer<inner);
+ if(wrong){$('feedback').textContent='輪廓座標不完整或方向錯誤，請先調整';return false}
+ const auto=scan(t.g,t.s,y);
+ saved[t.key]={y,outer,inner,widthPx:width(),confirmed:true,edited,ambiguous:auto.ambiguous,reason:edited?'人工修正／確認位置':auto.reason};
+ persist();
+ $('feedback').textContent='已保存：'+label[t.g]+label[t.s]+'手 '+label[t.l]+'（Y '+y+'，寬 '+width()+'px）';
+ return true;
+}
+function updateAxis(){
+ const t=currentTask();const i=tasks.findIndex(v=>v.g+':'+v.s===$('part').value&&v.l===$('level').value);if(i>=0)setTask(i);
+}
+$('part').onchange=updateAxis;$('level').onchange=updateAxis;
+$('overlay').onchange=draw;
+$('alphaThreshold').onchange=()=>useScan(y);
+$('y').oninput=e=>useScan(clamp(Number(e.target.value),52,106));
+for(const id of ['outer','inner'])$(id).oninput=e=>{const raw=e.target.value;if(raw==='')return;const value=clamp(Math.round(Number(raw)),0,63);if(id==='outer')outer=value;else inner=value;edited=true;note='人工調整中';draw()};
+for(const b of document.querySelectorAll('[data-edit]'))b.onclick=()=>{
+ const [target,offset]=b.dataset.edit.split(':');const diff=Number(offset);if(target==='outer')outer=clamp((outer??32)+diff,0,63);else inner=clamp((inner??32)+diff,0,63);
+ edited=true;note='人工調整中';draw();
+};
+$('preview').addEventListener('pointerdown',e=>{if(!ready)return;e.preventDefault();$('preview').setPointerCapture?.(e.pointerId);const rect=$('preview').getBoundingClientRect();useScan(clamp(Math.floor((e.clientY-rect.top)*CROP_H/rect.height)+TOP,52,106))});
+$('preview').addEventListener('pointermove',e=>{if(!ready||!(e.buttons&1))return;e.preventDefault();const rect=$('preview').getBoundingClientRect();useScan(clamp(Math.floor((e.clientY-rect.top)*CROP_H/rect.height)+TOP,52,106))});
+$('accept').onclick=()=>{if(saveCurrent()&&idx<tasks.length-1)setTask(idx+1);else draw()};
+$('prev').onclick=()=>setTask(Math.max(0,idx-1));
+$('next').onclick=()=>setTask(Math.min(tasks.length-1,idx+1));
+$('keepOriginal').onclick=()=>setTask(idx);
+$('autoAll').onclick=()=>{
+ for(const t of tasks){
+  if(saved[t.key])continue;
+  const defaultY=defaults[t.g][t.l],r=scan(t.g,t.s,defaultY);
+  saved[t.key]={y:defaultY,outer:r.outer,inner:r.inner,widthPx:r.outer!==null&&r.inner!==null?Math.abs(r.outer-r.inner)+1:null,
+   confirmed:false,edited:false,ambiguous:r.ambiguous,reason:r.reason};
+ }
+ persist();setTask(idx);
+ $('feedback').textContent='已自動掃描 12 段；肩膀可能與胸口相連，請檢查後再按「確認」';
+};
+$('copy').onclick=async()=>{
+ const text=JSON.stringify(exportData(),null,2);$('json').value=text;
+ try{if(!navigator.clipboard?.writeText)throw Error('unsupported');await navigator.clipboard.writeText(text);$('feedback').textContent='已複製，回對話框貼上即可'}
+ catch(_){$('json').focus();$('json').select();$('feedback').textContent='已選取數據文字，請使用 iPhone 的複製功能'}
+};
+$('download').onclick=()=>{
+ const url=URL.createObjectURL(new Blob([JSON.stringify(exportData(),null,2)],{type:'application/json'}));
+ const a=document.createElement('a');a.href=url;a.download='dungeon-arm-horizontal-scan.json';a.click();
+ setTimeout(()=>URL.revokeObjectURL(url),1200);
+};
+async function init(){
+ const bodies=window.DungeonCloakWorkbenchBasesV1,v3=window.DungeonWhiteShirtWorkbenchV1,v7=window.DungeonSleeveReplacementV7;
+ if(!bodies?.male?.body||!bodies?.female?.body||!v3?.sheet||!v7?.sheet)throw Error('缺少原始素材');
+ const [male,female,shirt,sleeves]=await Promise.all([loadImage(bodies.male.body),loadImage(bodies.female.body),loadImage(v3.sheet),loadImage(v7.sheet)]);
+ if(male.width!==W||male.height!==H||female.width!==W||female.height!==H||shirt.width!==384||shirt.height!==H||sleeves.width!==256||sleeves.height!==H)throw Error('原始圖尺寸錯誤');
+ images={male,female,v3:shirt,v7:sleeves};alpha={male:bodyAlpha(male),female:bodyAlpha(female)};
+ ready=true;setTask(0);$('feedback').textContent='已載入真正的男女 Body PNG，掃描不會改動任何裝備。';
+}
+init().catch(e=>{$('feedback').textContent='圖片載入失敗：'+e.message;console.error(e)});
+})();
+</script></body></html>
