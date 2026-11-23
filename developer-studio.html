@@ -246,7 +246,7 @@ function getWearMode(a,gender){
  const value=wearModes[wearModeKey(a.id,gender)];
  return a.slot==='chest'&&VALID_WEAR_MODES.includes(value)?value:defaultWearMode(a);
 }
-const APPROVED_FIT_PRESET_VERSION='wardrobe-approved-fit-20261123-v3-user-waist';
+const APPROVED_FIT_PRESET_VERSION='wardrobe-approved-fit-20261123-v4-male-cloak';
 const BUILTIN_IDS=new Set(catalogue.map(a=>a.id));
 const activeBuiltinOverrides=new Set();
 // Native 64x160 source coordinates. Shirt/cloak/hair/bag positions are from
@@ -256,7 +256,7 @@ const activeBuiltinOverrides=new Set();
 const APPROVED_FIT_COORDS=Object.freeze({
  'hair_original:male:front':Object.freeze({x:0,y:0}),
  'hair_original:female:front':Object.freeze({x:-2,y:-5}),
- 'starter_cloak:male:front':Object.freeze({x:0,y:-8}),
+ 'starter_cloak:male:front':Object.freeze({x:0,y:-6}),
  'starter_cloak:female:front':Object.freeze({x:0,y:-6}),
  'starter_cloak:male:back':Object.freeze({x:0,y:0}),
  'starter_cloak:female:back':Object.freeze({x:0,y:0}),
@@ -389,6 +389,19 @@ function restore(){
     for(const key of data.activeBuiltinOverrides||[]){
       if(typeof key==='string'&&stockKeys[key])activeBuiltinOverrides.add(key);
     }
+  }else if(data.approvedFitPresetVersion==='wardrobe-approved-fit-20261123-v3-user-waist'){
+    // Latest export confirms male cloak front Y -6 (was -8).
+    // Keep the unusual female-waist draft (-17,+25) in current local edits,
+    // not the approved reset default, until the user confirms it.
+    // All other positions, visibility, z-order and V4/V5 toggles survive.
+    try{if(raw&&!localStorage.getItem(KEY+'_before_male_cloak_y6_v4'))
+      localStorage.setItem(KEY+'_before_male_cloak_y6_v4',raw)}catch(e){console.warn('Cloak preset backup skipped:',e)}
+    for(const key of data.activeBuiltinOverrides||[]){
+      if(typeof key==='string'&&stockKeys[key])activeBuiltinOverrides.add(key);
+    }
+    const key=k('starter_cloak','male','front');
+    transforms[key]=defaultT(item('starter_cloak'),'male','front');
+    persist();
   }else if(data.approvedFitPresetVersion==='wardrobe-approved-fit-20261123-v2-user-trousers'){
     // Update only the newly-confirmed female trousers waist; preserve
     // all other fitted coordinates, z-values, visibility, and custom art.
