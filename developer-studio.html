@@ -73,6 +73,7 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 </style>
 <script src="./assets/cloak_workbench_bases_v1.js?v=1"></script>
 <script src="./assets/white_shirt_workbench_v3.js?v=3"></script>
+<script src="./assets/travel_trousers_workbench_v2.js?v=2"></script>
 <script src="./assets/dungeon_generated_cloak_v2.js?v=2"></script>
 <script src="./assets/male_approved_v3_layers.js?v=1"></script>
 <script src="./assets/male_v3_corrected_layers_v2.js?v=1"></script>
@@ -101,11 +102,14 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 <div class="hint">此處使用正式男女身體／內衣／頭髮素材。新增 PNG 可單獨定位、調整大小，並在男女預覽中測試。披風 V2 使用剛生成的原圖拆成透明前後層，可分別調整男女位置和大小；正式採用前仍需驗收。調完後到「數據與備份」複製數據給我。</div>
 <div class="layout">
 <div class="panel"><h2>素材庫</h2>
-<div class="hint">白色初始布衣 V3（最新生成素材）：依你提供的工作台設定，男性三層偏移 x=-1、y=-1；女性三層 x=0、y=-1；scale=1。披風在試穿模式暫時隱藏，原先核准的披風座標不變。仍待實際穿著效果驗收。</div>
+<div class="hint">旅行長褲 V2 已使用你剛認可的新版透明長褲圖片，而非舊 V1。男女各自貼合 64×160 底模並拆成腰部、左褲管、右褲管。白色布衣 V3 及已核准披風 V2 保留；目前只是工作台試穿，不會更新正式遊戲。</div>
 <div class="toolbar" style="margin:10px 0">
 <button class="primary" id="shirtOnly">試穿白布衣（暫隱披風）</button>
 <button id="shirtWithCloak">白布衣＋披風</button>
 <button id="shirtOff">脫下白布衣</button>
+<button class="primary" id="trousersOn">試穿新版旅行長褲 V2</button>
+<button id="trousersWithCloak">長褲＋披風</button>
+<button id="trousersOff">脫下旅行長褲</button>
 </div><div class="libraryList" id="assetList" role="group" aria-label="角色與裝備素材清單"></div>
 <div class="divider"></div><h3>新增裝備／髮型</h3>
 <div class="editorFields">
@@ -188,7 +192,7 @@ const catalogue=[
  {id:'hair_original',name:'原版頭髮',slot:'hair',layers:['front'],status:'已使用的頭髮來源'},
  {id:'starter_cloak',name:'深綠金邊披風 V2｜已核准',slot:'outer',layers:['back','front'],status:'已通過試穿確認／正式遊戲已啟用'},
  {id:'starter_tunic',name:'白色初始布衣 V3｜最新生成版',slot:'chest',layers:['front','side','back'],status:'男女最新生成白衣／依座標貼合／整衣拆分／待驗收'},
- {id:'starter_trousers',name:'旅行長褲',slot:'legs',layers:['front'],status:'待匯入新圖'},
+ {id:'starter_trousers',name:'旅行長褲 V2｜新版透明圖試穿',slot:'legs',layers:['front','side','back'],status:'新版透明美術來源｜男／女各三張64×160｜待實機驗收'},
  {id:'starter_boots',name:'皮革長靴',slot:'feet',layers:['front'],status:'待匯入新圖'},
  {id:'starter_gloves',name:'棕色皮革手套',slot:'hands',layers:['front'],status:'待匯入新圖'},
  {id:'enchanted_satchel',name:'附魔旅行側包',slot:'bag',layers:['back','front'],status:'既有裝備資料／新美術待確認'}
@@ -199,7 +203,9 @@ const stockKeys={
  'starter_cloak:male:back':'maleCloakBack','starter_cloak:male:front':'maleCloakFront',
  'starter_cloak:female:back':'femaleCloakBack','starter_cloak:female:front':'femaleCloakFront',
  'starter_tunic:male:front':'maleShirtCore','starter_tunic:male:side':'maleShirtLeft','starter_tunic:male:back':'maleShirtRight',
- 'starter_tunic:female:front':'femaleShirtCore','starter_tunic:female:side':'femaleShirtLeft','starter_tunic:female:back':'femaleShirtRight'
+ 'starter_tunic:female:front':'femaleShirtCore','starter_tunic:female:side':'femaleShirtLeft','starter_tunic:female:back':'femaleShirtRight',
+ 'starter_trousers:male:front':'maleTrousersWaist','starter_trousers:male:side':'maleTrousersLeft','starter_trousers:male:back':'maleTrousersRight',
+ 'starter_trousers:female:front':'femaleTrousersWaist','starter_trousers:female:side':'femaleTrousersLeft','starter_trousers:female:back':'femaleTrousersRight'
 };
 const images=new Map(),userPngs=new Map(),imageInfo=new Map();
 const transforms={},shown={},layerShown={};
@@ -376,14 +382,23 @@ function drawOriginalBodyHands(ctx,gender){
 function drawAssetStage(gender){
  const c=$(gender+'Canvas'),ctx=c.getContext('2d');ctx.clearRect(0,0,64,160);ctx.imageSmoothingEnabled=false;
  const drawStatic=key=>{const img=images.get(key);if(img)ctx.drawImage(img,0,0,64,160)};
- // Draw all rear equipment first, then body and underwear, then front equipment.
- for(const a of catalogue)if(shown[a.id+':'+gender]!==false&&a.slot!=='hair'&&a.id!=='starter_tunic'&&a.layers.includes('back')){
+ // Draw only REAL rear equipment first; "back" in the trouser editor means
+ // screen-right leg, not something that should be buried behind the body.
+ for(const a of catalogue)if(shown[a.id+':'+gender]!==false&&a.slot!=='hair'&&a.id!=='starter_tunic'&&a.id!=='starter_trousers'&&a.layers.includes('back')){
   const key=k(a.id,gender,'back');if(layerShown[key]!==false)drawImageOn(ctx,images.get(key),transforms[key]);
  }
  // The head goes beneath the body on both sexes. Body supplies one neck.
  drawStatic(gender+'Head');
  drawStatic(gender+'Body');
  drawStatic(gender+'Shorts');drawStatic(gender+'Tank');
+ // Real V2 travel trousers: legs first, then belt/hips to prevent a waist seam.
+ // All three are front-facing sprites on the same 64x160 native origin.
+ if(shown['starter_trousers:'+gender]!==false){
+  for(const layer of ['side','back','front']){
+   const key=k('starter_trousers',gender,layer);
+   if(layerShown[key]!==false)drawImageOn(ctx,images.get(key),transforms[key]);
+  }
+ }
  // Shirt components are all FRONT-view assets. The key 'back' below is
  // reserved for right sleeve in this legacy 3-layer editor, NOT rear-view art.
  // Draw matching sleeves first, torso on top, before the approved cloak.
@@ -393,7 +408,7 @@ function drawAssetStage(gender){
    if(layerShown[key]!==false)drawImageOn(ctx,images.get(key),transforms[key]);
   }
  }
- for(const a of catalogue)if(shown[a.id+':'+gender]!==false&&a.slot!=='hair'&&a.id!=='starter_tunic'){
+ for(const a of catalogue)if(shown[a.id+':'+gender]!==false&&a.slot!=='hair'&&a.id!=='starter_tunic'&&a.id!=='starter_trousers'){
   for(const layer of a.layers)if(layer!=='back'){
    const key=k(a.id,gender,layer);
    if(layerShown[key]!==false)drawImageOn(ctx,images.get(key),transforms[key]);
@@ -440,7 +455,7 @@ function renderAssetList(){
 function updateControls(){
  const a=item(selected);if(!a)return;
  const select=$('editLayer');select.replaceChildren();
- for(const layer of a.layers){const op=document.createElement('option');op.value=layer;op.textContent=a.id==='starter_tunic'?{front:'主衣身（正面）',side:'左短袖（正面）',back:'右短袖（正面）'}[layer]:{front:'前層／主圖',back:'後層',side:'側面裝飾'}[layer];select.appendChild(op)}
+ for(const layer of a.layers){const op=document.createElement('option');op.value=layer;op.textContent=a.id==='starter_tunic'?{front:'主衣身（正面）',side:'左短袖（正面）',back:'右短袖（正面）'}[layer]:a.id==='starter_trousers'?{front:'褲腰與皮帶（正面）',side:'左褲管（正面）',back:'右褲管（正面）'}[layer]:{front:'前層／主圖',back:'後層',side:'側面裝飾'}[layer];select.appendChild(op)}
  if(!a.layers.includes(editingLayer))editingLayer=a.layers[0];
  select.value=editingLayer;$('editGender').value=editingGender;$('assetSelect').value=selected;
  const t=transforms[selectedKey()]||defaultT(a,editingGender,editingLayer);
@@ -455,6 +470,8 @@ function updateControls(){
   '披風 V2 已由你確認並正式啟用：男性前層 x0、y-8、scale1，女性前層 x0、y-6、scale1，男女後層 x0、y0、scale1。工作台後續修改只在本機測試，未重新確認前不會自動覆蓋正式版本。':
   a.id==='starter_tunic'?
   '白色初始布衣 V3：男女最近生成的整件正面上衣先放入實測 64×160 座標，然後將同一張衣服各拆成主衣身、左袖、右袖，拆分後能像素級還原，不靠另畫袖子拼湊。此頁不會更新正式遊戲。':
+  a.id==='starter_trousers'?
+  '旅行長褲 V2：這是你最新認可的透明長褲整件圖，先貼合男／女原始底模，再拆成褲腰、左褲管、右褲管；三張各為真正透明的 64×160 PNG。只能在工作台試穿，尚未安裝正式遊戲。':
   '正式男女頭部、身體與內衣不動；圖層調整只影響工作台預覽，不會自動安裝到遊戲。';
 }
 function update(){normalize();renderAssetList();updateControls();drawAll();refreshJson()}
@@ -586,6 +603,18 @@ function applyShirtTrial(showShirt,showCloak){
 $('shirtOnly').onclick=()=>applyShirtTrial(true,false);
 $('shirtWithCloak').onclick=()=>applyShirtTrial(true,true);
 $('shirtOff').onclick=()=>applyShirtTrial(false,false);
+function applyTrousersTrial(worn,withCloak=false){
+ for(const g of ['male','female']){
+  shown['starter_trousers:'+g]=worn;
+  shown['starter_tunic:'+g]=true;
+  shown['starter_cloak:'+g]=withCloak;
+ }
+ selected='starter_trousers';editingLayer='front';
+ update();persist();toast(worn?'旅行長褲 V2 已套用男女角色試穿':'已脫下旅行長褲，底層短褲保持原樣');
+}
+$('trousersOn').onclick=()=>applyTrousersTrial(true,false);
+$('trousersWithCloak').onclick=()=>applyTrousersTrial(true,true);
+$('trousersOff').onclick=()=>applyTrousersTrial(false,false);
 $('addAsset').onclick=addAsset;
 $('copySelected').onclick=async()=>{
  const ok=await copyText(JSON.stringify(serialize(selected),null,2));
@@ -656,6 +685,19 @@ async function init(){
     sourceImages[whiteShirt.sliceNames[i]]=cv.toDataURL('image/png');
    }
   }
+  // New approved-look V2 trousers are deliberately independent from legacy
+  // V1. Slice ONLY the new 384x160 PNG into six 64x160 genuine-alpha layers.
+  const trousers=window.DungeonTravelTrousersWorkbenchV2;
+  if(trousers?.sheet&&trousers?.sliceNames?.length===6){
+   const source=new Image();
+   await new Promise((resolve,reject)=>{source.onload=resolve;source.onerror=reject;source.src=trousers.sheet});
+   if(source.naturalWidth!==384||source.naturalHeight!==160)throw Error('新版長褲圖集尺寸必須為384×160');
+   for(let i=0;i<6;i++){
+    const cv=document.createElement('canvas');cv.width=64;cv.height=160;
+    cv.getContext('2d').drawImage(source,i*64,0,64,160,0,0,64,160);
+    sourceImages[trousers.sliceNames[i]]=cv.toDataURL('image/png');
+   }
+  }
   const keys=Object.entries(sourceImages).filter(([,value])=>
    typeof value==='string'&&value.startsWith('data:image/png;base64,'));
   await Promise.all([
@@ -671,6 +713,7 @@ async function init(){
     // Preserve earlier local uploads in IndexedDB, but do not let V1 user
     // trial layers silently cover the new V3 built-in preview.
     if(['2','3'].includes(new URLSearchParams(location.search).get('shirt'))&&record.key.startsWith('starter_tunic:'))continue;
+    if(new URLSearchParams(location.search).get('trousers')==='2'&&record.key.startsWith('starter_trousers:'))continue;
     const parts=record.key.split(':');
     if(parts.length!==3||!item(parts[0])||!['male','female'].includes(parts[1])||!item(parts[0]).layers.includes(parts[2]))continue;
     await loadImage(record.dataUrl,record.key);
@@ -689,6 +732,18 @@ async function init(){
     }
    }
    selected='starter_tunic';editingLayer='front';update();
+  }
+  if(new URLSearchParams(location.search).get('trousers')==='2'){
+   for(const g of ['male','female']){
+    shown['starter_trousers:'+g]=true;
+    shown['starter_tunic:'+g]=true;
+    shown['starter_cloak:'+g]=false;
+    for(const layer of ['front','side','back']){
+     transforms[k('starter_trousers',g,layer)]=defaultT(item('starter_trousers'),g,layer);
+     layerShown[k('starter_trousers',g,layer)]=true;
+    }
+   }
+   selected='starter_trousers';editingLayer='front';update();
   }
   if(new URLSearchParams(location.search).get('tab')==='library')setTab('library');
  }catch(e){toast('素材預載不完整：'+e.message);console.error(e);ready=true;update()}
