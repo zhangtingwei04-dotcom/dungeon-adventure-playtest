@@ -78,6 +78,7 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 <script src="./assets/sleeve_replacement_workbench_v7.js?v=7"></script>
 <script src="./assets/whole_long_tunic_trial_v9.js?v=9"></script>
 <script src="./assets/long_tunic_layered_v10.js?v=10"></script>
+<script src="./assets/long_tunic_front_sleeves_v12.js?v=12"></script>
 <script src="./assets/travel_trousers_workbench_v2.js?v=2"></script>
 <script src="./assets/approved_satchel_workbench_v1.js?v=1"></script>
 <script src="./assets/dungeon_generated_cloak_v2.js?v=2"></script>
@@ -133,7 +134,10 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 <div class="hint">上衣穿搭試驗｜可一鍵同時切換男女角色，直接比較白布衣與褲腰的遮擋。</div>
 <div class="toolbar"><button type="button" id="wearBothTucked">紮入式（男女）</button><button type="button" id="wearBothUntucked">自然垂放（男女）</button><button type="button" id="wearBothOuter">外罩式（男女）</button></div>
 <div class="hint">白衣長袖 V6 真替換試驗｜沿用 V3 肩膀的像素和色票，延長袖子時停用舊短袖，不再額外疊加。只在開發者工作台顯示，正式遊戲未改動。</div>
-<div class="hint"><strong>上一張已確認的分層長袖 V10（試穿）：</strong> 男女各有衣身正面／背面及左右袖，袖子在衣身前面圖層的後方。使用你剛確認的上一張設計圖，不使用第二次重新生成的版本。原 V3 短袖和 V9 皆保留，可自由對照。</div>
+<div class="hint"><strong>目前推薦：V12 正面上衣＋兩隻長袖，沒有背面。</strong>男女各三張獨立透明 64×160；左右袖在正面衣身後層。原 V3 短袖和 V9、V10 歷史測試圖均保留。</div>
+<div class="toolbar"><button class="primary" type="button" id="v12On">V12 新長袖｜男女試穿</button><button type="button" id="v12Off">回到原版 V3 短袖</button><button type="button" id="v12Cloak">V12 長袖＋披風</button></div>
+<div class="hint">V12：左袖 Z38、右袖 Z39、衣身正面 Z42。沒有任何背面圖層。請在素材清單選擇各袖或衣身即可獨立調整位置，舊版服裝資料不改。</div>
+<div class="hint"><strong>舊 V10 版本（保留對照、未獲驗收）：</strong> 男女各有衣身正面／背面及左右袖，袖子在衣身前面圖層的後方。使用你剛確認的上一張設計圖，不使用第二次重新生成的版本。原 V3 短袖和 V9 皆保留，可自由對照。</div>
 <div class="toolbar"><button class="primary" type="button" id="layeredLongOn">試穿確認的分層長袖（男女）</button><button type="button" id="layeredLongOff">恢復原 V3 短袖</button><button type="button" id="layeredLongCloak">分層長袖＋披風</button></div>
 <div class="hint">層級：衣身背面 Z33 → 左袖 Z38／右袖 Z39 → 衣身正面 Z42。調整衣身請選「V10 衣身」，調整左右袖請選「V10 左右袖」，不會改動 V3。</div>
 <div class="hint"><strong>新長袖整件 V9：</strong>男女各一張完整 64×160 透明衣服，衣身＋左右袖已合成，不依賴 V3 短袖。原短袖不修改，兩套可以切換。</div>
@@ -246,7 +250,9 @@ const catalogue=[
  {id:'starter_sleeves_v7',name:'白衣 V7｜獨立長袖試穿',slot:'chest',layers:['side','front'],status:'男女各兩張透明64×160袖片；V3肩部原樣＋V7延長袖身；工作台待驗收'},
  {id:'starter_long_tunic_whole_v9',name:'米白系帶長袖 V9｜完整獨立上衣',slot:'chest',layers:['front'],status:'整件長袖一張圖；男女各自64×160真正透明；原V3短袖不修改、可隨時回退｜待實機驗收'},
  {id:'starter_tunic_layered_v10',name:'V10｜已確認造型・衣身正背面',slot:'chest',layers:['back','front'],status:'上一張確認的象牙色長袖衣身，前後兩層；袖子另在衣身前層後面；待 iPhone 試穿'},
- {id:'starter_tunic_layered_v10_sleeves',name:'V10｜已確認造型・左右長袖',slot:'chest',layers:['side','front'],status:'上一張確認的象牙色長袖袖片；位於衣身前片後層，可各自移動；待 iPhone 驗收'},
+ {id:'starter_tunic_layered_v10_sleeves',name:'V10｜舊版・左右長袖（僅供比較）',slot:'chest',layers:['side','front'],status:'使用者不滿意舊拆圖，保留做歷史對照，不進正式遊戲'},
+ {id:'starter_tunic_layered_v12',name:'V12｜新版象牙長袖・衣身正面',slot:'chest',layers:['front'],status:'男女各自一張原生64×160真透明，沒有背面；袖子在後方；工作台待 iPhone 實機驗收'},
+ {id:'starter_tunic_layered_v12_sleeves',name:'V12｜新版象牙長袖・左右袖',slot:'chest',layers:['side','front'],status:'男女左右袖獨立原生64×160真透明；在衣身正面後方；工作台待 iPhone 驗收'},
  {id:'starter_trousers',name:'旅行長褲 V2｜新版透明圖試穿',slot:'legs',layers:['front','side','back'],status:'新版透明美術來源｜男／女各三張64×160｜待實機驗收'},
  {id:'starter_boots',name:'皮革長靴',slot:'feet',layers:['front'],status:'待匯入新圖'},
  {id:'starter_gloves',name:'棕色皮革手套',slot:'hands',layers:['front'],status:'待匯入新圖'},
@@ -275,6 +281,12 @@ const stockKeys={
  'starter_tunic_layered_v10_sleeves:male:front':'maleLayeredRightSleeve',
  'starter_tunic_layered_v10_sleeves:female:side':'femaleLayeredLeftSleeve',
  'starter_tunic_layered_v10_sleeves:female:front':'femaleLayeredRightSleeve',
+ 'starter_tunic_layered_v12:male:front':'maleV12Front',
+ 'starter_tunic_layered_v12_sleeves:male:side':'maleV12Left',
+ 'starter_tunic_layered_v12_sleeves:male:front':'maleV12Right',
+ 'starter_tunic_layered_v12:female:front':'femaleV12Front',
+ 'starter_tunic_layered_v12_sleeves:female:side':'femaleV12Left',
+ 'starter_tunic_layered_v12_sleeves:female:front':'femaleV12Right',
  'starter_trousers:male:front':'maleTrousersWaist','starter_trousers:male:side':'maleTrousersLeft','starter_trousers:male:back':'maleTrousersRight',
  'starter_trousers:female:front':'femaleTrousersWaist','starter_trousers:female:side':'femaleTrousersLeft','starter_trousers:female:back':'femaleTrousersRight',
  'enchanted_satchel:male:front':'approvedSatchel','enchanted_satchel:female:front':'approvedSatchel'
@@ -287,7 +299,8 @@ let cloakArmDetailV5=false; // V4 remains the approved fallback; V5 is opt-in on
 let sleeveReplaceModeV6=false; // opt-in only; existing V3 is always preserved.
 let sleeveReplaceModeV7=false; // another opt-in trial, not an official game change.
 let wholeLongTunicTrialV9=false; // single complete garment, never edits V3 image.
-let layeredLongTunicTrialV10=false; // user-approved preceding first-layered illustration, separate from later redraw.
+let layeredLongTunicTrialV10=false; // retired unapproved trial, still available for history.
+let frontSleevesTrialV12=false; // new only-front-plus-sleeves test; no back sprite.
 const v3TorsoLayer={male:'front',female:'front'};
 const VALID_WEAR_MODES=Object.freeze(['tucked','untucked','outer']);
 function defaultWearMode(a){return a.slot==='chest'?'tucked':a.slot==='outer'?'wrapped':'normal'}
@@ -344,6 +357,12 @@ const APPROVED_FIT_COORDS=Object.freeze({
  'starter_tunic_layered_v10_sleeves:male:front':Object.freeze({x:-1,y:-1}),
  'starter_tunic_layered_v10_sleeves:female:side':Object.freeze({x:0,y:-1}),
  'starter_tunic_layered_v10_sleeves:female:front':Object.freeze({x:0,y:-1}),
+ 'starter_tunic_layered_v12:male:front':Object.freeze({x:-1,y:-1}),
+ 'starter_tunic_layered_v12_sleeves:male:side':Object.freeze({x:-1,y:-1}),
+ 'starter_tunic_layered_v12_sleeves:male:front':Object.freeze({x:-1,y:-1}),
+ 'starter_tunic_layered_v12:female:front':Object.freeze({x:0,y:-1}),
+ 'starter_tunic_layered_v12_sleeves:female:side':Object.freeze({x:0,y:-1}),
+ 'starter_tunic_layered_v12_sleeves:female:front':Object.freeze({x:0,y:-1}),
  'enchanted_satchel:male:front':Object.freeze({x:0,y:-2}),
  'enchanted_satchel:female:front':Object.freeze({x:0,y:-2})
 });
@@ -369,6 +388,8 @@ function defaultZ(asset,gender,layer){
   case 'starter_long_tunic_whole_v9':return 42;
   case 'starter_tunic_layered_v10':return layer==='back'?33:42;
   case 'starter_tunic_layered_v10_sleeves':return layer==='side'?38:39;
+  case 'starter_tunic_layered_v12':return 42;
+  case 'starter_tunic_layered_v12_sleeves':return layer==='side'?38:39;
   case 'starter_trousers':return layer==='side'?50:layer==='back'?51:52;
   case 'enchanted_satchel':return layer==='back'?25:70;
   case 'starter_boots':return 60;
@@ -427,7 +448,7 @@ function serialize(oneId){
 }
 function persist(){
  try{
-  localStorage.setItem(KEY,JSON.stringify({catalogue,transforms,shown,layerShown,wearModes,cloakArmRevealTrial,cloakArmDetailV5,sleeveReplaceModeV6,sleeveReplaceModeV7,wholeLongTunicTrialV9,layeredLongTunicTrialV10,selected,editingGender,editingLayer,cloakArtVersion:'original-sheet-v2',approvedFitPresetVersion:APPROVED_FIT_PRESET_VERSION,activeBuiltinOverrides:[...activeBuiltinOverrides]}));
+  localStorage.setItem(KEY,JSON.stringify({catalogue,transforms,shown,layerShown,wearModes,cloakArmRevealTrial,cloakArmDetailV5,sleeveReplaceModeV6,sleeveReplaceModeV7,wholeLongTunicTrialV9,layeredLongTunicTrialV10,frontSleevesTrialV12,selected,editingGender,editingLayer,cloakArtVersion:'original-sheet-v2',approvedFitPresetVersion:APPROVED_FIT_PRESET_VERSION,activeBuiltinOverrides:[...activeBuiltinOverrides]}));
   $('persistInfo').textContent='設定已儲存在這個裝置的工作台資料中。匯入圖片另存於本機資料庫；更換手機／瀏覽器不會自動同步。';
  }catch(e){$('persistInfo').textContent='本機設定儲存失敗：'+e.message;}
 }
@@ -441,6 +462,7 @@ function restore(){
   if(typeof data.sleeveReplaceModeV7==='boolean')sleeveReplaceModeV7=data.sleeveReplaceModeV7;
   if(typeof data.wholeLongTunicTrialV9==='boolean')wholeLongTunicTrialV9=data.wholeLongTunicTrialV9;
   if(typeof data.layeredLongTunicTrialV10==='boolean')layeredLongTunicTrialV10=data.layeredLongTunicTrialV10;
+  if(typeof data.frontSleevesTrialV12==='boolean')frontSleevesTrialV12=data.frontSleevesTrialV12;
   for(const a of data.catalogue){
    if(!a||typeof a.id!=='string'||!/^[a-z0-9_-]{2,60}$/.test(a.id)||catalogue.some(x=>x.id===a.id))continue;
    if(!Array.isArray(a.layers)||!a.layers.every(l=>['back','front','side'].includes(l)))continue;
@@ -851,10 +873,14 @@ function drawAssetStage(gender){
   // Both versions keep their own unchanged image data and position presets.
   // The approved layered V10 shirt is independent of V3 and V9.
   // Never display multiple complete shirts or old experimental sleeves.
-  if(a.id==='starter_tunic'&&(wholeLongTunicTrialV9||layeredLongTunicTrialV10))continue;
-  if(a.id==='starter_long_tunic_whole_v9'&&(!wholeLongTunicTrialV9||layeredLongTunicTrialV10))continue;
-  if(['starter_tunic_layered_v10','starter_tunic_layered_v10_sleeves'].includes(a.id)&&!layeredLongTunicTrialV10)continue;
-  if((wholeLongTunicTrialV9||layeredLongTunicTrialV10)&&['starter_long_sleeves_v4','starter_sleeves_v6','starter_sleeves_v7'].includes(a.id))continue;
+  // Exactly one upper garment. V12 has only two sleeves (back layer)
+  // and a single shirt front (top layer); neither base V3 nor old
+  // experimental sleeve overlays are shown simultaneously.
+  if(a.id==='starter_tunic'&&(wholeLongTunicTrialV9||layeredLongTunicTrialV10||frontSleevesTrialV12))continue;
+  if(a.id==='starter_long_tunic_whole_v9'&&(!wholeLongTunicTrialV9||layeredLongTunicTrialV10||frontSleevesTrialV12))continue;
+  if(['starter_tunic_layered_v10','starter_tunic_layered_v10_sleeves'].includes(a.id)&&(!layeredLongTunicTrialV10||frontSleevesTrialV12))continue;
+  if(['starter_tunic_layered_v12','starter_tunic_layered_v12_sleeves'].includes(a.id)&&!frontSleevesTrialV12)continue;
+  if((wholeLongTunicTrialV9||layeredLongTunicTrialV10||frontSleevesTrialV12)&&['starter_long_sleeves_v4','starter_sleeves_v6','starter_sleeves_v7'].includes(a.id))continue;
   if(a.id==='starter_long_sleeves_v4'&&(sleeveReplaceModeV6||sleeveReplaceModeV7||shown['starter_tunic:'+gender]===false))continue;
   // V6 is an independently movable *replacement*, never an add-on.
   if(a.id==='starter_sleeves_v6'&&(!sleeveReplaceModeV6||sleeveReplaceModeV7||shown['starter_tunic:'+gender]===false))continue;
@@ -876,11 +902,11 @@ function drawAssetStage(gender){
    const pantsFrontZ=pantsPresent?Math.max(...pants.layers.filter(l=>
     layerShown[k('starter_trousers',gender,l)]!==false&&getImage('starter_trousers',gender,l))
     .map(l=>safeNum(transforms[k('starter_trousers',gender,l)]?.z,0,140,defaultZ(pants,gender,l)))):z;
-   if((a.id==='starter_tunic'||a.id==='starter_long_tunic_whole_v9'||a.id==='starter_tunic_layered_v10')&&pantsPresent&&mode==='untucked'&&layer==='front'){
+   if((a.id==='starter_tunic'||a.id==='starter_long_tunic_whole_v9'||a.id==='starter_tunic_layered_v10'||a.id==='starter_tunic_layered_v12')&&pantsPresent&&mode==='untucked'&&layer==='front'){
     const split=hemSplitY(img,t);
     enqueue(z,()=>drawClippedGarment(ctx,img,t,0,split));
     enqueue(Math.max(z,pantsFrontZ+0.25),()=>drawClippedGarment(ctx,img,t,split,160));
-   }else if((a.id==='starter_tunic'||a.id==='starter_long_tunic_whole_v9'||a.id==='starter_tunic_layered_v10')&&pantsPresent&&mode==='outer'){
+   }else if((a.id==='starter_tunic'||a.id==='starter_long_tunic_whole_v9'||a.id==='starter_tunic_layered_v10'||a.id==='starter_tunic_layered_v12')&&pantsPresent&&mode==='outer'){
     enqueue(Math.max(z,pantsFrontZ+0.25),()=>drawImageOn(ctx,img,t));
    }else{
     enqueue(z,()=>drawImageOn(ctx,img,t));
@@ -937,7 +963,9 @@ function updateControls(){
  const select=$('editLayer');select.replaceChildren();
  for(const layer of a.layers){const op=document.createElement('option');op.value=layer;op.textContent=a.id==='starter_tunic'?{front:'主衣身（正面）',side:'左短袖（正面）',back:'右短袖（正面）'}[layer]:a.id==='starter_long_sleeves_v4'?{side:'畫面左長袖（正面）',front:'畫面右長袖（正面）'}[layer]:a.id==='starter_sleeves_v6'?{side:'V6 左袖｜可拖曳',front:'V6 右袖｜可拖曳'}[layer]:a.id==='starter_sleeves_v7'?{side:'V7 左袖｜可拖曳',front:'V7 右袖｜可拖曳'}[layer]:
  a.id==='starter_tunic_layered_v10'?{back:'衣身背面（袖子後方）',front:'衣身正面（蓋住袖根）'}[layer]:
- a.id==='starter_tunic_layered_v10_sleeves'?{side:'畫面左袖（Z38）',front:'畫面右袖（Z39）'}[layer]:a.id==='starter_trousers'?{front:'褲腰與皮帶（正面）',side:'左褲管（正面）',back:'右褲管（正面）'}[layer]:{front:'前層／主圖',back:'後層',side:'側面裝飾'}[layer];select.appendChild(op)}
+ a.id==='starter_tunic_layered_v10_sleeves'?{side:'畫面左袖（Z38）',front:'畫面右袖（Z39）'}[layer]:
+ a.id==='starter_tunic_layered_v12'?{front:'長袖衣身正面（Z42，無背面）'}[layer]:
+ a.id==='starter_tunic_layered_v12_sleeves'?{side:'畫面左長袖（Z38）',front:'畫面右長袖（Z39）'}[layer]:a.id==='starter_trousers'?{front:'褲腰與皮帶（正面）',side:'左褲管（正面）',back:'右褲管（正面）'}[layer]:{front:'前層／主圖',back:'後層',side:'側面裝飾'}[layer];select.appendChild(op)}
  if(!a.layers.includes(editingLayer))editingLayer=a.layers[0];
  select.value=editingLayer;$('editGender').value=editingGender;$('assetSelect').value=selected;
  const t=transforms[selectedKey()]||defaultT(a,editingGender,editingLayer);
@@ -945,7 +973,7 @@ function updateControls(){
  $('zInput').value=String(safeNum(t.z,0,140,defaultZ(a,editingGender,editingLayer)));
  const p=String($('zInput').value);
  $('zPreset').value=Array.from($('zPreset').options).some(o=>o.value===p)?p:'';
- const modeEnabled=['starter_tunic','starter_long_tunic_whole_v9','starter_tunic_layered_v10'].includes(a.id);
+ const modeEnabled=['starter_tunic','starter_long_tunic_whole_v9','starter_tunic_layered_v10','starter_tunic_layered_v12'].includes(a.id);
  $('wearModeField').hidden=!modeEnabled;
  $('wearModeHelp').hidden=!modeEnabled;
  $('wearModeBoth').hidden=!modeEnabled;
