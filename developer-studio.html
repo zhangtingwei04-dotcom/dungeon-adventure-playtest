@@ -79,7 +79,7 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 <script src="./assets/whole_long_tunic_trial_v9.js?v=9"></script>
 <script src="./assets/long_tunic_layered_v10.js?v=10"></script>
 <script src="./assets/long_tunic_front_sleeves_v12.js?v=12"></script>
-<script src="./assets/natural_long_tunic_v13.js?v=13"></script>
+<script src="./assets/natural_long_tunic_v13.js?v=13-chest-fix"></script>
 <script src="./assets/travel_trousers_workbench_v2.js?v=2"></script>
 <script src="./assets/approved_satchel_workbench_v1.js?v=1"></script>
 <script src="./assets/dungeon_generated_cloak_v2.js?v=2"></script>
@@ -1609,8 +1609,10 @@ async function init(){
     sourceImages[v12.sliceNames[i]]=c.toDataURL('image/png');
    }
   }
-  // Build V13 after V3 has been sliced above. The front uses the
-  // actual V3 natural torso PNG as a new independent input key;
+  // Build V13 after V3 has been sliced above. The correct V3 torso
+  // is stored under maleShirtRight/femaleShirtRight (third PNG crop).
+  // Names "ShirtCore" are misleading: they contain only a sleeve.
+  // The front uses the actual V3 torso as a new independent input key;
   // only the four sleeves are shortened (Y88 cutoff).
   const v13=window.DungeonNaturalLongTunicV13;
   if(v13?.sleeveAtlas&&v13?.sleeveSliceNames?.length===4){
@@ -1624,7 +1626,7 @@ async function init(){
     sourceImages[v13.sleeveSliceNames[i]]=c.toDataURL('image/png');
    }
    // SourceImages keys are shared data URLs, not shared transformations.
-   // The original male/female V3 core object is never mutated.
+   // The original male/female V3 material is never mutated.
    sourceImages.maleV13Front=sourceImages[v13.shirtFrontSources.male];
    sourceImages.femaleV13Front=sourceImages[v13.shirtFrontSources.female];
    if(!sourceImages.maleV13Front||!sourceImages.femaleV13Front)throw Error('V13 無法從 V3 取得自然衣身正面');
