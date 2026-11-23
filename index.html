@@ -3716,6 +3716,33 @@ html.stage-locked #app .paperdoll-stage .paperdoll-asset-layer{
  pointer-events:none;background-repeat:no-repeat;
  background-size:100% 100%;background-position:0 0;image-rendering:pixelated;
 }
+/* Installed live-equipment TEST: generated white starter shirt V3 uses a 6-frame
+   384x160 sheet. Each layer occupies exactly 64x160; CSS 600% exposes
+   one frame while keeping the same sprite grid as the base body/underwear. */
+html.stage-locked #app .equip-guide .paperdoll-stage > .paperdoll-shirt-v3{
+ background-size:600% 100%!important;
+ background-repeat:no-repeat!important;
+ image-rendering:pixelated!important;
+}
+html.stage-locked #app .equip-guide .paperdoll-stage.paperdoll-male > .paperdoll-shirt-v3{
+ transform:translate(-1.5625%,calc(9px - 0.625%))!important;
+}
+html.stage-locked #app .equip-guide .paperdoll-stage.paperdoll-female > .paperdoll-shirt-v3{
+ transform:translate(0,calc(9px - 0.625%))!important;
+}
+/* When both white shirt and cloak are equipped, restore only outer lower arms:
+   old full-width original-arm clips erased sleeve/body pixels. Leave the
+   previously approved bare-cloak clips completely unchanged. */
+html.stage-locked #app .paperdoll-stage.paperdoll-shirt-equipped .paperdoll-original-arm-left,
+html.stage-locked #app .paperdoll-stage.paperdoll-shirt-equipped .paperdoll-original-shorts-left,
+html.stage-locked #app .paperdoll-stage.paperdoll-shirt-equipped .paperdoll-original-tank-left{
+ clip-path:inset(47.5% 68.75% 36.25% 0%);
+}
+html.stage-locked #app .paperdoll-stage.paperdoll-shirt-equipped .paperdoll-original-arm-right,
+html.stage-locked #app .paperdoll-stage.paperdoll-shirt-equipped .paperdoll-original-shorts-right,
+html.stage-locked #app .paperdoll-stage.paperdoll-shirt-equipped .paperdoll-original-tank-right{
+ clip-path:inset(47.5% 0% 36.25% 68.75%);
+}
 /* Full-size approved character arm pixels appear ABOVE trial cloak only.
    Positions are native 64×160: left x0..23, right x40..63, y70..101.
    These original body-sprite regions preserve hand and arm posture. */
@@ -4100,6 +4127,8 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <script src="./assets/female_mouth_motion_v1.js?v=10"></script>
 <script src="./assets/traveler_cloak_trial_v1.js?v=1"></script>
 <script src="./assets/dungeon_generated_cloak_v2.js?v=2"></script>
+<!-- V3 front-only white starter shirt; reads the six 64x160 workbench-native PNG layers. -->
+<script src="./assets/white_shirt_workbench_v3.js?v=3"></script>
 <script>
 (()=>{'use strict';
 // Fixed design canvas: use the approved screenshot's exact 1536×707 ratio,
@@ -5042,7 +5071,7 @@ const EQUIPMENT_APPROVED_BAG_IMAGE='data:image/png;base64,iVBORw0KGgoAAAANSUhEUg
 const EQUIPMENT_TRILEAF_BAG_SLOT_ICON='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAMAAABg3Am1AAAAwFBMVEUAAABrOSU1FhQUBApOJxuGSC9VKyJ1RimOWC8lDQ/wsUNXMhsMAQdcMSOVYzMHAAVBHBs7IhRnPB2TWLP/zV9fNmemaTqyd0I6GEZMJ1BgMWx9PqNmQR94UitxU0eBQKmda7ipVNegakKqYNS9gN3cq/fktvUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABRvlJqAAAAQHRSTlMA//////////////84//9E//////////////////////////////8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEB4WKQAAAV9JREFUeNrtlNluwyAQRc2ABzDe1+x78v+f2NyipG2Slxj3qb0SMoI50izXRNHflZRKETm3WtU10W8AVZXnWM4BJGLebJjVXWkaCqSp1sbUtZRxPAzxg4ypqlAAZaNo56wdBmO+QsVVWgtRFGFAmqJUKevaOVx7ta24KxRAQkoxa+1clt2CkuS20/phnKOAshRivVYKQNsiOEnwZUYTpgBgCoxPSp+OR7A3V4UCUWQtX4Wmwuo/izZGKSnDAAwOdtb6cEB6RD7cIzgJBXCUZcy73ek0m2GEgJyD+bRGitaGAmWp1GJxPl8u261SGBWSyXM0GpZ5msMooOuOx6ZZLon6Hr8PmmCMc9MAaCRz0+z38zlRngNgLks0O8umAXDVdU2DhvqiYRYhEB7HL+bwFnBLChYXAqvvkRbKBvTCrW8DReHTgoisxROML5aUT+EjAFgcF/ZT8pueXtXRwL+m0wfyoSJ9l69eggAAAABJRU5ErkJggg==';
 const EQUIPMENT_SLOT_ICONS='data:image/png;base64,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';
 const EQUIPMENT_VISUAL_CATALOG=Object.freeze({
- chest:Object.freeze({id:'starter_tunic',name:'旅人上衣',icon:0}),
+ chest:Object.freeze({id:'starter_tunic',name:'白色旅人布衣 V3（試穿）',icon:0}),
  legs:Object.freeze({id:'starter_trousers',name:'旅行長褲',icon:1}),
  feet:Object.freeze({id:'starter_boots',name:'皮革長靴',icon:2}),
  outer:Object.freeze({id:'starter_cloak',name:'深綠金邊披風',icon:3}),
@@ -5065,6 +5094,9 @@ const LEGACY_EQUIPMENT_ART_ENABLED=false;
 // The previously rejected equipment atlas remains disabled.
 const CLOAK_PIXEL_TRIAL_ENABLED=new URLSearchParams(location.search).get('cloak')==='trial';
 const CLOAK_ART_V2_ENABLED=new URLSearchParams(location.search).get('cloak')!=='off'&&!CLOAK_PIXEL_TRIAL_ENABLED;
+// The equipped white starter shirt V3 is now visible in the actual inventory
+// paper doll; ?shirt=off is a visual-only rollback, never unequips an item.
+const WHITE_STARTER_SHIRT_V3_ENABLED=new URLSearchParams(location.search).get('shirt')!=='off';
 let paperDollTryOn=false;
 
 /* Hair tint belongs to the player appearance, not equipment or the source PNG.
@@ -5958,7 +5990,12 @@ function paintPaperDollSkin(){
   if(arms){
    const a=arms.getContext('2d');a.clearRect(0,0,64,160);
    a.imageSmoothingEnabled=false;a.save();a.beginPath();
-   a.rect(0,70,24,32);a.rect(40,70,24,32);a.clip();
+   if(stage.classList.contains('paperdoll-shirt-equipped')){
+    a.rect(0,76,20,26);a.rect(44,76,20,26);
+   }else{
+    a.rect(0,70,24,32);a.rect(40,70,24,32);
+   }
+   a.clip();
    a.drawImage(work,0,0);a.restore();
   }
   stage.classList.add('skin-tinted');
@@ -6008,6 +6045,19 @@ function equipmentGuideHTML(sceneMode='equipment'){
     window.DungeonTravelerCloakTrialV1.sprites[s.appearanceV1?.gender==='female'?'female':'male']:null):null;
  const cloakBack=cloakArt?'<span class="paperdoll-asset-layer paperdoll-cloak-trial-back" aria-hidden="true" style="background-image:url('+cloakArt.back+')"></span>':'';
  const cloakFront=cloakArt?'<span class="paperdoll-asset-layer paperdoll-cloak-trial-front'+(CLOAK_ART_V2_ENABLED?' paperdoll-cloak-art-v2-front':'')+'" aria-hidden="true" style="background-image:url('+cloakArt.front+')"></span>':'';
+ // Live paper-doll test of the PREVIOUSLY GENERATED white tunic. Shirt sprites
+ // come from the same 384x160 / six 64x160 front-only slices as developer-studio.
+ // The right sleeve's workbench label "back" is not a back-facing image.
+ const shirtSource=window.DungeonWhiteShirtWorkbenchV1;
+ const shirtArt=!privateScene&&WHITE_STARTER_SHIRT_V3_ENABLED&&
+  (paperDollTryOn||s.equipmentV1?.chest==='starter_tunic')&&
+  shirtSource?.width===64&&shirtSource?.height===160&&
+  typeof shirtSource?.sheet==='string'&&
+  shirtSource.sheet.startsWith('data:image/png;base64,')?shirtSource:null;
+ const shirtGender=s.appearanceV1?.gender==='female'?'female':'male';
+ const shirtIndices=shirtGender==='female'?[4,5,3]:[1,2,0];
+ const shirtLayer=(i)=>'<span class="paperdoll-asset-layer paperdoll-shirt-v3" aria-hidden="true" style="background-image:url('+shirtArt.sheet+');background-size:600% 100%;background-position:'+String(i*20)+'% 0"></span>';
+ const shirtLayers=shirtArt?shirtIndices.map(shirtLayer).join(''):'';
  // The hand overlay must match the original BODY + SHORTS + TANK stack.
  // Earlier drawing body alone erased the sides of the existing underwear.
  // Copy the approved garment pixels ABOVE the hands, in the same native grid.
@@ -6041,9 +6091,9 @@ function equipmentGuideHTML(sceneMode='equipment'){
   '<canvas class="paperdoll-hair-canvas" width="64" height="160" aria-hidden="true"></canvas>';
  return '<div class="paperdoll-stage '+(s.appearanceV1?.gender==='female'?'paperdoll-female':'paperdoll-male')+(femaleTrial?' paperdoll-female-trial':'')+(sharedHead?' paperdoll-shared-male-face':'')+
    (sharedHead&&window.DungeonMaleV9Equipment?.version==='v3-accepted'?' paperdoll-v3':'')+
-   (s.appearanceV1?.parts?.hairStyle==='bald'?' paperdoll-bald':'')+(currentPaperDollAbnormalStates().includes('unconscious')?' eyes-unconscious':'')+'" role="img" aria-label="'+
+   (s.appearanceV1?.parts?.hairStyle==='bald'?' paperdoll-bald':'')+(shirtArt?' paperdoll-shirt-equipped':'')+(currentPaperDollAbnormalStates().includes('unconscious')?' eyes-unconscious':'')+'" role="img" aria-label="'+
   (paperDollTryOn?'主角旅行裝試穿預覽':(s.appearanceV1?.gender==='female'?'女性':'男性')+'標準型紙娃娃，依實際裝備顯示')+'">'+
-  behind+cloakBack+base+shorts+tank+outfit+cloakFront+nativeArms+satchel+extras+veil+brows+eyes+mouth+healthMarks+hair+
+  behind+cloakBack+base+shorts+tank+outfit+shirtLayers+cloakFront+nativeArms+satchel+extras+veil+brows+eyes+mouth+healthMarks+hair+
   (paperDollTryOn?'<span class="paperdoll-preview-label">試穿</span>':'')+'</div>';
 }
 function setOwnedEquipmentEquipped(slotId,equip){
