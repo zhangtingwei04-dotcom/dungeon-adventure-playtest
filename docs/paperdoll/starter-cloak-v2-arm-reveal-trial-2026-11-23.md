@@ -62,3 +62,23 @@ https://zhangtingwei04-dotcom.github.io/dungeon-adventure-playtest/developer-stu
 
 新版連結：
 https://zhangtingwei04-dotcom.github.io/dungeon-adventure-playtest/developer-studio.html?tab=library&cloakArms=1&v=arm-outline-v3
+
+## V4：像素遮罩與長褲碰撞排除（取代失敗的矩形補畫）
+
+使用者 17:40 截圖顯示仍有兩側膚色直線，而且畫面按鈕為「V3：關（舊版對照）」，故實際看到的並不是 V3 開啟狀態。為避免誤判並消除原本舊版矩形的問題，**V4 把關閉狀態改為完全不補畫皮膚**，不再啟用失敗的舊遮罩。
+
+V4 開啟時：
+- 從原始男女 `Body` 的 alpha 直接提取 64×160 像素；**不重新疊繪 `Shorts`、`Tank` 或整件白衣**。
+- 只在 Y74–99 的側邊手臂輪廓候選區保留原始像素，從前臂至手掌逐段收窄。Y100 以後完全不補畫。
+- 依照目前男女所穿 `starter_trousers` 各透明圖層及使用者已儲存的 X/Y/Scale，在離屏 Canvas 建立長褲 alpha 遮罩；候選手臂像素只要與褲子本身或相鄰 1px 的不透明像素衝突，就透明清除。原生長褲圖不受影響。
+- 只對 `starter_cloak` 開啟此補畫，任何未來披風不套用此特例。
+- 不動正式 `index.html` 或存檔，原本白衣、披風、長褲位置與 Z 仍保留。
+- 使用 `?tab=library&cloakArms=1&v=cloak-arm-v4-pixel` 開啟能強制在**本次預覽**把 V4 開啟並顯示男女披風。手動切換為「不補畫皮膚」可確認差異。
+
+測試：
+- GitHub Main 回讀後通過 JavaScript 語法。
+- 模擬男女原始 Body 為有 alpha 的貼圖、長褲為不透明素材時，**V4 不會在任何長褲不透明區上重新畫皮膚**；當無披風或關閉補畫時不繪製額外 body overlay。
+- **以上僅為程式與模擬測試**，手機畫面是否已無直條、披風是否遮到手掌仍須由使用者截圖驗收。若失敗應優先使用 V4 的關閉狀態，而不是再次調寬矩形。
+
+新網址：
+https://zhangtingwei04-dotcom.github.io/dungeon-adventure-playtest/developer-studio.html?tab=library&cloakArms=1&v=cloak-arm-v4-pixel
