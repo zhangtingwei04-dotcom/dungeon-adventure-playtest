@@ -112,7 +112,7 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 <div class="hint">此處使用正式男女身體／內衣／頭髮素材。新增 PNG 可單獨定位、調整大小，並在男女預覽中測試。披風 V2 使用剛生成的原圖拆成透明前後層，可分別調整男女位置和大小；正式採用前仍需驗收。調完後到「數據與備份」複製數據給我。</div>
 <div class="layout">
 <div class="panel"><h2>素材庫</h2>
-<div class="hint">側包新測試：使用原圖，Y97 起的包身顯示在披風前，肩帶留在披風內。下面兩位角色可一鍵預覽，獨立遊戲預覽也開啟此測試；正式遊戲預設不變。</div>
+<div class="hint">側包新測試：使用原圖，Y97 起的包身顯示在披風前，肩帶留在披風內；手掌與實際袖口顯示在下方包身前面。不重畫皮膚或背包，男女可並排試穿；正式遊戲預設不變。</div>
 <div class="toolbar"><button class="primary" type="button" id="applyUserV13Json">套用最新 JSON｜V13 外罩＋背包 Y -10</button></div>
 <div class="hint">依照最新提供的裝備 JSON：男女 V13 外罩式、左右袖獨立、披風前層 Y -6、旅行長褲 V2、背包前層 Y -10。只套用位置及穿搭狀態，不改 PNG 或正式遊戲存檔。</div>
 <div class="hint">穿搭試驗：選白色初始布衣，切換「紮入式／自然垂放／外罩式」，男女可以不同。自然垂放只將下擺重新疊在褲腰前，不改袖子與角色；披風仍維持已核准的前後包覆。已儲存的 Z、男女座標及重設資料都保留。正式遊戲不會同步改動。</div>
@@ -936,6 +936,26 @@ function drawGarmentAwareCapeFront(ctx,gender,img,t){
  });
  if(!handled)drawImageOn(ctx,img,t);
 }
+// The satchel pouch is in front of the cloak, but real hands/sleeves
+// must stay visible in front of the pouch. Mask only those real pixels:
+// don't recreate or move the approved body, bag, sleeves or cape.
+function drawSatchelBehindHands(ctx,gender,img,t,minY,maxY){
+ const policy=window.DungeonArmVisibilityPolicyV1;
+ if(!policy?.paintCloakFront){
+  drawClippedGarment(ctx,img,t,minY,maxY);return;
+ }
+ const handled=policy.paintCloakFront({
+  ctx,outerImage:img,outerTransform:t,
+  paintLayer:(target,image,transform)=>{
+   if(image===img)drawClippedGarment(target,image,transform,minY,maxY);
+   else drawImageOn(target,image,transform);
+  },
+  bodyImage:images.get(gender+'Body'),
+  garmentLayers:getVisibleArmGarments(gender),
+  edgeGuardPx:0
+ });
+ if(!handled)drawClippedGarment(ctx,img,t,minY,maxY);
+}
 function drawAssetStage(gender){
  const c=$(gender+'Canvas'),ctx=c.getContext('2d');
  ctx.clearRect(0,0,64,160);ctx.imageSmoothingEnabled=false;
@@ -984,8 +1004,8 @@ function drawAssetStage(gender){
     if(cape){
      const cut=satchelPouchCanvasCut(t),capeZ=safeNum(transforms[ck]?.z,0,140,80);
      enqueue(z,()=>drawClippedGarment(ctx,img,t,0,cut));
-     enqueue(Math.max(z,capeZ+0.25),()=>drawClippedGarment(ctx,img,t,cut,160));
-    }else enqueue(z,()=>drawImageOn(ctx,img,t));
+     enqueue(Math.max(z,capeZ+0.25),()=>drawSatchelBehindHands(ctx,gender,img,t,cut,160));
+    }else enqueue(z,()=>drawSatchelBehindHands(ctx,gender,img,t,0,160));
    }else if((a.id==='starter_tunic'||a.id==='starter_long_tunic_whole_v9'||a.id==='starter_tunic_layered_v10'||a.id==='starter_tunic_layered_v12'||a.id==='starter_natural_long_tunic_v13')&&pantsPresent&&mode==='untucked'&&layer==='front'){
     const split=hemSplitY(img,t);
     enqueue(z,()=>drawClippedGarment(ctx,img,t,0,split));
