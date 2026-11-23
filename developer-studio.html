@@ -102,7 +102,7 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 <div class="hint">此處使用正式男女身體／內衣／頭髮素材。新增 PNG 可單獨定位、調整大小，並在男女預覽中測試。披風 V2 使用剛生成的原圖拆成透明前後層，可分別調整男女位置和大小；正式採用前仍需驗收。調完後到「數據與備份」複製數據給我。</div>
 <div class="layout">
 <div class="panel"><h2>素材庫</h2>
-<div class="hint">旅行長褲 V2 已使用你剛認可的新版透明長褲圖片，而非舊 V1。男女各自貼合 64×160 底模並拆成腰部、左褲管、右褲管。白色布衣 V3 及已核准披風 V2 保留；目前只是工作台試穿，不會更新正式遊戲。</div>
+<div class="hint">旅行長褲 V2 使用你認可的新版透明長褲；已調整為長褲顯示在白色布衣 V3 前面，褲腰和皮帶會遮住衣服下擺。男女底模、披風 V2 和正式遊戲均不變；這裡僅供試穿驗收。</div>
 <div class="toolbar" style="margin:10px 0">
 <button class="primary" id="shirtOnly">試穿白布衣（暫隱披風）</button>
 <button id="shirtWithCloak">白布衣＋披風</button>
@@ -391,20 +391,21 @@ function drawAssetStage(gender){
  drawStatic(gender+'Head');
  drawStatic(gender+'Body');
  drawStatic(gender+'Shorts');drawStatic(gender+'Tank');
- // Real V2 travel trousers: legs first, then belt/hips to prevent a waist seam.
- // All three are front-facing sprites on the same 64x160 native origin.
- if(shown['starter_trousers:'+gender]!==false){
-  for(const layer of ['side','back','front']){
-   const key=k('starter_trousers',gender,layer);
-   if(layerShown[key]!==false)drawImageOn(ctx,images.get(key),transforms[key]);
-  }
- }
  // Shirt components are all FRONT-view assets. The key 'back' below is
  // reserved for right sleeve in this legacy 3-layer editor, NOT rear-view art.
  // Draw matching sleeves first, torso on top, before the approved cloak.
  if(shown['starter_tunic:'+gender]!==false){
   for(const layer of ['side','back','front']){
    const key=k('starter_tunic',gender,layer);
+   if(layerShown[key]!==false)drawImageOn(ctx,images.get(key),transforms[key]);
+  }
+ }
+ // Approved layering request: trousers must cover the tunic hem.
+ // Render shirt first, then both trouser legs, finally the belt+hips on top.
+ // Keep each trousers layer in its original 64x160 body coordinates.
+ if(shown['starter_trousers:'+gender]!==false){
+  for(const layer of ['side','back','front']){
+   const key=k('starter_trousers',gender,layer);
    if(layerShown[key]!==false)drawImageOn(ctx,images.get(key),transforms[key]);
   }
  }
@@ -471,7 +472,7 @@ function updateControls(){
   a.id==='starter_tunic'?
   '白色初始布衣 V3：男女最近生成的整件正面上衣先放入實測 64×160 座標，然後將同一張衣服各拆成主衣身、左袖、右袖，拆分後能像素級還原，不靠另畫袖子拼湊。此頁不會更新正式遊戲。':
   a.id==='starter_trousers'?
-  '旅行長褲 V2：這是你最新認可的透明長褲整件圖，先貼合男／女原始底模，再拆成褲腰、左褲管、右褲管；三張各為真正透明的 64×160 PNG。只能在工作台試穿，尚未安裝正式遊戲。':
+  '旅行長褲 V2：透明長褲已貼合原始男女底模並拆成褲腰、左褲管、右褲管，三張皆為64×160。現在顯示於白色上衣前方，褲腰／皮帶可遮蓋衣服下擺；只在工作台試穿，正式遊戲未變動。':
   '正式男女頭部、身體與內衣不動；圖層調整只影響工作台預覽，不會自動安裝到遊戲。';
 }
 function update(){normalize();renderAssetList();updateControls();drawAll();refreshJson()}
