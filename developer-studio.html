@@ -530,7 +530,7 @@ function drawOriginalBodyHands(ctx,gender,cloakId='starter_cloak'){
  const shirtWorn=shown['starter_tunic:'+gender]!==false;
  const activeCloakTrial=cloakArmRevealTrial&&CLOAK_ARM_REVEAL_TRIAL_IDS.includes(cloakId);
  ctx.save();ctx.beginPath();
- if(activeCloakTrial){
+ if(activeCloakTrial&&shirtWorn){
   // V3: conservative tapered ARM-ONLY contour. Critical: never restore
   // original naked body over the hip/thigh next to trousers. The original
   // rectangles extended to x20/44 at Y=90..101, producing two skin streaks.
@@ -554,7 +554,16 @@ function drawOriginalBodyHands(ctx,gender,cloakId='starter_cloak'){
  // CRITICAL: only repaint the ORIGINAL SKIN sprite. Do not draw the
  // 64x160 shorts, tank or entire tunic through the clip -- these cause
  // ghost garment strips and incorrectly render body pixels over trousers.
- ctx.drawImage(nativeBody,0,0,64,160);
+ if(activeCloakTrial&&shirtWorn){
+  ctx.drawImage(nativeBody,0,0,64,160);
+ }else{
+  // Exact legacy comparison, and no-shirt handling: body and original
+  // underwear layers are restored exactly as before this V3 trial.
+  for(const name of ['Body','Shorts','Tank']){
+   const image=images.get(gender+name);
+   if(image)ctx.drawImage(image,0,0,64,160);
+  }
+ }
  ctx.restore();
 }
 function drawAssetStage(gender){
