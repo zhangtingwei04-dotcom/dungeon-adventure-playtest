@@ -85,7 +85,7 @@ a{color:#f4d79d}
 <div class="scroller"><table><thead><tr><th>部位</th><th>Y</th><th>左 X</th><th>右 X</th><th>寬度</th><th>狀態</th></tr></thead><tbody id="rows"></tbody></table></div>
 <div class="toolbar"><button id="copy" type="button" class="primary">複製本身形 JSON</button><button id="download" type="button">下載 JSON</button></div>
 <textarea id="output" readonly spellcheck="false" aria-label="身形量測 JSON"></textarea>
-<p class="hint">量測紀錄依 bodyId 各自保存，與正式遊戲存檔及裝備位置分開。即使自動掃描全部完成，仍要確認可能接到胸口、腿部重疊或被衣服覆蓋的位置。</p>
+<p class="hint">原始男女手臂已預載你之前確認的 12 組座標（肩膀仍標示不確定）；新身形將從自動掃描開始。量測紀錄依 bodyId 各自保存，與正式遊戲存檔及裝備位置分開。即使自動掃描全部完成，仍要確認可能接到胸口、腿部重疊或被衣服覆蓋的位置。</p>
 </section>
 <p><a href="./arm-horizontal-scan.html?v=1">原版手臂水平掃描尺</a> · <a href="./arm-manual-measure.html?v=2">手動逐點標記</a> · <a href="./developer-studio.html?tab=measure">返回開發者總台</a></p>
 </main>
@@ -104,6 +104,32 @@ const tasks=defs.flatMap(def=>def.ys.map(([landmark,label,fraction])=>({key:def.
 const bodies=new Map(),bodyInfo=new Map();
 let saved={},current='male_body_v1',w=64,h=160,alpha=null,index=0,y=70,left=null,right=null,caution='',reviewed=false,edited=false,ready=false;
 try{const v=JSON.parse(localStorage.getItem(K)||'{}');if(v?.format==='dungeon-body-measurements-v1'&&v.bodies&&typeof v.bodies==='object')saved=v.bodies}catch(_){}
+// Seed the user's 2026-11-23 measured arm coordinates once per original
+// body. This does NOT overwrite existing edits, reviews or cleared rows.
+const measuredBaseline={
+ male_body_v1:[
+  ['left_arm','shoulder',56,15,22,true],['left_arm','elbow',70,11,19,false],['left_arm','wrist',83,7,13,false],
+  ['right_arm','shoulder',56,40,47,true],['right_arm','elbow',70,43,51,false],['right_arm','wrist',83,49,55,false]
+ ],
+ female_body_v1:[
+  ['left_arm','shoulder',56,15,22,true],['left_arm','elbow',70,12,20,false],['left_arm','wrist',83,7,14,false],
+  ['right_arm','shoulder',56,39,46,true],['right_arm','elbow',70,42,50,false],['right_arm','wrist',83,48,55,false]
+ ]
+};
+let seededBaseline=false;
+for(const [id,list] of Object.entries(measuredBaseline)){
+ if(Object.prototype.hasOwnProperty.call(saved,id))continue;
+ saved[id]={};
+ for(const [region,landmark,y,left,right,ambiguous] of list){
+  saved[id][region+':'+landmark]={
+   y,left,right,widthPx:right-left+1,reviewed:true,edited:ambiguous,ambiguous,
+   source:'user-reviewed-horizontal-scan-2026-11-23',
+   reason:ambiguous?'肩膀與胸口交界有歧義：使用者人工修正，需參照原 PNG':'2026-11-23 使用者水平掃描確認；Y83 不等於最終袖口高度'
+  };
+ }
+ seededBaseline=true;
+}
+if(seededBaseline)try{localStorage.setItem(K,JSON.stringify({format:'dungeon-body-measurements-v1',bodies:saved}))}catch(_){}
 function clamp(n,a,b){return Math.max(a,Math.min(b,n))}
 function store(){try{localStorage.setItem(K,JSON.stringify({format:'dungeon-body-measurements-v1',bodies:saved}))}catch(_){$('status').textContent='測量資料無法自動儲存，請下載 JSON 備份。'}}
 function putRecord(record){if(!saved[current])saved[current]={};saved[current][tasks[index].key]=record;store()}
@@ -174,19 +200,7 @@ function draw(){
  const canvas=$('sprite'),ctx=canvas.getContext('2d');ctx.clearRect(0,0,w,h);ctx.imageSmoothingEnabled=false;
  ctx.drawImage(bodyInfo.get(current).image,0,0,w,h);
  const row=y;
- ctx.fillStyle='rgba(245,207,112,.24)';ctx.fillRect(0,row,w,1);
  const [lo,hi]=corridor(task().region);
- ctx.fillStyle='rgba(93,220,175,.26)';ctx.fillRect(lo,row,hi-lo+1,1);
- if(Number.isInteger(left)){
-  ctx.fillStyle='#ffd253';ctx.fillRect(left-1,row-2,3,5)
- }
- if(Number.isInteger(right)){
-  ctx.fillStyle='#65e6ff';ctx.fillRect(right-1,row-2,3,5)
- }
- canvas.width=w;canvas.height=h;
- // Canvas resizing clears pixel content. Redraw at native resolution.
- ctx.imageSmoothingEnabled=false;
- ctx.drawImage(bodyInfo.get(current).image,0,0,w,h);
  ctx.fillStyle='rgba(246,211,104,.65)';ctx.fillRect(0,row,w,1);
  ctx.fillStyle='rgba(68,217,167,.35)';ctx.fillRect(lo,row,hi-lo+1,1);
  if(Number.isInteger(left)){ctx.fillStyle='#ffc24b';ctx.fillRect(Math.max(0,left-1),clamp(row-2,0,h-1),3,5)}
