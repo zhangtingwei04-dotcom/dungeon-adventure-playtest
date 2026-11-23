@@ -32,3 +32,17 @@ https://zhangtingwei04-dotcom.github.io/dungeon-adventure-playtest/developer-stu
 已通過 JavaScript 靜態語法檢查、GitHub main 回讀、舊／新男女性別遮罩矩形的模擬比較。**尚未在真實 iPhone Safari 驗證最終視覺效果**。
 
 本項目為安全可逆的局部試驗，**不等於正式驗收**。
+
+## 重要修正：原試驗遮罩擴張範圍有誤（2026-11-23 17:25 截圖回報）
+
+使用者實際 iPhone 截圖指出：上次將左右前臂 3–4px 的擴張直接套到 Y 76–101，導致**角色上腿／腰側穿透褲子的裸膚方塊**；這個結果明確不合格。不能再以「已修好手掌」描述舊試驗效果。
+
+這次改為：
+1. 保留舊版穩定的完整前臂遮罩 X 0–19、44–63，Y 76–101，這部分與舊版一致。
+2. **僅**在靠近袖口的 Y 76–87 增加內側像素：男性 X 20–23、40–43；女性 X 20–22、41–43。絕不在 Y 88–101 擴大到大腿／褲子。
+3. 新增窄條中只採用原底模、內衣與原上衣袖片，不生成任何新圖；未穿上衣時仍使用舊 X 0–23／40–63、Y 70–101。
+4. 「披風前臂微修 V2：開／關（舊版對照）」保留一鍵切換與工作台本機保存；本次仍只作用於 `starter_cloak`。
+5. 已執行 JS 語法檢查和男女、開／關、未穿上衣的遮罩座標模擬測試，結果符合預期。**新效果仍需 iPhone 截圖核實**，若不自然應回到舊版對照，不得影響正式遊戲。
+
+新版測試網址：
+https://zhangtingwei04-dotcom.github.io/dungeon-adventure-playtest/developer-studio.html?tab=library&cloakArms=1&v=cloak-arm-hemfix2
