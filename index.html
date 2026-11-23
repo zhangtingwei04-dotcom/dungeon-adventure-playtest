@@ -6033,7 +6033,10 @@ function equipmentGuideHTML(sceneMode='equipment'){
  // Preview / future equippable outfits still use the previous clothing atlas.
  const outfit=(privateScene?[]:indexes).map(i=>'<span class="paperdoll-layer" aria-hidden="true" style="background-position:'+
    String(i*12.5)+'% 0"></span>').join('');
- const satchel=LEGACY_EQUIPMENT_ART_ENABLED&&!privateScene&&show('bag')?
+ // Approved enchanted shoulder bag is independent of the REJECTED legacy
+ // outfit atlas. Show the existing 64x160 bag PNG only when worn (or when
+ // the separate try-on preview is active), without changing equipment/save.
+ const satchel=!privateScene&&show('bag')?
   '<span class="paperdoll-layer paperdoll-approved-bag" aria-hidden="true"></span>':'';
  // Approved V2 PNG front/back layers follow the saved equipment state.
  // Bath/dressing privacy views remain excluded, and other rejected gear art
