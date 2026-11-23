@@ -103,7 +103,7 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 <div class="hint">此處使用正式男女身體／內衣／頭髮素材。新增 PNG 可單獨定位、調整大小，並在男女預覽中測試。披風 V2 使用剛生成的原圖拆成透明前後層，可分別調整男女位置和大小；正式採用前仍需驗收。調完後到「數據與備份」複製數據給我。</div>
 <div class="layout">
 <div class="panel"><h2>素材庫</h2>
-<div class="hint">已依最新工作台 JSON 更新「恢復已確認服裝位置」：男性長褲褲腰(-1,-6)、左褲管(-1,-8)、右褲管(0,-8)；女性長褲三層都是(0,-6)。白衣（男 -1,-1；女 0,-1）、披風前片（男Y-8／女Y-6）、原版頭髮和側包維持既有設定。重設不修改正式遊戲，也不刪除上傳圖片。</div>
+<div class="hint">每件裝備每個部件可以獨立設定前後層級 Z；男女也能不同。預設保留先前穿著順序：白衣在長褲後、褲腰在褲管前、背包在披風前片後。位置沿用最新 JSON：男性褲腰(-1,-6)、左褲管(-1,-8)、右褲管(0,-8)；女性長褲三片(0,-6)。重設會恢復座標與層級，不修改正式遊戲。</div>
 <div class="toolbar" style="margin:10px 0">
 <button class="primary" id="shirtOnly">試穿白布衣（暫隱披風）</button>
 <button id="shirtWithCloak">白布衣＋披風</button>
@@ -136,10 +136,24 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 <label class="field">X（像素）<input id="xInput" type="number" min="-160" max="160" step="1"></label>
 <label class="field">Y（像素）<input id="yInput" type="number" min="-160" max="160" step="1"></label>
 <label class="field">Scale（倍）<input id="scaleInput" type="number" min="0.1" max="4" step="0.01"></label>
+<label class="field">前後層級 Z（數值越大越靠前）<input id="zInput" type="number" min="0" max="140" step="1"></label>
+<label class="field">快速層級<select id="zPreset">
+<option value="">自訂／選擇層級</option>
+<option value="10">10｜角色身體後（披風後片）</option>
+<option value="38">38｜衣服內層</option>
+<option value="45">45｜上衣前、褲子後</option>
+<option value="60">60｜上衣與褲子前</option>
+<option value="75">75｜背包前、披風後</option>
+<option value="85">85｜披風前、手掌後</option>
+<option value="95">95｜手掌前</option>
+<option value="125">125｜頭髮前</option>
+</select></label>
+<div class="toolbar"><button id="zDown" type="button">後移一層 −1</button><button id="zUp" type="button">前移一層 +1</button></div>
 <label class="field">目前影像<span class="fileName" id="currentFile">載入中</span></label>
 </div>
 <div class="checkRow"><input id="showAsset" type="checkbox"><label for="showAsset">顯示這件素材（該性別）</label></div>
 <div class="checkRow"><input id="showLayer" type="checkbox"><label for="showLayer">顯示目前圖層</label></div>
+<p class="hint">層級 Z 可以依「裝備 × 男／女 × 部件」分開設定；數值越高越靠近畫面前方。改變層級不會更動 X、Y、縮放或像素圖。重設時恢復原本上衣、褲腰、褲管、背包及披風的層級。</p>
 <div class="nudges">
 <button data-nudge="-1,0" aria-label="左移一像素">← 1px</button>
 <button data-nudge="0,-1" aria-label="上移一像素">↑ 1px</button>
@@ -246,9 +260,34 @@ function defaultVisible(id){
  // the cloak/satchel are optional, but their verified positions are kept.
  return id==='hair_original'||id==='starter_tunic'||id==='starter_trousers';
 }
+// Numeric z-order is evaluated separately for every gender / garment part.
+// Static body and face remain protected as distinct reference layers.
+// Order: cloak back 10 < head 20 < body 30 < underwear 31/32
+// < shirt 40/41/42 < trousers 50/51/52 < bag 70 < cloak front 80
+// < visible original hands 90 < face 100-102 < hair 120.
+// Users can override any garment or layer z (0..140) in the workbench.
+function defaultZ(asset,gender,layer){
+ switch(asset.id){
+  case 'hair_original':return 120;
+  case 'starter_cloak':return layer==='back'?10:layer==='front'?80:76;
+  case 'starter_tunic':return layer==='side'?40:layer==='back'?41:42;
+  case 'starter_trousers':return layer==='side'?50:layer==='back'?51:52;
+  case 'enchanted_satchel':return layer==='back'?25:70;
+  case 'starter_boots':return 60;
+  case 'starter_gloves':return 65;
+ }
+ if(layer==='back')return 15;
+ if(asset.slot==='hair')return 120;
+ if(asset.slot==='chest')return 42;
+ if(asset.slot==='legs')return 52;
+ if(asset.slot==='bag')return 70;
+ if(asset.slot==='outer')return 78;
+ if(asset.slot==='head')return 115;
+ return 65;
+}
 function defaultT(asset,gender,layer){
  const p=APPROVED_FIT_COORDS[asset.id+':'+gender+':'+layer]||{x:0,y:0};
- return {x:p.x,y:p.y,scale:1};
+ return {x:p.x,y:p.y,scale:1,z:defaultZ(asset,gender,layer)};
 }
 let selected='starter_cloak',editingGender='female',editingLayer='front',guides=false,dbPromise=null,ready=false;
 let gameFrameInitialized=false;
@@ -263,6 +302,7 @@ function normalize(){
   for(const l of a.layers){
    const key=k(a.id,g,l);
    if(!transforms[key])transforms[key]=defaultT(a,g,l);
+   else if(!Number.isFinite(transforms[key].z))transforms[key].z=defaultZ(a,g,l);
    if(layerShown[key]===undefined)layerShown[key]=true;
   }
  }
@@ -284,7 +324,7 @@ function serialize(oneId){
  });
  return {format:'dungeon-character-asset-library-v1',project:'迷宮盡頭的燈火',pixelCanvas:{width:64,height:160},
   gameSaveMode:'independent-dev-preview',assets,
-  note:'參數僅為工作台草稿。匯入的 PNG 需另外附圖；不會自動更新正式遊戲。'};
+  note:'工作台試穿參數包含每個部件的 z 前後層級（越大越前）；匯入的 PNG 需另外附圖，不會自動更新正式遊戲。'};
 }
 function persist(){
  try{
@@ -304,7 +344,9 @@ function restore(){
   }
   for(const [key,t] of Object.entries(data.transforms||{})){
    if(!/^[a-z0-9_-]+:(male|female):(back|front|side)$/.test(key)||!t)continue;
-   transforms[key]={x:safeNum(t.x,-160,160,0),y:safeNum(t.y,-160,160,0),scale:safeNum(t.scale,.1,4,1)};
+   const parts=key.split(':'),asset=item(parts[0]);
+   transforms[key]={x:safeNum(t.x,-160,160,0),y:safeNum(t.y,-160,160,0),scale:safeNum(t.scale,.1,4,1),
+    z:safeNum(t.z,0,140,asset?defaultZ(asset,parts[1],parts[2]):65)};
   }
   for(const [key,value] of Object.entries(data.shown||{}))if(typeof value==='boolean')shown[key]=value;
   for(const [key,value] of Object.entries(data.layerShown||{}))if(typeof value==='boolean')layerShown[key]=value;
@@ -451,63 +493,47 @@ function drawOriginalBodyHands(ctx,gender){
  ctx.restore();
 }
 function drawAssetStage(gender){
- const c=$(gender+'Canvas'),ctx=c.getContext('2d');ctx.clearRect(0,0,64,160);ctx.imageSmoothingEnabled=false;
- const drawStatic=key=>{const img=images.get(key);if(img)ctx.drawImage(img,0,0,64,160)};
- // Draw only REAL rear equipment first; "back" in the trouser editor means
- // screen-right leg, not something that should be buried behind the body.
- for(const a of catalogue)if(shown[a.id+':'+gender]!==false&&a.slot!=='hair'&&a.id!=='starter_tunic'&&a.id!=='starter_trousers'&&a.layers.includes('back')){
-  const key=k(a.id,gender,'back');if(layerShown[key]!==false)drawImageOn(ctx,images.get(key),transforms[key]);
- }
- // The head goes beneath the body on both sexes. Body supplies one neck.
- drawStatic(gender+'Head');
- drawStatic(gender+'Body');
- drawStatic(gender+'Shorts');drawStatic(gender+'Tank');
- // Shirt components are all FRONT-view assets. The key 'back' below is
- // reserved for right sleeve in this legacy 3-layer editor, NOT rear-view art.
- // Draw matching sleeves first, torso on top, before the approved cloak.
- if(shown['starter_tunic:'+gender]!==false){
-  for(const layer of ['side','back','front']){
-   const key=k('starter_tunic',gender,layer);
-   if(layerShown[key]!==false)drawImageOn(ctx,images.get(key),transforms[key]);
+ const c=$(gender+'Canvas'),ctx=c.getContext('2d');
+ ctx.clearRect(0,0,64,160);ctx.imageSmoothingEnabled=false;
+ // Each sprite (including built-ins) enters the same sortable render queue.
+ // Fixed body, underwear, head and face provide stable z reference points.
+ // Ties use insertion order so artwork order is deterministic on mobile.
+ const queue=[];let sequence=0;
+ const enqueue=(z,paint)=>queue.push({z,sequence:sequence++,paint});
+ const staticImage=key=>{const img=images.get(key);if(img)ctx.drawImage(img,0,0,64,160)};
+ enqueue(20,()=>staticImage(gender+'Head'));
+ enqueue(30,()=>staticImage(gender+'Body'));
+ enqueue(31,()=>staticImage(gender+'Shorts'));
+ enqueue(32,()=>staticImage(gender+'Tank'));
+ // Every visible garment layer gets its own z order, regardless of category
+ // or legacy "back"/"front" naming (e.g. back=right sleeve/trouser leg).
+ for(const a of catalogue){
+  if(shown[a.id+':'+gender]===false)continue;
+  for(const layer of a.layers){
+   const key=k(a.id,gender,layer),img=images.get(key);
+   if(layerShown[key]===false||!img)continue;
+   const t=transforms[key]||defaultT(a,gender,layer);
+   const z=safeNum(t.z,0,140,defaultZ(a,gender,layer));
+   enqueue(z,()=>drawImageOn(ctx,img,t));
   }
  }
- // Approved layering request: trousers must cover the tunic hem.
- // Render shirt first, then both trouser legs, finally the belt+hips on top.
- // Keep each trousers layer in its original 64x160 body coordinates.
- if(shown['starter_trousers:'+gender]!==false){
-  for(const layer of ['side','back','front']){
-   const key=k('starter_trousers',gender,layer);
-   if(layerShown[key]!==false)drawImageOn(ctx,images.get(key),transforms[key]);
-  }
- }
- // Other front equipment first; then the approved satchel UNDER
- // cloak front, exactly as the formal game does.
- const drawFrontLayers=a=>{
-  if(!a||shown[a.id+':'+gender]===false)return;
-  for(const layer of a.layers)if(layer!=='back'){
-   const key=k(a.id,gender,layer);
-   if(layerShown[key]!==false)drawImageOn(ctx,images.get(key),transforms[key]);
-  }
- };
- for(const a of catalogue)if(a.slot!=='hair'&&
-    !['starter_tunic','starter_trousers','starter_cloak','enchanted_satchel'].includes(a.id))
-   drawFrontLayers(a);
- drawFrontLayers(item('enchanted_satchel'));
- drawFrontLayers(item('starter_cloak'));
- // Keep real hands in front of any hanging cloak panel.
+ // Restore the native visible hands when a cloak crosses their contour.
+ // At z=90 those hands remain in front of ordinary cloak fronts, while
+ // the user can still explicitly place a piece further forward (z>90).
  if(shown['starter_cloak:'+gender]!==false&&
     layerShown[k('starter_cloak',gender,'front')]!==false&&
-    getImage('starter_cloak',gender,'front'))drawOriginalBodyHands(ctx,gender);
- if(gender==='male'){drawStatic('maleBrows');drawStatic('maleEyes');drawStatic('maleMouth')}
- for(const a of catalogue)if(shown[a.id+':'+gender]!==false&&a.slot==='hair'){
-  for(const layer of a.layers){
-   const key=k(a.id,gender,layer);
-   if(layerShown[key]!==false)drawImageOn(ctx,images.get(key),transforms[key]);
-  }
+    getImage('starter_cloak',gender,'front')){
+  enqueue(90,()=>drawOriginalBodyHands(ctx,gender));
  }
+ if(gender==='male'){
+  enqueue(100,()=>staticImage('maleBrows'));
+  enqueue(101,()=>staticImage('maleEyes'));
+  enqueue(102,()=>staticImage('maleMouth'));
+ }
+ queue.sort((a,b)=>a.z-b.z||a.sequence-b.sequence);
+ for(const step of queue)step.paint();
  if(guides){
   ctx.save();ctx.strokeStyle='#e7a175';ctx.lineWidth=.45;ctx.beginPath();
-  // Body bounds measured from the actual alpha of the approved base PNGs.
   const shoulderY=gender==='male'?49:51;
   ctx.moveTo(32,12);ctx.lineTo(32,145);
   ctx.moveTo(4,shoulderY);ctx.lineTo(59,shoulderY);
@@ -540,6 +566,9 @@ function updateControls(){
  select.value=editingLayer;$('editGender').value=editingGender;$('assetSelect').value=selected;
  const t=transforms[selectedKey()]||defaultT(a,editingGender,editingLayer);
  $('xInput').value=String(t.x);$('yInput').value=String(t.y);$('scaleInput').value=String(t.scale);
+ $('zInput').value=String(safeNum(t.z,0,140,defaultZ(a,editingGender,editingLayer)));
+ const p=String($('zInput').value);
+ $('zPreset').value=Array.from($('zPreset').options).some(o=>o.value===p)?p:'';
  $('showAsset').checked=shown[a.id+':'+editingGender]!==false;
  $('showLayer').checked=layerShown[selectedKey()]!==false;
  const info=imageInfo.get(selectedKey());
@@ -552,7 +581,7 @@ function updateControls(){
   '白色初始布衣 V3：男女最近生成的整件正面上衣先放入實測 64×160 座標，然後將同一張衣服各拆成主衣身、左袖、右袖，拆分後能像素級還原，不靠另畫袖子拼湊。此頁不會更新正式遊戲。':
   a.id==='starter_trousers'?
   '旅行長褲 V2：透明長褲已貼合原始男女底模並拆成褲腰、左褲管、右褲管，三張皆為64×160。現在顯示於白色上衣前方，褲腰／皮帶可遮蓋衣服下擺；只在工作台試穿，正式遊戲未變動。':
-  '正式男女頭部、身體與內衣不動；圖層調整只影響工作台預覽，不會自動安裝到遊戲。';
+  '正式男女頭部、身體與內衣不動；每個部件可獨立調整前後層級 Z（數字越大越前）。圖層調整只影響工作台預覽，不會自動安裝到遊戲。';
 }
 function update(){normalize();renderAssetList();updateControls();drawAll();refreshJson()}
 function refreshJson(){const el=$('jsonOutput');if(el)el.value=JSON.stringify(serialize(),null,2)}
@@ -561,6 +590,7 @@ function updateTransform(){
  t.x=safeNum($('xInput').value,-160,160,0);
  t.y=safeNum($('yInput').value,-160,160,0);
  t.scale=Math.round(safeNum($('scaleInput').value,.1,4,1)*100)/100;
+ t.z=Math.round(safeNum($('zInput').value,0,140,defaultZ(item(selected),editingGender,editingLayer)));
  updateControls();drawAll();refreshJson();persist();
 }
 async function copyText(value){
@@ -606,7 +636,7 @@ function resetLayer(){
  transforms[selectedKey()]=defaultT(a,editingGender,editingLayer);
  layerShown[selectedKey()]=true;
  updateControls();drawAll();refreshJson();persist();
- toast('此圖層已恢復先前確認位置');
+ toast('此圖層的位置、縮放與前後層級已重設');
 }
 function resetCanonicalFit(includeCustom=false){
  for(const a of catalogue){
@@ -624,7 +654,7 @@ function resetCanonicalFit(includeCustom=false){
  guides=false;$('toggleGuides').textContent='肩頸輔助線：關';
  $('maleCard').hidden=false;$('femaleCard').hidden=false;
  update();persist();
- toast(includeCustom?'已重設全部位置；圖片與正式存檔保留':'已恢復男女已確認的服裝座標');
+ toast(includeCustom?'已重設位置與層級；圖片與正式存檔保留':'已恢復男女服裝位置及前後層級');
 }
 function addAsset(){
  const name=$('newName').value.trim(),slot=$('newSlot').value,layers=$('newLayers').value.split(',');
@@ -682,7 +712,17 @@ $('clearPreview').onclick=()=>{
 $('assetSelect').onchange=e=>{selected=e.target.value;const a=item(selected);editingLayer=a.layers.includes(editingLayer)?editingLayer:a.layers[0];update();persist()};
 $('editGender').onchange=e=>{editingGender=e.target.value;updateControls();drawAll();persist()};
 $('editLayer').onchange=e=>{editingLayer=e.target.value;updateControls();drawAll();persist()};
-for(const inputId of ['xInput','yInput','scaleInput'])$(inputId).onchange=updateTransform;
+for(const inputId of ['xInput','yInput','scaleInput','zInput'])$(inputId).onchange=updateTransform;
+$('zPreset').onchange=e=>{
+ if(e.target.value==='')return;
+ transforms[selectedKey()].z=safeNum(e.target.value,0,140,defaultZ(item(selected),editingGender,editingLayer));
+ updateControls();drawAll();refreshJson();persist();
+};
+for(const [id,delta] of [['zDown',-1],['zUp',1]])$(id).onclick=()=>{
+ const t=transforms[selectedKey()];
+ t.z=safeNum((Number.isFinite(t.z)?t.z:defaultZ(item(selected),editingGender,editingLayer))+delta,0,140,65);
+ updateControls();drawAll();refreshJson();persist();
+};
 $('showAsset').onchange=e=>{shown[selected+':'+editingGender]=e.target.checked;drawAll();refreshJson();persist()};
 $('showLayer').onchange=e=>{layerShown[selectedKey()]=e.target.checked;drawAll();refreshJson();persist()};
 for(const b of document.querySelectorAll('[data-nudge]'))b.onclick=()=>{
@@ -755,7 +795,8 @@ $('importJsonFile').onchange=async e=>{
     for(const layer of target.layers){
      const row=genderData.layers?.[layer];if(!row)continue;
      const key=k(target.id,g,layer);
-     transforms[key]={x:safeNum(row.x,-160,160,0),y:safeNum(row.y,-160,160,0),scale:safeNum(row.scale,.1,4,1)};
+     transforms[key]={x:safeNum(row.x,-160,160,0),y:safeNum(row.y,-160,160,0),scale:safeNum(row.scale,.1,4,1),
+      z:safeNum(row.z,0,140,defaultZ(target,g,layer))};
      layerShown[key]=row.visible!==false;
     }
    }
