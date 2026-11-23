@@ -1,0 +1,195 @@
+{
+  "format": "dungeon-workbench-user-confirmed-fitted-positions-v2",
+  "project": "迷宮盡頭的燈火",
+  "pixelCanvas": {
+    "width": 64,
+    "height": 160
+  },
+  "source": "user-supplied developer-studio character asset JSON on 2026-11-23",
+  "status": "workbench fitting preset; not confirmation of formal-game installation",
+  "resetPolicy": "reset current layer, approved fits, or all studio positions to these coordinates without deleting uploaded PNG or game saves",
+  "assets": {
+    "hair_original": {
+      "male": {
+        "front": {
+          "x": 0,
+          "y": 0,
+          "scale": 1
+        }
+      },
+      "female": {
+        "front": {
+          "x": -2,
+          "y": -5,
+          "scale": 1
+        }
+      }
+    },
+    "starter_cloak": {
+      "male": {
+        "back": {
+          "x": 0,
+          "y": 0,
+          "scale": 1
+        },
+        "front": {
+          "x": 0,
+          "y": -8,
+          "scale": 1
+        }
+      },
+      "female": {
+        "back": {
+          "x": 0,
+          "y": 0,
+          "scale": 1
+        },
+        "front": {
+          "x": 0,
+          "y": -6,
+          "scale": 1
+        }
+      }
+    },
+    "starter_tunic": {
+      "male": {
+        "front": {
+          "x": -1,
+          "y": -1,
+          "scale": 1
+        },
+        "side": {
+          "x": -1,
+          "y": -1,
+          "scale": 1
+        },
+        "back": {
+          "x": -1,
+          "y": -1,
+          "scale": 1
+        }
+      },
+      "female": {
+        "front": {
+          "x": 0,
+          "y": -1,
+          "scale": 1
+        },
+        "side": {
+          "x": 0,
+          "y": -1,
+          "scale": 1
+        },
+        "back": {
+          "x": 0,
+          "y": -1,
+          "scale": 1
+        }
+      }
+    },
+    "starter_trousers": {
+      "male": {
+        "front": {
+          "x": -1,
+          "y": -6,
+          "scale": 1
+        },
+        "side": {
+          "x": -1,
+          "y": -8,
+          "scale": 1
+        },
+        "back": {
+          "x": 0,
+          "y": -8,
+          "scale": 1
+        }
+      },
+      "female": {
+        "front": {
+          "x": 0,
+          "y": -6,
+          "scale": 1
+        },
+        "side": {
+          "x": 0,
+          "y": -6,
+          "scale": 1
+        },
+        "back": {
+          "x": 0,
+          "y": -6,
+          "scale": 1
+        }
+      }
+    },
+    "starter_boots": {
+      "male": {
+        "front": {
+          "x": 0,
+          "y": 0,
+          "scale": 1
+        }
+      },
+      "female": {
+        "front": {
+          "x": 0,
+          "y": 0,
+          "scale": 1
+        }
+      }
+    },
+    "starter_gloves": {
+      "male": {
+        "front": {
+          "x": 0,
+          "y": 0,
+          "scale": 1
+        }
+      },
+      "female": {
+        "front": {
+          "x": 0,
+          "y": 0,
+          "scale": 1
+        }
+      }
+    },
+    "enchanted_satchel": {
+      "male": {
+        "back": {
+          "x": 0,
+          "y": 0,
+          "scale": 1
+        },
+        "front": {
+          "x": 0,
+          "y": -2,
+          "scale": 1
+        }
+      },
+      "female": {
+        "back": {
+          "x": 0,
+          "y": 0,
+          "scale": 1
+        },
+        "front": {
+          "x": 0,
+          "y": -2,
+          "scale": 1
+        }
+      }
+    }
+  },
+  "visibility": {
+    "hair_original": true,
+    "starter_tunic": true,
+    "starter_trousers": true,
+    "starter_cloak": false,
+    "starter_boots": false,
+    "starter_gloves": false,
+    "enchanted_satchel": false
+  },
+  "note": "'back' in tunic/trousers means right-side front-view segment in legacy studio editor, not a rear-facing garment. Cloak and satchel positions preserved even when they are hidden."
+}
