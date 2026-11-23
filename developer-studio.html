@@ -113,6 +113,8 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 <div class="layout">
 <div class="panel"><h2>素材庫</h2>
 <div class="hint">側包新測試：使用原圖，Y97 起的包身顯示在披風前，肩帶留在披風內。下面兩位角色可一鍵預覽，獨立遊戲預覽也開啟此測試；正式遊戲預設不變。</div>
+<div class="toolbar"><button class="primary" type="button" id="applyUserV13Json">套用最新 JSON｜V13 外罩＋背包 Y -10</button></div>
+<div class="hint">依照最新提供的裝備 JSON：男女 V13 外罩式、左右袖獨立、披風前層 Y -6、旅行長褲 V2、背包前層 Y -10。只套用位置及穿搭狀態，不改 PNG 或正式遊戲存檔。</div>
 <div class="hint">穿搭試驗：選白色初始布衣，切換「紮入式／自然垂放／外罩式」，男女可以不同。自然垂放只將下擺重新疊在褲腰前，不改袖子與角色；披風仍維持已核准的前後包覆。已儲存的 Z、男女座標及重設資料都保留。正式遊戲不會同步改動。</div>
 <div class="toolbar" style="margin:10px 0">
 <button class="primary" id="shirtOnly">試穿白布衣（暫隱披風）</button>
@@ -1425,6 +1427,58 @@ function setV7SleevesTrial(on){
 // New V13: V3 natural torso imagery copied to its own independent outfit
 // and four shortened 64x160 transparent sleeves. Neither V3 original
 // PNG nor any preapproved coordinates are modified.
+// Named, reversible dev-only preset from the user's exported asset JSON.
+// Only existing fitting and visibility data change; no sprites are overwritten.
+function applyLatestUserV13JsonPreset(){
+ const male={
+  hair_original:{front:[0,0]},
+  starter_cloak:{back:[0,0],front:[0,-6]},
+  starter_tunic:{front:[-1,-1],side:[-1,-1],back:[-1,-1]},
+  starter_natural_long_tunic_v13:{front:[-1,-1]},
+  starter_natural_long_tunic_v13_sleeves:{side:[-1,-1],front:[-1,-1]},
+  starter_trousers:{front:[-1,-6],side:[-1,-8],back:[0,-8]},
+  enchanted_satchel:{front:[0,-10]}
+ };
+ const female={
+  hair_original:{front:[-2,-5]},
+  starter_cloak:{back:[0,0],front:[0,-6]},
+  starter_tunic:{front:[0,-1],side:[0,-1],back:[0,-1]},
+  starter_natural_long_tunic_v13:{front:[0,-1]},
+  starter_natural_long_tunic_v13_sleeves:{side:[0,-1],front:[0,-1]},
+  starter_trousers:{front:[0,-5],side:[0,-6],back:[0,-6]},
+  enchanted_satchel:{front:[0,-10]}
+ };
+ const active=new Set(['hair_original','starter_cloak','starter_tunic',
+  'starter_natural_long_tunic_v13','starter_natural_long_tunic_v13_sleeves',
+  'starter_trousers','enchanted_satchel']);
+ const earlier=['starter_long_sleeves_v4','starter_sleeves_v6','starter_sleeves_v7',
+  'starter_long_tunic_whole_v9','starter_tunic_layered_v10',
+  'starter_tunic_layered_v10_sleeves','starter_tunic_layered_v12',
+  'starter_tunic_layered_v12_sleeves','starter_boots','starter_gloves'];
+ naturalLongSleevesTrialV13=true;
+ sleeveReplaceModeV6=false;sleeveReplaceModeV7=false;wholeLongTunicTrialV9=false;
+ layeredLongTunicTrialV10=false;frontSleevesTrialV12=false;
+ for(const gender of ['male','female']){
+  const preset=gender==='male'?male:female;
+  for(const id of active)shown[id+':'+gender]=true;
+  for(const id of earlier)shown[id+':'+gender]=false;
+  wearModes[wearModeKey('starter_tunic',gender)]='untucked';
+  wearModes[wearModeKey('starter_natural_long_tunic_v13',gender)]='outer';
+  for(const [assetId,layers] of Object.entries(preset)){
+   const asset=item(assetId);if(!asset)continue;
+   for(const [layer,[x,y]] of Object.entries(layers)){
+    const key=k(assetId,gender,layer),t=transforms[key]||defaultT(asset,gender,layer);
+    transforms[key]={...t,x,y,scale:1,z:defaultZ(asset,gender,layer)};
+    layerShown[key]=true;
+   }
+  }
+ }
+ selected='starter_natural_long_tunic_v13';editingLayer='front';
+ cloakArmRevealTrial=true;cloakArmDetailV5=false;
+ update();persist();
+ toast('已套用最新 V13 外罩與背包 Y -10（男女），不修改正式遊戲存檔');
+}
+$('applyUserV13Json').onclick=applyLatestUserV13JsonPreset;
 function setNaturalLongSleevesV13(on,withCloak=false){
  naturalLongSleevesTrialV13=on;
  frontSleevesTrialV12=false;layeredLongTunicTrialV10=false;
@@ -1958,6 +2012,9 @@ async function init(){
    }
    selected='starter_tunic';editingLayer='front';update();
   }
+  // Opt-in URL preset: normal entry never overwrites stored local user edits.
+  if(new URLSearchParams(location.search).get('preset')==='v13-outer-bag-y10')
+   applyLatestUserV13JsonPreset();
   const requestedTab=new URLSearchParams(location.search).get('tab');
   if(['game','library','export','measure'].includes(requestedTab))setTab(requestedTab);
  }catch(e){toast('素材預載不完整：'+e.message);console.error(e);ready=true;update()}
