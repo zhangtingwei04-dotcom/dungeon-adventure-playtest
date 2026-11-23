@@ -27,7 +27,7 @@ select,input[type=text],input[type=number]{width:100%}
 .hint{font-size:12px;line-height:1.55;color:var(--muted)}
 .tag{font-size:12px;color:var(--gold)}
 #status,#feedback{font-size:13px;color:var(--gold);min-height:20px}
-canvas{width:min(100%,340px);max-height:580px;image-rendering:pixelated;touch-action:none;display:block;margin:auto}
+canvas{width:auto;height:auto;max-width:100%;max-height:none;image-rendering:pixelated;touch-action:none;display:block;margin:auto}
 .preview{background-color:#29483c;background-image:linear-gradient(45deg,#355b4c 25%,transparent 25%),linear-gradient(-45deg,#355b4c 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#355b4c 75%),linear-gradient(-45deg,transparent 75%,#355b4c 75%);background-size:20px 20px;background-position:0 0,0 10px,10px -10px,-10px 0;border:1px solid #5c7967;border-radius:10px;overflow:hidden;display:flex;justify-content:center;padding:6px}
 #current{font-size:16px;color:var(--gold);font-weight:750;margin:7px 0}
 #range{width:100%;accent-color:#ead099;height:34px}
@@ -249,8 +249,18 @@ async function setBody(id){
   const ctx=cv.getContext('2d',{willReadFrequently:true});if(!ctx)throw Error('無法使用 2D Canvas');
   ctx.drawImage(im,0,0,w,h);alpha=ctx.getImageData(0,0,w,h).data;
   p.image=im;current=id;ready=true;$('bodySelect').value=id;
-  const canvas=$('sprite');canvas.width=w;canvas.height=h;canvas.style.aspectRatio=w+'/'+h;
-  $('status').textContent='已讀取 '+p.name+'（'+w+'×'+h+'）。可一鍵自動掃描，再人工複核。';
+  const canvas=$('sprite');canvas.width=w;canvas.height=h;
+  // Keep original body aspect ratio in CSS as well as backing pixels.
+  // The old width:340px + max-height:580px distorted the 64x160 figure:
+  // 340x850 got forcibly clipped to 340x580 by the CSS height constraint.
+  // Set an aspect-safe width while keeping responsive downscaling for iPhone.
+  const displayWidth=Math.max(1,Math.min(340,Math.floor(580*w/h)));
+  canvas.style.width=displayWidth+'px';
+  canvas.style.height='auto';
+  canvas.style.maxWidth='100%';
+  canvas.style.maxHeight='none';
+  canvas.style.aspectRatio=w+'/'+h;
+  $('status').textContent='已讀取 '+p.name+'（'+w+'×'+h+'）。顯示比例 '+w+':'+h+'，沒有壓縮；可一鍵掃描。';
   setTask(0);
  }catch(e){$('status').textContent='讀取身形失敗：'+e.message;ready=false;throw e}
 }
