@@ -65,6 +65,7 @@ a{color:#f3d89d}
 </div>
 <div id="step">準備測量…</div>
 <div id="progress"></div>
+<div class="toolbar"><button class="primary" type="button" id="quickCopy">直接複製目前測量 JSON</button></div>
 <div class="stage"><canvas id="scene" width="64" height="70" aria-label="點擊角色肩膀、手肘、手腕輪廓，記錄像素座標"></canvas></div>
 <p class="hint">顯示區域是原 64×160 畫布的 <strong>Y45–114</strong>，只是放大預覽，點選時仍會輸出真正的 X、Y。肩膀約 Y55–70、手肘約 Y73–88、手腕約 Y88–101；以實際原圖為準，不必硬照建議值。</p>
 <div id="last">尚未記錄座標</div><div id="status">正在載入原始 PNG…</div>
@@ -159,10 +160,14 @@ function renderTable(){
 function refresh(){
  const complete=steps.filter(s=>data[s.key]).length;
  const step=steps[index];
- $('step').textContent=step?
-  '現在請點：'+names[step.gender]+'・'+names[step.side]+'・'+names[step.level]+'「'+names[step.edge]+'」':
-  '24 個位置已標記完成；可以複製 JSON 傳給我';
- $('progress').textContent='已完成 '+complete+' / '+steps.length+' 個座標｜目前第 '+(index>=steps.length?steps.length:index+1)+' 步';
+ const allDone=complete===steps.length;
+ const stepHint=step?names[step.gender]+'・'+names[step.side]+'・'+names[step.level]+'「'+names[step.edge]+'」':'';
+ $('step').textContent=allDone?
+  '全部 '+steps.length+' 個座標已完成！可直接複製 JSON 給我。':
+  step?'現在請點：'+stepHint:'已完成，請複製測量 JSON';
+ $('progress').textContent='已完成 '+complete+' / '+steps.length+' 個座標'+
+  (allDone?(step?'｜目前選取：'+stepHint+'（可重新測量）':'｜全部完成'):
+   '｜目前第 '+(index>=steps.length?steps.length:index+1)+' 步');
  for(const b of document.querySelectorAll('[data-group]')){
   const g=b.dataset.group;
   b.setAttribute('aria-pressed',String(step&&g===step.gender+':'+step.side));
@@ -196,6 +201,7 @@ $('copy').onclick=async()=>{
  try{if(!navigator.clipboard?.writeText)throw new Error('clipboard unavailable');await navigator.clipboard.writeText(txt);$('feedback').textContent='已複製！回到 ChatGPT 對話框貼上即可。'}
  catch(_){$('output').focus();$('output').select();$('feedback').textContent='無法自動複製；已選取下方文字，請使用 iPhone「複製」。'}
 };
+$('quickCopy').onclick=()=>$('copy').click();
 $('download').onclick=()=>{
  const blob=new Blob([JSON.stringify(exportData(),null,2)],{type:'application/json'});
  const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='dungeon-arm-measurement.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1200);
