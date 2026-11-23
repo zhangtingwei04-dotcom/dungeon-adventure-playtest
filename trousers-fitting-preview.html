@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#19352c">
+<title>旅行長褲 V1｜男女底模試穿｜迷宮盡頭的燈火</title>
+<style>
+*{box-sizing:border-box}
+:root{font-family:system-ui,"Noto Sans TC",sans-serif;color:#eee2c6;background:#122b26}
+body{margin:0;padding:12px 12px 32px}
+main{max-width:1100px;margin:auto}
+h1{font-size:19px;color:#f3db99;margin:4px 0 8px}
+p{font-size:12px;line-height:1.6;color:#d5ccb1;margin:6px 0 10px}
+#controls{display:flex;gap:7px;flex-wrap:wrap;align-items:center;padding:10px;background:#244239;border:1px solid #866d45;border-radius:9px}
+button{border:1px solid #b99b5d;border-radius:7px;background:#38584a;color:#ffebbd;padding:9px 11px;font:inherit;font-size:13px;cursor:pointer}
+button[aria-pressed=true]{background:#cbaa66;color:#1b2923;font-weight:bold}
+#characters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:12px auto}
+figure{margin:0;text-align:center;background:#20352f;padding:12px 6px;border:1px solid #786443;border-radius:12px;min-width:0}
+figcaption{font-size:13px;color:#f0d99f;font-weight:700;margin-bottom:10px}
+figure canvas{image-rendering:pixelated;display:block;max-height:min(72vh,640px);max-width:100%;aspect-ratio:2/5;height:auto;width:min(100%,220px);margin:auto;background:repeating-conic-gradient(#203b35 0 25%,#294942 0 50%) 50%/16px 16px;border:1px solid #446357}
+#status{font-size:12px;color:#eed59a;margin:10px 0}
+footer{font-size:11px;line-height:1.6;color:#c3b999;margin-top:12px}
+@media(max-width:480px){figure{padding:7px 3px}#characters{gap:6px}button{padding:8px;font-size:11px}}
+</style>
+</head>
+<body>
+<main>
+<h1>《迷宮盡頭的燈火》｜旅行長褲 V1 試穿</h1>
+<p>直接疊在遊戲原有的男性／女性 64×160 身體及內衣上。先用原始座標核對褲腰、膝蓋與腳踝，再決定是否正式裝備；不會更動遊戲或玩家存檔。</p>
+<div id="controls">
+<button id="pants" aria-pressed="true">長褲：穿上</button>
+<button id="shirt" aria-pressed="true">白衣：顯示</button>
+<button id="cloak" aria-pressed="false">披風：隱藏</button>
+<button id="export-male">匯出男性長褲 PNG</button>
+<button id="export-female">匯出女性長褲 PNG</button>
+</div>
+<div id="characters">
+<figure><figcaption>男性｜原始底模</figcaption><canvas id="male" width="64" height="160" aria-label="男性原始底模旅行長褲試穿"></canvas></figure>
+<figure><figcaption>女性｜原始底模</figcaption><canvas id="female" width="64" height="160" aria-label="女性原始底模旅行長褲試穿"></canvas></figure>
+</div>
+<div id="status" aria-live="polite">正在載入原本的男女像素素材……</div>
+<footer>素材與版型：深暖棕色直筒布褲、皮帶及踝上反摺褲腳。褲子先以完整穿著版畫好，再拆成腰部、畫面左褲管、畫面右褲管；這三片是正面圖層，不會生成背面。工作台僅供試穿驗收。</footer>
+</main>
+<script src="./assets/cloak_workbench_bases_v1.js?v=1"></script>
+<script src="./assets/white_shirt_workbench_v3.js?v=3"></script>
+<script src="./assets/travel_trousers_workbench_v1.js?v=1"></script>
+<script src="./assets/dungeon_generated_cloak_v2.js?v=2"></script>
+<script>
+(()=>{'use strict';
+const base=window.DungeonCloakWorkbenchBasesV1;
+const pants=window.DungeonTravelTrousersWorkbenchV1;
+const white=window.DungeonWhiteShirtWorkbenchV1;
+const cloak=window.DungeonGeneratedCloakV2;
+const state={pants:true,shirt:true,cloak:false};
+const images={};
+function srcImg(url){return new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>resolve(im);im.onerror=()=>reject(new Error('PNG 無法載入'));im.src=url})}
+const drawImage=(ctx,im,x=0,y=0)=>{if(im)ctx.drawImage(im,x,y)};
+function drawSheet(ctx,im,indices){
+ if(!im)return;
+ for(const i of indices)ctx.drawImage(im,i*64,0,64,160,0,0,64,160);
+}
+function draw(){
+ for(const gender of ['male','female']){
+  const cv=document.getElementById(gender),ctx=cv.getContext('2d');
+  ctx.imageSmoothingEnabled=false;ctx.clearRect(0,0,64,160);
+  if(state.cloak)drawImage(ctx,images.cloakBack);
+  drawImage(ctx,images[gender+'Body']);
+  drawImage(ctx,images[gender+'Shorts']);
+  drawImage(ctx,images[gender+'Tank']);
+  if(state.pants)drawSheet(ctx,images.pants,gender==='male'?[1,2,0]:[4,5,3]);
+  if(state.shirt) {
+   ctx.save();ctx.translate(gender==='male'?-1:0,-1);
+   drawSheet(ctx,images.shirt,gender==='male'?[1,2,0]:[4,5,3]);
+   ctx.restore();
+  }
+  if(state.cloak){
+   ctx.save();ctx.translate(0,gender==='male'?-8:-6);drawImage(ctx,images.cloakFront);ctx.restore();
+  }
+ }
+}
+function savePng(gender){
+ const cv=document.createElement('canvas');cv.width=64;cv.height=160;
+ const ctx=cv.getContext('2d');ctx.imageSmoothingEnabled=false;
+ drawSheet(ctx,images.pants,gender==='male'?[1,2,0]:[4,5,3]);
+ const link=document.createElement('a');link.href=cv.toDataURL('image/png');
+ link.download='dungeon_travel_trousers_v1_'+gender+'_64x160.png';link.click();
+}
+async function init(){
+ if(!base?.male?.body||!base?.female?.body)throw Error('無法取得原始男女底模');
+ if(!pants?.sheet||pants?.sliceNames?.length!==6)throw Error('旅行長褲圖層未載入');
+ const srcs={
+  maleBody:base.male.body,maleTank:base.male.tank,maleShorts:base.male.shorts,
+  femaleBody:base.female.body,femaleTank:base.female.tank,femaleShorts:base.female.shorts,
+  pants:pants.sheet,shirt:white?.sheet,cloakBack:cloak?.back,cloakFront:cloak?.front
+ };
+ await Promise.all(Object.entries(srcs).filter(([,src])=>typeof src==='string').map(async([key,src])=>{images[key]=await srcImg(src)}));
+ if(images.pants.width!==384||images.pants.height!==160)throw Error('長褲圖集不是 384×160');
+ draw();document.getElementById('status').textContent='已載入原始男女底模及旅行長褲 V1。這是尚未核准的獨立試穿版。';
+ for(const id of ['pants','shirt','cloak']){
+  document.getElementById(id).onclick=()=>{
+   state[id]=!state[id];
+   const control=document.getElementById(id);
+   control.setAttribute('aria-pressed',String(state[id]));
+   control.textContent=({pants:'長褲',shirt:'白衣',cloak:'披風'}[id])+': '+(state[id]?'顯示':'隱藏');
+   draw();
+  };
+ }
+ document.getElementById('export-male').onclick=()=>savePng('male');
+ document.getElementById('export-female').onclick=()=>savePng('female');
+}
+init().catch(e=>{document.getElementById('status').textContent='素材載入失敗：'+e.message;console.error(e)});
+})();
+</script>
+</body>
+</html>
