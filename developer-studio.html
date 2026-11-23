@@ -103,7 +103,7 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 <div class="hint">此處使用正式男女身體／內衣／頭髮素材。新增 PNG 可單獨定位、調整大小，並在男女預覽中測試。披風 V2 使用剛生成的原圖拆成透明前後層，可分別調整男女位置和大小；正式採用前仍需驗收。調完後到「數據與備份」複製數據給我。</div>
 <div class="layout">
 <div class="panel"><h2>素材庫</h2>
-<div class="hint">已建立『之前確認的服裝位置』為工作台預設與重設目標：男白衣(-1,-1)、女白衣(0,-1)、披風前片男Y-8／女Y-6、長褲原生(0,0)、女頭髮(-2,-5)、原版旅行側包Y-2。重設不會更改頭部底模或正式遊戲。長褲 V2 顯示在白衣前面。</div>
+<div class="hint">已依最新工作台 JSON 更新「恢復已確認服裝位置」：男性長褲褲腰(-1,-6)、左褲管(-1,-8)、右褲管(0,-8)；女性長褲三層都是(0,-6)。白衣（男 -1,-1；女 0,-1）、披風前片（男Y-8／女Y-6）、原版頭髮和側包維持既有設定。重設不修改正式遊戲，也不刪除上傳圖片。</div>
 <div class="toolbar" style="margin:10px 0">
 <button class="primary" id="shirtOnly">試穿白布衣（暫隱披風）</button>
 <button id="shirtWithCloak">白布衣＋披風</button>
@@ -212,11 +212,12 @@ const stockKeys={
 };
 const images=new Map(),userPngs=new Map(),imageInfo=new Map();
 const transforms={},shown={},layerShown={};
-const APPROVED_FIT_PRESET_VERSION='wardrobe-approved-fit-20261123-v1';
+const APPROVED_FIT_PRESET_VERSION='wardrobe-approved-fit-20261123-v2-user-trousers';
 const BUILTIN_IDS=new Set(catalogue.map(a=>a.id));
 const activeBuiltinOverrides=new Set();
-// Native 64x160 source coordinates. All these values come from earlier
-// user-confirmed workbench presets; pending boots/gloves remain without art.
+// Native 64x160 source coordinates. Shirt/cloak/hair/bag positions are from
+// prior accepted workbench presets; trousers are from the user's latest JSON.
+// Pending boots and gloves remain missing art.
 // The game-approved satchel source uses a -2px vertical offset.
 const APPROVED_FIT_COORDS=Object.freeze({
  'hair_original:male:front':Object.freeze({x:0,y:0}),
@@ -231,12 +232,12 @@ const APPROVED_FIT_COORDS=Object.freeze({
  'starter_tunic:female:front':Object.freeze({x:0,y:-1}),
  'starter_tunic:female:side':Object.freeze({x:0,y:-1}),
  'starter_tunic:female:back':Object.freeze({x:0,y:-1}),
- 'starter_trousers:male:front':Object.freeze({x:0,y:0}),
- 'starter_trousers:male:side':Object.freeze({x:0,y:0}),
- 'starter_trousers:male:back':Object.freeze({x:0,y:0}),
- 'starter_trousers:female:front':Object.freeze({x:0,y:0}),
- 'starter_trousers:female:side':Object.freeze({x:0,y:0}),
- 'starter_trousers:female:back':Object.freeze({x:0,y:0}),
+ 'starter_trousers:male:front':Object.freeze({x:-1,y:-6}),
+ 'starter_trousers:male:side':Object.freeze({x:-1,y:-8}),
+ 'starter_trousers:male:back':Object.freeze({x:0,y:-8}),
+ 'starter_trousers:female:front':Object.freeze({x:0,y:-6}),
+ 'starter_trousers:female:side':Object.freeze({x:0,y:-6}),
+ 'starter_trousers:female:back':Object.freeze({x:0,y:-6}),
  'enchanted_satchel:male:front':Object.freeze({x:0,y:-2}),
  'enchanted_satchel:female:front':Object.freeze({x:0,y:-2})
 });
@@ -318,6 +319,25 @@ function restore(){
     for(const key of data.activeBuiltinOverrides||[]){
       if(typeof key==='string'&&stockKeys[key])activeBuiltinOverrides.add(key);
     }
+  }else if(data.approvedFitPresetVersion==='wardrobe-approved-fit-20261123-v1'){
+    // Targeted migration of the previously confirmed V1 studio preset.
+    // The user now supplied more precise positions for six trousers layers.
+    // Keep all unrelated fitting offsets, show states and custom art intact.
+    try{if(raw&&!localStorage.getItem(KEY+'_before_trousers_user_fit_v2'))
+      localStorage.setItem(KEY+'_before_trousers_user_fit_v2',raw)}catch(e){console.warn('Trouser fit backup skipped:',e)}
+    for(const key of data.activeBuiltinOverrides||[]){
+      if(typeof key==='string'&&stockKeys[key])activeBuiltinOverrides.add(key);
+    }
+    const pants=item('starter_trousers');
+    for(const gender of ['male','female']){
+      shown['starter_trousers:'+gender]=true;
+      for(const layer of pants.layers){
+        const key=k('starter_trousers',gender,layer);
+        transforms[key]=defaultT(pants,gender,layer);
+        layerShown[key]=true;
+      }
+    }
+    persist();
   }else{
     // Old local workbench edits may be from V1/V2/rejected outfits.
     // Preserve a one-time backup, then bring only approved built-ins back.
