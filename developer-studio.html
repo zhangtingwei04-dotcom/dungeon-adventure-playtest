@@ -123,7 +123,7 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 <div class="panel"><h2>角色即時預覽</h2><div class="avatarGrid">
 <div class="avatarCard" id="maleCard"><strong>男性｜原版頭</strong><div class="sub">真實底模 64×160</div><div class="spriteChecker"><canvas width="64" height="160" id="maleCanvas" aria-label="男性角色即時裝備預覽，可拖曳調整所選圖層"></canvas></div></div>
 <div class="avatarCard" id="femaleCard"><strong>女性｜新版頭</strong><div class="sub">真實底模 64×160</div><div class="spriteChecker"><canvas width="64" height="160" id="femaleCanvas" aria-label="女性角色即時裝備預覽，可拖曳調整所選圖層"></canvas></div></div>
-</div><div class="toolbar" style="margin-top:10px"><button id="resetView">恢復兩性並排</button><button class="primary" id="resetApprovedFit">恢復已確認服裝位置</button><button id="toggleGuides">肩頸輔助線：關</button><button id="cloakArmRevealToggle" type="button">披風遮擋 V4：原手臂輪廓</button></div>
+</div><div class="toolbar" style="margin-top:10px"><button id="resetView">恢復兩性並排</button><button class="primary" id="resetApprovedFit">恢復已確認服裝位置</button><button id="toggleGuides">肩頸輔助線：關</button><button id="cloakArmRevealToggle" type="button">披風遮擋 V4：原手臂輪廓</button><button id="cloakArmDetailV5Toggle" type="button">手臂輪廓細修 V5：試用</button></div>
 <div class="hint">上衣穿搭試驗｜可一鍵同時切換男女角色，直接比較白布衣與褲腰的遮擋。</div>
 <div class="toolbar"><button type="button" id="wearBothTucked">紮入式（男女）</button><button type="button" id="wearBothUntucked">自然垂放（男女）</button><button type="button" id="wearBothOuter">外罩式（男女）</button></div>
 <p>直接在角色圖上拖曳，可移動目前選取性別與圖層。只修改該圖層參數，不會移動底模或頭部。</p>
@@ -238,6 +238,7 @@ const images=new Map(),userPngs=new Map(),imageInfo=new Map();
 const transforms={},shown={},layerShown={},wearModes={};
 const CLOAK_ARM_REVEAL_TRIAL_IDS=Object.freeze(['starter_cloak']);
 let cloakArmRevealTrial=true;
+let cloakArmDetailV5=false; // V4 remains the approved fallback; V5 is opt-in only.
 const VALID_WEAR_MODES=Object.freeze(['tucked','untucked','outer']);
 function defaultWearMode(a){return a.slot==='chest'?'tucked':a.slot==='outer'?'wrapped':'normal'}
 function wearModeKey(id,gender){return id+':'+gender}
@@ -348,7 +349,7 @@ function serialize(oneId){
 }
 function persist(){
  try{
-  localStorage.setItem(KEY,JSON.stringify({catalogue,transforms,shown,layerShown,wearModes,cloakArmRevealTrial,selected,editingGender,editingLayer,cloakArtVersion:'original-sheet-v2',approvedFitPresetVersion:APPROVED_FIT_PRESET_VERSION,activeBuiltinOverrides:[...activeBuiltinOverrides]}));
+  localStorage.setItem(KEY,JSON.stringify({catalogue,transforms,shown,layerShown,wearModes,cloakArmRevealTrial,cloakArmDetailV5,selected,editingGender,editingLayer,cloakArtVersion:'original-sheet-v2',approvedFitPresetVersion:APPROVED_FIT_PRESET_VERSION,activeBuiltinOverrides:[...activeBuiltinOverrides]}));
   $('persistInfo').textContent='設定已儲存在這個裝置的工作台資料中。匯入圖片另存於本機資料庫；更換手機／瀏覽器不會自動同步。';
  }catch(e){$('persistInfo').textContent='本機設定儲存失敗：'+e.message;}
 }
@@ -357,6 +358,7 @@ function restore(){
   const raw=localStorage.getItem(KEY);
   const data=JSON.parse(raw||'null');if(!data||!Array.isArray(data.catalogue))return;
   if(typeof data.cloakArmRevealTrial==='boolean')cloakArmRevealTrial=data.cloakArmRevealTrial;
+  if(typeof data.cloakArmDetailV5==='boolean')cloakArmDetailV5=data.cloakArmDetailV5;
   for(const a of data.catalogue){
    if(!a||typeof a.id!=='string'||!/^[a-z0-9_-]{2,60}$/.test(a.id)||catalogue.some(x=>x.id===a.id))continue;
    if(!Array.isArray(a.layers)||!a.layers.every(l=>['back','front','side'].includes(l)))continue;
@@ -551,6 +553,8 @@ function drawOriginalBodyHands(ctx,gender,cloakId='starter_cloak'){
   }
   trouserAlpha=pantsCtx.getImageData(0,0,64,160).data;
  }
+ // Keep the V4 pixel-mask and its exact alpha bounds untouched.
+ // V5 adds a separate hand-connected component algorithm AFTER setup.
  const data=bodyPixels.data;
  const isPantNear=(x,y)=>{
   if(!trouserAlpha)return false;
@@ -560,15 +564,72 @@ function drawOriginalBodyHands(ctx,gender,cloakId='starter_cloak'){
     if(trouserAlpha[(yy*64+xx)*4+3]>40)return true;
   return false;
  };
- for(let y=0;y<160;y++)for(let x=0;x<64;x++){
-  const i=(y*64+x)*4;
-  if(data[i+3]===0)continue;
-  // Anatomical side bands progressively taper towards the hand; the arms
-  // terminate before the body turns into upper legs. Do not restore ANY
-  // native body pixels across waist/hip/thigh regions.
-  const limit=y<=80?22:y<=88?19:y<=94?16:14;
-  const inArm=(y>=74&&y<=99)&&(x<limit||x>=64-limit);
-  if(!inArm||isPantNear(x,y))data[i+3]=0;
+ if(cloakArmDetailV5){
+  // V5 experiment: instead of cutting forearms into flat horizontal steps,
+  // trace only skin pixels CONNECTED to each real hand in the actual Body PNG.
+  // This preserves each person's hand silhouette, finger edges and wrists.
+  // A second alpha matte prevents painting over the original shirt or pants.
+  const shirt=item('starter_tunic');
+  let shirtAlpha=null;
+  if(shirt&&shown['starter_tunic:'+gender]!==false){
+   const shirtCanvas=document.createElement('canvas');shirtCanvas.width=64;shirtCanvas.height=160;
+   const shCtx=shirtCanvas.getContext('2d',{willReadFrequently:true});
+   for(const layer of shirt.layers){
+    const key=k('starter_tunic',gender,layer);
+    if(layerShown[key]===false)continue;
+    const garment=getImage('starter_tunic',gender,layer);
+    if(garment)drawImageOn(shCtx,garment,transforms[key]||defaultT(shirt,gender,layer));
+   }
+   shirtAlpha=shCtx.getImageData(0,0,64,160).data;
+  }
+  const eligible=new Uint8Array(64*160),keep=new Uint8Array(64*160);
+  for(let y=74;y<=103;y++){
+   const maxLeft=y<=81?24:y<=93?22:20;
+   const minRight=63-maxLeft;
+   for(let x=0;x<64;x++){
+    const i=y*64+x,p=i*4;
+    if(!(x<=maxLeft||x>=minRight)||data[p+3]<32||isPantNear(x,y))continue;
+    // Original shirt sleeves/cuffs should cover skin at their own pixels.
+    if(shirtAlpha&&shirtAlpha[p+3]>60)continue;
+    eligible[i]=1;
+   }
+  }
+  const floodHand=(side)=>{
+   // Choose a seed in each existing hand, NEVER in the thigh/torso.
+   const targetX=side==='left'?11:52,targetY=94;
+   let seed=-1,best=Infinity;
+   for(let y=87;y<=101;y++)
+    for(let x=side==='left'?4:43;x<=(side==='left'?21:59);x++){
+     const i=y*64+x;if(!eligible[i])continue;
+     const score=(x-targetX)*(x-targetX)+(y-targetY)*(y-targetY);
+     if(score<best){seed=i;best=score}
+    }
+   if(seed<0)return;
+   const queue=new Int32Array(64*160);let head=0,tail=0;
+   queue[tail++]=seed;keep[seed]=1;
+   while(head<tail){
+    const i=queue[head++],x=i%64,y=Math.floor(i/64);
+    for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+     if(!dx&&!dy)continue;
+     const xx=x+dx,yy=y+dy;
+     if(xx<0||xx>=64||yy<74||yy>103)continue;
+     const n=yy*64+xx;
+     if(!eligible[n]||keep[n])continue;
+     keep[n]=1;queue[tail++]=n;
+    }
+   }
+  };
+  floodHand('left');floodHand('right');
+  for(let i=0;i<64*160;i++)if(!keep[i])data[i*4+3]=0;
+ }else{
+  // Exact V4 approved fallback, deliberately unchanged by the new trial.
+  for(let y=0;y<160;y++)for(let x=0;x<64;x++){
+   const i=(y*64+x)*4;
+   if(data[i+3]===0)continue;
+   const limit=y<=80?22:y<=88?19:y<=94?16:14;
+   const inArm=(y>=74&&y<=99)&&(x<limit||x>=64-limit);
+   if(!inArm||isPantNear(x,y))data[i+3]=0;
+  }
  }
  bctx.putImageData(bodyPixels,0,0);
  ctx.drawImage(canvas,0,0);
@@ -699,8 +760,13 @@ function update(){
  normalize();renderAssetList();updateControls();drawAll();refreshJson();
  const revealBtn=$('cloakArmRevealToggle');
  if(revealBtn){
-  revealBtn.textContent='披風遮擋 V4：'+(cloakArmRevealTrial?'原手臂輪廓':'不補畫皮膚');
+  revealBtn.textContent='披風遮擋：'+(cloakArmRevealTrial?'原手臂':'不補畫皮膚');
   revealBtn.setAttribute('aria-pressed',String(cloakArmRevealTrial));
+  const detailBtn=$('cloakArmDetailV5Toggle');
+  if(detailBtn){
+   detailBtn.textContent='手臂細修 V5：'+(cloakArmDetailV5&&cloakArmRevealTrial?'開':'關（維持 V4）');
+   detailBtn.setAttribute('aria-pressed',String(cloakArmDetailV5&&cloakArmRevealTrial));
+  }
  }
  for(const [id,mode] of [['wearBothTucked','tucked'],['wearBothUntucked','untucked'],['wearBothOuter','outer']]){
   const button=$(id);
@@ -919,8 +985,16 @@ $('exportCurrentPng').onclick=()=>{
 $('resetView').onclick=()=>{$('maleCard').hidden=false;$('femaleCard').hidden=false;drawAll()};
 $('resetApprovedFit').onclick=()=>resetCanonicalFit(false);
 $('cloakArmRevealToggle').onclick=()=>{
- cloakArmRevealTrial=!cloakArmRevealTrial;update();persist();
- toast(cloakArmRevealTrial?'深綠披風：只補原手臂輪廓且避開長褲':'深綠披風：已關閉額外皮膚補畫');
+ cloakArmRevealTrial=!cloakArmRevealTrial;
+ if(!cloakArmRevealTrial)cloakArmDetailV5=false;
+ update();persist();
+ toast(cloakArmRevealTrial?'深綠披風：已恢復 V4 原手臂輪廓':'深綠披風：不補畫皮膚');
+};
+$('cloakArmDetailV5Toggle').onclick=()=>{
+ cloakArmDetailV5=!cloakArmDetailV5;
+ if(cloakArmDetailV5)cloakArmRevealTrial=true;
+ update();persist();
+ toast(cloakArmDetailV5?'正在試看 V5 真實手臂輪廓':'已退回先前保留的 V4');
 };
 $('toggleGuides').onclick=()=>{guides=!guides;$('toggleGuides').textContent='肩頸輔助線：'+(guides?'開':'關');drawAll()};
 $('copyAll').onclick=async()=>{refreshJson();const ok=await copyText($('jsonOutput').value);toast(ok?'已複製全部素材的 JSON':'請長按 JSON 欄位複製')};
@@ -1041,8 +1115,9 @@ async function init(){
   // Show this cloak only for mobile arm-v4 trial; the link forces the
   // safe pixel-occluded view ON even if stale local settings were OFF.
   // It does not persist or alter fitted coords, sprites, or saved Z.
-  if(new URLSearchParams(location.search).get('cloakArms')==='1'){
+  if(['1','2'].includes(new URLSearchParams(location.search).get('cloakArms'))){
    cloakArmRevealTrial=true;
+   cloakArmDetailV5=new URLSearchParams(location.search).get('cloakArms')==='2';
    for(const gender of ['male','female']){
     shown['starter_cloak:'+gender]=true;
     shown['starter_tunic:'+gender]=true;
