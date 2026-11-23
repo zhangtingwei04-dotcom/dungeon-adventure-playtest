@@ -1,0 +1,562 @@
+{
+  "format": "dungeon-paperdoll-clothing-fit-data-v1",
+  "project": "迷宮盡頭的燈火",
+  "created": "2026-11-23",
+  "purpose": "未來所有需要貼合角色手臂的正面服裝，先依實際底模數據畫完整穿著圖，再拆圖層",
+  "status": "base-alpha-measured__shirt-fit-anchors-provisional",
+  "canvas": {
+    "width": 64,
+    "height": 160,
+    "unit": "pixel",
+    "origin": "top-left",
+    "xAxis": "right",
+    "yAxis": "down",
+    "sourcePixelRatio": 1,
+    "background": "transparent",
+    "colorFormat": "RGBA PNG",
+    "alphaThresholdForMeasurement": 64
+  },
+  "reference": {
+    "branch": "main",
+    "originalCharacters": "assets/cloak_workbench_bases_v1.js",
+    "originalCharactersBlobSha": "4a0e1fce1d7d81edd6f95cacb447d59ec2b9e1ca",
+    "clothingHistory": "assets/white_shirt_workbench_v2.js",
+    "clothingHistoryBlobSha": "ad71e16f737518bed3d06e3318b663a6328da923",
+    "ruleDocument": "docs/paperdoll/clothing-fitting-standard-v1.md",
+    "notes": "Character body / underwear are untouched. Measured positions come from alpha>=64 of the existing male/female body and tank PNG, not from anatomy inference."
+  },
+  "definitions": {
+    "screenLeft": "在畫面左邊；不等於角色自身右手的稱呼",
+    "screenRight": "在畫面右邊；不等於角色自身左手的稱呼",
+    "bodyOuterEdgeX": "依指定 Y 列取原始身體非透明像素，分別找最左與最右 X；可能包含身體輪廓，不能將單列像素邊緣當成骨骼關節",
+    "underwearBounds": "該 Y 列初始米白內衣的 alpha>=64 像素最左與最右 X",
+    "approved": "使用者已在手機試穿確認；在此之前均為 provisional"
+  },
+  "measured": {
+    "male": {
+      "referenceBody": "male.body",
+      "referenceUnderwear": "male.tank",
+      "bodyTopNeckY": 49,
+      "rows": [
+        [
+          49,
+          null,
+          null,
+          null
+        ],
+        [
+          51,
+          null,
+          23,
+          39
+        ],
+        [
+          53,
+          18,
+          21,
+          45
+        ],
+        [
+          55,
+          15,
+          21,
+          47
+        ],
+        [
+          57,
+          14,
+          21,
+          48
+        ],
+        [
+          59,
+          14,
+          21,
+          48
+        ],
+        [
+          61,
+          14,
+          21,
+          48
+        ],
+        [
+          63,
+          13,
+          21,
+          49
+        ],
+        [
+          65,
+          13,
+          21,
+          49
+        ],
+        [
+          67,
+          12,
+          21,
+          50
+        ],
+        [
+          69,
+          11,
+          22,
+          51
+        ],
+        [
+          71,
+          10,
+          23,
+          52
+        ],
+        [
+          73,
+          10,
+          23,
+          53
+        ],
+        [
+          75,
+          8,
+          22,
+          54
+        ],
+        [
+          77,
+          8,
+          22,
+          54
+        ],
+        [
+          79,
+          8,
+          21,
+          55
+        ],
+        [
+          81,
+          8,
+          21,
+          55
+        ],
+        [
+          83,
+          7,
+          21,
+          55
+        ],
+        [
+          85,
+          6,
+          21,
+          57
+        ]
+      ],
+      "rowFields": [
+        "y",
+        "outerLeftX",
+        "centerBodyLeftX",
+        "outerRightX"
+      ],
+      "underwearRows": [
+        [
+          51,
+          22,
+          40
+        ],
+        [
+          55,
+          23,
+          40
+        ],
+        [
+          63,
+          21,
+          41
+        ],
+        [
+          67,
+          22,
+          41
+        ],
+        [
+          71,
+          23,
+          39
+        ],
+        [
+          75,
+          23,
+          40
+        ],
+        [
+          79,
+          22,
+          41
+        ],
+        [
+          81,
+          21,
+          42
+        ],
+        [
+          83,
+          20,
+          42
+        ],
+        [
+          85,
+          25,
+          37
+        ]
+      ],
+      "underwearFields": [
+        "y",
+        "leftX",
+        "rightX"
+      ]
+    },
+    "female": {
+      "referenceBody": "female.body",
+      "referenceUnderwear": "female.tank",
+      "bodyTopNeckY": 51,
+      "rows": [
+        [
+          49,
+          null,
+          null,
+          null
+        ],
+        [
+          51,
+          null,
+          21,
+          41
+        ],
+        [
+          53,
+          17,
+          21,
+          45
+        ],
+        [
+          55,
+          16,
+          21,
+          46
+        ],
+        [
+          57,
+          15,
+          21,
+          47
+        ],
+        [
+          59,
+          15,
+          21,
+          47
+        ],
+        [
+          61,
+          15,
+          21,
+          47
+        ],
+        [
+          63,
+          14,
+          21,
+          47
+        ],
+        [
+          65,
+          14,
+          21,
+          48
+        ],
+        [
+          67,
+          13,
+          21,
+          48
+        ],
+        [
+          69,
+          13,
+          23,
+          49
+        ],
+        [
+          71,
+          11,
+          24,
+          50
+        ],
+        [
+          73,
+          10,
+          23,
+          51
+        ],
+        [
+          75,
+          9,
+          22,
+          52
+        ],
+        [
+          77,
+          9,
+          21,
+          53
+        ],
+        [
+          79,
+          8,
+          21,
+          54
+        ],
+        [
+          81,
+          8,
+          21,
+          54
+        ],
+        [
+          83,
+          7,
+          21,
+          55
+        ],
+        [
+          85,
+          6,
+          21,
+          56
+        ]
+      ],
+      "rowFields": [
+        "y",
+        "outerLeftX",
+        "centerBodyLeftX",
+        "outerRightX"
+      ],
+      "underwearRows": [
+        [
+          51,
+          23,
+          40
+        ],
+        [
+          55,
+          22,
+          39
+        ],
+        [
+          63,
+          22,
+          41
+        ],
+        [
+          67,
+          23,
+          41
+        ],
+        [
+          71,
+          24,
+          38
+        ],
+        [
+          75,
+          22,
+          40
+        ],
+        [
+          79,
+          21,
+          42
+        ],
+        [
+          81,
+          21,
+          43
+        ],
+        [
+          83,
+          22,
+          40
+        ],
+        [
+          85,
+          22,
+          26
+        ]
+      ],
+      "underwearFields": [
+        "y",
+        "leftX",
+        "rightX"
+      ]
+    }
+  },
+  "draftTargetForWhiteStarterShirt": {
+    "status": "provisional, design guides only; these points must be fitted and approved on the actual character",
+    "palette": {
+      "fabric": "#F5EEE6",
+      "highlight": "#FFFAF3",
+      "shadow": "#C9B9AC",
+      "outline": "#3B2924",
+      "lace": "#68452B"
+    },
+    "male": {
+      "screenLeftShoulderAnchor": [
+        20,
+        53
+      ],
+      "screenRightShoulderAnchor": [
+        43,
+        53
+      ],
+      "screenLeftCuffLine": [
+        [
+          12,
+          68
+        ],
+        [
+          20,
+          70
+        ]
+      ],
+      "screenRightCuffLine": [
+        [
+          43,
+          70
+        ],
+        [
+          52,
+          69
+        ]
+      ],
+      "frontCollarTransparentGuide": {
+        "xMin": 29,
+        "xMax": 35,
+        "yMin": 50,
+        "yMax": 61
+      },
+      "torsoHemGuide": {
+        "leftX": 21,
+        "rightX": 42,
+        "yMin": 86,
+        "yMax": 92
+      },
+      "notes": "Cuff angles follow arm down/out. Both sleeves fitted separately; hem may need 1-2px tuning after preview."
+    },
+    "female": {
+      "screenLeftShoulderAnchor": [
+        20,
+        53
+      ],
+      "screenRightShoulderAnchor": [
+        43,
+        53
+      ],
+      "screenLeftCuffLine": [
+        [
+          13,
+          68
+        ],
+        [
+          21,
+          71
+        ]
+      ],
+      "screenRightCuffLine": [
+        [
+          42,
+          71
+        ],
+        [
+          50,
+          69
+        ]
+      ],
+      "frontCollarTransparentGuide": {
+        "xMin": 29,
+        "xMax": 35,
+        "yMin": 51,
+        "yMax": 61
+      },
+      "torsoHemGuide": {
+        "leftX": 21,
+        "rightX": 42,
+        "yMin": 86,
+        "yMax": 92
+      },
+      "notes": "Female forearm boundary differs from male; no forced mirror/rescaling."
+    }
+  },
+  "construction": {
+    "first": "Render completed garment overlay separately on each 64x160 male/female original body, independent of hair/head.",
+    "second": "Fit both shoulder seams, sleeve directions and actual skin exit point; inspect hands and arm occlusion.",
+    "third": "Only after full-on-body fitting, split each into transparent front core, screen-left sleeve, screen-right sleeve.",
+    "fourth": "Use same 64x160 native coordinate space for every layer, without cropping/recentering/stretching.",
+    "fifth": "Recompose with underlying body + underwear and approved cloak; preserve original male and female poses.",
+    "last": "Only promote to formal game assets after user visually approves the iPhone preview.",
+    "layerNames": [
+      "core",
+      "leftSleeve",
+      "rightSleeve"
+    ],
+    "frontOnly": true,
+    "backViewRequired": false,
+    "renderOrder": [
+      "cloakBack(if equipped)",
+      "characterBody",
+      "baseUnderwear",
+      "shorts",
+      "shirtLeftSleeve",
+      "shirtRightSleeve",
+      "shirtFrontCore",
+      "cloakFront(if equipped)",
+      "exposedForearmsAndHandsMasked",
+      "faceAndHair"
+    ],
+    "sleeveGuidance": "Cuff edge should be approximately perpendicular to the outgoing arm direction; left and right have consistent visual length, but do not force mirror symmetry.",
+    "avoid": [
+      "back-facing shirt panels",
+      "solid backing inside neckline",
+      "double dark outlines at shoulder seams",
+      "sleeve painting that changes original arm pose",
+      "one gender shirt scaled to other gender",
+      "hard rectangular arm masks cutting through torso",
+      "autoscale or center each component independently"
+    ]
+  },
+  "validation": {
+    "expectedTransparency": true,
+    "expectedPNGSize": [
+      64,
+      160
+    ],
+    "componentCountPerGender": 3,
+    "genders": [
+      "male",
+      "female"
+    ],
+    "noOriginalBodyModification": true,
+    "recheckIfReferenceChanges": true,
+    "tests": [
+      "skin+underwear",
+      "shirt-only",
+      "shirt+cloak",
+      "shirt-off-restores-underwear",
+      "no-doubled-outlines",
+      "no-sleeve-arm-direction-mismatch",
+      "iPhone-landscape-visual-review"
+    ],
+    "promotion": "requires user confirmation"
+  }
+}
