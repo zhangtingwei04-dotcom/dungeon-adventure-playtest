@@ -82,3 +82,31 @@ V4 開啟時：
 
 新網址：
 https://zhangtingwei04-dotcom.github.io/dungeon-adventure-playtest/developer-studio.html?tab=library&cloakArms=1&v=cloak-arm-v4-pixel
+
+## V5（2026-11-23）：保留 V4、改用手掌連通像素做局部細修
+
+使用者已選定 **A：保留 V4 原手臂輪廓作目前工作台候選**，再做 **B：細修手臂與披風交界**。使用者後續指出目前手部露出的地方仍有問題，故這一版採取 opt-in 比較，不覆寫已接受的 V4。
+
+### 試修範圍
+- 僅 `starter_cloak`；原始 PNG、角色身體、白衣 V3、長褲 V2、披風原座標與 Z 完全不變，正式遊戲 `index.html` 不修改。
+- 新旗標 `cloakArmDetailV5` 預設 `false`，`cloakArmRevealTrial` 的 V4 舊演算法完全保留；新增「手臂細修 V5：開／關（維持 V4）」控制。開啟 V5 會自動啟用手臂補畫；關閉 V5 立即回到 V4。
+- 重新「恢復已確認服裝位置」或「重設全部」會回到已保留的 V4，避免尚未驗收的 V5 被誤當成預設。
+- `cloakArmDetailV5` 另外儲存在工作台本機設定；所有原有男女服裝 x/y/scale/z、穿著模式、上傳圖來源照舊。
+
+### 演算法
+- 從原本 64×160 男女 `Body` PNG 逐像素取得真實 alpha，只取左右手掌連通的像素區域（以手掌附近種子，8-neighbor flood-fill），不再僅依「橫向固定寬度」切斷腕部。
+- 只計算 Y74–103 及左右臂側的保守候選區；避免蔓延到身體中間。
+- 即時取得已穿長褲各圖層及其目前 offset/scale 的 alpha，並使用 1px guard；遮在褲子及其輪廓旁的皮膚像素不得重新補畫。
+- 同樣取得目前上衣正面與左右袖的 alpha，排除衣服不透明像素，避免皮膚覆蓋袖口。
+- 僅保留與左右手掌種子連通的原底模像素，其餘清為透明；手部在披風前片之上，但披風與所有其他圖片資料保持不變。
+
+### 測試
+- 已通過 GitHub JavaScript 靜態語法與前後版本功能檢查。
+- 合成測試用原手臂、上衣、長褲及裸腿 alpha 進行驗證：男女 V5 都保留手部像素；與長褲不透明部分交疊的「裸體皮膚覆蓋」為 0；V4 保留；關閉補畫時沒有多餘覆蓋。這是合成像素測試，不是 iPhone 最終視覺驗收。
+- 使用者需要實際檢查左右腕部和袖口交界有沒有斷層，並比較 V5 與 V4。如果 V5 更差，直接關閉 V5 保留 V4，不要再改動已核准的原圖。
+
+V5 手機試用：
+https://zhangtingwei04-dotcom.github.io/dungeon-adventure-playtest/developer-studio.html?tab=library&cloakArms=2&v=cloak-v5-arm-outline
+
+V4 保留版：
+https://zhangtingwei04-dotcom.github.io/dungeon-adventure-playtest/developer-studio.html?tab=library&cloakArms=1&v=cloak-v4-fallback
