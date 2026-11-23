@@ -80,6 +80,7 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 <script src="./assets/long_tunic_layered_v10.js?v=10"></script>
 <script src="./assets/long_tunic_front_sleeves_v12.js?v=12"></script>
 <script src="./assets/natural_long_tunic_v13.js?v=13-chest-fix"></script>
+<script src="./assets/arm_visibility_policy_v1.js?v=1"></script>
 <script src="./assets/travel_trousers_workbench_v2.js?v=2"></script>
 <script src="./assets/approved_satchel_workbench_v1.js?v=1"></script>
 <script src="./assets/dungeon_generated_cloak_v2.js?v=2"></script>
@@ -131,7 +132,8 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 <div class="panel"><h2>角色即時預覽</h2><div class="avatarGrid">
 <div class="avatarCard" id="maleCard"><strong>男性｜原版頭</strong><div class="sub">真實底模 64×160</div><div class="spriteChecker"><canvas width="64" height="160" id="maleCanvas" aria-label="男性角色即時裝備預覽，可拖曳調整所選圖層"></canvas></div></div>
 <div class="avatarCard" id="femaleCard"><strong>女性｜新版頭</strong><div class="sub">真實底模 64×160</div><div class="spriteChecker"><canvas width="64" height="160" id="femaleCanvas" aria-label="女性角色即時裝備預覽，可拖曳調整所選圖層"></canvas></div></div>
-</div><div class="toolbar" style="margin-top:10px"><button id="resetView">恢復兩性並排</button><button class="primary" id="resetApprovedFit">恢復已確認服裝位置</button><button id="fixFemaleWaist" type="button">修復女性褲腰 X0 Y-5</button><button id="toggleGuides">肩頸輔助線：關</button><button id="cloakArmRevealToggle" type="button">披風遮擋 V4：原手臂輪廓</button><button id="cloakArmDetailV5Toggle" type="button">手臂輪廓細修 V5：試用</button></div>
+</div><div class="toolbar" style="margin-top:10px"><button id="resetView">恢復兩性並排</button><button class="primary" id="resetApprovedFit">恢復已確認服裝位置</button><button id="fixFemaleWaist" type="button">修復女性褲腰 X0 Y-5</button><button id="toggleGuides">肩頸輔助線：關</button><button id="cloakArmRevealToggle" type="button">披風手臂保護：開（通用）</button><button id="cloakArmDetailV5Toggle" type="button">舊版 V5 補畫：關（對照）</button></div>
+<div class="hint">通用手臂保護：預設開啟。切換 V3 短袖、V13 長袖或之後新增的上衣／手套時，會依目前實際衣服與原始 Body 的透明像素，讓前披風避開肘部、手腕及手掌；披風肩甲、扣環與其餘花紋保持不動。「舊版 V5 補畫」僅用於比較，不會改動任何原圖。尚待手機實機驗收。</div>
 <div class="hint">上衣穿搭試驗｜可一鍵同時切換男女角色，直接比較白布衣與褲腰的遮擋。</div>
 <div class="toolbar"><button type="button" id="wearBothTucked">紮入式（男女）</button><button type="button" id="wearBothUntucked">自然垂放（男女）</button><button type="button" id="wearBothOuter">外罩式（男女）</button></div>
 <div class="hint">白衣長袖 V6 真替換試驗｜沿用 V3 肩膀的像素和色票，延長袖子時停用舊短袖，不再額外疊加。只在開發者工作台顯示，正式遊戲未改動。</div>
@@ -307,7 +309,7 @@ const images=new Map(),userPngs=new Map(),imageInfo=new Map();
 const transforms={},shown={},layerShown={},wearModes={};
 const CLOAK_ARM_REVEAL_TRIAL_IDS=Object.freeze(['starter_cloak']);
 let cloakArmRevealTrial=true;
-let cloakArmDetailV5=false; // V4 remains the approved fallback; V5 is opt-in only.
+let cloakArmDetailV5=false; // Opt-in legacy V5 skin-redraw comparison only; default is garment-aware front-cutout.
 let sleeveReplaceModeV6=false; // opt-in only; existing V3 is always preserved.
 let sleeveReplaceModeV7=false; // another opt-in trial, not an official game change.
 let wholeLongTunicTrialV9=false; // single complete garment, never edits V3 image.
@@ -880,6 +882,51 @@ function identifyV3TorsoLayer(gender){
  }
  return best;
 }
+// One canonical source of truth for what clothing is CURRENTLY visible.
+// The same predicate is shared by rendering and cape arm protection; adding
+// new shirt/glove assets to the catalogue is enough for them to be protected.
+function currentGarmentActive(a,gender,layer){
+ if(shown[a.id+':'+gender]===false)return false;
+ if(layerShown[k(a.id,gender,layer)]===false)return false;
+ if(a.id==='starter_tunic'&&(wholeLongTunicTrialV9||layeredLongTunicTrialV10||frontSleevesTrialV12||naturalLongSleevesTrialV13))return false;
+ if(a.id==='starter_long_tunic_whole_v9'&&(!wholeLongTunicTrialV9||layeredLongTunicTrialV10||frontSleevesTrialV12||naturalLongSleevesTrialV13))return false;
+ if(['starter_tunic_layered_v10','starter_tunic_layered_v10_sleeves'].includes(a.id)&&(!layeredLongTunicTrialV10||frontSleevesTrialV12||naturalLongSleevesTrialV13))return false;
+ if(['starter_tunic_layered_v12','starter_tunic_layered_v12_sleeves'].includes(a.id)&&(!frontSleevesTrialV12||naturalLongSleevesTrialV13))return false;
+ if(['starter_natural_long_tunic_v13','starter_natural_long_tunic_v13_sleeves'].includes(a.id)&&!naturalLongSleevesTrialV13)return false;
+ if((wholeLongTunicTrialV9||layeredLongTunicTrialV10||frontSleevesTrialV12||naturalLongSleevesTrialV13)&&['starter_long_sleeves_v4','starter_sleeves_v6','starter_sleeves_v7'].includes(a.id))return false;
+ if(a.id==='starter_long_sleeves_v4'&&(sleeveReplaceModeV6||sleeveReplaceModeV7||shown['starter_tunic:'+gender]===false))return false;
+ if(a.id==='starter_sleeves_v6'&&(!sleeveReplaceModeV6||sleeveReplaceModeV7||shown['starter_tunic:'+gender]===false))return false;
+ if(a.id==='starter_sleeves_v7'&&(!sleeveReplaceModeV7||shown['starter_tunic:'+gender]===false))return false;
+ if((sleeveReplaceModeV6||sleeveReplaceModeV7)&&a.id==='starter_tunic'&&layer!==v3TorsoLayer[gender])return false;
+ return true;
+}
+function getVisibleArmGarments(gender){
+ const layers=[];
+ for(const a of catalogue){
+  // Include future wearables by category rather than matching shirt IDs.
+  // Outer capes, backpacks and trousers must never be mistaken for arms.
+  if(a.slot!=='chest'&&a.slot!=='hands')continue;
+  for(const layer of a.layers){
+   if(!currentGarmentActive(a,gender,layer))continue;
+   const img=getImage(a.id,gender,layer);
+   if(img)layers.push({image:img,transform:transforms[k(a.id,gender,layer)]||defaultT(a,gender,layer)});
+  }
+ }
+ return layers;
+}
+function drawGarmentAwareCapeFront(ctx,gender,img,t){
+ const policy=window.DungeonArmVisibilityPolicyV1;
+ if(!cloakArmRevealTrial||cloakArmDetailV5||!policy?.paintCloakFront){
+  drawImageOn(ctx,img,t);return;
+ }
+ const handled=policy.paintCloakFront({
+  ctx,outerImage:img,outerTransform:t,paintLayer:drawImageOn,
+  bodyImage:images.get(gender+'Body'),
+  garmentLayers:getVisibleArmGarments(gender),
+  edgeGuardPx:0
+ });
+ if(!handled)drawImageOn(ctx,img,t);
+}
 function drawAssetStage(gender){
  const c=$(gender+'Canvas'),ctx=c.getContext('2d');
  ctx.clearRect(0,0,64,160);ctx.imageSmoothingEnabled=false;
@@ -906,22 +953,11 @@ function drawAssetStage(gender){
   // experimental sleeve overlays are shown simultaneously.
   // One full upper garment at a time; V13 front/left/right are independent.
   // Keeping old shirt/long-shirt sprites intact is intentional.
-  if(a.id==='starter_tunic'&&(wholeLongTunicTrialV9||layeredLongTunicTrialV10||frontSleevesTrialV12||naturalLongSleevesTrialV13))continue;
-  if(a.id==='starter_long_tunic_whole_v9'&&(!wholeLongTunicTrialV9||layeredLongTunicTrialV10||frontSleevesTrialV12||naturalLongSleevesTrialV13))continue;
-  if(['starter_tunic_layered_v10','starter_tunic_layered_v10_sleeves'].includes(a.id)&&(!layeredLongTunicTrialV10||frontSleevesTrialV12||naturalLongSleevesTrialV13))continue;
-  if(['starter_tunic_layered_v12','starter_tunic_layered_v12_sleeves'].includes(a.id)&&(!frontSleevesTrialV12||naturalLongSleevesTrialV13))continue;
-  if(['starter_natural_long_tunic_v13','starter_natural_long_tunic_v13_sleeves'].includes(a.id)&&!naturalLongSleevesTrialV13)continue;
-  if((wholeLongTunicTrialV9||layeredLongTunicTrialV10||frontSleevesTrialV12||naturalLongSleevesTrialV13)&&['starter_long_sleeves_v4','starter_sleeves_v6','starter_sleeves_v7'].includes(a.id))continue;
-  if(a.id==='starter_long_sleeves_v4'&&(sleeveReplaceModeV6||sleeveReplaceModeV7||shown['starter_tunic:'+gender]===false))continue;
-  // V6 is an independently movable *replacement*, never an add-on.
-  if(a.id==='starter_sleeves_v6'&&(!sleeveReplaceModeV6||sleeveReplaceModeV7||shown['starter_tunic:'+gender]===false))continue;
-  if(a.id==='starter_sleeves_v7'&&(!sleeveReplaceModeV7||shown['starter_tunic:'+gender]===false))continue;
   for(const layer of a.layers){
-   // Real replacement: skip the ORIGINAL short-sleeve sprite, do not draw
-   // both generations. The V3 torso/neck/lacing remains byte-identical.
-   if((sleeveReplaceModeV6||sleeveReplaceModeV7)&&a.id==='starter_tunic'&&layer!==v3TorsoLayer[gender])continue;
+   // Ensure both outer rendering and arm visibility use the same clothing set.
+   if(!currentGarmentActive(a,gender,layer))continue;
    const key=k(a.id,gender,layer),img=images.get(key);
-   if(layerShown[key]===false||!img)continue;
+   if(!img)continue;
    const t=transforms[key]||defaultT(a,gender,layer);
    const z=safeNum(t.z,0,140,defaultZ(a,gender,layer));
    // A shirt can wear three different modes without mutating its saved z.
@@ -939,6 +975,10 @@ function drawAssetStage(gender){
     enqueue(Math.max(z,pantsFrontZ+0.25),()=>drawClippedGarment(ctx,img,t,split,160));
    }else if((a.id==='starter_tunic'||a.id==='starter_long_tunic_whole_v9'||a.id==='starter_tunic_layered_v10'||a.id==='starter_tunic_layered_v12'||a.id==='starter_natural_long_tunic_v13')&&pantsPresent&&mode==='outer'){
     enqueue(Math.max(z,pantsFrontZ+0.25),()=>drawImageOn(ctx,img,t));
+   }else if(a.slot==='outer'&&layer==='front'&&a.layers.includes('back')){
+    // A cape's front still covers shoulders, collar and chest, but yields to
+    // the real visible arms of ANY currently worn shirt/gloves below.
+    enqueue(z,()=>drawGarmentAwareCapeFront(ctx,gender,img,t));
    }else{
     enqueue(z,()=>drawImageOn(ctx,img,t));
    }
@@ -950,7 +990,10 @@ function drawAssetStage(gender){
  // At z=90 those hands remain in front of ordinary cloak fronts, while
  // the user can still explicitly place a piece further forward (z>90).
  const trialCloakId='starter_cloak';
- if(shown[trialCloakId+':'+gender]!==false&&
+ // Old V5 remains an explicit opt-in only. Never repaint naked arms over
+ // sleeves in the new generic mode: the current clothing must show through.
+ if(cloakArmRevealTrial&&cloakArmDetailV5&&
+    shown[trialCloakId+':'+gender]!==false&&
     layerShown[k(trialCloakId,gender,'front')]!==false&&
     getImage(trialCloakId,gender,'front')){
   const cloakFrontZ=safeNum(transforms[k(trialCloakId,gender,'front')]?.z,0,140,80);
@@ -1040,11 +1083,11 @@ function update(){
  normalize();renderAssetList();updateControls();drawAll();refreshJson();
  const revealBtn=$('cloakArmRevealToggle');
  if(revealBtn){
-  revealBtn.textContent='披風遮擋：'+(cloakArmRevealTrial?'原手臂':'不補畫皮膚');
+  revealBtn.textContent='披風手臂保護：'+(cloakArmRevealTrial?'開（各種上衣）':'關');
   revealBtn.setAttribute('aria-pressed',String(cloakArmRevealTrial));
   const detailBtn=$('cloakArmDetailV5Toggle');
   if(detailBtn){
-   detailBtn.textContent='手臂細修 V5：'+(cloakArmDetailV5&&cloakArmRevealTrial?'開':'關（維持 V4）');
+   detailBtn.textContent='舊版 V5 補畫：'+(cloakArmDetailV5&&cloakArmRevealTrial?'開（對照）':'關（通用優先）');
    detailBtn.setAttribute('aria-pressed',String(cloakArmDetailV5&&cloakArmRevealTrial));
   }
  }
@@ -1449,13 +1492,13 @@ $('cloakArmRevealToggle').onclick=()=>{
  cloakArmRevealTrial=!cloakArmRevealTrial;
  if(!cloakArmRevealTrial)cloakArmDetailV5=false;
  update();persist();
- toast(cloakArmRevealTrial?'深綠披風：已恢復 V4 原手臂輪廓':'深綠披風：不補畫皮膚');
+ toast(cloakArmRevealTrial?'披風將避開目前衣服的手臂與手掌':'已關閉披風手臂保護');
 };
 $('cloakArmDetailV5Toggle').onclick=()=>{
  cloakArmDetailV5=!cloakArmDetailV5;
  if(cloakArmDetailV5)cloakArmRevealTrial=true;
  update();persist();
- toast(cloakArmDetailV5?'正在試看 V5 真實手臂輪廓':'已退回先前保留的 V4');
+ toast(cloakArmDetailV5?'正在比較舊 V5 補畫皮膚':'已恢復通用衣物手臂保護');
 };
 $('toggleGuides').onclick=()=>{guides=!guides;$('toggleGuides').textContent='肩頸輔助線：'+(guides?'開':'關');drawAll()};
 $('copyAll').onclick=async()=>{refreshJson();const ok=await copyText($('jsonOutput').value);toast(ok?'已複製全部素材的 JSON':'請長按 JSON 欄位複製')};
@@ -1759,6 +1802,9 @@ async function init(){
   // V2 cloak, without changing either asset or the user's saved presets.
   if(new URLSearchParams(location.search).get('naturalLong')==='13'){
    naturalLongSleevesTrialV13=true;frontSleevesTrialV12=false;
+   if(new URLSearchParams(location.search).get('cloak')==='1'){
+    cloakArmRevealTrial=true;cloakArmDetailV5=false;
+   }
    layeredLongTunicTrialV10=false;wholeLongTunicTrialV9=false;
    sleeveReplaceModeV6=false;sleeveReplaceModeV7=false;
    for(const gender of ['male','female']){
