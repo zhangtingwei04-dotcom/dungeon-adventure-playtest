@@ -23,3 +23,20 @@
 
 試穿：
 https://zhangtingwei04-dotcom.github.io/dungeon-adventure-playtest/developer-studio.html?tab=library&shirtSleeves=6&v=true-replace-v6
+
+## 修正：V6 袖片先前無法獨立拖曳（2026-11-23 晚間）
+
+使用者實測回報「好像移動不了」。原因是 V6 雖然可顯示於預覽，但先前完全繞過工作台素材選單與 pointer drag 系統；兩袖共用主衣身 `transforms`，無法各自調整。
+
+這次已修正工作台：
+- 新增正式可選取的 **`starter_sleeves_v6` 工作台裝備**（只限工作台，**不是正式遊戲新裝備**），男女各兩個獨立圖層：`side` = 畫面左袖、`front` = 畫面右袖。
+- 原 64×160 V6 圖集不變，映射到四個內建圖源，各自可拖曳／輸入 X、Y、縮放、Z，各性別可不同。
+- 舊 V3 主衣身保留；V6 啟用時不再繪製原短袖，直接透過工作台通用 Z 排序繪製 V6 新袖。
+- 對深綠披風的補畫皮膚遮擋，已改成讀取 V6 各袖自己的圖檔與座標。
+- 「試穿長袖 V6」會自動選取可編輯的 V6 袖片；「恢復原版短袖 V3」還原原始上衣。重設服裝位置關閉 V6 並恢復原版預設。
+- 同一 V6 工作台連結加新的快取參數，確保手機載入更新的 JS。
+
+目前已驗證 GitHub main 原檔回讀、JS 語法、圖源映射、兩性四片的獨立 transforms、pointer 事件與回退路徑。**仍需 iPhone 實機拖曳確認**。未修改原 `index.html` 或其他正式裝備。
+
+修正版：
+https://zhangtingwei04-dotcom.github.io/dungeon-adventure-playtest/developer-studio.html?tab=library&shirtSleeves=6&v=v6-sleeve-drag-fix2
