@@ -351,12 +351,17 @@ function drawSlot(ctx,gender,slotsToDraw){
 function drawOriginalBodyHands(ctx,gender){
  const body=images.get(gender+'Body');if(!body)return;
  // With the shirt equipped, keep upper sleeves visible while restoring hands.
- const armTop=shown['starter_tunic:'+gender]===false?70:76;
+ const shirtWorn=shown['starter_tunic:'+gender]!==false;
+ const armTop=shirtWorn?76:70;
  ctx.save();ctx.beginPath();
- // Only restore actual lower forearm/hand strips; the former x0..24 and
- // x40..64 rectangles erased the fresh shirt's torso pixels on cloak trial.
- // Right/left clipping remains conservative until on-device verification.
- ctx.rect(0,armTop,20,102-armTop);ctx.rect(44,armTop,20,102-armTop);
+ // Retain the approved old cloak hand mask verbatim WITHOUT a shirt.
+ // Only the new shirt+cloak trial uses the narrower lower-arm clip so it
+ // cannot erase the white torso and sleeve seams.
+ if(shirtWorn){
+  ctx.rect(0,armTop,20,102-armTop);ctx.rect(44,armTop,20,102-armTop);
+ }else{
+  ctx.rect(0,70,24,32);ctx.rect(40,70,24,32);
+ }
  ctx.clip();
  for(const name of ['Body','Shorts','Tank']){
   const im=images.get(gender+name);
