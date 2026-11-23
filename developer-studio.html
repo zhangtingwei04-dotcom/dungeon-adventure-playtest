@@ -828,6 +828,10 @@ function resetLayer(){
  toast('此圖層的位置、縮放與前後層級已重設');
 }
 function resetCanonicalFit(includeCustom=false){
+ // The earlier V4 arm contour is the accepted workbench fallback.
+ // Never leave opt-in V5 enabled after restoring approved fit settings.
+ cloakArmRevealTrial=true;
+ cloakArmDetailV5=false;
  for(const a of catalogue){
   if(!includeCustom&&!BUILTIN_IDS.has(a.id))continue;
   for(const gender of ['male','female']){
