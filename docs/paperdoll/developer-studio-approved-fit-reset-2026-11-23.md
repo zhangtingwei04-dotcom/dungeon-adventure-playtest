@@ -32,3 +32,14 @@
 
 工作台：
 https://zhangtingwei04-dotcom.github.io/dungeon-adventure-playtest/developer-studio.html?tab=library&v=fit-reset-v1
+
+## 後續覆蓋：使用者最新長褲座標（當日最新設定，優先於上表）
+
+使用者重新貼上完整 `dungeon-character-asset-library-v1`，明確將旅行長褲 V2 調整為以下位置。**舊表中的長褲 (0,0) 已過時**，重設應以這份最新資料為準。
+
+| 性別 | 腰部／皮帶 front | 左褲管 side | 右褲管 back |
+|---|---|---|---|
+| 男性 | (-1,-6) | (-1,-8) | (0,-8) |
+| 女性 | (0,-6) | (0,-6) | (0,-6) |
+
+三片 scale 均為 1，visible=true；其餘的頭髮、白衣、披風、側包、尚未取得圖源的鞋／手套均依前述原座標。工作台已更新 `APPROVED_FIT_PRESET_VERSION=wardrobe-approved-fit-20261123-v2-user-trousers`，舊 v1 本機資料將**僅覆寫長褲的六個位置**，保留其他已調整數值及目前上傳的圖片。完整座標備份：`workbench-user-position-preset-2026-11-23.json`。
