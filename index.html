@@ -3604,6 +3604,14 @@ html.stage-locked #app .equip-guide .paperdoll-approved-bag{
  background-repeat:no-repeat!important;image-rendering:pixelated;
  transform:translateY(-2px);
 }
+/* Developer trial only: original 64x160 bag sprite, split exactly at Y=97.
+   Strap remains inside the cloak, pouch comes forward. Position is unchanged. */
+html.stage-locked #app .equip-guide .paperdoll-bag-upper{
+ clip-path:inset(0 0 39.375% 0);
+}
+html.stage-locked #app .equip-guide .paperdoll-bag-lower{
+ clip-path:inset(60.625% 0 0 0);
+}
 html.stage-locked #app #placeDrawerPanel .equip-slot .equip-slot-symbol.equip-item-art,
 html.stage-locked #app #placeDrawerPanel .equip-slot.is-filled .equip-slot-symbol.equip-item-art,
 html.stage-locked #app #placeDrawerPanel .equip-slot.is-preview .equip-slot-symbol.equip-item-art{
@@ -5094,6 +5102,8 @@ const LEGACY_EQUIPMENT_ART_ENABLED=false;
 // The previously rejected equipment atlas remains disabled.
 const CLOAK_PIXEL_TRIAL_ENABLED=new URLSearchParams(location.search).get('cloak')==='trial';
 const CLOAK_ART_V2_ENABLED=new URLSearchParams(location.search).get('cloak')!=='off'&&!CLOAK_PIXEL_TRIAL_ENABLED;
+// Activate only with ?bagSplit=trial. Normal release retains approved layering.
+const SATCHEL_LOWER_OUTSIDE_TRIAL_ENABLED=new URLSearchParams(location.search).get('bagSplit')==='trial';
 // The equipped white starter shirt V3 is now visible in the actual inventory
 // paper doll; ?shirt=off is a visual-only rollback, never unequips an item.
 const WHITE_STARTER_SHIRT_V3_ENABLED=new URLSearchParams(location.search).get('shirt')!=='off';
@@ -6037,7 +6047,9 @@ function equipmentGuideHTML(sceneMode='equipment'){
  // outfit atlas. Show the existing 64x160 bag PNG only when worn (or when
  // the separate try-on preview is active), without changing equipment/save.
  const satchel=!privateScene&&show('bag')?
-  '<span class="paperdoll-layer paperdoll-approved-bag" aria-hidden="true"></span>':'';
+  '<span class="paperdoll-layer paperdoll-approved-bag'+(SATCHEL_LOWER_OUTSIDE_TRIAL_ENABLED?' paperdoll-bag-upper':'')+'" aria-hidden="true"></span>':'';
+ const satchelLower=SATCHEL_LOWER_OUTSIDE_TRIAL_ENABLED&&satchel?
+  '<span class="paperdoll-layer paperdoll-approved-bag paperdoll-bag-lower" aria-hidden="true"></span>':'';
  // Approved V2 PNG front/back layers follow the saved equipment state.
  // Bath/dressing privacy views remain excluded, and other rejected gear art
  // remains disabled. The old polygon test is kept ONLY behind ?cloak=trial.
@@ -6098,7 +6110,7 @@ function equipmentGuideHTML(sceneMode='equipment'){
    (sharedHead&&window.DungeonMaleV9Equipment?.version==='v3-accepted'?' paperdoll-v3':'')+
    (s.appearanceV1?.parts?.hairStyle==='bald'?' paperdoll-bald':'')+(shirtArt?' paperdoll-shirt-equipped':'')+(currentPaperDollAbnormalStates().includes('unconscious')?' eyes-unconscious':'')+'" role="img" aria-label="'+
   (paperDollTryOn?'主角旅行裝試穿預覽':(s.appearanceV1?.gender==='female'?'女性':'男性')+'標準型紙娃娃，依實際裝備顯示')+'">'+
-  behind+cloakBack+base+shorts+tank+outfit+shirtLayers+satchel+cloakFront+nativeArms+extras+veil+brows+eyes+mouth+healthMarks+hair+
+  behind+cloakBack+base+shorts+tank+outfit+shirtLayers+satchel+cloakFront+satchelLower+nativeArms+extras+veil+brows+eyes+mouth+healthMarks+hair+
   (paperDollTryOn?'<span class="paperdoll-preview-label">試穿</span>':'')+'</div>';
 }
 function setOwnedEquipmentEquipped(slotId,equip){
