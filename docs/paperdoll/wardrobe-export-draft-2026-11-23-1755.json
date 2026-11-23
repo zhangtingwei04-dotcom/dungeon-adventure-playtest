@@ -455,5 +455,19 @@
       }
     }
   ],
-  "note": "工作台試穿參數包含每個部件的 z 和各性別的 wearMode 穿著方式；匯入的 PNG 需另外附圖，不會自動更新正式遊戲。"
+  "note": "工作台試穿參數包含每個部件的 z 和各性別的 wearMode 穿著方式；匯入的 PNG 需另外附圖，不會自動更新正式遊戲。",
+  "review": {
+    "status": "user-confirmed-accidental-drag",
+    "accidentalLayer": "starter_trousers:female:front",
+    "mistaken": {
+      "x": -17,
+      "y": 25
+    },
+    "correctApproved": {
+      "x": 0,
+      "y": -5
+    },
+    "action": "Do not use mistaken coordinates as defaults; a targeted repair button and direct recovery link are available in developer-studio.html",
+    "otherSettings": "preserved, including the separately accepted male cloak front y -6"
+  }
 }
