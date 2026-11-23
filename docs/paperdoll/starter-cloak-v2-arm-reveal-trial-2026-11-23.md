@@ -46,3 +46,19 @@ https://zhangtingwei04-dotcom.github.io/dungeon-adventure-playtest/developer-stu
 
 新版測試網址：
 https://zhangtingwei04-dotcom.github.io/dungeon-adventure-playtest/developer-studio.html?tab=library&cloakArms=1&v=cloak-arm-hemfix2
+
+## V3 修正：使用者 17:32 截圖確認 V2 仍然錯誤
+
+- 使用者指出角色兩腿外側、腰下方出現**兩條細長膚色直線**；顯示不是袖口附近的問題。先前 V2 在 Y 76–101 仍使用過寬的矩形（X 0–19、44–63），會把原底模的大腿皮膚再次繪在長褲上。
+- 因此將 V2 的「補丁式矩形擴張」標記為失敗，不再作為預設方案。
+- V3 改為**保守的逐段收窄手臂輪廓**（男、女共用外側範圍，實際取自原生底模）：
+  - 上段 Y 76–82：左 X 0–20、右 X 43–63
+  - 中段 Y 83–89：左 X 0–18、右 X 45–63
+  - 手掌 Y 90–101：左 X 0–14、右 X 49–63
+- **V3 開啟時只恢復原本裸體底模的手臂像素**，不再把 `Shorts`／`Tank`／整件 `Shirt` 透過手臂遮罩重新畫在最上方。
+- V3 關閉時舊版對照仍恢復原矩形與其原繪製流程；未穿上衣時也沿用原方法。
+- 功能範圍仍只有 `starter_cloak`，不修改其透明 PNG、其他服裝位置／Z／穿著模式、正式遊戲 `index.html` 或玩家存檔。
+- GitHub 回讀 + JavaScript 語法 + 男／女 V3、V3 關閉、未穿上衣的 4 組裁切區塊及實際繪製圖層模擬均通過。**視覺效果尚未經 iPhone 使用者確認**；如果仍有肌膚露出或新的截斷，優先撤回 V3，改用逐像素遮罩，不再擴大矩形。
+
+新版連結：
+https://zhangtingwei04-dotcom.github.io/dungeon-adventure-playtest/developer-studio.html?tab=library&cloakArms=1&v=arm-outline-v3
