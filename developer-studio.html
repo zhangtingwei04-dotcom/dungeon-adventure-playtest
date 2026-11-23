@@ -72,6 +72,7 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 @media(orientation:landscape) and (max-height:480px){.head{padding:6px 11px}.micro{display:none}.spriteChecker{min-height:210px}.spriteChecker canvas{max-width:91px}header{position:static}}
 </style>
 <script src="./assets/cloak_workbench_bases_v1.js?v=1"></script>
+<script src="./assets/white_shirt_workbench_v1.js?v=1"></script>
 <script src="./assets/dungeon_generated_cloak_v2.js?v=2"></script>
 <script src="./assets/male_approved_v3_layers.js?v=1"></script>
 <script src="./assets/male_v3_corrected_layers_v2.js?v=1"></script>
@@ -99,7 +100,13 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 <section id="page-library" data-page="library" hidden>
 <div class="hint">此處使用正式男女身體／內衣／頭髮素材。新增 PNG 可單獨定位、調整大小，並在男女預覽中測試。披風 V2 使用剛生成的原圖拆成透明前後層，可分別調整男女位置和大小；正式採用前仍需驗收。調完後到「數據與備份」複製數據給我。</div>
 <div class="layout">
-<div class="panel"><h2>素材庫</h2><div class="libraryList" id="assetList" role="group" aria-label="角色與裝備素材清單"></div>
+<div class="panel"><h2>素材庫</h2>
+<div class="hint">白色初始布衣 V1 已載入：男／女各有主衣身、左袖、右袖，左右袖採同尺寸鏡像。此工作台只供試穿，尚未取代正式遊戲圖層。</div>
+<div class="toolbar" style="margin:10px 0">
+<button class="primary" id="shirtOnly">試穿白布衣（暫隱披風）</button>
+<button id="shirtWithCloak">白布衣＋披風</button>
+<button id="shirtOff">脫下白布衣</button>
+</div><div class="libraryList" id="assetList" role="group" aria-label="角色與裝備素材清單"></div>
 <div class="divider"></div><h3>新增裝備／髮型</h3>
 <div class="editorFields">
 <label class="field single">名稱<input id="newName" placeholder="例如：旅人披風 V2" maxlength="45"></label>
@@ -180,7 +187,7 @@ const sourceImages={
 const catalogue=[
  {id:'hair_original',name:'原版頭髮',slot:'hair',layers:['front'],status:'已使用的頭髮來源'},
  {id:'starter_cloak',name:'深綠金邊披風 V2｜已核准',slot:'outer',layers:['back','front'],status:'已通過試穿確認／正式遊戲已啟用'},
- {id:'starter_tunic',name:'旅人上衣',slot:'chest',layers:['front'],status:'待匯入新圖'},
+ {id:'starter_tunic',name:'白色初始布衣 V1｜試穿',slot:'chest',layers:['front','side','back'],status:'男女三件正面透明像素圖｜待實際貼合驗收'},
  {id:'starter_trousers',name:'旅行長褲',slot:'legs',layers:['front'],status:'待匯入新圖'},
  {id:'starter_boots',name:'皮革長靴',slot:'feet',layers:['front'],status:'待匯入新圖'},
  {id:'starter_gloves',name:'棕色皮革手套',slot:'hands',layers:['front'],status:'待匯入新圖'},
@@ -190,7 +197,9 @@ const slots={hair:'頭髮',head:'頭部',chest:'上衣',outer:'外衣',legs:'下
 const stockKeys={
  'hair_original:male:front':'maleHair','hair_original:female:front':'femaleHair',
  'starter_cloak:male:back':'maleCloakBack','starter_cloak:male:front':'maleCloakFront',
- 'starter_cloak:female:back':'femaleCloakBack','starter_cloak:female:front':'femaleCloakFront'
+ 'starter_cloak:female:back':'femaleCloakBack','starter_cloak:female:front':'femaleCloakFront',
+ 'starter_tunic:male:front':'maleShirtCore','starter_tunic:male:side':'maleShirtLeft','starter_tunic:male:back':'maleShirtRight',
+ 'starter_tunic:female:front':'femaleShirtCore','starter_tunic:female:side':'femaleShirtLeft','starter_tunic:female:back':'femaleShirtRight'
 };
 const images=new Map(),userPngs=new Map(),imageInfo=new Map();
 const transforms={},shown={},layerShown={};
@@ -209,7 +218,7 @@ function safeNum(n,min,max,fallback){n=Number(n);return Number.isFinite(n)?Math.
 function normalize(){
  for(const a of catalogue)for(const g of ['male','female']){
   const base=a.id+':'+g;
-  if(shown[base]===undefined)shown[base]=a.id==='hair_original'||a.id==='starter_cloak';
+  if(shown[base]===undefined)shown[base]=a.id==='hair_original'||a.id==='starter_cloak'||a.id==='starter_tunic';
   for(const l of a.layers){
    const key=k(a.id,g,l);
    if(!transforms[key])transforms[key]=defaultT(a,g,l);
@@ -341,7 +350,9 @@ function drawSlot(ctx,gender,slotsToDraw){
 // pixels, incorrectly making the shorts look smaller.
 function drawOriginalBodyHands(ctx,gender){
  const body=images.get(gender+'Body');if(!body)return;
- ctx.save();ctx.beginPath();ctx.rect(0,70,24,32);ctx.rect(40,70,24,32);
+ // With the shirt equipped, keep upper sleeves visible while restoring hands.
+ const armTop=shown['starter_tunic:'+gender]===false?70:76;
+ ctx.save();ctx.beginPath();ctx.rect(0,armTop,24,102-armTop);ctx.rect(40,armTop,24,102-armTop);
  ctx.clip();
  for(const name of ['Body','Shorts','Tank']){
   const im=images.get(gender+name);
@@ -353,14 +364,23 @@ function drawAssetStage(gender){
  const c=$(gender+'Canvas'),ctx=c.getContext('2d');ctx.clearRect(0,0,64,160);ctx.imageSmoothingEnabled=false;
  const drawStatic=key=>{const img=images.get(key);if(img)ctx.drawImage(img,0,0,64,160)};
  // Draw all rear equipment first, then body and underwear, then front equipment.
- for(const a of catalogue)if(shown[a.id+':'+gender]!==false&&a.slot!=='hair'&&a.layers.includes('back')){
+ for(const a of catalogue)if(shown[a.id+':'+gender]!==false&&a.slot!=='hair'&&a.id!=='starter_tunic'&&a.layers.includes('back')){
   const key=k(a.id,gender,'back');if(layerShown[key]!==false)drawImageOn(ctx,images.get(key),transforms[key]);
  }
  // The head goes beneath the body on both sexes. Body supplies one neck.
  drawStatic(gender+'Head');
  drawStatic(gender+'Body');
  drawStatic(gender+'Shorts');drawStatic(gender+'Tank');
- for(const a of catalogue)if(shown[a.id+':'+gender]!==false&&a.slot!=='hair'){
+ // Shirt components are all FRONT-view assets. The key 'back' below is
+ // reserved for right sleeve in this legacy 3-layer editor, NOT rear-view art.
+ // Draw matching sleeves first, torso on top, before the approved cloak.
+ if(shown['starter_tunic:'+gender]!==false){
+  for(const layer of ['side','back','front']){
+   const key=k('starter_tunic',gender,layer);
+   if(layerShown[key]!==false)drawImageOn(ctx,images.get(key),transforms[key]);
+  }
+ }
+ for(const a of catalogue)if(shown[a.id+':'+gender]!==false&&a.slot!=='hair'&&a.id!=='starter_tunic'){
   for(const layer of a.layers)if(layer!=='back'){
    const key=k(a.id,gender,layer);
    if(layerShown[key]!==false)drawImageOn(ctx,images.get(key),transforms[key]);
@@ -407,7 +427,7 @@ function renderAssetList(){
 function updateControls(){
  const a=item(selected);if(!a)return;
  const select=$('editLayer');select.replaceChildren();
- for(const layer of a.layers){const op=document.createElement('option');op.value=layer;op.textContent={front:'前層／主圖',back:'後層',side:'側面裝飾'}[layer];select.appendChild(op)}
+ for(const layer of a.layers){const op=document.createElement('option');op.value=layer;op.textContent=a.id==='starter_tunic'?{front:'主衣身（正面）',side:'左短袖（正面）',back:'右短袖（正面）'}[layer]:{front:'前層／主圖',back:'後層',side:'側面裝飾'}[layer];select.appendChild(op)}
  if(!a.layers.includes(editingLayer))editingLayer=a.layers[0];
  select.value=editingLayer;$('editGender').value=editingGender;$('assetSelect').value=selected;
  const t=transforms[selectedKey()]||defaultT(a,editingGender,editingLayer);
@@ -420,6 +440,8 @@ function updateControls(){
  $('assetMeta').textContent='ID：'+a.id+'｜分類：'+(slots[a.slot]||a.slot)+'｜'+a.status+'｜'+a.layers.join('、');
  $('assetWarning').textContent=a.id==='starter_cloak'?
   '披風 V2 已由你確認並正式啟用：男性前層 x0、y-8、scale1，女性前層 x0、y-6、scale1，男女後層 x0、y0、scale1。工作台後續修改只在本機測試，未重新確認前不會自動覆蓋正式版本。':
+  a.id==='starter_tunic'?
+  '白色初始布衣 V1：男女各自三個正面部件；左右袖尺寸相同並鏡像。這是獨立工作台試穿，不會更新正式遊戲。':
   '正式男女頭部、身體與內衣不動；圖層調整只影響工作台預覽，不會自動安裝到遊戲。';
 }
 function update(){normalize();renderAssetList();updateControls();drawAll();refreshJson()}
@@ -539,6 +561,18 @@ for(const b of document.querySelectorAll('[data-nudge]'))b.onclick=()=>{
 $('pngUpload').onchange=upload;
 $('clearCurrentPng').onclick=clearUpload;
 $('resetLayer').onclick=resetLayer;
+function applyShirtTrial(showShirt,showCloak){
+ for(const g of ['male','female']){
+  shown['starter_tunic:'+g]=showShirt;
+  shown['starter_cloak:'+g]=showCloak;
+ }
+ selected='starter_tunic';editingLayer='front';
+ update();persist();
+ toast(showShirt?(showCloak?'男女白布衣＋披風':'男女白布衣試穿中'):'上衣已脫下，內衣仍保留');
+}
+$('shirtOnly').onclick=()=>applyShirtTrial(true,false);
+$('shirtWithCloak').onclick=()=>applyShirtTrial(true,true);
+$('shirtOff').onclick=()=>applyShirtTrial(false,false);
 $('addAsset').onclick=addAsset;
 $('copySelected').onclick=async()=>{
  const ok=await copyText(JSON.stringify(serialize(selected),null,2));
@@ -596,6 +630,19 @@ for(const g of ['male','female'])onPointer(g,$(g+'Canvas'));
 async function init(){
  restore();normalize();
  try{
+  // Assemble six pre-aligned transparent 64x160 PNG layers from one sheet.
+  // Avoid independent AI re-scaling of each sleeve in the browser.
+  const whiteShirt=window.DungeonWhiteShirtWorkbenchV1;
+  if(whiteShirt?.sheet&&whiteShirt?.sliceNames?.length===6){
+   const source=new Image();
+   await new Promise((resolve,reject)=>{source.onload=resolve;source.onerror=reject;source.src=whiteShirt.sheet});
+   if(source.naturalWidth!==384||source.naturalHeight!==160)throw Error('白布衣圖層畫布尺寸錯誤');
+   for(let i=0;i<6;i++){
+    const cv=document.createElement('canvas');cv.width=64;cv.height=160;
+    cv.getContext('2d').drawImage(source,i*64,0,64,160,0,0,64,160);
+    sourceImages[whiteShirt.sliceNames[i]]=cv.toDataURL('image/png');
+   }
+  }
   const keys=Object.entries(sourceImages).filter(([,value])=>
    typeof value==='string'&&value.startsWith('data:image/png;base64,'));
   await Promise.all([
@@ -615,6 +662,10 @@ async function init(){
    }
   }catch(e){console.warn('Some local uploaded PNGs unavailable:',e);$('persistInfo').textContent='本機 PNG 圖庫無法讀取，內建圖仍可用。新素材請另行保管。'}
   ready=true;update();scaleGame();
+  if(new URLSearchParams(location.search).get('shirt')==='1'){
+   for(const g of ['male','female']){shown['starter_tunic:'+g]=true;shown['starter_cloak:'+g]=false}
+   selected='starter_tunic';editingLayer='front';update();
+  }
   if(new URLSearchParams(location.search).get('tab')==='library')setTab('library');
  }catch(e){toast('素材預載不完整：'+e.message);console.error(e);ready=true;update()}
 }
