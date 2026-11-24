@@ -111,7 +111,7 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 <div class="toolbar"><button class="primary" type="button" id="applyUserV13Json">套用最新 JSON｜V13 外罩＋背包＋四隻皮靴定位</button></div>
 <div class="toolbar"><button class="primary" type="button" id="bootsTry">穿上 V4 縮小版正面雙靴</button><button type="button" id="bootsRemove">脫下皮靴</button></div>
 <div class="hint">鞋子測試：從目前男女64×160原始身體腳部的像素自動定位置，左右腳各自透明，深棕色鞋面、扣帶與鞋底。長褲、披風、手與背包坐標不變；正式遊戲尚未安裝鞋子圖。</div>
-<div class="hint">依照最新提供的裝備 JSON：男女 V13 外罩式、披風前層 Y -6、背包 Y -10。V4 皮靴男性左(+1,+3)、右(-1,+3)；女性左(+1,+4)、右(-2,+4)，四腳縮放 0.90。只改工作台試穿設定，PNG 和正式遊戲存檔不變。</div>
+<div class="hint">依照最新提供的裝備 JSON：男女 V13 外罩式、披風前層 Y -6、背包 Y -10。V4 皮靴男性左(+1,+11)、右(-1,+11)，兩腳縮放 0.80；女性左(+1,+4)、右(-2,+4)，兩腳縮放 0.90。只改工作台試穿設定，PNG 和正式遊戲存檔不變。</div>
 <div class="hint">穿搭試驗：選白色初始布衣，切換「紮入式／自然垂放／外罩式」，男女可以不同。自然垂放只將下擺重新疊在褲腰前，不改袖子與角色；披風仍維持已核准的前後包覆。已儲存的 Z、男女座標及重設資料都保留。正式遊戲不會同步改動。</div>
 <div class="toolbar" style="margin:10px 0">
 <button class="primary" id="shirtOnly">試穿白布衣（暫隱披風）</button>
@@ -1467,7 +1467,7 @@ function applyLatestUserV13JsonPreset(){
   }
   // Use the exact newly exported footwear offsets, not inferred sizes.
   const fit=gender==='male'?
-   {left:{x:1,y:3,scale:0.9},right:{x:-1,y:3,scale:0.9}}:
+   {left:{x:1,y:11,scale:0.8},right:{x:-1,y:11,scale:0.8}}:
    {left:{x:1,y:4,scale:0.9},right:{x:-2,y:4,scale:0.9}};
   for(const foot of ['left','right'])Object.assign(bootPartState(gender,foot),fit[foot]);
  }
