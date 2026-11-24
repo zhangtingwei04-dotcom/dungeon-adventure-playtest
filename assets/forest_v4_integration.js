@@ -20,14 +20,18 @@ window.DungeonForestV4Integration=(function integration(){
   const k=o.assetId.replace(/^forest4_/,'');
   const isPlant=/^(grass_|.*flower|lavender|yellow_shrub|small_shrub|shrub|fern|mushroom|berries)/.test(k);
   const airborne=['bird','butterfly','vine'].includes(k);
-  const p=props[k]||{shadowWidth:85,shadowHeight:10,shadowOpacity:isPlant?.36:.54,brightness:isPlant?.93:.96,saturation:isPlant?.85:.91,contrast:.98};
+  let p=props[k]||{shadowWidth:85,shadowHeight:10,shadowOpacity:isPlant?.36:.54,brightness:isPlant?.93:.96,saturation:isPlant?.85:.91,contrast:.98};
+  if(window.DUNGEON_FOREST_V4_LAYOUT?.layoutVariant==='accident-b'){
+   const changes={wagon:{brightness:.89,saturation:.79,contrast:.96,grassWidth:25},wheel_flat:{brightness:.88,saturation:.81,contrast:.96,grassLeft:8,grassWidth:36,grassOpacity:.72},crate_large:{brightness:.91,saturation:.83,contrast:.97},crate_open:{brightness:.90,saturation:.83,contrast:.97},crate_small:{brightness:.92,saturation:.85,contrast:.97},barrel:{brightness:.90,saturation:.83,contrast:.97,shadowWidth:126,shadowHeight:20,shadowLeft:104,shadowBottom:-25},rabbit:{brightness:.86,saturation:.86,contrast:.96}};
+   p={...p,...(changes[k]||{})};
+  }
   // Depth correction is intentionally restrained: only art appearance, never dimensions.
   const depth=Math.max(0,Math.min(1,(70-o.y)/45));
   return {...p,ground:!airborne,brightness:Math.max(.8,Math.min(1,p.brightness+depth*.025)),saturation:Math.max(.65,p.saturation-depth*.045),contrast:p.contrast-depth*.025,angle:k==='wheel_flat'||k==='plank'?o.rotation*.5:0};
  }
  function apply(node,o,assets){
   const p=profile(o);node.dataset.ground=String(p.ground);
-  const vars={'shadow-width':p.shadowWidth+'%','shadow-height':p.shadowHeight+'%','shadow-opacity':p.shadowOpacity,'ground-angle':p.angle+'deg','brightness':p.brightness.toFixed(3),'saturation':p.saturation.toFixed(3),'contrast':p.contrast.toFixed(3)};
+  const vars={'shadow-left':(p.shadowLeft??50)+'%','shadow-bottom':(p.shadowBottom??-1)+'%','shadow-width':p.shadowWidth+'%','shadow-height':p.shadowHeight+'%','shadow-opacity':p.shadowOpacity,'ground-angle':p.angle+'deg','brightness':p.brightness.toFixed(3),'saturation':p.saturation.toFixed(3),'contrast':p.contrast.toFixed(3)};
   for(const [key,value] of Object.entries(vars))node.style.setProperty('--v4-'+key,String(value));
   // Small contact fringe, not a new collectible or authored object.
   // Reuse the existing approved transparent grass art only on selected near-ground props.
