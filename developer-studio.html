@@ -108,10 +108,10 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 <div class="layout">
 <div class="panel"><h2>素材庫</h2>
 <div class="hint">側包新測試：使用原圖，Y97 起的包身顯示在披風前，肩帶留在披風內；手掌與實際袖口顯示在下方包身前面。不重畫皮膚或背包，男女可並排試穿；正式遊戲預設不變。</div>
-<div class="toolbar"><button class="primary" type="button" id="applyUserV13Json">套用最新 JSON｜V13 外罩＋背包 Y -10</button></div>
+<div class="toolbar"><button class="primary" type="button" id="applyUserV13Json">套用最新 JSON｜V13 外罩＋背包＋四隻皮靴定位</button></div>
 <div class="toolbar"><button class="primary" type="button" id="bootsTry">穿上 V4 縮小版正面雙靴</button><button type="button" id="bootsRemove">脫下皮靴</button></div>
 <div class="hint">鞋子測試：從目前男女64×160原始身體腳部的像素自動定位置，左右腳各自透明，深棕色鞋面、扣帶與鞋底。長褲、披風、手與背包坐標不變；正式遊戲尚未安裝鞋子圖。</div>
-<div class="hint">依照最新提供的裝備 JSON：男女 V13 外罩式、左右袖獨立、披風前層 Y -6、旅行長褲 V2、背包前層 Y -10。只套用位置及穿搭狀態，不改 PNG 或正式遊戲存檔。</div>
+<div class="hint">依照最新提供的裝備 JSON：男女 V13 外罩式、披風前層 Y -6、背包 Y -10。V4 皮靴男性左(+1,+3)、右(-1,+3)；女性左(+1,+4)、右(-2,+4)，四腳縮放 0.90。只改工作台試穿設定，PNG 和正式遊戲存檔不變。</div>
 <div class="hint">穿搭試驗：選白色初始布衣，切換「紮入式／自然垂放／外罩式」，男女可以不同。自然垂放只將下擺重新疊在褲腰前，不改袖子與角色；披風仍維持已核准的前後包覆。已儲存的 Z、男女座標及重設資料都保留。正式遊戲不會同步改動。</div>
 <div class="toolbar" style="margin:10px 0">
 <button class="primary" id="shirtOnly">試穿白布衣（暫隱披風）</button>
@@ -1428,7 +1428,8 @@ function applyLatestUserV13JsonPreset(){
   starter_natural_long_tunic_v13:{front:[-1,-1]},
   starter_natural_long_tunic_v13_sleeves:{side:[-1,-1],front:[-1,-1]},
   starter_trousers:{front:[-1,-6],side:[-1,-8],back:[0,-8]},
-  enchanted_satchel:{front:[0,-10]}
+  enchanted_satchel:{front:[0,-10]},
+  starter_boots:{front:[0,0]}
  };
  const female={
   hair_original:{front:[-2,-5]},
@@ -1437,11 +1438,12 @@ function applyLatestUserV13JsonPreset(){
   starter_natural_long_tunic_v13:{front:[0,-1]},
   starter_natural_long_tunic_v13_sleeves:{side:[0,-1],front:[0,-1]},
   starter_trousers:{front:[0,-5],side:[0,-6],back:[0,-6]},
-  enchanted_satchel:{front:[0,-10]}
+  enchanted_satchel:{front:[0,-10]},
+  starter_boots:{front:[0,0]}
  };
  const active=new Set(['hair_original','starter_cloak','starter_tunic',
   'starter_natural_long_tunic_v13','starter_natural_long_tunic_v13_sleeves',
-  'starter_trousers','enchanted_satchel']);
+  'starter_trousers','enchanted_satchel','starter_boots']);
  const earlier=['starter_long_sleeves_v4','starter_sleeves_v6','starter_sleeves_v7',
   'starter_long_tunic_whole_v9','starter_tunic_layered_v10',
   'starter_tunic_layered_v10_sleeves','starter_tunic_layered_v12',
@@ -1463,11 +1465,16 @@ function applyLatestUserV13JsonPreset(){
     layerShown[key]=true;
    }
   }
+  // Use the exact newly exported footwear offsets, not inferred sizes.
+  const fit=gender==='male'?
+   {left:{x:1,y:3,scale:0.9},right:{x:-1,y:3,scale:0.9}}:
+   {left:{x:1,y:4,scale:0.9},right:{x:-2,y:4,scale:0.9}};
+  for(const foot of ['left','right'])Object.assign(bootPartState(gender,foot),fit[foot]);
  }
- selected='starter_natural_long_tunic_v13';editingLayer='front';
+ selected='starter_boots';editingLayer='front';editingBootFoot='left';
  cloakArmRevealTrial=true;cloakArmDetailV5=false;
  update();persist();
- toast('已套用最新 V13 外罩與背包 Y -10（男女），不修改正式遊戲存檔');
+ toast('已套用最新 V13、背包與左右皮靴定位（男女），不修改正式遊戲存檔');
 }
 $('applyUserV13Json').onclick=applyLatestUserV13JsonPreset;
 function setBootsTrial(on){
