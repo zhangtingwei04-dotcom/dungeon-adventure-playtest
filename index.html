@@ -3915,6 +3915,18 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 #sceneStage .opening-wagon-trial img{display:block;width:100%;height:auto;pointer-events:none}
 #sceneStage .opening-wagon-trial:focus-visible{outline:2px solid #f8dda4;outline-offset:2px}
 #app.encounter-pending #sceneStage .opening-wagon-trial,#app.scene-dialogue-active #sceneStage .opening-wagon-trial{pointer-events:none!important}
+/* Forest V4: exact editor bottom-center anchors, width %, z and rotation. */
+#sceneStage .forest-v4-layer{position:absolute;inset:0;z-index:1;isolation:isolate;pointer-events:none}
+#sceneStage .forest-v4-object{position:absolute;display:block;transform:translate(-50%,-100%);height:auto;margin:0;padding:0;border:0;box-shadow:none;background:transparent;pointer-events:none;min-width:0;max-width:none}
+#sceneStage button.forest-v4-object{pointer-events:auto;cursor:pointer;touch-action:manipulation}
+#sceneStage .forest-v4-art{display:block;width:100%;height:auto;transform-origin:50% 100%;pointer-events:none}
+#sceneStage .forest-v4-art img{display:block;width:100%;height:auto;pointer-events:none;image-rendering:auto;transform-origin:50% 100%}
+#app[data-indoor="false"][data-period] #sceneStage .forest-v4-art img{filter:var(--scene-light);transition:filter .65s ease}
+#sceneStage .forest-v4-object[data-motion="plant"] img{animation:living-sway 5.2s ease-in-out infinite}
+#sceneStage .forest-v4-object[data-motion="animal"] img{animation:living-breathe 3.3s ease-in-out infinite}
+#sceneStage .forest-v4-object:focus-visible{outline:1px dashed #f8dda4;outline-offset:2px}
+#app.encounter-pending #sceneStage button.forest-v4-object,#app.scene-dialogue-active #sceneStage button.forest-v4-object{pointer-events:none!important}
+@media(prefers-reduced-motion:reduce){#sceneStage .forest-v4-art img{animation:none!important;transition:none!important}}
 #sceneStage .world-object:focus-visible{outline:2px solid #f8dda4;outline-offset:2px}
 #app.encounter-pending #sceneStage .world-object,#app.scene-dialogue-active #sceneStage .world-object{pointer-events:none!important;visibility:hidden}
 </style>
@@ -4165,6 +4177,12 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <script src="./assets/ornaments_data.js"></script>
 <script src="./assets/approved_wagon_art_v1.js"></script>
 <script src="./assets/wreck_empty_forest_preview_v1.js?v=20261124"></script>
+<script src="./assets/forest_v4_background.js?v=1"></script>
+<script src="./assets/forest_v4_assets_1.js?v=1"></script>
+<script src="./assets/forest_v4_assets_2.js?v=1"></script>
+<script src="./assets/forest_v4_assets_3.js?v=1"></script>
+<script src="./assets/forest_v4_assets_4.js?v=1"></script>
+<script src="./assets/forest_v4_layout.js?v=1"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/scene_objects_v1.js?v=20261124-2"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
@@ -7776,10 +7794,39 @@ function renderOpeningWagonTrial(el){
  b.onclick=()=>guardedAction(()=>{if(!modal&&!$('app').classList.contains('scene-dialogue-active'))marks();});
  el.appendChild(b);
 }
+function forestV4Active(){
+ return s.scene==='wreck'&&emptyForestReady&&forestV4Selected;
+}
+function forestV4Action(o){
+ if(encounterPending||modal||s.flags.inBattle||$('app').classList.contains('scene-dialogue-active'))return;
+ const k=o.assetId.replace('forest4_','');
+ if(k==='wagon'||k==='wheel_flat'){marks();return;}
+ if(k.startsWith('crate')){glance();return;}
+ const descriptions={barrel:'木桶經過風吹雨淋，木板已經有些變色。',sack:'一個沾有泥土的舊布袋。',plank:'散落的木板看起來是事故留下的。',plank_lean:'一塊靠在殘骸旁的木板。',bird:'小鳥在枝葉間停留，偶爾轉動頭部。',rabbit:'長耳生物安靜地停留在草地上。',beetle:'一隻甲蟲停留在附近。',butterfly:'蝴蝶在林間輕輕拍動翅膀。'};
+ dialog(o.name,descriptions[k]||'你留意到這個物件。',[{label:'繼續觀察周圍',fn:()=>{}}],'場景觀察');
+}
+function renderForestV4(el){
+ const cfg=window.DUNGEON_FOREST_V4_LAYOUT?.scenes?.wreck,assets=window.DUNGEON_FOREST_V4_ASSETS;
+ if(!cfg||!assets)return;
+ const layer=document.createElement('div');layer.className='forest-v4-layer';
+ for(const o of cfg){
+  const a=assets[o.assetId];if(!o.visible||!a?.src)continue;
+  const k=o.assetId.replace('forest4_','');
+  const animal=['bird','rabbit','beetle','butterfly'].includes(k);
+  const plant=/^(grass_|.*flower|lavender|yellow_shrub|vine)/.test(k);
+  const interactive=animal||k==='wagon'||k==='wheel_flat'||k.startsWith('crate')||['barrel','sack','plank','plank_lean'].includes(k);
+  const node=document.createElement(interactive?'button':'div');if(interactive){node.type='button';node.setAttribute('aria-label',o.name);node.title=o.name;node.onclick=()=>guardedAction(()=>forestV4Action(o));}else node.setAttribute('aria-hidden','true');
+  node.className='forest-v4-object';node.dataset.objectId=o.id;node.dataset.motion=animal?'animal':plant?'plant':'fixed';node.style.left=o.x+'%';node.style.top=o.y+'%';node.style.width=o.width+'%';node.style.zIndex=10+o.z;
+  const art=document.createElement('span');art.className='forest-v4-art';art.style.transform='scaleX('+(o.flip?-1:1)+') rotate('+o.rotation+'deg)';
+  const im=document.createElement('img');im.src=a.src;im.alt='';im.draggable=false;art.appendChild(im);node.appendChild(art);layer.appendChild(node);
+ }
+ el.appendChild(layer);
+}
 function renderWorldObjects(el){
  const engine=window.DungeonSceneObjectsV1;if(!engine||encounterPending)return;
  for(const obj of engine.objects(s)){
   if(obj.decorative){
+   if(forestV4Active())continue;
    const patch=document.createElement('div');patch.className='world-vegetation';patch.dataset.stage=obj.stage;patch.style.left=obj.x+'%';patch.style.top=obj.y+'%';patch.setAttribute('aria-hidden','true');
    const canvas=document.createElement('canvas');engine.sprite(canvas,obj.kind,obj.stage);patch.appendChild(canvas);el.appendChild(patch);continue;
   }
@@ -7791,12 +7838,13 @@ function renderWorldObjects(el){
 }
 function renderHotspots(){
  const el=$('hotspots');el.replaceChildren();
- if(!(DEV_PREVIEW_MODE&&s.scene==='wreck'&&editorForestSrc)){renderOpeningWagonTrial(el);renderWorldObjects(el);}
+ if(forestV4Active()){renderForestV4(el);renderWorldObjects(el);}else if(!(DEV_PREVIEW_MODE&&s.scene==='wreck'&&editorForestSrc)){renderOpeningWagonTrial(el);renderWorldObjects(el);}
  const per={wreck:[['散落貨箱',.36,.71,glance],['車輪痕跡',.45,.53,marks],['離開的林道',.85,.57,()=>change('trail'),'trail'],['探索周遭',.73,.65,exploreArea,null]],trail:[['沿小徑前進',.55,.48,rescue,'gate'],['石拱遺跡',.79,.49,()=>change('ruin'),'ruin'],['路旁舊石碑',.13,.49,inspectTrailMarker],['林間草木',.29,.59,()=>change('clearing'),'clearing'],['返回馬車',.45,.62,()=>change('wreck'),'wreck'],['探索周遭',.7,.62,exploreArea,null]],clearing:[['微光',59,69,light],['聲音',75,46,soundInForest]],ruin:[['石門',51,45,ruinLook]],inn:[['鏡子',73,43,innMark]],guild:[['公告板',69,49,guildBoard]],outskirts:[['舊路標',67,49,roadsideSign]],home:[['留守夥伴',48,59,meetHome]]};
  if(!showHints)return;
  const panorama=s.scene==='wreck'?((emptyForestReady||approvedWreckReady)?null:wreckPanoramaCrop()):s.scene==='trail'?(trailForestReady?trailIllustrationCrop():trailPanoramaCrop()):null;
  for(const [label,x,y,fn,to] of per[s.scene]||[]){
   if(to&&!routeKnown(s.scene,to))continue;
+  if(forestV4Active()&&(label==='散落貨箱'||label==='車輪痕跡'))continue;
   /* The exploration hotspot stays usable after all routes are known. */
   let screenX=panorama?100*(x*panorama.width-panorama.sourceX)/panorama.cropWidth:x;
   let screenY=panorama?100*(panorama.destY+(y*panorama.height-panorama.sourceY)/panorama.cropHeight*panorama.destHeight)/H:y;
@@ -7917,7 +7965,9 @@ emptyForest.onload=()=>{emptyForestReady=emptyForest.naturalWidth>0;if(s.scene==
 emptyForest.onerror=()=>{emptyForestReady=false;console.warn('Empty forest preview unavailable; preserving original wagon art.');};
 let editorForestSrc=null;
 if(DEV_PREVIEW_MODE&&new URLSearchParams(location.search).get('forest')==='editor'){try{const b=JSON.parse(localStorage.getItem('dungeon_scene_editor_v1_backgrounds'));if(typeof b?.wreck?.src==='string'&&/^data:image\/(png|webp|jpeg);base64,/.test(b.wreck.src))editorForestSrc=b.wreck.src;}catch{}}
-if(new URLSearchParams(location.search).get('forest')!=='original'&&(editorForestSrc||window.DUNGEON_WRECK_EMPTY_FOREST))emptyForest.src=editorForestSrc||window.DUNGEON_WRECK_EMPTY_FOREST;
+const forestMode=new URLSearchParams(location.search).get('forest');
+const forestV4Selected=forestMode!=='original'&&forestMode!=='old'&&forestMode!=='editor'&&new URLSearchParams(location.search).get('wagon')!=='trial'&&!!window.DUNGEON_FOREST_V4_BACKGROUND?.src&&Array.isArray(window.DUNGEON_FOREST_V4_LAYOUT?.scenes?.wreck)&&window.DUNGEON_FOREST_V4_LAYOUT.scenes.wreck.every(o=>!!window.DUNGEON_FOREST_V4_ASSETS?.[o.assetId]?.src);
+if(forestMode!=='original'&&(editorForestSrc||forestV4Selected||window.DUNGEON_WRECK_EMPTY_FOREST))emptyForest.src=editorForestSrc||(forestV4Selected?window.DUNGEON_FOREST_V4_BACKGROUND.src:window.DUNGEON_WRECK_EMPTY_FOREST);
 const approvedWreck=new Image();let approvedWreckReady=false;
 approvedWreck.onload=()=>{
  approvedWreckReady=approvedWreck.naturalWidth>0;
