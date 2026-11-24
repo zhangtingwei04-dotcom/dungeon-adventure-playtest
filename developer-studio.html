@@ -435,6 +435,8 @@ function serialize(oneId){
      stock?{kind:'builtin',key:stock}:{kind:'missing'}};
     if(a.id==='starter_boots'&&layer==='front')
      layers[layer].footOffsets={left:{...bootPartState(g,'left')},right:{...bootPartState(g,'right')}};
+    if(a.id==='starter_gloves'&&layer==='front')
+     layers[layer].handOffsets={left:{...glovePartState(g,'left')},right:{...glovePartState(g,'right')}};
    }
    genders[g]={visible:shown[a.id+':'+g]!==false,wearMode:getWearMode(a,g),layers};
   }
@@ -453,7 +455,7 @@ function persist(){
   }
  }
  try{
-  localStorage.setItem(KEY,JSON.stringify({catalogue,transforms,shown,layerShown,wearModes,bootFootOffsets,editingBootFoot,cloakArmRevealTrial,cloakArmDetailV5,sleeveReplaceModeV6,sleeveReplaceModeV7,wholeLongTunicTrialV9,layeredLongTunicTrialV10,frontSleevesTrialV12,naturalLongSleevesTrialV13,selected,editingGender,editingLayer,cloakArtVersion:'original-sheet-v2',approvedFitPresetVersion:APPROVED_FIT_PRESET_VERSION,activeBuiltinOverrides:[...activeBuiltinOverrides]}));
+  localStorage.setItem(KEY,JSON.stringify({catalogue,transforms,shown,layerShown,wearModes,bootFootOffsets,editingBootFoot,gloveHandOffsets,editingGloveHand,cloakArmRevealTrial,cloakArmDetailV5,sleeveReplaceModeV6,sleeveReplaceModeV7,wholeLongTunicTrialV9,layeredLongTunicTrialV10,frontSleevesTrialV12,naturalLongSleevesTrialV13,selected,editingGender,editingLayer,cloakArtVersion:'original-sheet-v2',approvedFitPresetVersion:APPROVED_FIT_PRESET_VERSION,activeBuiltinOverrides:[...activeBuiltinOverrides]}));
   $('persistInfo').textContent='設定已儲存在這個裝置的工作台資料中。匯入圖片另存於本機資料庫；更換手機／瀏覽器不會自動同步。';
  }catch(e){$('persistInfo').textContent='本機設定儲存失敗：'+e.message;}
 }
@@ -475,6 +477,13 @@ function restore(){
    const t=bootPartState(g,foot);
    t.x=safeNum(v.x,-160,160,0);t.y=safeNum(v.y,-160,160,0);
    t.scale=safeNum(v.scale,.1,4,1);
+  }
+  editingGloveHand=data.editingGloveHand==='right'?'right':'left';
+  for(const g of ['male','female'])for(const hand of ['left','right']){
+   const val=data.gloveHandOffsets?.[g]?.[hand];if(!val)continue;
+   const t=glovePartState(g,hand);
+   t.x=safeNum(val.x,-160,160,0);t.y=safeNum(val.y,-160,160,0);
+   t.scale=safeNum(val.scale,.1,4,1);
   }
   for(const a of data.catalogue){
    if(!a||typeof a.id!=='string'||RETIRED_STUDIO_IDS.has(a.id)||!/^[a-z0-9_-]{2,60}$/.test(a.id)||catalogue.some(x=>x.id===a.id))continue;
@@ -1254,6 +1263,14 @@ function resetLayer(){
   toast('已重設'+(editingGender==='male'?'男性':'女性')+(editingBootFoot==='left'?'左腳':'右腳')+'皮靴，另一隻不動');
   return;
  }
+ if(selected==='starter_gloves'&&editingLayer==='front'){
+  gloveHandOffsets[editingGender][editingGloveHand]={x:0,y:0,scale:1};
+  layerShown[selectedKey()]=true;
+  updateControls();drawAll();refreshJson();persist();
+  toast('已重設'+(editingGender==='male'?'男性':'女性')+
+   (editingGloveHand==='left'?'左手套':'右手套')+'；另一隻手套不動');
+  return;
+ }
  transforms[selectedKey()]=defaultT(a,editingGender,editingLayer);
  layerShown[selectedKey()]=true;
  updateControls();drawAll();refreshJson();persist();
@@ -1272,7 +1289,9 @@ function resetCanonicalFit(includeCustom=false){
  cloakArmDetailV5=false;
  for(const g of ['male','female'])for(const foot of ['left','right'])
   bootFootOffsets[g][foot]={x:0,y:0,scale:1};
- editingBootFoot='left';
+ editingBootFoot='left';editingGloveHand='left';
+ for(const g of ['male','female'])for(const hand of ['left','right'])
+  gloveHandOffsets[g][hand]={x:0,y:0,scale:1};
  for(const a of catalogue){
   if(!includeCustom&&!BUILTIN_IDS.has(a.id))continue;
   for(const gender of ['male','female']){
@@ -1659,6 +1678,14 @@ $('importJsonFile').onchange=async e=>{
        t.x=safeNum(val.x,-160,160,0);t.y=safeNum(val.y,-160,160,0);
        t.scale=safeNum(val.scale,.1,4,1);
       }
+     if(target.id==='starter_gloves'&&layer==='front'){
+      for(const hand of ['left','right']){
+       const val=row.handOffsets?.[hand];if(!val)continue;
+       const t=glovePartState(g,hand);
+       t.x=safeNum(val.x,-160,160,0);t.y=safeNum(val.y,-160,160,0);
+       t.scale=safeNum(val.scale,.1,4,1);
+      }
+     }
      }
     }
    }
