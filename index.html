@@ -3634,6 +3634,13 @@ html.stage-locked #app .paperdoll-stage.paperdoll-v13-equipped.paperdoll-shirt-e
 html.stage-locked #app .paperdoll-stage.paperdoll-v13-equipped.paperdoll-shirt-equipped .paperdoll-original-shorts-right,
 html.stage-locked #app .paperdoll-stage.paperdoll-v13-equipped.paperdoll-shirt-equipped .paperdoll-original-tank-right{clip-path:inset(55% 0 36.25% 68.75%)}
 html.stage-locked #app .paperdoll-stage.paperdoll-v13-equipped.paperdoll-shirt-equipped .paperdoll-original-arms-tinted{clip-path:inset(55% 0 36.25% 0)}
+/* Male/female V1 leather gloves use one front-only 64x160 PNG per
+   gender; two clipped spans provide approved independent hand offsets. */
+html.stage-locked #app .equip-guide .paperdoll-stage > .paperdoll-gloves-front{
+ background-size:100% 100%!important;background-position:0 0!important;
+ background-repeat:no-repeat!important;image-rendering:pixelated!important;
+ pointer-events:none;
+}
 html.stage-locked #app .equip-guide .paperdoll-stage > .paperdoll-boots-front{
  background-size:100% 100%!important;background-position:0 0!important;
  background-repeat:no-repeat!important;image-rendering:pixelated!important;
@@ -4169,6 +4176,8 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <script src="./assets/travel_trousers_workbench_v2.js?v=game-20261124"></script>
 <!-- Accepted live 64x160 front-only V4 boots; exact approved four-foot fitting. -->
 <script src="./assets/travel_boots_front_v4.js?v=approved-game-20261124"></script>
+<!-- Approved V1 front-only gloves: male/female paired sprites. -->
+<script src="./assets/travel_gloves_front_v1.js?v=approved-game-20261124"></script>
 <!-- Official universal arm transparency follows the developer studio policy. -->
 <script src="./assets/arm_visibility_policy_v1.js?v=live-20261124"></script>
 <script src="./assets/arm_visibility_live_v1.js?v=live-20261124"></script>
@@ -5118,7 +5127,7 @@ const EQUIPMENT_VISUAL_CATALOG=Object.freeze({
  legs:Object.freeze({id:'starter_trousers',name:'旅行長褲 V2',icon:1}),
  feet:Object.freeze({id:'starter_boots',name:'深棕扣帶厚底旅行靴 V4',icon:2}),
  outer:Object.freeze({id:'starter_cloak',name:'深綠金邊披風',icon:3}),
- hands:Object.freeze({id:'starter_gloves',name:'棕色皮革手套',icon:null,glyph:'✥'}),
+ hands:Object.freeze({id:'starter_gloves',name:'棕色皮革手套 V1',icon:null,glyph:'✥'}),
  bag:Object.freeze({id:'enchanted_satchel',name:'附魔旅行側包',icon:4})
 });
 function displayEquipmentInSlot(slotId){
@@ -5163,6 +5172,52 @@ if(TRAVEL_BOOTS_V4_ENABLED&&window.DungeonTravelBootsWorkbenchV4?.build){
   approvedBootArtV4=art;
   if(document.getElementById('equipmentBoard'))renderEquipmentBoard();
  }).catch(err=>console.error('Approved V4 boots failed:',err));
+}
+// Approved V1 glove visuals, without changing equipment IDs or save schema.
+// ?gloves=off temporarily hides art, never removes equipped gloves.
+const LEATHER_GLOVES_V1_ENABLED=new URLSearchParams(location.search).get('gloves')!=='off';
+const APPROVED_GLOVE_FIT_V1=Object.freeze({
+ male:Object.freeze({
+  left:Object.freeze({x:-1,y:1,scale:1}),
+  right:Object.freeze({x:1,y:1,scale:1})
+ }),
+ female:Object.freeze({
+  left:Object.freeze({x:-2,y:-1,scale:1}),
+  right:Object.freeze({x:1,y:-1,scale:1})
+ })
+});
+let approvedGloveArtV1=null,approvedGloveMaskV1=null;
+// Both source halves are composed once for the existing native 64x160 arm
+// occlusion policy, with exactly the same offsets as the visible spans.
+async function buildApprovedGloveMasks(art){
+ const masks={};
+ for(const gender of ['male','female']){
+  const src=art[gender==='female'?'femaleTravelerGlovesFront':'maleTravelerGlovesFront'];
+  const img=await new Promise((resolve,reject)=>{
+   const image=new Image();image.onload=()=>resolve(image);
+   image.onerror=()=>reject(Error('Cannot load accepted leather gloves'));
+   image.src=src;
+  });
+  if(img.naturalWidth!==64||img.naturalHeight!==160)throw Error('Expected native 64x160 gloves');
+  const canvas=document.createElement('canvas');canvas.width=64;canvas.height=160;
+  const ctx=canvas.getContext('2d',{alpha:true});ctx.imageSmoothingEnabled=false;
+  for(const hand of ['left','right']){
+   const t=APPROVED_GLOVE_FIT_V1[gender][hand],sx=hand==='left'?0:32;
+   const scale=t.scale,w=32*scale,h=160*scale;
+   const cx=(hand==='left'?16:48)+t.x,cy=80+t.y;
+   ctx.drawImage(img,sx,0,32,160,cx-w/2,cy-h/2,w,h);
+  }
+  masks[gender]=canvas.toDataURL('image/png');
+ }
+ return Object.freeze(masks);
+}
+if(LEATHER_GLOVES_V1_ENABLED&&window.DungeonTravelerGlovesWorkbenchV1?.build){
+ window.DungeonTravelerGlovesWorkbenchV1.build().then(async art=>{
+  if(!art?.maleTravelerGlovesFront||!art?.femaleTravelerGlovesFront)return;
+  const masks=await buildApprovedGloveMasks(art);
+  approvedGloveArtV1=art;approvedGloveMaskV1=masks;
+  if(document.getElementById('equipmentBoard'))renderEquipmentBoard();
+ }).catch(err=>console.error('Approved V1 leather gloves failed:',err));
 }
 let paperDollTryOn=false;
 
@@ -6180,6 +6235,21 @@ function equipmentGuideHTML(sceneMode='equipment'){
  };
  const boots=!privateScene&&show('feet')&&bootsSource?
   bootPartHTML('left')+bootPartHTML('right'):'';
+ // The original paired front-only source stays unchanged. The two halves
+ // receive the user's latest approved independent offsets at render time.
+ const glovesSource=approvedGloveArtV1?.[shirtGender==='female'?
+  'femaleTravelerGlovesFront':'maleTravelerGlovesFront'];
+ const glovePartHTML=hand=>{
+  const t=APPROVED_GLOVE_FIT_V1[shirtGender][hand];
+  const clip=hand==='left'?'inset(0 50% 0 0)':'inset(0 0 0 50%)';
+  const origin=hand==='left'?'25% 50%':'75% 50%';
+  const dx=Number((t.x/64*100).toFixed(5)),dy=Number((t.y/160*100).toFixed(5));
+  return '<span class="paperdoll-asset-layer paperdoll-gloves-front" aria-hidden="true" style="background-image:url('+glovesSource+');clip-path:'+clip+
+   ';transform-origin:'+origin+';transform:translate('+dx+'%,calc(9px + '+dy+'%)) scale('+t.scale+')"></span>';
+ };
+ const gloves=!privateScene&&show('hands')&&glovesSource?
+  glovePartHTML('left')+glovePartHTML('right'):'';
+
  // Layering when worn together: shirt -> approved boots -> satchel -> cloak front.
  // Keep the cloak's back panel behind the body and original lower hands in front.
  // The hand overlay must match the original BODY + SHORTS + TANK stack.
@@ -6220,7 +6290,7 @@ function equipmentGuideHTML(sceneMode='equipment'){
    (sharedHead&&window.DungeonMaleV9Equipment?.version==='v3-accepted'?' paperdoll-v3':'')+
    (s.appearanceV1?.parts?.hairStyle==='bald'?' paperdoll-bald':'')+(shirtArt?' paperdoll-shirt-equipped':'')+(v13On?' paperdoll-v13-equipped':'')+(currentPaperDollAbnormalStates().includes('unconscious')?' eyes-unconscious':'')+'" role="img" aria-label="'+
   (paperDollTryOn?'主角旅行裝試穿預覽':(s.appearanceV1?.gender==='female'?'女性':'男性')+'標準型紙娃娃，依實際裝備顯示')+'">'+
-  behind+cloakBack+base+shorts+tank+outfit+equippedGarments+boots+satchel+cloakFront+satchelLower+nativeArms+extras+veil+brows+eyes+mouth+healthMarks+hair+
+  behind+cloakBack+base+shorts+tank+outfit+equippedGarments+boots+gloves+satchel+cloakFront+satchelLower+nativeArms+extras+veil+brows+eyes+mouth+healthMarks+hair+
   (paperDollTryOn?'<span class="paperdoll-preview-label">試穿</span>':'')+'</div>';
 }
 function setOwnedEquipmentEquipped(slotId,equip){
@@ -6327,23 +6397,32 @@ function paintPaperDollPhysicalCondition(){
 // The live transparency policy receives only CURRENTLY WORN sleeve/torso
 // layers with the same 64x160 crop and transforms as the approved outfit.
 function currentLiveArmGarments(){
- const worn=s.equipmentV1?.chest==='starter_tunic'||paperDollTryOn;
- if(!worn||!WHITE_STARTER_SHIRT_V3_ENABLED)return [];
- const source=window.DungeonWhiteShirtWorkbenchV1;
- if(source?.width!==64||source?.height!==160||typeof source?.sheet!=='string')return [];
  const female=s.appearanceV1?.gender==='female';
- const x=female?0:-1,y=-1,descriptors=[];
- const add=(src,frames,frame)=>descriptors.push({src,frames,frame,x,y,scale:1});
- const v13=window.DungeonNaturalLongTunicV13;
- if(V13_LONG_TUNIC_ENABLED&&v13?.canvasWidth===64&&v13?.canvasHeight===160&&
-    v13?.sleeveSliceNames?.length===4&&typeof v13?.sleeveAtlas==='string'){
-  const start=female?2:0;
-  add(v13.sleeveAtlas,4,start);
-  add(v13.sleeveAtlas,4,start+1);
-  add(source.sheet,6,female?5:2);
- }else{
-  for(const frame of (female?[4,5,3]:[1,2,0]))add(source.sheet,6,frame);
+ const source=window.DungeonWhiteShirtWorkbenchV1,descriptors=[];
+ const x=female?0:-1,y=-1;
+ const add=(src,frames,frame,dx=x,dy=y)=>descriptors.push({
+  src,frames,frame,x:dx,y:dy,scale:1
+ });
+ const shirtWorn=s.equipmentV1?.chest==='starter_tunic'||paperDollTryOn;
+ if(shirtWorn&&WHITE_STARTER_SHIRT_V3_ENABLED&&
+    source?.width===64&&source?.height===160&&typeof source?.sheet==='string'){
+  const v13=window.DungeonNaturalLongTunicV13;
+  if(V13_LONG_TUNIC_ENABLED&&v13?.canvasWidth===64&&v13?.canvasHeight===160&&
+     v13?.sleeveSliceNames?.length===4&&typeof v13?.sleeveAtlas==='string'){
+   const start=female?2:0;
+   add(v13.sleeveAtlas,4,start);
+   add(v13.sleeveAtlas,4,start+1);
+   add(source.sheet,6,female?5:2);
+  }else{
+   for(const frame of (female?[4,5,3]:[1,2,0]))add(source.sheet,6,frame);
+  }
  }
+ // Cut cape/pouch alpha over CURRENTLY WORN gloves, including the
+ // independent handOffsets. Works even with no shirt worn.
+ const gloveWorn=s.equipmentV1?.hands==='starter_gloves'||paperDollTryOn;
+ const gloveMask=approvedGloveMaskV1?.[female?'female':'male'];
+ if(gloveWorn&&LEATHER_GLOVES_V1_ENABLED&&gloveMask)
+  add(gloveMask,1,0,0,0);
  return descriptors;
 }
 function applyLiveArmVisibility(){
@@ -6503,7 +6582,7 @@ function renderSideTab(tab,out){
   const appearanceControls=renderPaperDollAppearanceControls();
   // One selected slot, then one direct "脫下／裝上" action just below it.
   const artNote=document.createElement('p');artNote.className='equip-art-pending';
-  artNote.textContent='V13 象牙長袖（外罩式）、旅行長褲 V2、旅行靴 V4 與深綠披風 V2 已接入；側包下半部在披風外，手掌保持前層。各件依實際裝備穿脫顯示。手套尚無圖片，暫不顯示。';
+  artNote.textContent='已正式安裝 V13 長袖、V2 旅行長褲、V4 旅行靴、V2 深綠披風與 V1 棕色皮革手套；男、女左右手套各自貼合，與側包、披風共用透明手部遮擋。所有裝備依穿脫及存檔狀態顯示。';
   footer.append(detail,equipAction,bag);
   section.append(board,footer,artNote,genderControls);
   section.append(hairControls,eyeControls,expressionControls,restControls,abnormalControls,appearanceControls);
