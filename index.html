@@ -6105,7 +6105,7 @@ function equipmentGuideHTML(sceneMode='equipment'){
   const t=APPROVED_BOOT_FIT_V4[bootsGender][foot];
   const clip=foot==='left'?'inset(0 50% 0 0)':'inset(0 0 0 50%)';
   const origin=foot==='left'?'25% 50%':'75% 50%';
-  const dx=t.x/64*100,dy=t.y/160*100;
+  const dx=Number((t.x/64*100).toFixed(5)),dy=Number((t.y/160*100).toFixed(5));
   // The existing body and clothing layers move 9 CSS pixels down;
   // the boot's additional native offset stays proportional to 64x160.
   return '<span class="paperdoll-asset-layer paperdoll-boots-front" aria-hidden="true" style="background-image:url('+bootsSource+');clip-path:'+clip+
