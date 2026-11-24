@@ -3924,6 +3924,7 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 #app[data-indoor="false"][data-period] #sceneStage .forest-v4-art img{filter:var(--scene-light);transition:filter .65s ease}
 #sceneStage .forest-v4-object[data-motion="plant"] img{animation:living-sway 5.2s ease-in-out infinite}
 #sceneStage .forest-v4-object[data-motion="animal"] img{animation:living-breathe 3.3s ease-in-out infinite}
+#sceneStage .forest-v4-find-cue{position:absolute;left:50%;bottom:100%;transform:translateX(-50%);white-space:nowrap;font-size:clamp(9px,1vw,12px);line-height:1.2;color:#f4e4b9;background:#183027e8;border:1px solid #9b8558;border-radius:3px;padding:2px 4px;pointer-events:none}
 #sceneStage .forest-v4-object:focus-visible{outline:1px dashed #f8dda4;outline-offset:2px}
 #app.encounter-pending #sceneStage button.forest-v4-object,#app.scene-dialogue-active #sceneStage button.forest-v4-object{pointer-events:none!important}
 @media(prefers-reduced-motion:reduce){#sceneStage .forest-v4-art img{animation:none!important;transition:none!important}}
@@ -7797,9 +7798,38 @@ function renderOpeningWagonTrial(el){
 function forestV4Active(){
  return s.scene==='wreck'&&emptyForestReady&&forestV4Selected;
 }
+// Use user-approved objects as collection anchors; never create another temporary sprite.
+function bindForestV4Materials(layout,queue){
+ const branches=layout.filter(o=>o.visible&&o.assetId==='forest4_branch');
+ const wagon=layout.find(o=>o.visible&&o.assetId==='forest4_wagon');
+ const map=new Map();
+ for(const item of queue||[]){
+  if(!item||typeof item.id!=='string')continue;
+  let target=null;
+  if(item.material==='碎木片'&&branches.length){
+   const n=Number(item.id.split('-').pop());
+   const i=Number.isFinite(n)?Math.abs(Math.trunc(n))%branches.length:0;
+   target=branches[i];
+  }else if(item.material==='舊繩纖維')target=wagon;
+  if(!target)continue;
+  if(!map.has(target.id))map.set(target.id,[]);
+  map.get(target.id).push(item);
+ }
+ return map;
+}
+function forestV4MaterialBindings(){
+ return bindForestV4Materials(window.DUNGEON_FOREST_V4_LAYOUT?.scenes?.wreck||[],s.exploration?.pending?.wreck||[]);
+}
 function forestV4Action(o){
  if(encounterPending||modal||s.flags.inBattle||$('app').classList.contains('scene-dialogue-active'))return;
  const k=o.assetId.replace('forest4_','');
+ const finds=forestV4MaterialBindings().get(o.id)||[];
+ if(finds.length){
+  const options=finds.map(item=>({label:'收集：'+item.material,fn:()=>collectExplorationMaterial('wreck',item.id)}));
+  if(k==='wagon')options.push({label:'調查馬車痕跡',fn:()=>marks()});
+  options.push({label:'暫時不收集',fn:()=>{}});
+  dialog(o.name,'探索時在這裡發現了可以收集的材料。',options,'場景採集');return;
+ }
  if(k==='wagon'||k==='wheel_flat'){marks();return;}
  if(k.startsWith('crate')){glance();return;}
  const descriptions={barrel:'木桶經過風吹雨淋，木板已經有些變色。',sack:'一個沾有泥土的舊布袋。',plank:'散落的木板看起來是事故留下的。',plank_lean:'一塊靠在殘骸旁的木板。',bird:'小鳥在枝葉間停留，偶爾轉動頭部。',rabbit:'長耳生物安靜地停留在草地上。',beetle:'一隻甲蟲停留在附近。',butterfly:'蝴蝶在林間輕輕拍動翅膀。'};
@@ -7809,22 +7839,25 @@ function renderForestV4(el){
  const cfg=window.DUNGEON_FOREST_V4_LAYOUT?.scenes?.wreck,assets=window.DUNGEON_FOREST_V4_ASSETS;
  if(!cfg||!assets)return;
  const layer=document.createElement('div');layer.className='forest-v4-layer';
+ const bindings=forestV4MaterialBindings();
  for(const o of cfg){
   const a=assets[o.assetId];if(!o.visible||!a?.src)continue;
   const k=o.assetId.replace('forest4_','');
   const animal=['bird','rabbit','beetle','butterfly'].includes(k);
   const plant=/^(grass_|.*flower|lavender|yellow_shrub|vine)/.test(k);
-  const interactive=animal||k==='wagon'||k==='wheel_flat'||k.startsWith('crate')||['barrel','sack','plank','plank_lean'].includes(k);
-  const node=document.createElement(interactive?'button':'div');if(interactive){node.type='button';node.setAttribute('aria-label',o.name);node.title=o.name;node.onclick=()=>guardedAction(()=>forestV4Action(o));}else node.setAttribute('aria-hidden','true');
+  const finds=bindings.get(o.id)||[];
+  const interactive=finds.length>0||animal||k==='wagon'||k==='wheel_flat'||k.startsWith('crate')||['barrel','sack','plank','plank_lean'].includes(k);
+  const node=document.createElement(interactive?'button':'div');if(interactive){node.type='button';node.setAttribute('aria-label',o.name+(finds.length?'：可收集'+finds.map(f=>f.material).join('、'):''));node.title=o.name+(finds.length?' · 可收集':'');node.onclick=()=>guardedAction(()=>forestV4Action(o));}else node.setAttribute('aria-hidden','true');
   node.className='forest-v4-object';node.dataset.objectId=o.id;node.dataset.motion=animal?'animal':plant?'plant':'fixed';node.style.left=o.x+'%';node.style.top=o.y+'%';node.style.width=o.width+'%';node.style.zIndex=10+o.z;
   const art=document.createElement('span');art.className='forest-v4-art';art.style.transform='scaleX('+(o.flip?-1:1)+') rotate('+o.rotation+'deg)';
-  const im=document.createElement('img');im.src=a.src;im.alt='';im.draggable=false;art.appendChild(im);node.appendChild(art);layer.appendChild(node);
+  const im=document.createElement('img');im.src=a.src;im.alt='';im.draggable=false;art.appendChild(im);node.appendChild(art);if(finds.length){const cue=document.createElement('span');cue.className='forest-v4-find-cue';cue.textContent='可收集';cue.setAttribute('aria-hidden','true');node.appendChild(cue);}layer.appendChild(node);
  }
  el.appendChild(layer);
 }
 function renderWorldObjects(el){
  const engine=window.DungeonSceneObjectsV1;if(!engine||encounterPending)return;
  for(const obj of engine.objects(s)){
+  if(forestV4Active()&&obj.material)continue;
   if(obj.decorative){
    if(forestV4Active())continue;
    const patch=document.createElement('div');patch.className='world-vegetation';patch.dataset.stage=obj.stage;patch.style.left=obj.x+'%';patch.style.top=obj.y+'%';patch.setAttribute('aria-hidden','true');
