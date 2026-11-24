@@ -112,7 +112,7 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 <div class="toolbar"><button class="primary" type="button" id="applyUserV13Json">套用最新 JSON｜V13 外罩＋背包＋四隻皮靴定位</button></div>
 <div class="toolbar"><button class="primary" type="button" id="bootsTry">穿上 V4 縮小版正面雙靴</button><button type="button" id="bootsRemove">脫下皮靴</button></div>
 <div class="toolbar"><button class="primary" type="button" id="glovesTry">戴上 V1 棕色皮革手套（男女）</button><button type="button" id="glovesRemove">脫下手套</button></div>
-<div class="hint">手套 V1 正面試穿：新生成的兩款棕皮金扣手套，男、女各一張 64×160 透明 PNG，只有 front。手掌處已預先對齊，可單獨拖曳修改 X／Y／縮放。此處不會自動修改正式遊戲；披風通用手臂規則會依手套實際像素露出手部。</div>
+<div class="hint">手套 V1 正面試穿：男、女各一張 64×160 透明 PNG，只有 front。按「左手套／右手套」可獨立調整 X、Y、縮放、拖曳與重設；JSON 會保留 handOffsets。披風與側包遮擋會依調整後的手套位置處理。正式遊戲尚未安裝手套。</div>
 <div class="hint">鞋子 V4 已正式安裝：男女各一張 64×160 正面雙靴 PNG，開發平台可單獨調整左／右腳。長褲、披風、手與側包位置不會被鞋子調整帶動；本頁的新座標需另外同步正式遊戲。</div>
 <div class="hint">依照最新提供的裝備 JSON：男女 V13 外罩式、披風前層 Y -6、背包 Y -10。V4 皮靴男性左(+1,+11)、右(-1,+11)，兩腳縮放 0.80；女性左(+1,+4)、右(-2,+4)，兩腳縮放 0.90。只改工作台試穿設定，PNG 和正式遊戲存檔不變。</div>
 <div class="hint">穿搭試驗：選白色初始布衣，切換「紮入式／自然垂放／外罩式」，男女可以不同。自然垂放只將下擺重新疊在褲腰前，不改袖子與角色；披風仍維持已核准的前後包覆。已儲存的 Z、男女座標及重設資料都保留。正式遊戲不會同步改動。</div>
@@ -1153,7 +1153,7 @@ function updateControls(){
   a.id==='starter_sleeves_v7'?
   'V7 男女四片可獨立調整，肩膀沿用 V3 像素。選擇左／右袖後直接拖曳或輸入 X、Y、Z；不修改遊戲正式裝備。':
   a.id==='starter_gloves'?
-  '手套 V1：新生成的男女棕色皮革手套正面圖，適配 64×160 真透明畫布；僅開發平台試穿。可微調 X/Y/Scale/Z，檢查袖口、手掌與側包遮擋後再安裝正式遊戲。':
+  '手套 V1：正面男／女各 64×160 透明圖。選左手套／右手套可獨立拖曳、調整 X/Y/Scale、重設、JSON 匯入與匯出 handOffsets；Z 為共同 front。僅開發平台試穿。':
   a.id==='starter_trousers'?
   '旅行長褲 V2 已載入正式遊戲：褲腰、左右褲管各為 64×160；工作台可獨立改座標及 Z。正式遊戲採 V13 外罩式正面衣身在褲腰前方，不會自動採用此後的工作台微調。':
   '正式男女頭部、身體與內衣不動；每個部件可獨立調整前後層級 Z（數字越大越前）。圖層調整只影響工作台預覽，不會自動安裝到遊戲。';
@@ -1326,12 +1326,18 @@ function onPointer(gender,canvas){
  canvas.addEventListener('pointerdown',e=>{
   if(!ready||!getImage(selected,gender,editingLayer))return;
   editingGender=gender;
-  if(selected==='starter_boots'&&editingLayer==='front'){
+  if(editingLayer==='front'&&(selected==='starter_boots'||selected==='starter_gloves')){
    const rect=canvas.getBoundingClientRect();
    const cx=(e.clientX-rect.left)*64/rect.width;
    const cy=(e.clientY-rect.top)*160/rect.height;
-   if(cx<3||cx>61||cy<100||cy>155)return;
-   editingBootFoot=cx<32?'left':'right';
+   if(selected==='starter_boots'){
+    if(cx<3||cx>61||cy<100||cy>155)return;
+    editingBootFoot=cx<32?'left':'right';
+   }else{
+    // Hands in V1 are near Y81-98; use a slightly larger tap target.
+    if(cx<0||cx>64||cy<65||cy>120)return;
+    editingGloveHand=cx<32?'left':'right';
+   }
   }
   updateControls();
   const t=editableTransform();
@@ -1384,6 +1390,12 @@ $('editLayer').onchange=e=>{editingLayer=e.target.value;updateControls();drawAll
 for(const [id,foot] of [['bootFootLeft','left'],['bootFootRight','right']]){
  $(id).onclick=()=>{
   selected='starter_boots';editingLayer='front';editingBootFoot=foot;
+  updateControls();drawAll();refreshJson();persist();
+ };
+}
+for(const [id,hand] of [['gloveHandLeft','left'],['gloveHandRight','right']]){
+ $(id).onclick=()=>{
+  selected='starter_gloves';editingLayer='front';editingGloveHand=hand;
   updateControls();drawAll();refreshJson();persist();
  };
 }
@@ -1569,7 +1581,7 @@ function setGlovesTrial(on){
  }
  selected='starter_gloves';editingLayer='front';
  update();persist();
- toast(on?'已試戴 V1 棕色皮革手套（男女），可拖曳單獨調整':'已脫下試穿手套，原本手掌與 V13 長袖保留');
+ toast(on?'已試戴 V1 棕色皮革手套，左右可各自拖曳與縮放':'已脫下試穿手套，原本手掌與 V13 長袖保留');
 }
 $('glovesTry').onclick=()=>setGlovesTrial(true);
 $('glovesRemove').onclick=()=>setGlovesTrial(false);
