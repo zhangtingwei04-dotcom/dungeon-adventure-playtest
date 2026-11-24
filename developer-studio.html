@@ -1579,6 +1579,14 @@ $('importJsonFile').onchange=async e=>{
      transforms[key]={x:safeNum(row.x,-160,160,0),y:safeNum(row.y,-160,160,0),scale:safeNum(row.scale,.1,4,1),
       z:safeNum(row.z,0,140,defaultZ(target,g,layer))};
      layerShown[key]=row.visible!==false;
+     if(target.id==='starter_boots'&&layer==='front'){
+      for(const foot of ['left','right']){
+       const val=row.footOffsets?.[foot];if(!val)continue;
+       const t=bootPartState(g,foot);
+       t.x=safeNum(val.x,-160,160,0);t.y=safeNum(val.y,-160,160,0);
+       t.scale=safeNum(val.scale,.1,4,1);
+      }
+     }
     }
    }
   }
