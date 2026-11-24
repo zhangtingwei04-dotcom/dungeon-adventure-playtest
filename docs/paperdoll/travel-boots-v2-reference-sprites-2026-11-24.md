@@ -141,3 +141,32 @@ V3 試穿 URL：`https://zhangtingwei04-dotcom.github.io/dungeon-adventure-playt
 `https://zhangtingwei04-dotcom.github.io/dungeon-adventure-playtest/`
 
 此段更新取代本文件較早「V4 仍只有開發測試版」的過時敘述。
+
+
+## 2026-11-24｜正式遊戲遺漏裝備圖像補齊（最新狀態）
+
+使用者指出正式遊戲仍有其他衣物部件未放入，依使用者最後提供的 `dungeon-character-asset-library-v1` 所有顯示設定進行對照。已更新同一遊戲 repo 的正式 `index.html`，**沒有更改任何既有玩家存檔欄位，也沒有影響《鱗片與種子》**。
+
+| 既有裝備 ID | 正式紙娃娃圖像 | 來源 | 最新狀態 |
+|---|---|---|---|
+| `starter_tunic` | V13 象牙長袖外罩式（男女正面衣身及左右袖） | V3 上衣真正的 torso crop + `assets/natural_long_tunic_v13.js` 四個 64×160 透明袖片 | 正式顯示，V3 將作為 `?shirt=v3` 視覺回退；未改裝備 ID |
+| `starter_trousers` | V2 旅行長褲（男女各褲管左右及褲腰共三片） | `assets/travel_trousers_workbench_v2.js` 的 384×160 六片真透明 PNG | 正式顯示，依原裝備穿脫 |
+| `starter_boots` | V4 前視正面皮靴 | `assets/travel_boots_front_v4.js` | 延續已核准男女四腳各別貼合 |
+| `starter_cloak` | 深綠金邊披風 V2 | 既有正式圖源 | 延續正式顯示；前片男女均採最後 JSON 的 Y=-6 |
+| `enchanted_satchel` | 側包上半/肩帶在披風後，Y97 起包身在披風前，但在原手掌後 | 既有 64×160 已核准側包圖，不重畫 | `bagSplit` 由 trial 改為**預設開啟**；`?bagSplit=off` 僅供視覺回退 |
+| `hair_original`／已用頭部表情 | 維持現有設計 | 現有正式圖片 | 不修改 |
+| `starter_gloves` | **尚無可用圖片** | 使用者 JSON 明示 `image.kind=missing` | 保留裝備槽／擁有與穿脫資料，但不顯示不存在的手套圖 |
+
+新增 / 已沿用的腳本源檔皆保留於 `main`。組合排序主要為：
+`披風背片 -> 人物+內衣 -> V13 左右袖 -> V2 長褲 (左右腿+褲腰) -> V13 正面衣身 (外罩式) -> V4 皮靴 -> 背包肩帶 -> 披風前片 -> 背包下半包身 -> 原手掌 -> 表情與頭髮`。
+
+衣袖與原手掌接合：V13 袖片到 native Y88，修正正式 CSS 遮罩 specificity，讓原手掌從 Y88 後顯示，不會被舊 V3 的手臂剪裁樣式覆蓋。原始膚色與身體、腰部短褲與米白內衣仍保留。若 V13 PNG 載入失敗或 `?shirt=v3`，前端仍可回退至原 V3 視覺，不修改裝備資料。
+
+### 檢驗
+- 用正式 `equipmentGuideHTML()` 真正渲染函式進行 **31／31 項情境測試**：男女雙袖、單一正面衣身、三片褲裝、兩片鞋、遮擋與所有衣物穿脫、洗浴、更衣和 V3 回退。
+- 官方 `main` 共 **32 個外部 JS 檔案引用全數存在**，0 缺檔。
+- 4 個原始 PNG 圖集的魔術檔頭與原生尺寸皆核對成功：V3 上衣 384×160、V13 袖 256×160、V2 褲 384×160、V4 鞋 128×160。
+- 正式遊戲內嵌 JS 語法檢查通過。
+- 這些是程式級驗證。**沒有宣稱已在使用者的 iPhone Safari 完成視覺驗收**。實機若仍有局部部件重疊或不顯示，需依截圖精準調整。
+
+正式遊戲：`https://zhangtingwei04-dotcom.github.io/dungeon-adventure-playtest/?v=outfit-v13-pants-v2-bag-20261124`
