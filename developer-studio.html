@@ -118,7 +118,7 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 <div class="hint">穿搭試驗：選白色初始布衣，切換「紮入式／自然垂放／外罩式」，男女可以不同。自然垂放只將下擺重新疊在褲腰前，不改袖子與角色；披風仍維持已核准的前後包覆。已儲存的 Z、男女座標及重設資料都保留。正式遊戲不會同步改動。</div>
 <div class="toolbar" style="margin:10px 0">
 <button class="primary" id="shirtOnly">試穿白布衣（暫隱披風）</button>
-<button id="shirtWithCloak">白布衣＋披風</button>
+<button id="shirtWithCloak">白布衣＋披風</button><button type="button" id="windproofOn">防風披風 V3｜男女試穿</button><button type="button" id="windproofOff">脫下防風披風 V3</button><button type="button" id="windproofDetails">V3 獨立試穿頁</button>
 <button id="shirtOff">脫下白布衣</button>
 <button class="primary" id="trousersOn">試穿新版旅行長褲 V2</button>
 <button id="trousersWithCloak">長褲＋披風</button>
@@ -260,7 +260,12 @@ const sourceImages={
  femaleCloakBack:cloak?.back,femaleCloakFront:cloak?.front,
  approvedSatchel:window.DungeonApprovedSatchelWorkbenchV1?.image
 };
+const WINDPROOF_ID='windproof_cloak_v3';
+const WINDPROOF_LAYERS=["lining","hem_left","hem_right","collar_back","shoulder_left","shoulder_right","collar_left","collar_right","clasp"];
+const WINDPROOF_LABELS={"lining":"內襯","hem_left":"左長襬","hem_right":"右長襬","collar_back":"後毛領","shoulder_left":"左披肩","shoulder_right":"右披肩","collar_left":"左前毛領","collar_right":"右前毛領","clasp":"扣環"};
+const WINDPROOF_Z={"lining":10,"hem_left":11,"hem_right":12,"collar_back":13,"shoulder_left":80,"shoulder_right":80,"collar_left":83,"collar_right":83,"clasp":84};
 const catalogue=[
+ {id:WINDPROOF_ID,name:'防風披風 V3｜正面九部件',slot:'outer',layers:WINDPROOF_LAYERS.slice(),status:'正面試穿草稿／各部件獨立調整／待 iPhone 驗收'},
  {id:'hair_original',name:'原版頭髮',slot:'hair',layers:['front'],status:'已使用的頭髮來源'},
  {id:'starter_cloak',name:'深綠金邊披風 V2｜已核准',slot:'outer',layers:['back','front'],status:'已通過試穿確認／正式遊戲已啟用'},
  {id:'starter_tunic',name:'白色初始布衣 V3｜最新生成版',slot:'chest',layers:['front','side','back'],status:'男女最新生成白衣／依座標貼合／整衣拆分／待驗收'},
@@ -292,6 +297,7 @@ const stockKeys={
  'starter_gloves:male:front':'maleTravelerGlovesFront',
  'starter_gloves:female:front':'femaleTravelerGlovesFront'
 };
+for(const g of ['male','female'])for(const layer of WINDPROOF_LAYERS)stockKeys[WINDPROOF_ID+':'+g+':'+layer]='windproof_'+layer;
 const images=new Map(),userPngs=new Map(),imageInfo=new Map();
 const transforms={},shown={},layerShown={},wearModes={};
 const CLOAK_ARM_REVEAL_TRIAL_IDS=Object.freeze(['starter_cloak']);
@@ -360,6 +366,7 @@ function defaultVisible(id){
 // < visible original hands 90 < face 100-102 < hair 120.
 // Users can override any garment or layer z (0..140) in the workbench.
 function defaultZ(asset,gender,layer){
+ if(asset.id===WINDPROOF_ID)return WINDPROOF_Z[layer]??80;
  switch(asset.id){
   case 'hair_original':return 120;
   case 'starter_cloak':return layer==='back'?10:layer==='front'?80:76;
@@ -492,7 +499,8 @@ function restore(){
    catalogue.push({id:a.id,name:a.name.slice(0,45),slot:a.slot,layers:a.layers.slice(0,3),status:'自訂素材'});
   }
   for(const [key,t] of Object.entries(data.transforms||{})){
-   if(!/^[a-z0-9_-]+:(male|female):(back|front|side)$/.test(key)||!t)continue;
+   if(!/^[a-z0-9_-]+:(male|female):[a-z_]+$/.test(key)||!t)continue;
+   const [assetId,,layerId]=key.split(':');if(!item(assetId)?.layers.includes(layerId))continue;
    const parts=key.split(':'),asset=item(parts[0]);
    transforms[key]={x:safeNum(t.x,-160,160,0),y:safeNum(t.y,-160,160,0),scale:safeNum(t.scale,.1,4,1),
     z:safeNum(t.z,0,140,asset?defaultZ(asset,parts[1],parts[2]):65)};
@@ -506,7 +514,7 @@ function restore(){
   }
   if(catalogue.some(a=>a.id===data.selected))selected=data.selected;
   editingGender=data.editingGender==='male'?'male':'female';
-  editingLayer=['front','back','side'].includes(data.editingLayer)?data.editingLayer:'front';
+  editingLayer=item(selected)?.layers.includes(data.editingLayer)?data.editingLayer:(item(selected)?.layers[0]||'front');
   if(data.cloakArtVersion!=='original-sheet-v2'){
     shown['starter_cloak:male']=true;shown['starter_cloak:female']=true;
     selected='starter_cloak';editingLayer='front';
@@ -911,6 +919,7 @@ function identifyV3TorsoLayer(gender){
 function currentGarmentActive(a,gender,layer){
  if(shown[a.id+':'+gender]===false)return false;
  if(layerShown[k(a.id,gender,layer)]===false)return false;
+ if(a.id==='starter_cloak'&&shown[WINDPROOF_ID+':'+gender]===true)return false;
  if(a.id==='starter_tunic'&&(wholeLongTunicTrialV9||layeredLongTunicTrialV10||frontSleevesTrialV12||naturalLongSleevesTrialV13))return false;
  if(a.id==='starter_long_tunic_whole_v9'&&(!wholeLongTunicTrialV9||layeredLongTunicTrialV10||frontSleevesTrialV12||naturalLongSleevesTrialV13))return false;
  if(['starter_tunic_layered_v10','starter_tunic_layered_v10_sleeves'].includes(a.id)&&(!layeredLongTunicTrialV10||frontSleevesTrialV12||naturalLongSleevesTrialV13))return false;
@@ -1025,9 +1034,9 @@ function drawAssetStage(gender){
      enqueue(z,()=>drawGlovesFrontIndependent(ctx,img,t,gender));
     }else if(a.id==='enchanted_satchel'&&layer==='front'){
     const ck=k('starter_cloak',gender,'front');
-    const cape=shown['starter_cloak:'+gender]!==false&&layerShown[ck]!==false&&!!getImage('starter_cloak',gender,'front');
+    const windCape=shown[WINDPROOF_ID+':'+gender]===true;const cape=windCape||(shown['starter_cloak:'+gender]!==false&&layerShown[ck]!==false&&!!getImage('starter_cloak',gender,'front'));
     if(cape){
-     const cut=satchelPouchCanvasCut(t),capeZ=safeNum(transforms[ck]?.z,0,140,80);
+     const cut=satchelPouchCanvasCut(t),capeZ=windCape?Math.max(...WINDPROOF_LAYERS.filter(l=>layerShown[k(WINDPROOF_ID,gender,l)]!==false).map(l=>safeNum(transforms[k(WINDPROOF_ID,gender,l)]?.z,0,140,WINDPROOF_Z[l])),80):safeNum(transforms[ck]?.z,0,140,80);
      enqueue(z,()=>drawClippedGarment(ctx,img,t,0,cut));
      enqueue(Math.max(z,capeZ+0.25),()=>drawSatchelBehindHands(ctx,gender,img,t,cut,160));
     }else enqueue(z,()=>drawSatchelBehindHands(ctx,gender,img,t,0,160));
@@ -1037,6 +1046,8 @@ function drawAssetStage(gender){
     enqueue(Math.max(z,pantsFrontZ+0.25),()=>drawClippedGarment(ctx,img,t,split,160));
    }else if((a.id==='starter_tunic'||a.id==='starter_long_tunic_whole_v9'||a.id==='starter_tunic_layered_v10'||a.id==='starter_tunic_layered_v12'||a.id==='starter_natural_long_tunic_v13')&&pantsPresent&&mode==='outer'){
     enqueue(Math.max(z,pantsFrontZ+0.25),()=>drawImageOn(ctx,img,t));
+   }else if(a.id===WINDPROOF_ID&&WINDPROOF_Z[layer]>=80){
+    enqueue(z,()=>drawGarmentAwareCapeFront(ctx,gender,img,t));
    }else if(a.slot==='outer'&&layer==='front'&&a.layers.includes('back')){
     // A cape's front still covers shoulders, collar and chest, but yields to
     // the real visible arms of ANY currently worn shirt/gloves below.
@@ -1055,7 +1066,7 @@ function drawAssetStage(gender){
  // Old V5 remains an explicit opt-in only. Never repaint naked arms over
  // sleeves in the new generic mode: the current clothing must show through.
  if(cloakArmRevealTrial&&cloakArmDetailV5&&
-    shown[trialCloakId+':'+gender]!==false&&
+    shown[WINDPROOF_ID+':'+gender]!==true&&shown[trialCloakId+':'+gender]!==false&&
     layerShown[k(trialCloakId,gender,'front')]!==false&&
     getImage(trialCloakId,gender,'front')){
   const cloakFrontZ=safeNum(transforms[k(trialCloakId,gender,'front')]?.z,0,140,80);
@@ -1097,7 +1108,7 @@ function renderAssetList(){
 function updateControls(){
  const a=item(selected);if(!a)return;
  const select=$('editLayer');select.replaceChildren();
- for(const layer of a.layers){const op=document.createElement('option');op.value=layer;op.textContent=a.id==='starter_tunic'?{front:'主衣身（正面）',side:'左短袖（正面）',back:'右短袖（正面）'}[layer]:a.id==='starter_long_sleeves_v4'?{side:'畫面左長袖（正面）',front:'畫面右長袖（正面）'}[layer]:a.id==='starter_sleeves_v6'?{side:'V6 左袖｜可拖曳',front:'V6 右袖｜可拖曳'}[layer]:a.id==='starter_sleeves_v7'?{side:'V7 左袖｜可拖曳',front:'V7 右袖｜可拖曳'}[layer]:
+ for(const layer of a.layers){const op=document.createElement('option');op.value=layer;op.textContent=a.id===WINDPROOF_ID?WINDPROOF_LABELS[layer]:a.id==='starter_tunic'?{front:'主衣身（正面）',side:'左短袖（正面）',back:'右短袖（正面）'}[layer]:a.id==='starter_long_sleeves_v4'?{side:'畫面左長袖（正面）',front:'畫面右長袖（正面）'}[layer]:a.id==='starter_sleeves_v6'?{side:'V6 左袖｜可拖曳',front:'V6 右袖｜可拖曳'}[layer]:a.id==='starter_sleeves_v7'?{side:'V7 左袖｜可拖曳',front:'V7 右袖｜可拖曳'}[layer]:
  a.id==='starter_tunic_layered_v10'?{back:'衣身背面（袖子後方）',front:'衣身正面（蓋住袖根）'}[layer]:
  a.id==='starter_tunic_layered_v10_sleeves'?{side:'畫面左袖（Z38）',front:'畫面右袖（Z39）'}[layer]:
  a.id==='starter_tunic_layered_v12'?{front:'長袖衣身正面（Z42，無背面）'}[layer]:
@@ -1459,7 +1470,7 @@ function applyShirtTrial(showShirt,showCloak){
  for(const g of ['male','female']){
   shown['starter_long_tunic_whole_v9:'+g]=false;
   shown['starter_tunic:'+g]=showShirt;
-  shown['starter_cloak:'+g]=showCloak;
+  shown['starter_cloak:'+g]=showCloak;shown[WINDPROOF_ID+':'+g]=false;
  }
  selected='starter_tunic';editingLayer='front';
  update();persist();
@@ -1720,6 +1731,9 @@ $('resetAll').onclick=()=>{
 };
 $('oldWorkbench').onclick=()=>openUrl('./developer-workbench.html');
 $('oldCloakWorkbench').onclick=()=>openUrl('./cloak-fitting-workbench.html');
+$('windproofDetails').onclick=()=>openUrl('./windproof-cloak-front-preview.html');
+$('windproofOn').onclick=()=>{for(const g of ['male','female']){shown[WINDPROOF_ID+':'+g]=true;shown['starter_cloak:'+g]=false;}selected=WINDPROOF_ID;editingLayer='collar_left';update();persist();toast('防風披風 V3 正面九部件試穿中');};
+$('windproofOff').onclick=()=>{for(const g of ['male','female'])shown[WINDPROOF_ID+':'+g]=false;update();persist();toast('已脫下防風披風 V3');};
 $('githubRepo').onclick=()=>openUrl('https://github.com/zhangtingwei04-dotcom/dungeon-adventure-playtest');
 for(const g of ['male','female'])onPointer(g,$(g+'Canvas'));
 async function init(){
@@ -1804,6 +1818,13 @@ async function init(){
    try{Object.assign(sourceImages,await glovesFactory.build());}
    catch(err){console.warn('Gloves V1 front-only sprites unavailable:',err)}
   }
+  // Split exact accepted front-preview atlas into nine native transparent canvases.
+  try{
+   const atlas=new Image();await new Promise((resolve,reject)=>{atlas.onload=resolve;atlas.onerror=reject;atlas.src="data:image/png;base64,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"});
+   if(atlas.naturalWidth!==102||atlas.naturalHeight!==53)throw Error('防風披風圖集尺寸錯誤');
+   const pieces=[["內襯",0,0,24,49,20,57],["左長襬",24,0,19,53,9,59],["右長襬",43,0,19,53,36,59],["後毛領",62,0,26,13,19,47],["左披肩",62,13,20,12,12,56],["右披肩",82,13,20,12,32,56],["左前毛領",62,25,12,10,16,51],["右前毛領",74,25,12,10,36,51],["扣環",86,25,6,6,29,60]];
+   for(let i=0;i<WINDPROOF_LAYERS.length;i++){const [,sx,sy,w,h,x,y]=pieces[i];const cv=document.createElement('canvas');cv.width=64;cv.height=160;const cx=cv.getContext('2d');cx.imageSmoothingEnabled=false;cx.drawImage(atlas,sx,sy,w,h,x,y,w,h);sourceImages['windproof_'+WINDPROOF_LAYERS[i]]=cv.toDataURL('image/png');}
+  }catch(e){console.warn('Windproof V3 preview assets unavailable',e);}
   const keys=Object.entries(sourceImages).filter(([,value])=>
    typeof value==='string'&&value.startsWith('data:image/png;base64,'));
   await Promise.all([
