@@ -1,0 +1,20 @@
+/* Shared outdoor scene light V1. One neutral asset; no separate time-of-day geometry.
+   All art layers use identical filters. UI, labels, guides and indoor lighting are excluded. */
+#app[data-indoor="false"],#stage{--scene-light:brightness(1) saturate(1)}
+#app[data-indoor="false"][data-period="dawn"],#stage[data-period="dawn"]{--scene-light:brightness(.91) saturate(.80) contrast(.96) sepia(.10) hue-rotate(8deg)}
+#app[data-indoor="false"][data-period="day"],#stage[data-period="day"]{--scene-light:brightness(1) saturate(1)}
+#app[data-indoor="false"][data-period="dusk"],#stage[data-period="dusk"]{--scene-light:brightness(.79) saturate(.94) sepia(.32) hue-rotate(-13deg) contrast(1.04)}
+#app[data-indoor="false"][data-period="night"],#stage[data-period="night"]{--scene-light:brightness(.53) saturate(.59) sepia(.25) hue-rotate(166deg) contrast(.94)}
+#app[data-indoor="false"][data-period] #sceneStage #view,
+#app[data-indoor="false"][data-period] #sceneStage .opening-wagon-trial img,
+#app[data-indoor="false"][data-period] #sceneStage .world-vegetation canvas,
+#app[data-indoor="false"][data-period] #sceneStage .scene-figure canvas,
+#stage .scene-light-background,#stage .object img,#stage .object canvas{filter:var(--scene-light);transition:filter .65s ease}
+#app[data-indoor="false"][data-period] #sceneStage .world-object canvas{filter:var(--scene-light) drop-shadow(0 2px 2px #15201988);transition:filter .65s ease}
+/* Retire background-only gradient and fake stars outdoors; do not double-darken art. */
+#app[data-indoor="false"][data-period] #sceneStage #dayTint{background:transparent}
+#app[data-indoor="false"][data-period] #sceneStage #dayTint::before,
+#app[data-indoor="false"][data-period] #sceneStage #dayTint::after{opacity:0}
+#stage .scene-light-background{position:absolute;inset:0;background-position:center;background-size:cover;background-repeat:no-repeat;pointer-events:none;z-index:0}
+#stage .grid{z-index:200}
+@media(prefers-reduced-motion:reduce){#app #sceneStage #view,#app #sceneStage .world-object canvas,#app #sceneStage .world-vegetation canvas,#app #sceneStage .opening-wagon-trial img,#app #sceneStage .scene-figure canvas,#stage .scene-light-background,#stage .object img,#stage .object canvas{transition:none!important}}
