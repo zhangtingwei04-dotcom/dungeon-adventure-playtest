@@ -2,7 +2,7 @@
 (function(){const base=window.DUNGEON_FOREST_V4_LAYOUT;if(!base?.scenes?.wreck)return;const overrides={
   "v4-wagon0": {
     "x": 30.8,
-    "y": 69.8,
+    "y": 71.0,
     "width": 37,
     "rotation": 4
   },
@@ -21,11 +21,12 @@
     "rotation": 13
   },
   "v4-barrel4": {
-    "x": 59.4,
-    "y": 62.5,
-    "width": 6.2,
+    "x": 61.7,
+    "y": 65.2,
+    "width": 8.4,
     "z": 1,
-    "rotation": 72
+    "rotation": 0,
+    "artVariant": "barrel-side"
   },
   "v4-crate_open5": {
     "x": 47.5,
@@ -56,11 +57,11 @@
     "rotation": -18
   },
   "v4-plank_lean9": {
-    "x": 41.8,
-    "y": 71.1,
-    "width": 5,
-    "z": 9,
-    "rotation": 13
+    "x": 43.4,
+    "y": 73.2,
+    "width": 4.3,
+    "z": 4,
+    "rotation": -13
   },
   "v4-grass_a10": {
     "x": 23.2,
