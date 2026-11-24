@@ -31,3 +31,21 @@
 **檢驗：** 14／14 項程式、素材引用、男女圖集切分、試穿控制、手部策略參與與 JavaScript 語法檢查通過；PNG 128×160、5 段 CRC 通過，透明畫布生成成功。這不代表已由使用者在 iPhone Safari 視覺驗收。正式 `index.html` 未修改、遊戲存檔未更動。
 
 後續若手套袖口過高、太寬或手掌偏移，先讓使用者在工作台微調再匯出 JSON；確認後才移至正式遊戲。
+
+
+## 2026-11-24 更新｜手套左右手獨立調整（最新有效狀態）
+
+使用者明確同意以「單一 front PNG 搭配各自的 handOffsets」方式，並指示直接修改開發平台。現在已正式更新 GitHub `main` 的 `developer-studio.html`。
+
+- **素材不變**：仍使用本文件最初生成的男性、女性 V1 正面雙手套各一張 64×160 PNG；與 V4 皮靴相同，Canvas 繪圖時將 x0–31、x32–63 分成兩半，獨立以各半原錨點 (16,80)、(48,80) 做位移與等比縮放。預設每隻 `{x:0,y:0,scale:1}` 時，像素畫面位置完全與未拆分前相同。
+- **UI**：選中 `starter_gloves` 的 `front`，顯示「左手套」、「右手套」兩個按鈕，X/Y/Scale／微調箭頭／畫布拖曳／「重設此圖層」均只作用於目前選取的手；可以點角色 Y65–120 的左／右半部直接選手。手套共同維持 Z65 的一個 front 裝備圖層，不建立 side、back 或第二個裝備槽。
+- **資料儲存**：新增 `gloveHandOffsets.male.left/right` 與 `gloveHandOffsets.female.left/right` 本機設定、`editingGloveHand` 目前選取記錄。 `dungeon-character-asset-library-v1` JSON 匯出內容於手套正面層新增 `handOffsets:{left:{x,y,scale},right:{x,y,scale}}`，匯入也能恢復；舊 JSON 沒有 `handOffsets` 時可正常繼續以 0/0/1 預設操作。
+- **衣袖／披風／側包**：`getVisibleArmGarments()` 現在會以 Canvas 將**最新左右手套 offset 後的像素**合成再送入 `DungeonArmVisibilityPolicyV1`，避免手套移動後披風仍按照原始位置做透明遮擋。原本的 V13 長袖、披風、側包、角色原手掌／頭部和 V4 皮靴及其設定均未更改。
+- **重置**：選手套按下單層重置，只重置那隻手套；全體「恢復已確認服裝位置」才重置四隻手套的額外偏移。
+- **測試結果**：19／19 項回歸檢查通過，包括直接執行繪圖函式核對初始雙手像素位置、僅左手 X+3/Y-2/Scale0.8 且右手不動、男女互不影響、鞋子渲染不變、左右控制／存檔／JSON／遮擋／JS 語法。屬於程式測試；未代替使用者 iPhone Safari 實際試穿。
+
+直接開啟試穿（原有 `preset` 會帶回 V13 長袖、披風、側包及 V4 皮靴配置；手套再由 `gloves=1` 開啟）：
+
+`https://zhangtingwei04-dotcom.github.io/dungeon-adventure-playtest/developer-studio.html?tab=library&preset=v13-outer-bag-y10&boots=1&gloves=1&v=gloves-independent-hands-20261124`
+
+**正式遊戲 `index.html` 並未因本次改動安裝手套**；試穿驗收通過後才可正式放入。
