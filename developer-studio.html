@@ -1052,9 +1052,16 @@ function updateControls(){
  a.id==='starter_natural_long_tunic_v13_sleeves'?{side:'畫面左長袖｜袖口Y88（Z38）',front:'畫面右長袖｜袖口Y88（Z39）'}[layer]:a.id==='starter_trousers'?{front:'褲腰與皮帶（正面）',side:'左褲管（正面）',back:'右褲管（正面）'}[layer]:{front:'前層／主圖',back:'後層',side:'側面裝飾'}[layer];select.appendChild(op)}
  if(!a.layers.includes(editingLayer))editingLayer=a.layers[0];
  select.value=editingLayer;$('editGender').value=editingGender;$('assetSelect').value=selected;
- const t=transforms[selectedKey()]||defaultT(a,editingGender,editingLayer);
+ const bootMode=a.id==='starter_boots'&&editingLayer==='front';
+ $('bootFootField').hidden=!bootMode;
+ for(const [id,foot] of [['bootFootLeft','left'],['bootFootRight','right']])
+  $(id).setAttribute('aria-pressed',String(bootMode&&editingBootFoot===foot));
+ if(bootMode)$('bootFootHelp').textContent=(editingGender==='male'?'男性':'女性')+'｜'+
+  (editingBootFoot==='left'?'左腳':'右腳')+'：X／Y、縮放只改這隻鞋；可拖曳腳部選取。Z 仍是兩隻鞋共用正面層。';
+ const baseT=transforms[selectedKey()]||defaultT(a,editingGender,editingLayer);
+ const t=bootMode?bootPartState(editingGender,editingBootFoot):baseT;
  $('xInput').value=String(t.x);$('yInput').value=String(t.y);$('scaleInput').value=String(t.scale);
- $('zInput').value=String(safeNum(t.z,0,140,defaultZ(a,editingGender,editingLayer)));
+ $('zInput').value=String(safeNum(baseT.z,0,140,defaultZ(a,editingGender,editingLayer)));
  const p=String($('zInput').value);
  $('zPreset').value=Array.from($('zPreset').options).some(o=>o.value===p)?p:'';
  const modeEnabled=['starter_tunic','starter_long_tunic_whole_v9','starter_tunic_layered_v10','starter_tunic_layered_v12','starter_natural_long_tunic_v13'].includes(a.id);
@@ -1117,11 +1124,11 @@ function update(){
 }
 function refreshJson(){const el=$('jsonOutput');if(el)el.value=JSON.stringify(serialize(),null,2)}
 function updateTransform(){
- const t=transforms[selectedKey()];
+ const t=editableTransform();
  t.x=safeNum($('xInput').value,-160,160,0);
  t.y=safeNum($('yInput').value,-160,160,0);
  t.scale=Math.round(safeNum($('scaleInput').value,.1,4,1)*100)/100;
- t.z=Math.round(safeNum($('zInput').value,0,140,defaultZ(item(selected),editingGender,editingLayer)));
+ transforms[selectedKey()].z=Math.round(safeNum($('zInput').value,0,140,defaultZ(item(selected),editingGender,editingLayer)));
  updateControls();drawAll();refreshJson();persist();
 }
 async function copyText(value){
@@ -1185,6 +1192,13 @@ function fixFemaleWaistPosition(){
 }
 function resetLayer(){
  const a=item(selected);if(!a)return;
+ if(selected==='starter_boots'&&editingLayer==='front'){
+  bootFootOffsets[editingGender][editingBootFoot]={x:0,y:0,scale:1};
+  layerShown[selectedKey()]=true;
+  updateControls();drawAll();refreshJson();persist();
+  toast('已重設'+(editingGender==='male'?'男性':'女性')+(editingBootFoot==='left'?'左腳':'右腳')+'皮靴，另一隻不動');
+  return;
+ }
  transforms[selectedKey()]=defaultT(a,editingGender,editingLayer);
  layerShown[selectedKey()]=true;
  updateControls();drawAll();refreshJson();persist();
@@ -1201,6 +1215,9 @@ function resetCanonicalFit(includeCustom=false){
  // Never leave opt-in V5 enabled after restoring approved fit settings.
  cloakArmRevealTrial=true;
  cloakArmDetailV5=false;
+ for(const g of ['male','female'])for(const foot of ['left','right'])
+  bootFootOffsets[g][foot]={x:0,y:0,scale:1};
+ editingBootFoot='left';
  for(const a of catalogue){
   if(!includeCustom&&!BUILTIN_IDS.has(a.id))continue;
   for(const gender of ['male','female']){
@@ -1234,14 +1251,22 @@ function onPointer(gender,canvas){
  let drag=null;
  canvas.addEventListener('pointerdown',e=>{
   if(!ready||!getImage(selected,gender,editingLayer))return;
-  editingGender=gender;updateControls();
-  drag={x:e.clientX,y:e.clientY,baseX:transforms[selectedKey()].x,baseY:transforms[selectedKey()].y};
+  editingGender=gender;
+  if(selected==='starter_boots'&&editingLayer==='front'){
+   const rect=canvas.getBoundingClientRect();
+   const cx=(e.clientX-rect.left)*64/rect.width;
+   const cy=(e.clientY-rect.top)*160/rect.height;
+   if(cx<3||cx>61||cy<100||cy>155)return;
+   editingBootFoot=cx<32?'left':'right';
+  }
+  updateControls();
+  const t=editableTransform();
+  drag={x:e.clientX,y:e.clientY,baseX:t.x,baseY:t.y,target:t};
   canvas.setPointerCapture?.(e.pointerId);e.preventDefault();
  });
  canvas.addEventListener('pointermove',e=>{
   if(!drag)return;
-  const rect=canvas.getBoundingClientRect();
-  const t=transforms[selectedKey()];
+  const rect=canvas.getBoundingClientRect(),t=drag.target;
   t.x=safeNum(drag.baseX+Math.round((e.clientX-drag.x)*64/rect.width),-160,160,0);
   t.y=safeNum(drag.baseY+Math.round((e.clientY-drag.y)*160/rect.height),-160,160,0);
   $('xInput').value=t.x;$('yInput').value=t.y;drawAll();e.preventDefault();
@@ -1282,6 +1307,12 @@ $('clearPreview').onclick=()=>{
 $('assetSelect').onchange=e=>{selected=e.target.value;const a=item(selected);editingLayer=a.layers.includes(editingLayer)?editingLayer:a.layers[0];update();persist()};
 $('editGender').onchange=e=>{editingGender=e.target.value;updateControls();drawAll();persist()};
 $('editLayer').onchange=e=>{editingLayer=e.target.value;updateControls();drawAll();persist()};
+for(const [id,foot] of [['bootFootLeft','left'],['bootFootRight','right']]){
+ $(id).onclick=()=>{
+  selected='starter_boots';editingLayer='front';editingBootFoot=foot;
+  updateControls();drawAll();refreshJson();persist();
+ };
+}
 $('wearModeSelect').onchange=e=>{
  const a=item(selected);if(!a||a.slot!=='chest'||!VALID_WEAR_MODES.includes(e.target.value))return;
  wearModes[wearModeKey(selected,editingGender)]=e.target.value;
@@ -1327,7 +1358,7 @@ for(const [id,delta] of [['zDown',-1],['zUp',1]])$(id).onclick=()=>{
 $('showAsset').onchange=e=>{shown[selected+':'+editingGender]=e.target.checked;drawAll();refreshJson();persist()};
 $('showLayer').onchange=e=>{layerShown[selectedKey()]=e.target.checked;drawAll();refreshJson();persist()};
 for(const b of document.querySelectorAll('[data-nudge]'))b.onclick=()=>{
- const [dx,dy]=b.dataset.nudge.split(',').map(Number),t=transforms[selectedKey()];
+ const [dx,dy]=b.dataset.nudge.split(',').map(Number),t=editableTransform();
  t.x=safeNum(t.x+dx,-160,160,0);t.y=safeNum(t.y+dy,-160,160,0);
  updateControls();drawAll();refreshJson();persist();
 };
