@@ -77,7 +77,7 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 <script src="./assets/arm_visibility_policy_v1.js?v=1"></script>
 <script src="./assets/travel_trousers_workbench_v2.js?v=2"></script>
 <script src="./assets/approved_satchel_workbench_v1.js?v=1"></script>
-<script src="./assets/travel_boots_workbench_v1.js?v=1"></script>
+<script src="./assets/travel_boots_workbench_v2.js?v=2-original-design"></script>
 <script src="./assets/dungeon_generated_cloak_v2.js?v=2"></script>
 <script src="./assets/male_approved_v3_layers.js?v=1"></script>
 <script src="./assets/male_v3_corrected_layers_v2.js?v=1"></script>
@@ -109,7 +109,7 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 <div class="panel"><h2>素材庫</h2>
 <div class="hint">側包新測試：使用原圖，Y97 起的包身顯示在披風前，肩帶留在披風內；手掌與實際袖口顯示在下方包身前面。不重畫皮膚或背包，男女可並排試穿；正式遊戲預設不變。</div>
 <div class="toolbar"><button class="primary" type="button" id="applyUserV13Json">套用最新 JSON｜V13 外罩＋背包 Y -10</button></div>
-<div class="toolbar"><button class="primary" type="button" id="bootsTry">穿上旅行皮靴 V1｜男女</button><button type="button" id="bootsRemove">脫下皮靴｜男女</button></div>
+<div class="toolbar"><button class="primary" type="button" id="bootsTry">穿上原展示圖 V2 厚底皮靴</button><button type="button" id="bootsRemove">脫下皮靴</button></div>
 <div class="hint">鞋子測試：從目前男女64×160原始身體腳部的像素自動定位置，左右腳各自透明，深棕色鞋面、扣帶與鞋底。長褲、披風、手與背包坐標不變；正式遊戲尚未安裝鞋子圖。</div>
 <div class="hint">依照最新提供的裝備 JSON：男女 V13 外罩式、左右袖獨立、披風前層 Y -6、旅行長褲 V2、背包前層 Y -10。只套用位置及穿搭狀態，不改 PNG 或正式遊戲存檔。</div>
 <div class="hint">穿搭試驗：選白色初始布衣，切換「紮入式／自然垂放／外罩式」，男女可以不同。自然垂放只將下擺重新疊在褲腰前，不改袖子與角色；披風仍維持已核准的前後包覆。已儲存的 Z、男女座標及重設資料都保留。正式遊戲不會同步改動。</div>
@@ -247,7 +247,7 @@ const catalogue=[
  {id:'starter_natural_long_tunic_v13',name:'V13｜自然長袖・獨立正面衣身',slot:'chest',layers:['front'],status:'沿用已確認V3自然衣身的圖像作為獨立長袖上衣正面，不改動V3；無背面；待手機驗收'},
  {id:'starter_natural_long_tunic_v13_sleeves',name:'V13｜自然長袖・左右短袖口袖片',slot:'chest',layers:['side','front'],status:'男女左右獨立64×160透明；袖口結束Y88；袖子在衣身正面後方；待手機驗收'},
  {id:'starter_trousers',name:'旅行長褲 V2｜新版透明圖試穿',slot:'legs',layers:['front','side','back'],status:'新版透明美術來源｜男／女各三張64×160｜待實機驗收'},
- {id:'starter_boots',name:'棕色扣帶旅行皮靴 V1｜試穿',slot:'feet',layers:['side','front'],status:'男女各左右腳獨立透明64×160；自動對照目前雙腳；只供開發工作台試穿'},
+ {id:'starter_boots',name:'深棕扣帶厚底旅行靴 V2｜原展示圖像素版',slot:'feet',layers:['side','front'],status:'忠實沿用展示圖像素稿；男左／男右／女左／女右各為獨立 64×160 透明 PNG；開發試穿待驗收'},
  {id:'starter_gloves',name:'棕色皮革手套',slot:'hands',layers:['front'],status:'待匯入新圖'},
  {id:'enchanted_satchel',name:'附魔旅行側包｜沿用已核准原圖',slot:'bag',layers:['back','front'],status:'直接沿用正式遊戲64×160已核准圖，不重新生成；原本側包前層位置 y=-2'}
 ];
@@ -1372,7 +1372,7 @@ function applyLatestUserV13JsonPreset(){
  const earlier=['starter_long_sleeves_v4','starter_sleeves_v6','starter_sleeves_v7',
   'starter_long_tunic_whole_v9','starter_tunic_layered_v10',
   'starter_tunic_layered_v10_sleeves','starter_tunic_layered_v12',
-  'starter_tunic_layered_v12_sleeves','starter_boots','starter_gloves'];
+  'starter_tunic_layered_v12_sleeves','starter_gloves'];
  naturalLongSleevesTrialV13=true;
  sleeveReplaceModeV6=false;sleeveReplaceModeV7=false;wholeLongTunicTrialV9=false;
  layeredLongTunicTrialV10=false;frontSleevesTrialV12=false;
@@ -1404,7 +1404,7 @@ function setBootsTrial(on){
  }
  selected='starter_boots';editingLayer='side';
  update();persist();
- toast(on?'男女旅行皮靴已試穿；左右腳可分開調整':'男女皮靴已脫下；原本腳部與長褲保留');
+ toast(on?'已試穿原展示圖 V2 厚底扣帶皮靴；男女左右腳各自可調':'已脫下試穿皮靴；原本腳部與長褲保留');
 }
 $('bootsTry').onclick=()=>setBootsTrial(true);
 $('bootsRemove').onclick=()=>setBootsTrial(false);
@@ -1576,12 +1576,13 @@ async function init(){
    sourceImages.femaleV13Front=sourceImages[v13.shirtFrontSources.female];
    if(!sourceImages.maleV13Front||!sourceImages.femaleV13Front)throw Error('V13 無法從 V3 取得自然衣身正面');
   }
-  // New boots are independent PNG layers aligned against the actual base
-  // body alpha, never scaled or painted onto the character itself.
-  const bootsFactory=window.DungeonTravelBootsWorkbenchV1;
+  // V2 pixel atlas: exact four transparent 64x160 layers derived from the
+  // original approved folded-cuff leather-boots artwork; no procedural
+  // rectangles, live resizing, or changes to the player body/trousers.
+  const bootsFactory=window.DungeonTravelBootsWorkbenchV2;
   if(bootsFactory?.build){
    try{Object.assign(sourceImages,await bootsFactory.build(sourceImages));}
-   catch(err){console.warn('Boots V1 trial source unavailable:',err)}
+   catch(err){console.warn('Boots V2 original-reference sprites unavailable:',err)}
   }
   const keys=Object.entries(sourceImages).filter(([,value])=>
    typeof value==='string'&&value.startsWith('data:image/png;base64,'));
