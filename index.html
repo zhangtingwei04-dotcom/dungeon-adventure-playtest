@@ -4169,6 +4169,9 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <script src="./assets/travel_trousers_workbench_v2.js?v=game-20261124"></script>
 <!-- Accepted live 64x160 front-only V4 boots; exact approved four-foot fitting. -->
 <script src="./assets/travel_boots_front_v4.js?v=approved-game-20261124"></script>
+<!-- Official universal arm transparency follows the developer studio policy. -->
+<script src="./assets/arm_visibility_policy_v1.js?v=live-20261124"></script>
+<script src="./assets/arm_visibility_live_v1.js?v=live-20261124"></script>
 <script>
 (()=>{'use strict';
 // Fixed design canvas: use the approved screenshot's exact 1536×707 ratio,
@@ -5134,6 +5137,9 @@ const LEGACY_EQUIPMENT_ART_ENABLED=false;
 // The previously rejected equipment atlas remains disabled.
 const CLOAK_PIXEL_TRIAL_ENABLED=new URLSearchParams(location.search).get('cloak')==='trial';
 const CLOAK_ART_V2_ENABLED=new URLSearchParams(location.search).get('cloak')!=='off'&&!CLOAK_PIXEL_TRIAL_ENABLED;
+// Live default: transparent front cape/pouch, not old rectangular skin redraw.
+// ?armPolicy=old is visual-only rollback; it never alters equipment/saves.
+const LIVE_ARM_VISIBILITY_V1_ENABLED=new URLSearchParams(location.search).get('armPolicy')!=='old';
 // Approved: strap under cloak, pouch outside the cloak but behind hands.
  // ?bagSplit=off only hides the split visually; player equipment unchanged.
 const SATCHEL_LOWER_OUTSIDE_TRIAL_ENABLED=new URLSearchParams(location.search).get('bagSplit')!=='off';
@@ -6178,6 +6184,9 @@ function equipmentGuideHTML(sceneMode='equipment'){
  // Keep the cloak's back panel behind the body and original lower hands in front.
  // The hand overlay must match the original BODY + SHORTS + TANK stack.
  // Earlier drawing body alone erased the sides of the existing underwear.
+ // These preexisting overlays are retained as ?armPolicy=old fallback only.
+ // When live V1 masks are ready, the bridge hides all old body/shorts/tank
+ // restoration and exposes real hands through transparent cloak/pouch pixels.
  // Copy the approved garment pixels ABOVE the hands, in the same native grid.
  const nativeArms=cloakArt?
   (maleTemplateLayer(character.layers.body,'paperdoll-original-arm-left')+
@@ -6315,6 +6324,42 @@ function paintPaperDollPhysicalCondition(){
    maleV8?{y:-1,eyeCenters:[[25,38],[39,38]]}:undefined);
  }
 }
+// The live transparency policy receives only CURRENTLY WORN sleeve/torso
+// layers with the same 64x160 crop and transforms as the approved outfit.
+function currentLiveArmGarments(){
+ const worn=s.equipmentV1?.chest==='starter_tunic'||paperDollTryOn;
+ if(!worn||!WHITE_STARTER_SHIRT_V3_ENABLED)return [];
+ const source=window.DungeonWhiteShirtWorkbenchV1;
+ if(source?.width!==64||source?.height!==160||typeof source?.sheet!=='string')return [];
+ const female=s.appearanceV1?.gender==='female';
+ const x=female?0:-1,y=-1,descriptors=[];
+ const add=(src,frames,frame)=>descriptors.push({src,frames,frame,x,y,scale:1});
+ const v13=window.DungeonNaturalLongTunicV13;
+ if(V13_LONG_TUNIC_ENABLED&&v13?.canvasWidth===64&&v13?.canvasHeight===160&&
+    v13?.sleeveSliceNames?.length===4&&typeof v13?.sleeveAtlas==='string'){
+  const start=female?2:0;
+  add(v13.sleeveAtlas,4,start);
+  add(v13.sleeveAtlas,4,start+1);
+  add(source.sheet,6,female?5:2);
+ }else{
+  for(const frame of (female?[4,5,3]:[1,2,0]))add(source.sheet,6,frame);
+ }
+ return descriptors;
+}
+function applyLiveArmVisibility(){
+ if(!LIVE_ARM_VISIBILITY_V1_ENABLED||!window.DungeonLiveArmVisibilityV1?.apply)return;
+ const stage=document.querySelector('#equipmentBoard .paperdoll-stage');
+ if(!stage)return;
+ const cloak=stage.querySelector('.paperdoll-cloak-art-v2-front');
+ const pouch=stage.querySelector('.paperdoll-bag-lower');
+ if(!cloak&&!pouch)return;
+ const bodySrc=paperDollSprite('body');
+ const cloakSrc=cloak?window.DungeonGeneratedCloakV2?.front:null;
+ window.DungeonLiveArmVisibilityV1.apply(stage,{
+  bodySrc,cloakSrc,bagSrc:pouch?EQUIPMENT_APPROVED_BAG_IMAGE:null,
+  garments:currentLiveArmGarments()
+ });
+}
 function renderEquipmentBoard(){
  normalizeEquipmentV1();
  tickPaperDollMotion(true);
@@ -6367,6 +6412,7 @@ function renderEquipmentBoard(){
  paintPaperDollFemaleEyes();
  paintPaperDollFemaleMouth();
  paintPaperDollSkin();
+ applyLiveArmVisibility();
  paintPaperDollFemaleTrialExpression();
  paintPaperDollPhysicalCondition();
  paintNpcDreamPreview();
