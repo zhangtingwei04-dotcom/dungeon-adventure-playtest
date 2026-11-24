@@ -77,7 +77,7 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 <script src="./assets/arm_visibility_policy_v1.js?v=1"></script>
 <script src="./assets/travel_trousers_workbench_v2.js?v=2"></script>
 <script src="./assets/approved_satchel_workbench_v1.js?v=1"></script>
-<script src="./assets/travel_boots_workbench_v2.js?v=2-original-design"></script>
+<script src="./assets/travel_boots_front_v3.js?v=3-front-only"></script>
 <script src="./assets/dungeon_generated_cloak_v2.js?v=2"></script>
 <script src="./assets/male_approved_v3_layers.js?v=1"></script>
 <script src="./assets/male_v3_corrected_layers_v2.js?v=1"></script>
@@ -109,7 +109,7 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 <div class="panel"><h2>素材庫</h2>
 <div class="hint">側包新測試：使用原圖，Y97 起的包身顯示在披風前，肩帶留在披風內；手掌與實際袖口顯示在下方包身前面。不重畫皮膚或背包，男女可並排試穿；正式遊戲預設不變。</div>
 <div class="toolbar"><button class="primary" type="button" id="applyUserV13Json">套用最新 JSON｜V13 外罩＋背包 Y -10</button></div>
-<div class="toolbar"><button class="primary" type="button" id="bootsTry">穿上原展示圖 V2 厚底皮靴</button><button type="button" id="bootsRemove">脫下皮靴</button></div>
+<div class="toolbar"><button class="primary" type="button" id="bootsTry">穿上 V3 正面雙靴（無後層）</button><button type="button" id="bootsRemove">脫下皮靴</button></div>
 <div class="hint">鞋子測試：從目前男女64×160原始身體腳部的像素自動定位置，左右腳各自透明，深棕色鞋面、扣帶與鞋底。長褲、披風、手與背包坐標不變；正式遊戲尚未安裝鞋子圖。</div>
 <div class="hint">依照最新提供的裝備 JSON：男女 V13 外罩式、左右袖獨立、披風前層 Y -6、旅行長褲 V2、背包前層 Y -10。只套用位置及穿搭狀態，不改 PNG 或正式遊戲存檔。</div>
 <div class="hint">穿搭試驗：選白色初始布衣，切換「紮入式／自然垂放／外罩式」，男女可以不同。自然垂放只將下擺重新疊在褲腰前，不改袖子與角色；披風仍維持已核准的前後包覆。已儲存的 Z、男女座標及重設資料都保留。正式遊戲不會同步改動。</div>
@@ -140,6 +140,7 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 <div class="hint"><strong>V13 自然長袖（最新待驗收）：</strong>依照剛確認的雙人設計，保留 V3 自然衣身外觀，袖口比 V12 短 5px、手部更完整露出。男女各一件獨立服裝；衣身正面與左右袖分開，袖子在衣身後，沒有背面圖層。原版 V3 短袖和所有舊試驗皆完整保留。</div>
 <div class="toolbar"><button class="primary" type="button" id="v13On">V13 新版短袖口長袖｜男女試穿</button><button type="button" id="v13Off">切回原版 V3 短袖</button><button type="button" id="v13Cloak">V13 長袖＋披風</button></div>
 <div class="hint">V13 長袖穿法已可獨立切換：只改「正面衣身」與褲腰的遮擋；左右袖仍各自保持在衣身後、手臂照原樣。外罩式會讓衣身完整顯示在褲腰前，但不會憑空改長或放大原圖。</div>
+<div class="hint">旅行靴 V3 僅使用正面圖層：男、女各一張雙靴透明 PNG，後側凸出的鞋跟已修。鞋子不含側面／背面裝備圖層；調整鞋子時只編輯 front，左右腳會一起移動，褲管與底模不變。</div>
 <div class="toolbar" role="group" aria-label="V13 長袖穿著方式"><button type="button" id="v13Tucked">V13 長袖｜紮入式</button><button type="button" id="v13Untucked">V13 長袖｜自然垂放</button><button class="primary" type="button" id="v13Outer">V13 長袖｜外罩式</button><button type="button" id="v13OuterFull">外罩＋披風＋背包（男女）</button></div>
 <div class="hint" id="v13WearStatus" role="status" aria-live="polite">選擇 V13 長袖穿著方式後，男女預覽會同步顯示。</div>
 <div class="hint">V13 圖層：左袖 Z38、右袖 Z39、正面衣身 Z42。袖口最下緣 Y88；獨立男女定位與可拖曳。先檢查肩部、衣身與露出的手掌，再決定是否晉升正式遊戲。</div>
@@ -247,7 +248,7 @@ const catalogue=[
  {id:'starter_natural_long_tunic_v13',name:'V13｜自然長袖・獨立正面衣身',slot:'chest',layers:['front'],status:'沿用已確認V3自然衣身的圖像作為獨立長袖上衣正面，不改動V3；無背面；待手機驗收'},
  {id:'starter_natural_long_tunic_v13_sleeves',name:'V13｜自然長袖・左右短袖口袖片',slot:'chest',layers:['side','front'],status:'男女左右獨立64×160透明；袖口結束Y88；袖子在衣身正面後方；待手機驗收'},
  {id:'starter_trousers',name:'旅行長褲 V2｜新版透明圖試穿',slot:'legs',layers:['front','side','back'],status:'新版透明美術來源｜男／女各三張64×160｜待實機驗收'},
- {id:'starter_boots',name:'深棕扣帶厚底旅行靴 V2｜原展示圖像素版',slot:'feet',layers:['side','front'],status:'忠實沿用展示圖像素稿；男左／男右／女左／女右各為獨立 64×160 透明 PNG；開發試穿待驗收'},
+ {id:'starter_boots',name:'深棕扣帶厚底旅行靴 V3｜僅正面',slot:'feet',layers:['front'],status:'男、女各一張 64×160 透明正面雙靴 PNG；後側突出鞋跟已修；不再使用 side 或 back 圖層，待實機驗收'},
  {id:'starter_gloves',name:'棕色皮革手套',slot:'hands',layers:['front'],status:'待匯入新圖'},
  {id:'enchanted_satchel',name:'附魔旅行側包｜沿用已核准原圖',slot:'bag',layers:['back','front'],status:'直接沿用正式遊戲64×160已核准圖，不重新生成；原本側包前層位置 y=-2'}
 ];
@@ -267,8 +268,8 @@ const stockKeys={
  'starter_trousers:male:front':'maleTrousersWaist','starter_trousers:male:side':'maleTrousersLeft','starter_trousers:male:back':'maleTrousersRight',
  'starter_trousers:female:front':'femaleTrousersWaist','starter_trousers:female:side':'femaleTrousersLeft','starter_trousers:female:back':'femaleTrousersRight',
  'enchanted_satchel:male:front':'approvedSatchel','enchanted_satchel:female:front':'approvedSatchel',
- 'starter_boots:male:side':'maleTravelerBootLeft','starter_boots:male:front':'maleTravelerBootRight',
- 'starter_boots:female:side':'femaleTravelerBootLeft','starter_boots:female:front':'femaleTravelerBootRight'
+ 'starter_boots:male:front':'maleTravelerBootFront',
+ 'starter_boots:female:front':'femaleTravelerBootFront'
 };
 const images=new Map(),userPngs=new Map(),imageInfo=new Map();
 const transforms={},shown={},layerShown={},wearModes={};
@@ -1400,11 +1401,11 @@ $('applyUserV13Json').onclick=applyLatestUserV13JsonPreset;
 function setBootsTrial(on){
  for(const g of ['male','female']){
   shown['starter_boots:'+g]=on;
-  for(const layer of ['side','front'])layerShown[k('starter_boots',g,layer)]=true;
+  layerShown[k('starter_boots',g,'front')]=true;
  }
- selected='starter_boots';editingLayer='side';
+ selected='starter_boots';editingLayer='front';
  update();persist();
- toast(on?'已試穿原展示圖 V2 厚底扣帶皮靴；男女左右腳各自可調':'已脫下試穿皮靴；原本腳部與長褲保留');
+ toast(on?'已試穿 V3 正面雙靴（男女各一張），後側鞋跟已修剪':'已脫下試穿皮靴；原本腳部與長褲保留');
 }
 $('bootsTry').onclick=()=>setBootsTrial(true);
 $('bootsRemove').onclick=()=>setBootsTrial(false);
@@ -1523,6 +1524,18 @@ $('githubRepo').onclick=()=>openUrl('https://github.com/zhangtingwei04-dotcom/du
 for(const g of ['male','female'])onPointer(g,$(g+'Canvas'));
 async function init(){
  restore();
+ // One-time migration of V1/V2 boot side/front placement to the V3
+ // single front-layer paired sprite. Preserve all other fitted equipment.
+ for(const gender of ['male','female']){
+  const legacySide=k('starter_boots',gender,'side');
+  if(transforms[legacySide]||layerShown[legacySide]!==undefined){
+   const front=k('starter_boots',gender,'front');
+   transforms[front]=defaultT(item('starter_boots'),gender,'front');
+   layerShown[front]=true;
+   delete transforms[legacySide];delete layerShown[legacySide];
+   if(selected==='starter_boots')editingLayer='front';
+  }
+ }
  // Retired flags must never re-enable archived layers from local settings.
  sleeveReplaceModeV6=false;sleeveReplaceModeV7=false;wholeLongTunicTrialV9=false;
  layeredLongTunicTrialV10=false;frontSleevesTrialV12=false;
@@ -1576,13 +1589,13 @@ async function init(){
    sourceImages.femaleV13Front=sourceImages[v13.shirtFrontSources.female];
    if(!sourceImages.maleV13Front||!sourceImages.femaleV13Front)throw Error('V13 無法從 V3 取得自然衣身正面');
   }
-  // V2 pixel atlas: exact four transparent 64x160 layers derived from the
-  // original approved folded-cuff leather-boots artwork; no procedural
-  // rectangles, live resizing, or changes to the player body/trousers.
-  const bootsFactory=window.DungeonTravelBootsWorkbenchV2;
+  // V3 atlas: one transparent front-only paired boot sprite per gender.
+  // Both shoes remain fixed relative to each other; no side/back layers
+  // and no changes to the existing body, trousers, other clothes or player saves.
+  const bootsFactory=window.DungeonTravelBootsWorkbenchV3;
   if(bootsFactory?.build){
    try{Object.assign(sourceImages,await bootsFactory.build(sourceImages));}
-   catch(err){console.warn('Boots V2 original-reference sprites unavailable:',err)}
+   catch(err){console.warn('Boots V3 front-only sprites unavailable:',err)}
   }
   const keys=Object.entries(sourceImages).filter(([,value])=>
    typeof value==='string'&&value.startsWith('data:image/png;base64,'));
