@@ -81,3 +81,23 @@ V3 試穿 URL：`https://zhangtingwei04-dotcom.github.io/dungeon-adventure-playt
 程式檢查涵蓋 UI、語法、既有腳本引用、持久儲存與回復，以及**實際繪圖函式**的左右裁切與變換隔離：**20／20 通過**。這不等於完成 iPhone Safari 實際視覺驗收，請在手機上確認拖曳單腳的操作手感。
 
 開發平台：`https://zhangtingwei04-dotcom.github.io/dungeon-adventure-playtest/developer-studio.html?preset=v13-outer-bag-y10&tab=library&boots=1&v=boots-v4-individual-feet`
+
+
+## 2026-11-24 11:24（Asia/Taipei）｜使用者最新試穿 JSON 的 V4 鞋子定位
+
+使用者提供完整的 `dungeon-character-asset-library-v1` 匯出資料，確認 64×160 畫布、遊戲 `independent-dev-preview`。與過去不同，此次四隻鞋已透過左右腳獨立微調設定了**實際偏移**，最新匯出位置應視作工作台對照基準，不要重置為 0。
+
+| 性別 | 正面鞋子 | x | y | scale |
+|---|---|---:|---:|---:|
+| 男性 | 左腳 | +1 | +3 | 0.90 |
+| 男性 | 右腳 | -1 | +3 | 0.90 |
+| 女性 | 左腳 | +1 | +4 | 0.90 |
+| 女性 | 右腳 | -2 | +4 | 0.90 |
+
+`starter_boots` 仍是**單一** `front` 層，男女 `front` 主變換均為 `x=0,y=0,scale=1,z=60`、`visible=true`，兩腳位置保存在 `layers.front.footOffsets`。V4 皮靴素材不重畫。
+
+此次也再次核對匯出內容：男女 V13 長袖主衣身 `wearMode=outer`、左右袖 Z38/39；披風前片 `y=-6,z=80`；背包前片 `y=-10,z=70`；男性長褲褲腰 `(-1,-6)`，女性 `(0,-5)`。V3 白衣和其他有效素材保留。來源備註也確認：**JSON 只帶位置及內建圖源 key，不包含自訂 PNG**。
+
+已將上述四腳的完整數值寫進開發總台 `applyLatestUserV13JsonPreset()`，按「套用最新 JSON」或以 `?preset=v13-outer-bag-y10&tab=library&boots=1` 開啟，可在另一裝置重現；這會主動套用該工作台配置，但**不會改寫正式遊戲的玩家存檔**。GitHub `main` 已確認寫入。
+
+回歸測試：以真正的 preset 函式在模擬工作台執行，逐項驗證男女鞋顯示、四腳偏移／縮放、原正面層 Z60、V13 外罩與背包／披風保留、前層設定及 JavaScript 語法，**15／15 通過**。iPhone Safari 最終外觀仍需手機實際查看。
