@@ -1,7 +1,8 @@
 /* Front-only brown leather gloves V1 for 《迷宮盡頭的燈火》.
  * Cropped from the user's two newly generated transparent pixel art pairs,
  * then pixel-nearest fitted as male / female 64x160 full-canvas sprites.
- * Testing ONLY in developer-studio, not official game, no save changes.
+ * Accepted into official game on 2026-11-24, sharing the same artwork.
+ * Rendered only when the existing hands slot is worn; saves unchanged.
  * Male pair: 11x17 per glove at native Y81; female: 10x15 at Y83.
  */
 (function(root){
