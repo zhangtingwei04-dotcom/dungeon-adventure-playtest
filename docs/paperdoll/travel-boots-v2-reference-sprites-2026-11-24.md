@@ -31,3 +31,18 @@ V2 使用先前依照展示圖繪製、貼合到 64×160 原生座標的透明�
 - V2 圖集的 PNG chunk 格式、尺寸、透明調色盤與 **全部五段 CRC32 檢查成功**，PNG 內容可正確解出四片來源圖；本地四份輸出均為 64×160 RGBA 真透明。
 - 程式層級驗收：**13／13 通過**。包含各鞋資料 key、V2 貼圖建構器、左右鞋裁切位置、獨立穿脫操作、V13/披風/背包設定保留、JS 語法以及 GitHub main 的全部工作台 `assets/*.js` 路徑完整性。
 - **尚未透過使用者 iPhone Safari 確認視覺效果**。尤其褲管覆蓋、腳尖比例、鞋底厚度和兩性姿勢是否自然，仍以手機實際畫面驗收為準；正式遊戲 `index.html` 不在此次更動範圍。
+
+
+## 2026-11-24 後續更正：V3「只有正面」，以此段為最新狀態
+
+使用者要求不要鞋子的後方圖層／外露後跟，且角色試穿只需要正面。**開發者總台已更新為 V3**，本文件上面的 V2 雙層描述僅是歷史紀錄。
+
+- 素材來源：`assets/travel_boots_front_v3.js`，透明 PNG 圖集 128×160，前 64px 是男性雙靴，後 64px 是女性雙靴；圖集 SHA256 `c927347b96eb88c5d4d0bcad413ca4152e137ba4bc66a1b9ed2e2df33d6111bb`。
+- 裝備 `starter_boots` 的 `layerNames` 現在僅 `['front']`，不再列出 `side` 或 `back`。男、女各有一張包含左右雙鞋的 **64×160 正面透明 PNG**（`maleTravelerBootFront`／`femaleTravelerBootFront`）。
+- 以 V2 原正面鞋的皮革與扣帶像素為基礎，精準裁掉向鞋側後方突出、造成假後跟的少量像素；沒有重新生成角色、褲子或身體圖。
+- 原版 V1/V2 的本機座標若留有 `starter_boots:{gender}:side`，開發總台初始化會一次性遷移為新的 `front` 預設位置，並移除舊 side 參數，不影響其他裝備。本機自訂 PNG 仍保留備份，不隨此清理刪除。
+- V13 長袖外罩、披風前片 Y=-6、背包 Y=-10、旅行長褲與男女原本角色都保留。開發版可穿／脫靴，正式遊戲 `index.html` 不受影響。
+
+V3 試穿 URL：`https://zhangtingwei04-dotcom.github.io/dungeon-adventure-playtest/developer-studio.html?preset=v13-outer-bag-y10&tab=library&boots=1&v=boots-front-only-v3`
+
+本地圖像尺寸、透明色、圖集兩幀逐像素一致性已檢查；GitHub 端鞋子 `front` 圖層、兩張來源、遷移與引用及 JavaScript 測試 **11／11 通過**。實際 iPhone Safari 造型是否自然仍須使用者驗收。
