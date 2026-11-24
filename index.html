@@ -3892,6 +3892,18 @@ html.stage-locked #app .paperdoll-stage.paperdoll-female-trial .paperdoll-female
    approved neutral mouth is permitted even if the outfit stays unchanged. */
 html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="mouthShape"]{display:none!important}
 </style>
+<style>
+/* Scene objects V1 — native scene-relative positions; not the optional hint dots. */
+#sceneStage .world-object{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:1px;transform:translate(-50%,-100%);padding:0;border:0;background:transparent;color:#f4e4b9;pointer-events:auto;cursor:pointer;touch-action:manipulation;width:13%;min-width:34px;max-width:88px;height:auto;z-index:5;box-shadow:none;text-shadow:0 1px 2px #101b14}
+#sceneStage .world-object canvas{display:block;width:100%;height:auto;aspect-ratio:1;image-rendering:pixelated;filter:drop-shadow(0 2px 2px #15201988)}
+#sceneStage .world-object[data-kind="npc"]{width:15%}
+#sceneStage .world-object[data-kind="wreck"]{width:19%;max-width:112px}
+#sceneStage .world-object[data-kind="creature"]{width:16%}
+#sceneStage .world-object[data-kind="grass"],#sceneStage .world-object[data-kind="wood"],#sceneStage .world-object[data-kind="stone"]{width:11%;min-width:30px;max-width:64px}
+#sceneStage .world-object span{display:block;font-size:clamp(9px,1.1vw,12px);line-height:1.2;background:#183027e8;border:1px solid #9b8558;padding:2px 4px;border-radius:3px;white-space:nowrap;max-width:150px;box-shadow:0 1px 3px #101a15}
+#sceneStage .world-object:focus-visible{outline:2px solid #f8dda4;outline-offset:2px}
+#app.encounter-pending #sceneStage .world-object,#app.scene-dialogue-active #sceneStage .world-object{pointer-events:none!important;visibility:hidden}
+</style>
 </head>
 <body>
 <div id="app"><div id="worldFrame" aria-hidden="true">
@@ -4138,6 +4150,7 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <script src="./assets/ornaments_data.js"></script>
 <script src="./assets/approved_wagon_art_v1.js"></script>
 <script src="./assets/trail_forest_v1.js"></script>
+<script src="./assets/scene_objects_v1.js?v=20261124-1"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
 <script src="./assets/expression_motion.js?v=2.20"></script>
 <script src="./assets/male_v9_unconscious_icon_v2.js?v=1"></script>
@@ -4844,9 +4857,11 @@ function exploreArea(){
   }
  }
  e.last[site]=latest;
+ const sceneFinds=window.DungeonSceneObjectsV1?.afterExplore(s)||[];
+ for(const label of sceneFinds)addTravel('discovery','在'+names[site][0]+'發現'+label+'。','可以直接在場景中上前交談。');
  const feature=latest.route?'並找到新的路線卡':latest.wreckFound?'，還發現林邊舊馬車殘骸':'，留意到新的環境細節';
  addTravel('daily','在'+names[site][0]+'進行第'+count+'次探索（約10分鐘，'+gameTime(s.worldMinutes)+'）'+feature+'。','這裡還有許多可以慢慢觀察的東西。');
- save();render();toast(explorationToast(site,latest,newMaterials));
+ save();render();toast(explorationToast(site,latest,newMaterials)+(sceneFinds.length?' · 發現旅人':'')+((site==='clearing'&&!s.flags.creatureResolved)?' · 留意場景中的生物':''));
 }
 
 /* Persistent discovered destinations; drawer open/closed and expanded card are only UI. */
@@ -7711,8 +7726,44 @@ function render(){if(!names[s.scene])s.scene='wreck';normalizeGameTime();tickBee
 if(primary){const b=document.createElement('button');b.className='action primary';setActionVisual(b,/探索|觀察/.test(primary.title)?'explore':'route',primary.title);b.title='主要行動；點擊執行';b.onclick=()=>guardedAction(primary.fn);$('actions').appendChild(b);}
 const quick=available.find(a=>a.quick&&a!==primary);if(quick){const b=document.createElement('button');b.className='action explore';setActionVisual(b,'explore',quick.title);b.onclick=()=>guardedAction(quick.fn);$('actions').appendChild(b);}
 /* Secondary interactions are now grouped under the right-side place drawer. */renderHotspots();renderFeed();renderPlaceDrawer();renderSceneInfoBar();save();}
+function interactSceneObject(id){
+ const engine=window.DungeonSceneObjectsV1;
+ if(!engine||encounterPending||modal||s.flags.inBattle||$('app').classList.contains('scene-dialogue-active'))return;
+ const site=s.scene,obj=engine.objects(s).find(x=>x.id===id);if(!obj)return;
+ if(obj.kind==='wreck'){inspectOtherWreck();return;}
+ if(obj.kind==='creature'){soundInForest();return;}
+ if(obj.kind==='npc'){
+  dialog('路過的旅人','一名背著行囊的旅人停在路旁。對方似乎正在確認附近的方向。',[
+   {label:'上前交談',fn:()=>{
+    recoveryTime(5);
+    addTravel('talk','與路過的旅人交談（5分鐘）。','對方似乎也在慢慢熟悉這片地方。');
+    render();dialog('旅人的閒聊','「我只是沿著道路旅行。林地裡有不少生物，先觀察再靠近比較好。」',[{label:'道別',fn:()=>{}}],'旅人對話');
+   }},
+   {label:'詢問附近情報',fn:()=>{
+    recoveryTime(5);addTravel('talk','向旅人詢問附近環境（5分鐘）。','先記下他的提醒，不代表已發現新路線。');render();
+    dialog('旅人的提醒','「路旁的草木和散落材料值得留意。別急著往看不清的地方走。」',[{label:'謝謝',fn:()=>{}}],'旅人對話');
+   }},
+   {label:'道別，讓旅人繼續上路',fn:()=>{engine.dismissTraveler(s,site);addTravel('daily','路過的旅人沿著道路離開了。','也許以後還會遇見其他旅人。');render();}},
+   {label:'先不打擾',fn:()=>{}}
+  ],'探索相遇');return;
+ }
+ dialog(obj.label,'你在這裡發現可收取的普通材料：'+obj.material+'。採集會沿用原本的每日材料上限。',[
+  {label:'收取 '+obj.material+' ×1',fn:()=>collectExplorationMaterial(site,id)},
+  {label:'先保留在原地',fn:()=>{}}
+ ],'場景採集');
+}
+function renderWorldObjects(el){
+ const engine=window.DungeonSceneObjectsV1;if(!engine||encounterPending)return;
+ for(const obj of engine.objects(s)){
+  const b=document.createElement('button');b.type='button';b.className='world-object';b.dataset.kind=obj.kind;b.dataset.objectId=obj.id;b.style.left=obj.x+'%';b.style.top=obj.y+'%';b.setAttribute('aria-label',obj.label+(obj.material?'：'+obj.material:''));
+  const cv=document.createElement('canvas');cv.setAttribute('aria-hidden','true');engine.sprite(cv,obj.kind);
+  const caption=document.createElement('span');caption.textContent=obj.label;b.append(cv,caption);
+  b.onclick=()=>guardedAction(()=>interactSceneObject(obj.id));el.appendChild(b);
+ }
+}
 function renderHotspots(){
  const el=$('hotspots');el.replaceChildren();
+ renderWorldObjects(el);
  const per={wreck:[['散落貨箱',.36,.71,glance],['車輪痕跡',.45,.53,marks],['離開的林道',.85,.57,()=>change('trail'),'trail'],['探索周遭',.73,.65,exploreArea,null]],trail:[['沿小徑前進',.55,.48,rescue,'gate'],['石拱遺跡',.79,.49,()=>change('ruin'),'ruin'],['路旁舊石碑',.13,.49,inspectTrailMarker],['林間草木',.29,.59,()=>change('clearing'),'clearing'],['返回馬車',.45,.62,()=>change('wreck'),'wreck'],['探索周遭',.7,.62,exploreArea,null]],clearing:[['微光',59,69,light],['聲音',75,46,soundInForest]],ruin:[['石門',51,45,ruinLook]],inn:[['鏡子',73,43,innMark]],guild:[['公告板',69,49,guildBoard]],outskirts:[['舊路標',67,49,roadsideSign]],home:[['留守夥伴',48,59,meetHome]]};
  if(!showHints)return;
  const panorama=s.scene==='wreck'?(approvedWreckReady?null:wreckPanoramaCrop()):s.scene==='trail'?(trailForestReady?trailIllustrationCrop():trailPanoramaCrop()):null;
