@@ -3911,6 +3911,10 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 @keyframes living-breathe{0%,100%{transform:scale(1,1)}50%{transform:scale(1.015,.978)}}
 @keyframes living-sway{0%,100%{transform:skewX(-1deg)}50%{transform:skewX(3deg)}}
 @media(prefers-reduced-motion:reduce){#sceneStage .world-object canvas,#sceneStage .world-vegetation canvas{animation:none!important}}
+#sceneStage .opening-wagon-trial{position:absolute;left:34%;top:69%;width:48%;height:auto;transform:translate(-50%,-100%);border:0;background:none;padding:0;box-shadow:none;pointer-events:auto;cursor:pointer;z-index:0;touch-action:manipulation}
+#sceneStage .opening-wagon-trial img{display:block;width:100%;height:auto;pointer-events:none}
+#sceneStage .opening-wagon-trial:focus-visible{outline:2px solid #f8dda4;outline-offset:2px}
+#app.encounter-pending #sceneStage .opening-wagon-trial,#app.scene-dialogue-active #sceneStage .opening-wagon-trial{pointer-events:none!important}
 #sceneStage .world-object:focus-visible{outline:2px solid #f8dda4;outline-offset:2px}
 #app.encounter-pending #sceneStage .world-object,#app.scene-dialogue-active #sceneStage .world-object{pointer-events:none!important;visibility:hidden}
 </style>
@@ -7764,6 +7768,13 @@ function interactSceneObject(id){
   {label:'先保留在原地',fn:()=>{}}
  ],'場景採集');
 }
+function renderOpeningWagonTrial(el){
+ if(s.scene!=='wreck'||!emptyForestReady||new URLSearchParams(location.search).get('wagon')!=='trial'||encounterPending)return;
+ const b=document.createElement('button');b.type='button';b.className='opening-wagon-trial';b.setAttribute('aria-label','調查破損馬車');
+ const art=document.createElement('img');art.src='./assets/opening_wagon_layout_trial_v1.svg';art.alt='';art.draggable=false;b.appendChild(art);
+ b.onclick=()=>guardedAction(()=>{if(!modal&&!$('app').classList.contains('scene-dialogue-active'))marks();});
+ el.appendChild(b);
+}
 function renderWorldObjects(el){
  const engine=window.DungeonSceneObjectsV1;if(!engine||encounterPending)return;
  for(const obj of engine.objects(s)){
@@ -7779,6 +7790,7 @@ function renderWorldObjects(el){
 }
 function renderHotspots(){
  const el=$('hotspots');el.replaceChildren();
+ renderOpeningWagonTrial(el);
  renderWorldObjects(el);
  const per={wreck:[['散落貨箱',.36,.71,glance],['車輪痕跡',.45,.53,marks],['離開的林道',.85,.57,()=>change('trail'),'trail'],['探索周遭',.73,.65,exploreArea,null]],trail:[['沿小徑前進',.55,.48,rescue,'gate'],['石拱遺跡',.79,.49,()=>change('ruin'),'ruin'],['路旁舊石碑',.13,.49,inspectTrailMarker],['林間草木',.29,.59,()=>change('clearing'),'clearing'],['返回馬車',.45,.62,()=>change('wreck'),'wreck'],['探索周遭',.7,.62,exploreArea,null]],clearing:[['微光',59,69,light],['聲音',75,46,soundInForest]],ruin:[['石門',51,45,ruinLook]],inn:[['鏡子',73,43,innMark]],guild:[['公告板',69,49,guildBoard]],outskirts:[['舊路標',67,49,roadsideSign]],home:[['留守夥伴',48,59,meetHome]]};
  if(!showHints)return;
