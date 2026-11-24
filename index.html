@@ -3612,6 +3612,13 @@ html.stage-locked #app .equip-guide .paperdoll-bag-upper{
 html.stage-locked #app .equip-guide .paperdoll-bag-lower{
  clip-path:inset(60.625% 0 0 0);
 }
+/* Approved V4 boots are one FRONT sprite per gender. Two masked spans
+   preserve independently adjusted left/right alignment without adding layers. */
+html.stage-locked #app .equip-guide .paperdoll-stage > .paperdoll-boots-front{
+ background-size:100% 100%!important;background-position:0 0!important;
+ background-repeat:no-repeat!important;image-rendering:pixelated!important;
+ pointer-events:none;
+}
 html.stage-locked #app #placeDrawerPanel .equip-slot .equip-slot-symbol.equip-item-art,
 html.stage-locked #app #placeDrawerPanel .equip-slot.is-filled .equip-slot-symbol.equip-item-art,
 html.stage-locked #app #placeDrawerPanel .equip-slot.is-preview .equip-slot-symbol.equip-item-art{
@@ -4137,6 +4144,8 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <script src="./assets/dungeon_generated_cloak_v2.js?v=2"></script>
 <!-- V3 front-only white starter shirt; reads the six 64x160 workbench-native PNG layers. -->
 <script src="./assets/white_shirt_workbench_v3.js?v=3"></script>
+<!-- Accepted live 64x160 front-only V4 boots; exact approved four-foot fitting. -->
+<script src="./assets/travel_boots_front_v4.js?v=approved-game-20261124"></script>
 <script>
 (()=>{'use strict';
 // Fixed design canvas: use the approved screenshot's exact 1536×707 ratio,
@@ -5081,7 +5090,7 @@ const EQUIPMENT_SLOT_ICONS='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPAAAA
 const EQUIPMENT_VISUAL_CATALOG=Object.freeze({
  chest:Object.freeze({id:'starter_tunic',name:'白色旅人布衣 V3（試穿）',icon:0}),
  legs:Object.freeze({id:'starter_trousers',name:'旅行長褲',icon:1}),
- feet:Object.freeze({id:'starter_boots',name:'皮革長靴',icon:2}),
+ feet:Object.freeze({id:'starter_boots',name:'深棕扣帶厚底旅行靴 V4',icon:2}),
  outer:Object.freeze({id:'starter_cloak',name:'深綠金邊披風',icon:3}),
  hands:Object.freeze({id:'starter_gloves',name:'棕色皮革手套',icon:null,glyph:'✥'}),
  bag:Object.freeze({id:'enchanted_satchel',name:'附魔旅行側包',icon:4})
@@ -5107,6 +5116,21 @@ const SATCHEL_LOWER_OUTSIDE_TRIAL_ENABLED=new URLSearchParams(location.search).g
 // The equipped white starter shirt V3 is now visible in the actual inventory
 // paper doll; ?shirt=off is a visual-only rollback, never unequips an item.
 const WHITE_STARTER_SHIRT_V3_ENABLED=new URLSearchParams(location.search).get('shirt')!=='off';
+// Approved V4 boots: visible whenever actually worn. ?boots=off hides only
+// their visuals for rollback; it does not modify player equipment or saves.
+const TRAVEL_BOOTS_V4_ENABLED=new URLSearchParams(location.search).get('boots')!=='off';
+const APPROVED_BOOT_FIT_V4=Object.freeze({
+ male:Object.freeze({left:Object.freeze({x:1,y:11,scale:.8}),right:Object.freeze({x:-1,y:11,scale:.8})}),
+ female:Object.freeze({left:Object.freeze({x:1,y:4,scale:.9}),right:Object.freeze({x:-2,y:4,scale:.9})})
+});
+let approvedBootArtV4=null;
+if(TRAVEL_BOOTS_V4_ENABLED&&window.DungeonTravelBootsWorkbenchV4?.build){
+ window.DungeonTravelBootsWorkbenchV4.build().then(art=>{
+  if(!art?.maleTravelerBootFront||!art?.femaleTravelerBootFront)return;
+  approvedBootArtV4=art;
+  if(document.getElementById('equipmentBoard'))renderEquipmentBoard();
+ }).catch(err=>console.error('Approved V4 boots failed:',err));
+}
 let paperDollTryOn=false;
 
 /* Hair tint belongs to the player appearance, not equipment or the source PNG.
@@ -6073,7 +6097,23 @@ function equipmentGuideHTML(sceneMode='equipment'){
  const shirtIndices=shirtGender==='female'?[4,5,3]:[1,2,0];
  const shirtLayer=(i)=>'<span class="paperdoll-asset-layer paperdoll-shirt-v3" aria-hidden="true" style="background-image:url('+shirtArt.sheet+');background-size:600% 100%;background-position:'+String(i*20)+'% 0"></span>';
  const shirtLayers=shirtArt?shirtIndices.map(shirtLayer).join(''):'';
- // Layering when worn together: shirt -> approved shoulder satchel -> cloak front.
+ // One paired FRONT-only PNG per gender, visually cropped in two halves.
+ // Exact X/Y/scale are the user's final approved workbench coordinates.
+ const bootsGender=s.appearanceV1?.gender==='female'?'female':'male';
+ const bootsSource=approvedBootArtV4?.[bootsGender==='female'?'femaleTravelerBootFront':'maleTravelerBootFront'];
+ const bootPartHTML=foot=>{
+  const t=APPROVED_BOOT_FIT_V4[bootsGender][foot];
+  const clip=foot==='left'?'inset(0 50% 0 0)':'inset(0 0 0 50%)';
+  const origin=foot==='left'?'25% 50%':'75% 50%';
+  const dx=t.x/64*100,dy=t.y/160*100;
+  // The existing body and clothing layers move 9 CSS pixels down;
+  // the boot's additional native offset stays proportional to 64x160.
+  return '<span class="paperdoll-asset-layer paperdoll-boots-front" aria-hidden="true" style="background-image:url('+bootsSource+');clip-path:'+clip+
+   ';transform-origin:'+origin+';transform:translate('+dx+'%,calc(9px + '+dy+'%)) scale('+t.scale+')"></span>';
+ };
+ const boots=!privateScene&&show('feet')&&bootsSource?
+  bootPartHTML('left')+bootPartHTML('right'):'';
+ // Layering when worn together: shirt -> approved boots -> satchel -> cloak front.
  // Keep the cloak's back panel behind the body and original lower hands in front.
  // The hand overlay must match the original BODY + SHORTS + TANK stack.
  // Earlier drawing body alone erased the sides of the existing underwear.
@@ -6110,7 +6150,7 @@ function equipmentGuideHTML(sceneMode='equipment'){
    (sharedHead&&window.DungeonMaleV9Equipment?.version==='v3-accepted'?' paperdoll-v3':'')+
    (s.appearanceV1?.parts?.hairStyle==='bald'?' paperdoll-bald':'')+(shirtArt?' paperdoll-shirt-equipped':'')+(currentPaperDollAbnormalStates().includes('unconscious')?' eyes-unconscious':'')+'" role="img" aria-label="'+
   (paperDollTryOn?'主角旅行裝試穿預覽':(s.appearanceV1?.gender==='female'?'女性':'男性')+'標準型紙娃娃，依實際裝備顯示')+'">'+
-  behind+cloakBack+base+shorts+tank+outfit+shirtLayers+satchel+cloakFront+satchelLower+nativeArms+extras+veil+brows+eyes+mouth+healthMarks+hair+
+  behind+cloakBack+base+shorts+tank+outfit+shirtLayers+boots+satchel+cloakFront+satchelLower+nativeArms+extras+veil+brows+eyes+mouth+healthMarks+hair+
   (paperDollTryOn?'<span class="paperdoll-preview-label">試穿</span>':'')+'</div>';
 }
 function setOwnedEquipmentEquipped(slotId,equip){
@@ -6356,7 +6396,7 @@ function renderSideTab(tab,out){
   const appearanceControls=renderPaperDollAppearanceControls();
   // One selected slot, then one direct "脫下／裝上" action just below it.
   const artNote=document.createElement('p');artNote.className='equip-art-pending';
-  artNote.textContent='深綠金邊披風 V2 已確認並正式啟用；男性前層 Y -8px、女性前層 Y -6px。披風可正常穿脫；其他尚未核准的裝備外觀仍維持隱藏。';
+  artNote.textContent='深綠金邊披風 V2 與深棕扣帶旅行靴 V4 已正式啟用；鞋子只有正面圖層，男女左右腳各自貼合，穿脫狀態會保存。其他未核准裝備外觀維持原設定。';
   footer.append(detail,equipAction,bag);
   section.append(board,footer,artNote,genderControls);
   section.append(hairControls,eyeControls,expressionControls,restControls,abnormalControls,appearanceControls);
