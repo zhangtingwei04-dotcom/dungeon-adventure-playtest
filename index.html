@@ -3932,6 +3932,7 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 #app.encounter-pending #sceneStage .world-object,#app.scene-dialogue-active #sceneStage .world-object{pointer-events:none!important;visibility:hidden}
 </style>
 <link rel="stylesheet" href="./assets/scene_light_v1.css?v=20261124-1">
+<link rel="stylesheet" href="./assets/forest_v4_integration.css?v=1">
 </head>
 <body>
 <div id="app"><div id="worldFrame" aria-hidden="true">
@@ -4185,6 +4186,7 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <script src="./assets/forest_v4_assets_4.js?v=1"></script>
 <script src="./assets/forest_v4_layout.js?v=1"></script>
 <script src="./assets/forest_v4_spawns.js?v=1"></script>
+<script src="./assets/forest_v4_integration.js?v=1"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/scene_objects_v1.js?v=20261124-2"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
@@ -7853,7 +7855,7 @@ function renderForestV4(el){
   const node=document.createElement(interactive?'button':'div');if(interactive){node.type='button';node.setAttribute('aria-label',o.name+(finds.length?'：可收集'+finds.map(f=>f.material).join('、'):''));node.title=o.name+(finds.length?' · 可收集':'');node.onclick=()=>guardedAction(()=>forestV4Action(o));}else node.setAttribute('aria-hidden','true');
   node.className='forest-v4-object';node.dataset.objectId=o.id;node.dataset.motion=animal?'animal':plant?'plant':'fixed';node.style.left=o.x+'%';node.style.top=o.y+'%';node.style.width=o.width+'%';node.style.zIndex=10+o.z;
   const art=document.createElement('span');art.className='forest-v4-art';art.style.transform='scaleX('+(o.flip?-1:1)+') rotate('+o.rotation+'deg)';
-  const im=document.createElement('img');im.src=a.src;im.alt='';im.draggable=false;art.appendChild(im);node.appendChild(art);if(finds.length){const cue=document.createElement('span');cue.className='forest-v4-find-cue';cue.textContent='可收集';cue.setAttribute('aria-hidden','true');node.appendChild(cue);}layer.appendChild(node);
+  const im=document.createElement('img');im.src=a.src;im.alt='';im.draggable=false;art.appendChild(im);node.appendChild(art);window.DungeonForestV4Integration?.apply(node,o,assets);if(finds.length){const cue=document.createElement('span');cue.className='forest-v4-find-cue';cue.textContent='可收集';cue.setAttribute('aria-hidden','true');node.appendChild(cue);}layer.appendChild(node);
  }
  el.appendChild(layer);
 }
