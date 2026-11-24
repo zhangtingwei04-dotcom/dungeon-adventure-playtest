@@ -1,6 +1,60 @@
 /* Scene objects V1: fixed-camera exploration overlays. Original provisional pixel sprites. */
 window.DungeonSceneObjectsV1=(function makeSceneObjectEngine(){
- const outdoor=['trail','clearing','ruin','outskirts'];
+ const life=(function lifecycle(){
+ const sites=['wreck','trail','clearing','ruin','outskirts'];
+ const creatureSlots=[[72,75],[24,72],[55,68]];
+ const plantSlots=[[12,88],[44,83],[89,78],[22,79],[68,87],[92,91]];
+ function norm(o,s){
+  if(!o.creatures||typeof o.creatures!=='object'||Array.isArray(o.creatures))o.creatures={};
+  if(!o.plants||typeof o.plants!=='object'||Array.isArray(o.plants))o.plants={};
+  const count=s.exploration?.counts?.clearing||0;
+  const v=o.creatures.clearing;
+  if(!v||typeof v.visible!=='boolean'||!Number.isInteger(v.slot)||v.slot<0||v.slot>=creatureSlots.length||!Number.isFinite(v.last)||!Number.isFinite(v.returnAt)){
+   o.creatures.clearing={visible:count>0&&!s.flags?.creatureResolved,slot:0,last:count,returnAt:0};
+  }
+  if(s.flags?.creatureResolved)o.creatures.clearing.visible=false;
+  return o;
+ }
+ function explore(o,s,random){
+  const v=o.creatures.clearing, count=s.exploration?.counts?.clearing||0;
+  if(s.scene!=='clearing'||s.flags?.creatureResolved||s.flags?.inBattle||count<=v.last)return [];
+  v.last=count;
+  if(!v.visible){
+   if(count<v.returnAt)return [];
+   if(count===1||random()<.55){v.visible=true;v.slot=Math.min(2,Math.floor(random()*3));return ['陌生林地生物'];}
+   return [];
+  }
+  const roll=random();
+  if(roll<.25){v.visible=false;v.returnAt=count+2;return [];}
+  if(roll<.7)v.slot=(v.slot+1+Math.min(1,Math.floor(random()*2)))%3;
+  return [];
+ }
+ function creature(o,s){
+  const v=o.creatures.clearing;
+  if(s.scene!=='clearing'||!v.visible||s.flags?.creatureResolved||s.flags?.inBattle)return null;
+  const [x,y]=creatureSlots[v.slot];
+  return {id:'forest-creature',kind:'creature',x,y,label:'陌生林地生物'};
+ }
+ function plants(o,s){
+  const site=s.scene;if(!sites.includes(site))return [];
+  const day=Math.floor(Math.max(0,s.worldMinutes||0)/1440);
+  let p=o.plants[site];
+  if(!p||!Number.isInteger(p.startDay)||p.startDay>day){p={startDay:day};o.plants[site]=p;}
+  const age=day-p.startDay;
+  // Six-day cohorts, offset by slot. At most two patches, fixed coordinates,
+  // no growth on reload or repeated render within the same game day.
+  const group=Math.floor(age/4)%3, phase=age%4;
+  const out=[];
+  for(let i=0;i<2;i++){
+   const slot=group*2+i;
+   if(i===1&&phase===0)continue;
+   const [x,y]=plantSlots[slot];
+   out.push({id:'ambient-plant-'+slot,kind:'ambient-plant',x,y,stage:phase===0?'sprout':phase===1?'growing':phase===2?'mature':i===0?'wilt':'mature',decorative:true});
+  }
+  return out;
+ }
+ return {norm,explore,creature,plants};
+})();
  const NPC_SITES=['trail','outskirts','street'];
  const specs={
   grass:{label:'草叢',sprite:'grass'},
@@ -18,13 +72,14 @@ window.DungeonSceneObjectsV1=(function makeSceneObjectEngine(){
    const r=o.travelers[site];
    if(!NPC_SITES.includes(site)||!r||!Number.isFinite(r.day)||!Number.isFinite(r.until))delete o.travelers[site];
   }
-  return o;
+  return life.norm(o,s);
  }
  function afterExplore(s,random=Math.random){
   const o=normalize(s),site=s.scene,now=s.worldMinutes,day=Math.floor(now/1440);
-  if(!NPC_SITES.includes(site)||!s.flags?.rescued||(site==='street'&&!s.flags?.morning))return [];
-  if(o.travelers[site]?.day===day||random()>=.4)return [];
-  o.travelers[site]={day,until:now+60};return ['路過的旅人'];
+  const finds=life.explore(o,s,random);
+  if(!NPC_SITES.includes(site)||!s.flags?.rescued||(site==='street'&&!s.flags?.morning))return finds;
+  if(o.travelers[site]?.day===day||random()>=.4)return finds;
+  o.travelers[site]={day,until:now+60};return [...finds,'路過的旅人'];
  }
  function dismissTraveler(s,site){
   const r=normalize(s).travelers[site];if(r)r.until=Math.min(r.until,s.worldMinutes);
@@ -34,7 +89,8 @@ window.DungeonSceneObjectsV1=(function makeSceneObjectEngine(){
   if(site==='trail'&&s.recovery?.found)a.push({id:'old-wreck',kind:'wreck',x:20,y:71,label:s.recovery.looted?'已搜集的舊馬車':'舊馬車殘骸'});
   const npc=o.travelers[site];
   if(npc&&npc.until>now&&s.flags?.rescued)a.push({id:'traveler',kind:'npc',x:52,y:77,label:specs.npc.label});
-  if(site==='clearing'&&(s.exploration?.counts?.clearing||0)>0&&!s.flags?.creatureResolved&&!s.flags?.inBattle)a.push({id:'forest-creature',kind:'creature',x:72,y:75,label:specs.creature.label});
+  const animal=life.creature(o,s);if(animal)a.push(animal);
+  a.push(...life.plants(o,s));
   const positions=[[31,91],[82,90],[57,94]];
   const queue=s.exploration?.pending?.[site];
   if(Array.isArray(queue))queue.slice(0,3).forEach((r,i)=>{
@@ -45,11 +101,14 @@ window.DungeonSceneObjectsV1=(function makeSceneObjectEngine(){
   return a;
  }
  // Original provisional pixel sprites, not final illustration assets.
- function sprite(canvas,kind){
+ function sprite(canvas,kind,stage){
   canvas.width=40;canvas.height=40;const c=canvas.getContext('2d');c.imageSmoothingEnabled=false;
   const r=(x,y,w,h,color)=>{c.fillStyle=color;c.fillRect(x,y,w,h)};
   const shadow=(x,y,w)=>{r(x+2,y-1,w-4,4,'#17282188');r(x,y,w,2,'#17282188')};
-  if(kind==='grass'){
+  if(kind==='ambient-plant'){
+   const height=stage==='sprout'?5:stage==='growing'?10:14, tint=stage==='wilt'?'#9b9260':'#72945a';
+   for(let i=0;i<9;i++){const x=3+i*4,y=34-(i%3);const h=Math.max(3,height-(i*7)%5);r(x,y-h,2,h,'#3e5a36');r(x+1,y-h+1,1,h-1,tint);r(x-2,y-h+3,3,2,tint);}
+  }else if(kind==='grass'){
    shadow(3,34,34);
    for(const [x,y,h,col] of [[6,22,12,'#426d39'],[10,15,19,'#547c42'],[15,11,24,'#67964b'],[20,19,16,'#3e6838'],[25,8,27,'#7b9d52'],[31,17,17,'#547d42']]){
     r(x,y,4,h,'#263c2b');r(x+1,y+1,2,h-1,col);r(x-3,y+4,4,3,col);
@@ -67,5 +126,5 @@ window.DungeonSceneObjectsV1=(function makeSceneObjectEngine(){
    shadow(0,36,40);r(3,16,33,15,'#423127');r(5,17,29,10,'#835b3e');r(5,20,29,2,'#b08758');r(4,27,31,4,'#4f3729');r(7,9,23,9,'#77765c');r(9,6,13,5,'#9f9675');r(23,11,7,4,'#4b5843');r(9,16,2,11,'#b69a6a');r(27,16,2,11,'#b69a6a');for(const x of [7,26]){r(x,29,8,7,'#2c2a25');r(x+1,30,6,5,'#806448');r(x+3,31,2,3,'#342c22')}r(3,12,4,6,'#65754b');r(29,8,4,5,'#65754b');
   }
  }
- return {normalize,afterExplore,dismissTraveler,objects,sprite};
+ return {normalize,afterExplore,dismissTraveler,objects,sprite,creatureVisible:s=>!!life.creature(normalize(s),s)};
 })();
