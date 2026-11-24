@@ -49,3 +49,25 @@
 `https://zhangtingwei04-dotcom.github.io/dungeon-adventure-playtest/developer-studio.html?tab=library&preset=v13-outer-bag-y10&boots=1&gloves=1&v=gloves-independent-hands-20261124`
 
 **正式遊戲 `index.html` 並未因本次改動安裝手套**；試穿驗收通過後才可正式放入。
+
+
+## 2026-11-24｜使用者最新 JSON：男女左右手套定案試穿座標
+
+使用者貼上最新 `dungeon-character-asset-library-v1`（64×160、`independent-dev-preview`），相對上一版的主要新內容為**男、女左右手套已分別微調**。精確設定如下：
+
+| 角色 | 手套 | x | y | scale |
+|---|---|---:|---:|---:|
+| 男性 | 左手 | -1 | +1 | 1 |
+| 男性 | 右手 | +1 | +1 | 1 |
+| 女性 | 左手 | -2 | -1 | 1 |
+| 女性 | 右手 | +1 | -1 | 1 |
+
+`starter_gloves` 保留一張 64×160 真透明正面雙手套圖／性別、單一 `front` 層。男女前層 `x=0,y=0,scale=1,z=65,visible=true`，左右各自儲存於 `layers.front.handOffsets`。對應內建 key 分別是 `maleTravelerGlovesFront`／`femaleTravelerGlovesFront`，**不新增 side/back 圖層**。
+
+已同步到 `developer-studio.html` 的 `applyLatestUserV13JsonPreset()`；點「套用最新 JSON｜完整穿搭＋獨立左右手套」，或用 `?preset=v13-outer-bag-y10&gloves=1` 的試穿連結，即可重現上述座標。預設選取手套的左手，右手仍可獨立編輯；手套左右位置不因另一隻操作而重置。
+
+其他輸出的已確認設定保留：男性 V4 皮靴左右 `(+1,+11,0.8)`／`(-1,+11,0.8)`、女性皮靴 `(+1,+4,0.9)`／`(-2,+4,0.9)`；V13 長袖（外罩式）、V2 長褲、披風前片 Y=-6、附魔側包前片 Y=-10 與原有頭部不變。
+
+測試：以真正的預設函式執行男女四隻手套、四隻皮靴、顯示狀態、Z65、V13 長袖／披風／背包及資料匯入匯出狀態，**20／20 項通過**。此為程式與配置測試，不能代替 iPhone Safari 的實際視覺確認。
+
+**正式遊戲 `index.html` 仍然沒有安裝手套素材**，本次使用者僅提供更新後的開發平台 JSON，沒有要求將手套晉升至正式遊戲。
