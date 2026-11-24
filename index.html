@@ -7791,8 +7791,7 @@ function renderWorldObjects(el){
 }
 function renderHotspots(){
  const el=$('hotspots');el.replaceChildren();
- renderOpeningWagonTrial(el);
- renderWorldObjects(el);
+ if(!(DEV_PREVIEW_MODE&&s.scene==='wreck'&&editorForestSrc)){renderOpeningWagonTrial(el);renderWorldObjects(el);}
  const per={wreck:[['散落貨箱',.36,.71,glance],['車輪痕跡',.45,.53,marks],['離開的林道',.85,.57,()=>change('trail'),'trail'],['探索周遭',.73,.65,exploreArea,null]],trail:[['沿小徑前進',.55,.48,rescue,'gate'],['石拱遺跡',.79,.49,()=>change('ruin'),'ruin'],['路旁舊石碑',.13,.49,inspectTrailMarker],['林間草木',.29,.59,()=>change('clearing'),'clearing'],['返回馬車',.45,.62,()=>change('wreck'),'wreck'],['探索周遭',.7,.62,exploreArea,null]],clearing:[['微光',59,69,light],['聲音',75,46,soundInForest]],ruin:[['石門',51,45,ruinLook]],inn:[['鏡子',73,43,innMark]],guild:[['公告板',69,49,guildBoard]],outskirts:[['舊路標',67,49,roadsideSign]],home:[['留守夥伴',48,59,meetHome]]};
  if(!showHints)return;
  const panorama=s.scene==='wreck'?((emptyForestReady||approvedWreckReady)?null:wreckPanoramaCrop()):s.scene==='trail'?(trailForestReady?trailIllustrationCrop():trailPanoramaCrop()):null;
@@ -7916,7 +7915,9 @@ const emptyForest=new Image();let emptyForestReady=false;
 emptyForest.decoding='async';
 emptyForest.onload=()=>{emptyForestReady=emptyForest.naturalWidth>0;if(s.scene==='wreck'){refreshSceneFraming();renderHotspots();sceneDraw(t);}};
 emptyForest.onerror=()=>{emptyForestReady=false;console.warn('Empty forest preview unavailable; preserving original wagon art.');};
-if(new URLSearchParams(location.search).get('forest')!=='original'&&window.DUNGEON_WRECK_EMPTY_FOREST)emptyForest.src=window.DUNGEON_WRECK_EMPTY_FOREST;
+let editorForestSrc=null;
+if(DEV_PREVIEW_MODE&&new URLSearchParams(location.search).get('forest')==='editor'){try{const b=JSON.parse(localStorage.getItem('dungeon_scene_editor_v1_backgrounds'));if(typeof b?.wreck?.src==='string'&&/^data:image\/(png|webp|jpeg);base64,/.test(b.wreck.src))editorForestSrc=b.wreck.src;}catch{}}
+if(new URLSearchParams(location.search).get('forest')!=='original'&&(editorForestSrc||window.DUNGEON_WRECK_EMPTY_FOREST))emptyForest.src=editorForestSrc||window.DUNGEON_WRECK_EMPTY_FOREST;
 const approvedWreck=new Image();let approvedWreckReady=false;
 approvedWreck.onload=()=>{
  approvedWreckReady=approvedWreck.naturalWidth>0;
