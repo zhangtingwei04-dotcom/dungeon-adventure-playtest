@@ -5,7 +5,7 @@
 #app[data-period="dusk"]{--v4-shadow-strength:.83}
 #app[data-period="night"]{--v4-shadow-strength:.49}
 #sceneStage .forest-v4-object[data-ground="true"]::before{
- content:"";position:absolute;pointer-events:none;left:50%;bottom:var(--v4-shadow-bottom,-1%);
+ content:"";position:absolute;pointer-events:none;left:var(--v4-shadow-left,50%);bottom:var(--v4-shadow-bottom,-1%);
  width:var(--v4-shadow-width,78%);height:var(--v4-shadow-height,13%);
  transform:translate(-50%,20%) rotate(var(--v4-ground-angle,0deg));
  border-radius:50%;background:radial-gradient(ellipse at center,rgba(27,39,22,.65) 0%,rgba(34,48,27,.44) 30%,rgba(41,52,28,.17) 57%,transparent 78%);
