@@ -4184,6 +4184,7 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <script src="./assets/forest_v4_assets_3.js?v=1"></script>
 <script src="./assets/forest_v4_assets_4.js?v=1"></script>
 <script src="./assets/forest_v4_layout.js?v=1"></script>
+<script src="./assets/forest_v4_spawns.js?v=1"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/scene_objects_v1.js?v=20261124-2"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
@@ -4894,6 +4895,7 @@ function exploreArea(){
  }
  e.last[site]=latest;
  const sceneFinds=window.DungeonSceneObjectsV1?.afterExplore(s)||[];
+ if(site==='wreck'&&forestV4Active())window.DungeonForestV4Life?.update(s,window.DUNGEON_FOREST_V4_LAYOUT.scenes.wreck,window.DUNGEON_FOREST_V4_SPAWNS||[],periodForMinutes(s.worldMinutes));
  for(const label of sceneFinds)addTravel('discovery','在'+names[site][0]+'發現'+label+'。',label==='路過的旅人'?'可以直接在場景中上前交談。':'先觀察牠的動靜，再決定是否接近。');
  const feature=latest.route?'並找到新的路線卡':latest.wreckFound?'，還發現林邊舊馬車殘骸':'，留意到新的環境細節';
  addTravel('daily','在'+names[site][0]+'進行第'+count+'次探索（約10分鐘，'+gameTime(s.worldMinutes)+'）'+feature+'。','這裡還有許多可以慢慢觀察的東西。');
@@ -7818,7 +7820,7 @@ function bindForestV4Materials(layout,queue){
  return map;
 }
 function forestV4MaterialBindings(){
- return bindForestV4Materials(window.DUNGEON_FOREST_V4_LAYOUT?.scenes?.wreck||[],s.exploration?.pending?.wreck||[]);
+ return bindForestV4Materials([...(window.DUNGEON_FOREST_V4_LAYOUT?.scenes?.wreck||[]),...(window.DUNGEON_FOREST_V4_SPAWNS||[])],s.exploration?.pending?.wreck||[]);
 }
 function forestV4Action(o){
  if(encounterPending||modal||s.flags.inBattle||$('app').classList.contains('scene-dialogue-active'))return;
@@ -7840,7 +7842,8 @@ function renderForestV4(el){
  if(!cfg||!assets)return;
  const layer=document.createElement('div');layer.className='forest-v4-layer';
  const bindings=forestV4MaterialBindings();
- for(const o of cfg){
+ const live=window.DungeonForestV4Life?.layout(s,cfg,window.DUNGEON_FOREST_V4_SPAWNS||[],bindings)||cfg;
+ for(const o of live){
   const a=assets[o.assetId];if(!o.visible||!a?.src)continue;
   const k=o.assetId.replace('forest4_','');
   const animal=['bird','rabbit','beetle','butterfly'].includes(k);
