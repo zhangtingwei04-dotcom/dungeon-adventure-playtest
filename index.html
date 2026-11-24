@@ -3901,6 +3901,16 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 #sceneStage .world-object[data-kind="creature"]{width:16%}
 #sceneStage .world-object[data-kind="grass"],#sceneStage .world-object[data-kind="wood"],#sceneStage .world-object[data-kind="stone"]{width:11%;min-width:30px;max-width:64px}
 #sceneStage .world-object span{display:block;font-size:clamp(9px,1.1vw,12px);line-height:1.2;background:#183027e8;border:1px solid #9b8558;padding:2px 4px;border-radius:3px;white-space:nowrap;max-width:150px;box-shadow:0 1px 3px #101a15}
+/* Small in-place motion only; ground anchors and tap targets stay fixed. */
+#sceneStage .world-object[data-kind="creature"] canvas{transform-origin:50% 86%;animation:living-breathe 3.1s ease-in-out infinite}
+#sceneStage .world-object[data-kind="npc"] canvas{transform-origin:50% 92%;animation:living-breathe 4.3s ease-in-out infinite}
+#sceneStage .world-object[data-kind="grass"] canvas,#sceneStage .world-vegetation canvas{transform-origin:50% 85%;animation:living-sway 4.8s ease-in-out infinite}
+#sceneStage .world-vegetation{position:absolute;width:12%;max-width:85px;transform:translate(-50%,-100%);pointer-events:none;z-index:1;opacity:.9}
+#sceneStage .world-vegetation canvas{width:100%;height:auto;display:block;image-rendering:pixelated}
+#sceneStage .world-vegetation:nth-child(even) canvas{animation-delay:-1.8s}
+@keyframes living-breathe{0%,100%{transform:scale(1,1)}50%{transform:scale(1.015,.978)}}
+@keyframes living-sway{0%,100%{transform:skewX(-1deg)}50%{transform:skewX(3deg)}}
+@media(prefers-reduced-motion:reduce){#sceneStage .world-object canvas,#sceneStage .world-vegetation canvas{animation:none!important}}
 #sceneStage .world-object:focus-visible{outline:2px solid #f8dda4;outline-offset:2px}
 #app.encounter-pending #sceneStage .world-object,#app.scene-dialogue-active #sceneStage .world-object{pointer-events:none!important;visibility:hidden}
 </style>
@@ -4150,7 +4160,7 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <script src="./assets/ornaments_data.js"></script>
 <script src="./assets/approved_wagon_art_v1.js"></script>
 <script src="./assets/trail_forest_v1.js"></script>
-<script src="./assets/scene_objects_v1.js?v=20261124-1"></script>
+<script src="./assets/scene_objects_v1.js?v=20261124-2"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
 <script src="./assets/expression_motion.js?v=2.20"></script>
 <script src="./assets/male_v9_unconscious_icon_v2.js?v=1"></script>
@@ -4830,6 +4840,7 @@ function exploreArea(){
  if(encounterPending||!EXPLORATION_AREAS[s.scene])return;
  normalizeExploration();normalizeRouteDiscovery();normalizeRecovery();
  const site=s.scene,area=EXPLORATION_AREAS[site],e=s.exploration;
+ window.DungeonSceneObjectsV1?.normalize(s);
  let newMaterials=0;
  const timeCost=10;
  recoveryTime(timeCost);
@@ -4858,10 +4869,10 @@ function exploreArea(){
  }
  e.last[site]=latest;
  const sceneFinds=window.DungeonSceneObjectsV1?.afterExplore(s)||[];
- for(const label of sceneFinds)addTravel('discovery','在'+names[site][0]+'發現'+label+'。','可以直接在場景中上前交談。');
+ for(const label of sceneFinds)addTravel('discovery','在'+names[site][0]+'發現'+label+'。',label==='路過的旅人'?'可以直接在場景中上前交談。':'先觀察牠的動靜，再決定是否接近。');
  const feature=latest.route?'並找到新的路線卡':latest.wreckFound?'，還發現林邊舊馬車殘骸':'，留意到新的環境細節';
  addTravel('daily','在'+names[site][0]+'進行第'+count+'次探索（約10分鐘，'+gameTime(s.worldMinutes)+'）'+feature+'。','這裡還有許多可以慢慢觀察的東西。');
- save();render();toast(explorationToast(site,latest,newMaterials)+(sceneFinds.length?' · 發現旅人':'')+((site==='clearing'&&!s.flags.creatureResolved)?' · 留意場景中的生物':''));
+ save();render();toast(explorationToast(site,latest,newMaterials)+(sceneFinds.length?' · 發現'+sceneFinds.join('、'):'')+((site==='clearing'&&!sceneFinds.length&&window.DungeonSceneObjectsV1?.creatureVisible(s))?' · 留意場景中的生物':''));
 }
 
 /* Persistent discovered destinations; drawer open/closed and expanded card are only UI. */
@@ -7416,7 +7427,7 @@ function inspectTrailMarker(){
 function glance(){s.flags.wagonLooked=true;note('wagon','馬車在你醒來之前就已被毀壞');dialog('傾斜的貨箱','一個貨箱倒扣在木板間。箱子裡只有濕透的布料與碎木屑，看不出它原本運送什麼。',[{label:'放回木板',fn:()=>{}}],'可選發現');}
 function marks(){note('scratches','車板上有不明的深刻痕跡');dialog('破裂的車輪','車輪旁留下幾道深深的刻痕。也許是什麼野獸，但你無法確定。你可以帶著疑問繼續前進。',[{label:'查看附近的道路',fn:()=>routeKnown('wreck','trail')?change('trail'):discoverNearbyRoute()},{label:'暫時留在這裡',fn:()=>{}}],'可選發現');}
 function light(){s.flags.lightSeen=true;note('light','空地的樹根旁有微光');dialog('樹根間的微光','你發現一件形狀奇怪的東西。它沒有立即展現任何用途，也無法確定是否安全。',[{label:'記下位置',fn:()=>note('lightMark','已在日誌記下微光所在位置')},{label:'收起碎片',fn:()=>{addUnique(s.items,'不明的微光碎片（測試物品）');s.flags.lightTaken=true;note('lightTake','取得一件來源不明的微光碎片');render();}},{label:'先不碰它',fn:()=>{}}],'未知發現');}
-function soundInForest(){if(s.flags.creatureResolved){dialog('寂靜再次降臨','那陣聲響沒有再出現。遠處的森林仍有許多你不認識的生物。',[{label:'離開',fn:()=>{}}]);return;}note('sound','林間傳來陌生生物的動靜');dialog('樹叢正在晃動','一隻陌生的林地生物從草葉後露出身影。它沒有立刻攻擊，只是警戒地注視著你。',[{label:'保持距離',fn:()=>{s.flags.creatureResolved=true;note('avoid','你選擇避開陌生生物');render();}},{label:'嘗試繞過',fn:()=>{s.flags.creatureResolved=true;note('avoid','你沒有和陌生生物發生衝突');render();}},{label:'進入戰鬥測試',fn:()=>battleStart()}],'未知遭遇');}
+function soundInForest(){if(!s.flags.creatureResolved&&(s.exploration?.counts?.clearing||0)>0&&window.DungeonSceneObjectsV1&&!window.DungeonSceneObjectsV1.creatureVisible(s)){dialog('林間暫時安靜','剛才的生物已離開這一帶。繼續探索，也許還會遇見牠。',[{label:'繼續觀察',fn:()=>{}}],'森林觀察');return;}if(s.flags.creatureResolved){dialog('寂靜再次降臨','那陣聲響沒有再出現。遠處的森林仍有許多你不認識的生物。',[{label:'離開',fn:()=>{}}]);return;}note('sound','林間傳來陌生生物的動靜');dialog('樹叢正在晃動','一隻陌生的林地生物從草葉後露出身影。它沒有立刻攻擊，只是警戒地注視著你。',[{label:'保持距離',fn:()=>{s.flags.creatureResolved=true;note('avoid','你選擇避開陌生生物');render();}},{label:'嘗試繞過',fn:()=>{s.flags.creatureResolved=true;note('avoid','你沒有和陌生生物發生衝突');render();}},{label:'進入戰鬥測試',fn:()=>battleStart()}],'未知遭遇');}
 function ruinLook(){note('ruin','森林裡有一座被苔蘚覆蓋的舊石門');dialog('石門的另一面','古老的門框已失去原本的功能。遠處仍可看到朦朧的空間，但暫時沒有可以安全通行的路。',[{label:'記下這座遺構',fn:()=>note('ruinMark','已記錄無名石門的位置')},{label:'返回小徑',fn:()=>change('trail')}],'特殊探索');}
 function rescue(){beginForestEncounter();}
 function rescueTalk(four,tone){
@@ -7755,6 +7766,10 @@ function interactSceneObject(id){
 function renderWorldObjects(el){
  const engine=window.DungeonSceneObjectsV1;if(!engine||encounterPending)return;
  for(const obj of engine.objects(s)){
+  if(obj.decorative){
+   const patch=document.createElement('div');patch.className='world-vegetation';patch.dataset.stage=obj.stage;patch.style.left=obj.x+'%';patch.style.top=obj.y+'%';patch.setAttribute('aria-hidden','true');
+   const canvas=document.createElement('canvas');engine.sprite(canvas,obj.kind,obj.stage);patch.appendChild(canvas);el.appendChild(patch);continue;
+  }
   const b=document.createElement('button');b.type='button';b.className='world-object';b.dataset.kind=obj.kind;b.dataset.objectId=obj.id;b.style.left=obj.x+'%';b.style.top=obj.y+'%';b.setAttribute('aria-label',obj.label+(obj.material?'：'+obj.material:''));
   const cv=document.createElement('canvas');cv.setAttribute('aria-hidden','true');engine.sprite(cv,obj.kind);
   const caption=document.createElement('span');caption.textContent=obj.label;b.append(cv,caption);
