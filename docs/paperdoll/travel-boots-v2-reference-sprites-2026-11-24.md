@@ -101,3 +101,21 @@ V3 試穿 URL：`https://zhangtingwei04-dotcom.github.io/dungeon-adventure-playt
 已將上述四腳的完整數值寫進開發總台 `applyLatestUserV13JsonPreset()`，按「套用最新 JSON」或以 `?preset=v13-outer-bag-y10&tab=library&boots=1` 開啟，可在另一裝置重現；這會主動套用該工作台配置，但**不會改寫正式遊戲的玩家存檔**。GitHub `main` 已確認寫入。
 
 回歸測試：以真正的 preset 函式在模擬工作台執行，逐項驗證男女鞋顯示、四腳偏移／縮放、原正面層 Z60、V13 外罩與背包／披風保留、前層設定及 JavaScript 語法，**15／15 通過**。iPhone Safari 最終外觀仍需手機實際查看。
+
+
+## 2026-11-24｜再次依使用者匯出 JSON 微調男性鞋子（最新配置）
+
+最新完整 `dungeon-character-asset-library-v1` 仍採 64×160、`starter_boots` 單一正面 `front` 層及獨立 `footOffsets`。**僅男性兩隻鞋的 Y 和縮放有變更**，其他已確認素材與座標保留：
+
+| 性別 | 腳部 | x | y | scale |
+|---|---|---:|---:|---:|
+| 男性 | 左腳 | +1 | **+11** | **0.80** |
+| 男性 | 右腳 | -1 | **+11** | **0.80** |
+| 女性 | 左腳 | +1 | +4 | 0.90 |
+| 女性 | 右腳 | -2 | +4 | 0.90 |
+
+舊紀錄中的男性 `y=+3, scale=0.90` 已由此最新配置取代。兩性鞋子主層仍 `x=0, y=0, scale=1, z=60`；男女 V13 衣身仍 `outer`，披風前片仍 `y=-6`，背包前片仍 `y=-10`，女性鞋座標未改。
+
+此組定位已更新 GitHub `main` 的 `developer-studio.html`／`applyLatestUserV13JsonPreset()`；用明確的 `?preset=v13-outer-bag-y10&boots=1` 進入開發台或按「套用最新 JSON」才會重套，避免平常進入時覆蓋使用者手動編輯中的資料。正式遊戲 `index.html` 與遊戲存檔未修改。
+
+以真實預設函式執行男女四腳位置、正面圖層、V13、披風、背包及 JavaScript 語法回歸 **14／14 項通過**。仍待使用者手機的視覺驗收。
