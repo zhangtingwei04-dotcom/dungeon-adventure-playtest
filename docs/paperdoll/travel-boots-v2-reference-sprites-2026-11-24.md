@@ -63,3 +63,21 @@ V3 試穿 URL：`https://zhangtingwei04-dotcom.github.io/dungeon-adventure-playt
 - GitHub `main` 端的素材來源、圖層、試穿按鈕、V13／背包依賴、外部腳本引用、JS 語法和圖集裁切測試：**12／12 通過**。
 - PNG 二進位完整性：5 段 PNG 區塊 CRC 檢查通過，128×160 圖集可解為男女各一張 64×160。
 - 請使用者開啟手機開發者總台進行**視覺驗收**，這才是最終確認。程式檢查不能代替 iPhone Safari 實際貼合與畫質判斷。
+
+
+## 2026-11-24｜V4 正面雙鞋改成左右腳獨立微調
+
+使用者確認：**鞋子仍然只有正面，不要背面或側面裝備圖層，但左腳／右腳要能分開調整位置及大小，而不是兩腳一起移動。**
+
+在 `developer-studio.html` 正式加入可操作的左右鞋編輯器，並沿用原本 V4 64×160 雙鞋透明 PNG 與 `starter_boots` 單一 `front` 圖層，沒有重畫皮靴、變更正式遊戲 `index.html`，也沒有增加獨立鞋子裝備槽。
+
+- 開發平台選取「鞋子｜深棕扣帶厚底旅行靴 V4」後，出現 **「左腳鞋」／「右腳鞋」** 按鈕。
+- 調整 X、Y、Scale、像素箭頭、手機拖曳，只會影響目前選取的鞋。直接點角色腳部會依左／右半選取對應鞋，並可接續拖曳。
+- 素材不分割為新檔，而是在 Canvas 繪製時把原 `front` 的 x=0～31／x=32～63 各自裁出，使用原始錨點 (16,80)／(48,80)。原始兩腳 `x=0,y=0,scale=1` 時的像素位置與先前 V4 完全相同。
+- 兩腳共同使用原裝備 `Z=60` 和穿脫狀態，不引入背面／側面圖層；單腳的獨立變換不會讓另一隻同步移動。
+- 男女各保存 `bootFootOffsets.{male|female}.{left|right}={x,y,scale}`；本機儲存、自訂 JSON 的 `genders.<性別>.layers.front.footOffsets`、JSON 匯入均有支援。
+- 「重設此圖層」在鞋子模式下只重設選中的腳；「恢復全部裝備位置」才重設全部四隻鞋的微調。原始頭部、V13 長袖、披風、旅行長褲與背包 Y=-10 都不變。
+
+程式檢查涵蓋 UI、語法、既有腳本引用、持久儲存與回復，以及**實際繪圖函式**的左右裁切與變換隔離：**20／20 通過**。這不等於完成 iPhone Safari 實際視覺驗收，請在手機上確認拖曳單腳的操作手感。
+
+開發平台：`https://zhangtingwei04-dotcom.github.io/dungeon-adventure-playtest/developer-studio.html?preset=v13-outer-bag-y10&tab=library&boots=1&v=boots-v4-individual-feet`
