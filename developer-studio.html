@@ -107,7 +107,7 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 <div class="hint">此處使用男女正式角色底模、內衣與頭髮。V13 長袖、V2 長褲、V4 鞋子、V2 披風及側包已接入正式遊戲；工作台可分層微調，但新座標不會自動同步到正式遊戲。請於「數據與備份」匯出確認後的數據。</div>
 <div class="layout">
 <div class="panel"><h2>素材庫</h2>
-<div class="hint">側包已正式分層：Y97 起包身在披風前、肩帶在披風內，手掌應在包身前。開發平台另有通用手臂遮擋規則；正式遊戲目前仍沿用固定區域補畫，尚未同步這項規則。</div>
+<div class="hint">側包已正式分層：Y97 起包身在披風前、肩帶在披風內，手掌應在包身前。開發平台另有通用手臂遮擋規則；正式遊戲已正式接入相同的通用遮擋規則，若仍看到袖口或手掌不自然，可在正式遊戲使用 armPolicy=old 比較原先顯示。</div>
 <div class="toolbar"><button class="primary" type="button" id="applyUserV13Json">套用最新 JSON｜V13 外罩＋背包＋四隻皮靴定位</button></div>
 <div class="toolbar"><button class="primary" type="button" id="bootsTry">穿上 V4 縮小版正面雙靴</button><button type="button" id="bootsRemove">脫下皮靴</button></div>
 <div class="hint">鞋子 V4 已正式安裝：男女各一張 64×160 正面雙靴 PNG，開發平台可單獨調整左／右腳。長褲、披風、手與側包位置不會被鞋子調整帶動；本頁的新座標需另外同步正式遊戲。</div>
@@ -134,7 +134,7 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 <div class="avatarCard" id="maleCard"><strong>男性｜原版頭</strong><div class="sub">真實底模 64×160</div><div class="spriteChecker"><canvas width="64" height="160" id="maleCanvas" aria-label="男性角色即時裝備預覽，可拖曳調整所選圖層"></canvas></div></div>
 <div class="avatarCard" id="femaleCard"><strong>女性｜新版頭</strong><div class="sub">真實底模 64×160</div><div class="spriteChecker"><canvas width="64" height="160" id="femaleCanvas" aria-label="女性角色即時裝備預覽，可拖曳調整所選圖層"></canvas></div></div>
 </div><div class="toolbar" style="margin-top:10px"><button id="resetView">恢復兩性並排</button><button class="primary" id="resetApprovedFit">恢復已確認服裝位置</button><button id="fixFemaleWaist" type="button">修復女性褲腰 X0 Y-5</button><button id="toggleGuides">肩頸輔助線：關</button><button id="cloakArmRevealToggle" type="button">披風手臂保護：開（通用）</button><button id="cloakArmDetailV5Toggle" type="button">舊版 V5 補畫：關（對照）</button></div>
-<div class="hint">通用手臂保護：工作台預設開啟，依目前上衣／袖片與原始 Body 的透明像素讓披風前片在手部局部透出，肩頸與披風主體不變。正式遊戲尚未接入此通用規則，仍使用舊版固定區域補畫；請先在手機比較兩者。舊 V5 補畫只供對照。</div>
+<div class="hint">通用手臂保護：工作台預設開啟，依目前上衣／袖片與原始 Body 的透明像素讓披風前片在手部局部透出，肩頸與披風主體不變。正式遊戲已於 2026-11-24 正式啟用相同的通用規則；iPhone 最終視覺效果仍需確認。正式遊戲可用 armPolicy=old 比對舊版固定補畫，工作台的舊 V5 只供對照。</div>
 <div class="hint">上衣穿搭試驗｜可一鍵同時切換男女角色，直接比較白布衣與褲腰的遮擋。</div>
 <div class="toolbar"><button type="button" id="wearBothTucked">紮入式（男女）</button><button type="button" id="wearBothUntucked">自然垂放（男女）</button><button type="button" id="wearBothOuter">外罩式（男女）</button></div>
 <div class="hint"><strong>V13 自然長袖（已接入正式遊戲，iPhone 外觀待驗收）：</strong>依照剛確認的雙人設計，保留 V3 自然衣身外觀，袖口比 V12 短 5px、手部更完整露出。男女各一件獨立服裝；衣身正面與左右袖分開，袖子在衣身後，沒有背面圖層。原版 V3 短袖和所有舊試驗皆完整保留。</div>
