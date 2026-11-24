@@ -78,6 +78,7 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 <script src="./assets/travel_trousers_workbench_v2.js?v=2"></script>
 <script src="./assets/approved_satchel_workbench_v1.js?v=1"></script>
 <script src="./assets/travel_boots_front_v4.js?v=4-compact-front"></script>
+<script src="./assets/travel_gloves_front_v1.js?v=studio-gloves-v1-20261124"></script>
 <script src="./assets/dungeon_generated_cloak_v2.js?v=2"></script>
 <script src="./assets/male_approved_v3_layers.js?v=1"></script>
 <script src="./assets/male_v3_corrected_layers_v2.js?v=1"></script>
@@ -110,6 +111,8 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 <div class="hint">側包已正式分層：Y97 起包身在披風前、肩帶在披風內，手掌應在包身前。開發平台另有通用手臂遮擋規則；正式遊戲已正式接入相同的通用遮擋規則，若仍看到袖口或手掌不自然，可在正式遊戲使用 armPolicy=old 比較原先顯示。</div>
 <div class="toolbar"><button class="primary" type="button" id="applyUserV13Json">套用最新 JSON｜V13 外罩＋背包＋四隻皮靴定位</button></div>
 <div class="toolbar"><button class="primary" type="button" id="bootsTry">穿上 V4 縮小版正面雙靴</button><button type="button" id="bootsRemove">脫下皮靴</button></div>
+<div class="toolbar"><button class="primary" type="button" id="glovesTry">戴上 V1 棕色皮革手套（男女）</button><button type="button" id="glovesRemove">脫下手套</button></div>
+<div class="hint">手套 V1 正面試穿：新生成的兩款棕皮金扣手套，男、女各一張 64×160 透明 PNG，只有 front。手掌處已預先對齊，可單獨拖曳修改 X／Y／縮放。此處不會自動修改正式遊戲；披風通用手臂規則會依手套實際像素露出手部。</div>
 <div class="hint">鞋子 V4 已正式安裝：男女各一張 64×160 正面雙靴 PNG，開發平台可單獨調整左／右腳。長褲、披風、手與側包位置不會被鞋子調整帶動；本頁的新座標需另外同步正式遊戲。</div>
 <div class="hint">依照最新提供的裝備 JSON：男女 V13 外罩式、披風前層 Y -6、背包 Y -10。V4 皮靴男性左(+1,+11)、右(-1,+11)，兩腳縮放 0.80；女性左(+1,+4)、右(-2,+4)，兩腳縮放 0.90。只改工作台試穿設定，PNG 和正式遊戲存檔不變。</div>
 <div class="hint">穿搭試驗：選白色初始布衣，切換「紮入式／自然垂放／外罩式」，男女可以不同。自然垂放只將下擺重新疊在褲腰前，不改袖子與角色；披風仍維持已核准的前後包覆。已儲存的 Z、男女座標及重設資料都保留。正式遊戲不會同步改動。</div>
@@ -257,7 +260,7 @@ const catalogue=[
  {id:'starter_natural_long_tunic_v13_sleeves',name:'V13｜自然長袖・左右短袖口袖片',slot:'chest',layers:['side','front'],status:'男女左右獨立 64×160 透明袖片，袖口到 Y88、在衣身後方；已載入正式遊戲，iPhone 待驗收'},
  {id:'starter_trousers',name:'旅行長褲 V2｜新版透明圖試穿',slot:'legs',layers:['front','side','back'],status:'男女各三張 64×160 真透明長褲，已載入正式遊戲；iPhone 外觀待驗收'},
  {id:'starter_boots',name:'深棕扣帶厚底旅行靴 V4｜小尺寸正面',slot:'feet',layers:['front'],status:'男女各一張 64×160 正面雙靴 PNG，只有 front，左右腳各別調整；已載入正式遊戲，iPhone 待驗收'},
- {id:'starter_gloves',name:'棕色皮革手套',slot:'hands',layers:['front'],status:'待匯入新圖'},
+ {id:'starter_gloves',name:'棕色皮革手套 V1｜男女透明正面試穿',slot:'hands',layers:['front'],status:'男、女各一張 64×160 真透明 PNG，取自剛生成的棕皮金扣手套；開發平台試穿，正式遊戲尚未安裝'},
  {id:'enchanted_satchel',name:'附魔旅行側包｜沿用已核准原圖',slot:'bag',layers:['back','front'],status:'直接沿用正式遊戲64×160已核准圖，不重新生成；原本側包前層位置 y=-2'}
 ];
 const slots={hair:'頭髮',head:'頭部',chest:'上衣',outer:'外衣',legs:'下裝',feet:'鞋子',hands:'手套',bag:'背包',neck:'飾品',main:'武器'};
@@ -277,7 +280,9 @@ const stockKeys={
  'starter_trousers:female:front':'femaleTrousersWaist','starter_trousers:female:side':'femaleTrousersLeft','starter_trousers:female:back':'femaleTrousersRight',
  'enchanted_satchel:male:front':'approvedSatchel','enchanted_satchel:female:front':'approvedSatchel',
  'starter_boots:male:front':'maleTravelerBootFront',
- 'starter_boots:female:front':'femaleTravelerBootFront'
+ 'starter_boots:female:front':'femaleTravelerBootFront',
+ 'starter_gloves:male:front':'maleTravelerGlovesFront',
+ 'starter_gloves:female:front':'femaleTravelerGlovesFront'
 };
 const images=new Map(),userPngs=new Map(),imageInfo=new Map();
 const transforms={},shown={},layerShown={},wearModes={};
@@ -331,7 +336,9 @@ const APPROVED_FIT_COORDS=Object.freeze({
  'starter_natural_long_tunic_v13_sleeves:female:side':Object.freeze({x:0,y:-1}),
  'starter_natural_long_tunic_v13_sleeves:female:front':Object.freeze({x:0,y:-1}),
  'enchanted_satchel:male:front':Object.freeze({x:0,y:-2}),
- 'enchanted_satchel:female:front':Object.freeze({x:0,y:-2})
+ 'enchanted_satchel:female:front':Object.freeze({x:0,y:-2}),
+ 'starter_gloves:male:front':Object.freeze({x:0,y:0}),
+ 'starter_gloves:female:front':Object.freeze({x:0,y:0})
 });
 function defaultVisible(id){
  // The screenshot-approved plain outfit is the initial preview;
@@ -1090,6 +1097,8 @@ function updateControls(){
   'V6 長袖已接入可拖曳圖層。先選男性／女性與「左袖／右袖」，再直接在角色預覽上拖曳，或輸入 X、Y、Z。V3 衣身、短袖素材及正式遊戲皆保留。':
   a.id==='starter_sleeves_v7'?
   'V7 男女四片可獨立調整，肩膀沿用 V3 像素。選擇左／右袖後直接拖曳或輸入 X、Y、Z；不修改遊戲正式裝備。':
+  a.id==='starter_gloves'?
+  '手套 V1：新生成的男女棕色皮革手套正面圖，適配 64×160 真透明畫布；僅開發平台試穿。可微調 X/Y/Scale/Z，檢查袖口、手掌與側包遮擋後再安裝正式遊戲。':
   a.id==='starter_trousers'?
   '旅行長褲 V2 已載入正式遊戲：褲腰、左右褲管各為 64×160；工作台可獨立改座標及 Z。正式遊戲採 V13 外罩式正面衣身在褲腰前方，不會自動採用此後的工作台微調。':
   '正式男女頭部、身體與內衣不動；每個部件可獨立調整前後層級 Z（數字越大越前）。圖層調整只影響工作台預覽，不會自動安裝到遊戲。';
@@ -1488,6 +1497,17 @@ function setBootsTrial(on){
 }
 $('bootsTry').onclick=()=>setBootsTrial(true);
 $('bootsRemove').onclick=()=>setBootsTrial(false);
+function setGlovesTrial(on){
+ for(const gender of ['male','female']){
+  shown['starter_gloves:'+gender]=on;
+  layerShown[k('starter_gloves',gender,'front')]=true;
+ }
+ selected='starter_gloves';editingLayer='front';
+ update();persist();
+ toast(on?'已試戴 V1 棕色皮革手套（男女），可拖曳單獨調整':'已脫下試穿手套，原本手掌與 V13 長袖保留');
+}
+$('glovesTry').onclick=()=>setGlovesTrial(true);
+$('glovesRemove').onclick=()=>setGlovesTrial(false);
 function setNaturalLongSleevesV13(on,withCloak=false){
  naturalLongSleevesTrialV13=on;
  frontSleevesTrialV12=false;layeredLongTunicTrialV10=false;
@@ -1684,6 +1704,12 @@ async function init(){
   if(bootsFactory?.build){
    try{Object.assign(sourceImages,await bootsFactory.build(sourceImages));}
    catch(err){console.warn('Boots V4 compact front-only sprites unavailable:',err)}
+  }
+  // Build two 64x160 front-only glove sprites from the new transparent PNG.
+  const glovesFactory=window.DungeonTravelerGlovesWorkbenchV1;
+  if(glovesFactory?.build){
+   try{Object.assign(sourceImages,await glovesFactory.build());}
+   catch(err){console.warn('Gloves V1 front-only sprites unavailable:',err)}
   }
   const keys=Object.entries(sourceImages).filter(([,value])=>
    typeof value==='string'&&value.startsWith('data:image/png;base64,'));
@@ -1908,6 +1934,7 @@ async function init(){
   if(new URLSearchParams(location.search).get('preset')==='v13-outer-bag-y10')
    applyLatestUserV13JsonPreset();
   if(new URLSearchParams(location.search).get('boots')==='1')setBootsTrial(true);
+  if(new URLSearchParams(location.search).get('gloves')==='1')setGlovesTrial(true);
   const requestedTab=new URLSearchParams(location.search).get('tab');
   if(['game','library','export','measure'].includes(requestedTab))setTab(requestedTab);
  }catch(e){toast('素材預載不完整：'+e.message);console.error(e);ready=true;update()}
