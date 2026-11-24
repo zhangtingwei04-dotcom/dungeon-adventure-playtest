@@ -1,0 +1,27 @@
+/* Forest V4 surface integration: no changes to authored coordinates or source art.
+   Ground contact is separate from artwork, and follows the current scene light. */
+#app[data-period="day"]{--v4-shadow-strength:1}
+#app[data-period="dawn"]{--v4-shadow-strength:.8}
+#app[data-period="dusk"]{--v4-shadow-strength:.83}
+#app[data-period="night"]{--v4-shadow-strength:.49}
+#sceneStage .forest-v4-object[data-ground="true"]::before{
+ content:"";position:absolute;pointer-events:none;left:50%;bottom:var(--v4-shadow-bottom,-1%);
+ width:var(--v4-shadow-width,78%);height:var(--v4-shadow-height,13%);
+ transform:translate(-50%,20%) rotate(var(--v4-ground-angle,0deg));
+ border-radius:50%;background:radial-gradient(ellipse at center,rgba(27,39,22,.65) 0%,rgba(34,48,27,.44) 30%,rgba(41,52,28,.17) 57%,transparent 78%);
+ opacity:calc(var(--v4-shadow-strength,1) * var(--v4-shadow-opacity,.65));z-index:-1
+}
+#sceneStage .forest-v4-object[data-ground="true"]{isolation:isolate}
+#app[data-indoor="false"][data-period] #sceneStage .forest-v4-art img{
+ filter:brightness(var(--v4-brightness,1)) saturate(var(--v4-saturation,1)) contrast(var(--v4-contrast,1)) var(--scene-light);
+}
+#sceneStage .forest-v4-contact-grass{
+ position:absolute;pointer-events:none;left:var(--v4-grass-left,18%);bottom:-1%;
+ width:var(--v4-grass-width,34%);height:auto;z-index:1;opacity:var(--v4-grass-opacity,.68);
+ -webkit-mask-image:linear-gradient(to bottom,transparent 0%,#000 31%,#000 60%,transparent 100%);
+ mask-image:linear-gradient(to bottom,transparent 0%,#000 31%,#000 60%,transparent 100%);
+}
+#app[data-indoor="false"][data-period] #sceneStage .forest-v4-contact-grass{
+ filter:brightness(.83) saturate(.82) var(--scene-light)
+}
+#sceneStage .forest-v4-find-cue{z-index:2}
