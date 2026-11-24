@@ -164,6 +164,14 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
  </div>
  <div class="hint" id="bootFootHelp">左／右各自調整 X、Y 與縮放；仍只有 front 正面圖層。</div>
 </div>
+<div id="gloveHandField" class="field single" hidden>
+ <span>正面手套｜單手獨立調整</span>
+ <div class="toolbar" role="group" aria-label="選擇左手套或右手套">
+  <button id="gloveHandLeft" type="button" aria-pressed="true">左手套</button>
+  <button id="gloveHandRight" type="button" aria-pressed="false">右手套</button>
+ </div>
+ <div class="hint" id="gloveHandHelp">每隻手套的 X／Y／縮放獨立設定，Z 仍共用 front 圖層。</div>
+</div>
 <label class="field single" id="wearModeField">上衣穿著方式（該性別）
 <select id="wearModeSelect">
 <option value="tucked">紮入式｜褲腰遮住衣襬</option>
@@ -377,16 +385,25 @@ function defaultT(asset,gender,layer){
  return {x:p.x,y:p.y,scale:1,z:defaultZ(asset,gender,layer)};
 }
 let selected='starter_cloak',editingGender='female',editingLayer='front',guides=false,dbPromise=null,ready=false;
-let editingBootFoot='left';
+let editingBootFoot='left',editingGloveHand='left';
 const bootFootOffsets={male:{},female:{}};
 function bootPartState(gender,foot){
  if(!['male','female'].includes(gender)||!['left','right'].includes(foot))throw Error('Invalid boot foot');
  const pair=bootFootOffsets[gender]||(bootFootOffsets[gender]={});
  return pair[foot]||(pair[foot]={x:0,y:0,scale:1});
 }
+const gloveHandOffsets={male:{},female:{}};
+function glovePartState(gender,hand){
+ if(!['male','female'].includes(gender)||!['left','right'].includes(hand))throw Error('Invalid glove hand');
+ const pair=gloveHandOffsets[gender]||(gloveHandOffsets[gender]={});
+ return pair[hand]||(pair[hand]={x:0,y:0,scale:1});
+}
 function editableTransform(){
- return selected==='starter_boots'&&editingLayer==='front'?
-  bootPartState(editingGender,editingBootFoot):transforms[selectedKey()];
+ if(editingLayer==='front'){
+  if(selected==='starter_boots')return bootPartState(editingGender,editingBootFoot);
+  if(selected==='starter_gloves')return glovePartState(editingGender,editingGloveHand);
+ }
+ return transforms[selectedKey()];
 }
 let gameFrameInitialized=false;
 function item(id){return catalogue.find(a=>a.id===id)}
@@ -615,6 +632,18 @@ function drawBootsFrontIndependent(ctx,img,base,gender){
   const t=bootPartState(gender,foot),sx=foot==='left'?0:32;
   const scale=base.scale*t.scale,w=32*scale,h=160*scale;
   const cx=(foot==='left'?16:48)+base.x+t.x,cy=80+base.y+t.y;
+  ctx.drawImage(img,sx,0,32,160,cx-w/2,cy-h/2,w,h);
+ }
+}
+// Independent hand placement from the existing paired front-only 64x160 PNG.
+// Each source half is rendered about its own original X16/X48 and Y80.
+function drawGlovesFrontIndependent(ctx,img,base,gender){
+ if(!img)return;
+ if(img.naturalWidth!==64||img.naturalHeight!==160){drawImageOn(ctx,img,base);return;}
+ for(const hand of ['left','right']){
+  const t=glovePartState(gender,hand),sx=hand==='left'?0:32;
+  const scale=base.scale*t.scale,w=32*scale,h=160*scale;
+  const cx=(hand==='left'?16:48)+base.x+t.x,cy=80+base.y+t.y;
   ctx.drawImage(img,sx,0,32,160,cx-w/2,cy-h/2,w,h);
  }
 }
@@ -894,7 +923,14 @@ function getVisibleArmGarments(gender){
   for(const layer of a.layers){
    if(!currentGarmentActive(a,gender,layer))continue;
    const img=getImage(a.id,gender,layer);
-   if(img)layers.push({image:img,transform:transforms[k(a.id,gender,layer)]||defaultT(a,gender,layer)});
+   if(!img)continue;
+   if(a.id==='starter_gloves'&&layer==='front'&&img.naturalWidth===64&&img.naturalHeight===160){
+    // The cape/satchel mask must receive the gloves AFTER handOffsets.
+    const combined=document.createElement('canvas');combined.width=64;combined.height=160;
+    const context=combined.getContext('2d',{alpha:true});context.imageSmoothingEnabled=false;
+    drawGlovesFrontIndependent(context,img,transforms[k(a.id,gender,layer)]||defaultT(a,gender,layer),gender);
+    layers.push({image:combined,transform:{x:0,y:0,scale:1}});
+   }else layers.push({image:img,transform:transforms[k(a.id,gender,layer)]||defaultT(a,gender,layer)});
   }
  }
  return layers;
@@ -976,6 +1012,8 @@ function drawAssetStage(gender){
     .map(l=>safeNum(transforms[k('starter_trousers',gender,l)]?.z,0,140,defaultZ(pants,gender,l)))):z;
    if(a.id==='starter_boots'&&layer==='front'){
      enqueue(z,()=>drawBootsFrontIndependent(ctx,img,t,gender));
+    }else if(a.id==='starter_gloves'&&layer==='front'){
+     enqueue(z,()=>drawGlovesFrontIndependent(ctx,img,t,gender));
     }else if(a.id==='enchanted_satchel'&&layer==='front'){
     const ck=k('starter_cloak',gender,'front');
     const cape=shown['starter_cloak:'+gender]!==false&&layerShown[ck]!==false&&!!getImage('starter_cloak',gender,'front');
@@ -1060,13 +1098,21 @@ function updateControls(){
  if(!a.layers.includes(editingLayer))editingLayer=a.layers[0];
  select.value=editingLayer;$('editGender').value=editingGender;$('assetSelect').value=selected;
  const bootMode=a.id==='starter_boots'&&editingLayer==='front';
+ const gloveMode=a.id==='starter_gloves'&&editingLayer==='front';
+ $('gloveHandField').hidden=!gloveMode;
+ for(const [id,hand] of [['gloveHandLeft','left'],['gloveHandRight','right']])
+  $(id).setAttribute('aria-pressed',String(gloveMode&&editingGloveHand===hand));
+ if(gloveMode)$('gloveHandHelp').textContent=(editingGender==='male'?'男性':'女性')+'｜'+
+  (editingGloveHand==='left'?'左手套':'右手套')+
+  '：X／Y／縮放只修改選取這隻，拖曳時自動選左右手，Z 是整件手套共用。';
  $('bootFootField').hidden=!bootMode;
  for(const [id,foot] of [['bootFootLeft','left'],['bootFootRight','right']])
   $(id).setAttribute('aria-pressed',String(bootMode&&editingBootFoot===foot));
  if(bootMode)$('bootFootHelp').textContent=(editingGender==='male'?'男性':'女性')+'｜'+
   (editingBootFoot==='left'?'左腳':'右腳')+'：X／Y、縮放只改這隻鞋；可拖曳腳部選取。Z 仍是兩隻鞋共用正面層。';
  const baseT=transforms[selectedKey()]||defaultT(a,editingGender,editingLayer);
- const t=bootMode?bootPartState(editingGender,editingBootFoot):baseT;
+ const t=bootMode?bootPartState(editingGender,editingBootFoot):
+  gloveMode?glovePartState(editingGender,editingGloveHand):baseT;
  $('xInput').value=String(t.x);$('yInput').value=String(t.y);$('scaleInput').value=String(t.scale);
  $('zInput').value=String(safeNum(baseT.z,0,140,defaultZ(a,editingGender,editingLayer)));
  const p=String($('zInput').value);
