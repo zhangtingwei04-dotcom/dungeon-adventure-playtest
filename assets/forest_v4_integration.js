@@ -24,6 +24,8 @@ window.DungeonForestV4Integration=(function integration(){
   if(window.DUNGEON_FOREST_V4_LAYOUT?.layoutVariant==='accident-b'){
    const changes={wagon:{brightness:.89,saturation:.79,contrast:.96,grassWidth:25},wheel_flat:{brightness:.88,saturation:.81,contrast:.96,grassLeft:8,grassWidth:36,grassOpacity:.72},crate_large:{brightness:.91,saturation:.83,contrast:.97},crate_open:{brightness:.90,saturation:.83,contrast:.97},crate_small:{brightness:.92,saturation:.85,contrast:.97},barrel:{brightness:.90,saturation:.83,contrast:.97,shadowWidth:126,shadowHeight:20,shadowLeft:104,shadowBottom:-25},rabbit:{brightness:.86,saturation:.86,contrast:.96}};
    p={...p,...(changes[k]||{})};
+   if(o.artVariant==='barrel-side')p={...p,shadowWidth:90,shadowHeight:30,shadowLeft:50,shadowBottom:7,shadowOpacity:.79};
+   if(k==='wagon')p={...p,shadowWidth:96,shadowHeight:12,shadowOpacity:.96};
   }
   // Depth correction is intentionally restrained: only art appearance, never dimensions.
   const depth=Math.max(0,Math.min(1,(70-o.y)/45));
