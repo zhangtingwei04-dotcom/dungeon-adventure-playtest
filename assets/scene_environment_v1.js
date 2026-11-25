@@ -116,7 +116,11 @@ window.DungeonSceneEnvironmentV1=(function(){
   const dir=kind==='rabbit'?-1:(o.x>75?-1:1);
   const hash=Array.from(String(o.id||kind)).reduce((n,ch)=>(n*31+ch.charCodeAt(0))%997,0);
   node.dataset.wildlife=kind;
-  wildlife.set(node,{kind,dir,phase:hash/100,start:null});
+  const anchor={id:o.id,x:o.x,y:o.y,width:o.width,z:o.z,artAspect:kind==='rabbit'?114/121:145/89};
+  node.style.setProperty('--wild-anchor-x',o.x+'%');
+  node.style.setProperty('--wild-anchor-y',o.y+'%');
+  node.style.setProperty('--wild-anchor-width',o.width+'%');
+  wildlife.set(node,{kind,dir,phase:hash/100,start:null,anchor});
   if(kind==='rabbit')window.DungeonRabbitArticulation?.attach(node);
   else if(kind==='beetle')window.DungeonBeetleArticulation?.attach(node);
  }
@@ -129,8 +133,17 @@ window.DungeonSceneEnvironmentV1=(function(){
    const v=wildlifeSample(a.kind,elapsed,a.dir);
    if(a.kind==='rabbit')window.DungeonRabbitArticulation?.render(node,v,elapsed,ms);
    else if(a.kind==='beetle')window.DungeonBeetleArticulation?.render(node,v,elapsed,ms);
-   node.style.setProperty('--wild-x',v.x.toFixed(2)+'%');
-   node.style.setProperty('--wild-lift',(-v.lift).toFixed(2)+'%');
+   const spatial=window.DungeonSpatialMotion?.sample(a.anchor,v,a.kind);
+   if(spatial){
+    node.dataset.spatialMotion='true';
+    node.style.setProperty('--wild-world-x',spatial.x.toFixed(3)+'%');
+    node.style.setProperty('--wild-world-y',spatial.y.toFixed(3)+'%');
+    node.style.setProperty('--wild-world-width',spatial.width.toFixed(3)+'%');
+    node.style.setProperty('--wild-world-z',String(10+spatial.z));
+    node.style.setProperty('--wild-shadow',spatial.shadow.toFixed(3));
+   }
+   node.style.setProperty('--wild-x',(spatial?0:v.x).toFixed(2)+'%');
+   node.style.setProperty('--wild-lift',(-(spatial?spatial.lift:v.lift)).toFixed(2)+'%');
    node.style.setProperty('--wild-sx',(v.flip*v.sx).toFixed(3));
    node.style.setProperty('--wild-sy',v.sy.toFixed(3));
    if(node.dataset.wildState!==v.mode)node.dataset.wildState=v.mode;
