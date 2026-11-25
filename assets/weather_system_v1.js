@@ -82,7 +82,7 @@ window.DungeonWeatherV1=(function(){
   const dt=last?clamp((ms-last)/1000,0,.1):.05;last=ms;
   if(weatherPreview){previewEnv=environmentStep(previewEnv,target.kind,target.temperature??(snowPreview?-3:12),dt*18);Object.assign(target,previewEnv);}
   for(const k of Object.keys(shown))shown[k]+=((target[k]||0)-shown[k])*(1-Math.exp(-dt*3.0));
-  const allowed=plantSpawnAllowed({kind:target.kind,snowCover:weatherPreview?previewEnv.snowCover:target.snowCover});
+  const allowed=plantSpawnAllowed({kind:target.kind,snowCover:weatherPreview?shown.snowCover:target.snowCover});
   if(plantWindow!==allowed){const before=plantWindow;plantWindow=allowed;if(before!==null)onPlantWindowChanged?.();}
   ctx.clearRect(0,0,W,H);
   if(shown.shade>.003){ctx.fillStyle='rgba(38,55,62,'+shown.shade.toFixed(3)+')';ctx.fillRect(0,0,W,H);}
