@@ -3938,6 +3938,10 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <style id="weather-v1-style">
 #sceneStage #weatherOverlay{position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none;object-fit:fill;display:block}
 #sceneStage #weatherOverlay[hidden]{display:none!important}
+.location-weather-info{margin:3px 0 4px;font-size:11px;line-height:1.25;color:#d6c7a2;overflow-wrap:anywhere}
+#app[data-weather] #sceneStage .forest-v4-layer.env-motion-v2 .forest-v4-object[data-motion="plant"]:not([data-live-kind="vine"]) .forest-v4-art img{animation:weather-plant-wind var(--weather-wind-duration,7.4s) ease-in-out infinite;animation-delay:var(--env-motion-delay,0s);transform-origin:50% 100%}
+@keyframes weather-plant-wind{0%,100%{transform:skewX(0)}30%{transform:skewX(var(--weather-wind-angle,2deg))}65%{transform:skewX(calc(var(--weather-wind-angle,2deg) * -.45))}}
+@media(prefers-reduced-motion:reduce){#app[data-weather] #sceneStage .forest-v4-layer.env-motion-v2 .forest-v4-object[data-motion="plant"] .forest-v4-art img{animation:none!important}}
 #app[data-weather] #hudPhase{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 html.stage-locked #app #topGameHud .top-hud-phase{min-width:0}
 html.stage-locked #app #topGameHud #hudPhase{font-size:clamp(10px,1.65vw,17px)}
@@ -4181,7 +4185,7 @@ html.stage-locked #app #topGameHud #hudPhase{font-size:clamp(10px,1.65vw,17px)}
 <div class="bottom"><div><div class="actions" id="actions"></div></div><div class="sidebar"><div class="chips"><span class="chip" id="chapterChip">第一章</span><span class="chip" id="partyChip">獨自一人</span><span class="chip level" id="hpChip">體力 16/16</span></div><button id="mapBtn">◇ 探索紀錄</button></div></div>
 <div class="veil hidden" id="dialogVeil"><section class="panel" role="dialog" aria-modal="true" aria-labelledby="dialogTitle"><div class="panel-head"><div><div class="kicker" id="dialogKicker">發現</div><h2 id="dialogTitle"></h2></div><div id="dialogCharacter" aria-label="目前發言人物"><canvas id="dialogCharacterCanvas" width="48" height="64" aria-hidden="true"></canvas><span id="dialogCharacterName"></span></div><button class="close" id="dialogClose" aria-label="關閉">×</button></div><p id="dialogText"></p><div class="choices" id="dialogChoices"></div></section></div>
 <div class="veil hidden" id="journalVeil"><section class="panel journal" role="dialog" aria-modal="true"><div class="panel-head"><div><div class="kicker">FIELD NOTES</div><h2>旅程日誌</h2></div><button class="close" id="journalClose">×</button></div><div class="journal-tabs" id="journalTabs"></div><div id="journalContent"></div><div class="line"></div><p class="meta">本版本使用瀏覽器本機儲存，並未連接《鱗片與種子》的雲端存檔。可在設定中匯出備份。</p></section></div>
-<div class="veil hidden" id="menuVeil"><section class="panel" role="dialog" aria-modal="true"><div class="panel-head"><div><div class="kicker">OPTIONS</div><h2>探索設定</h2></div><button class="close" id="menuClose">×</button></div><p id="menuStatus">遊戲會自動在本機儲存。</p><div class="choices"><button class="choice" id="soundBtn">音效：關閉</button><button class="choice" id="exportBtn">匯出存檔</button><button class="choice" id="importBtn">匯入存檔</button><button class="choice" id="restartBtn">重新開始</button></div><div class="line"></div><div class="phase-preview-heading">光線預覽 · 不修改遊戲時間</div><p class="phase-preview-explain">只預覽場景光線，不會跳過事件或改動存檔。畫面右上角可結束預覽。</p><div class="choices phase-preview-options"><button class="choice" type="button" data-preview-period="dawn">清晨</button><button class="choice" type="button" data-preview-period="day">白天</button><button class="choice" type="button" data-preview-period="dusk">黃昏</button><button class="choice" type="button" data-preview-period="night">夜晚</button></div><div class="line"></div><div class="phase-preview-heading">天氣預覽 · 不修改存檔</div><p class="phase-preview-explain">可隨時查看場景的天氣效果。返回自然天氣後，依遊戲時間變化。</p><div class="choices phase-preview-options"><button class="choice" type="button" data-preview-weather="clear">晴朗</button><button class="choice" type="button" data-preview-weather="cloudy">陰天</button><button class="choice" type="button" data-preview-weather="fog">薄霧</button><button class="choice" type="button" data-preview-weather="drizzle">細雨</button><button class="choice" type="button" data-preview-weather="rain">降雨</button><button class="choice" type="button" data-preview-weather="auto">自然天氣</button></div><input id="fileInput" type="file" accept="application/json" class="hidden"><div class="line"></div><div class="note">V0.5.1 測試版本：第二章的公會、委託與人物對話是可修改的玩法草案。人物稱呼仍為佔位，主角身體來歷、復活原因及正式戰鬥方式都尚未定案。</div></section></div>
+<div class="veil hidden" id="menuVeil"><section class="panel" role="dialog" aria-modal="true"><div class="panel-head"><div><div class="kicker">OPTIONS</div><h2>探索設定</h2></div><button class="close" id="menuClose">×</button></div><p id="menuStatus">遊戲會自動在本機儲存。</p><div class="choices"><button class="choice" id="soundBtn">音效：關閉</button><button class="choice" id="exportBtn">匯出存檔</button><button class="choice" id="importBtn">匯入存檔</button><button class="choice" id="restartBtn">重新開始</button></div><div class="line"></div><div class="phase-preview-heading">光線預覽 · 不修改遊戲時間</div><p class="phase-preview-explain">只預覽場景光線，不會跳過事件或改動存檔。畫面右上角可結束預覽。</p><div class="choices phase-preview-options"><button class="choice" type="button" data-preview-period="dawn">清晨</button><button class="choice" type="button" data-preview-period="day">白天</button><button class="choice" type="button" data-preview-period="dusk">黃昏</button><button class="choice" type="button" data-preview-period="night">夜晚</button></div><div class="line"></div><div class="phase-preview-heading">天氣預覽 · 不修改存檔</div><p class="phase-preview-explain">可隨時查看場景的天氣效果。返回自然天氣後，依遊戲時間變化。</p><div class="choices phase-preview-options"><button class="choice" type="button" data-preview-weather="clear">晴朗</button><button class="choice" type="button" data-preview-weather="cloudy">陰天</button><button class="choice" type="button" data-preview-weather="fog">薄霧</button><button class="choice" type="button" data-preview-weather="drizzle">細雨</button><button class="choice" type="button" data-preview-weather="rain">降雨</button><button class="choice" type="button" data-preview-weather="storm">雷雨</button><button class="choice" type="button" data-preview-weather="auto">自然天氣</button></div><input id="fileInput" type="file" accept="application/json" class="hidden"><div class="line"></div><div class="note">V0.5.1 測試版本：第二章的公會、委託與人物對話是可修改的玩法草案。人物稱呼仍為佔位，主角身體來歷、復活原因及正式戰鬥方式都尚未定案。</div></section></div>
 <div class="veil" id="startVeil"><section class="panel start"><div class="stamp">A STORY OF THE UNKNOWN</div><h1 class="screen-title">殘車之後</h1><p>你在一輛被毀壞的貨運馬車裡醒來。森林靜得出奇，而你不記得自己為何來到這裡。</p><button class="choice" id="startBtn">開始新的旅程</button><button class="choice hidden" id="continueBtn">繼續旅程</button><div class="note">V0.5.1 可玩原型 · 橫式手機／電腦　｜　探索優先、調查可選　｜　不需登入及付費</div></section></div>
 <div class="orientation"><div><strong>請將手機轉為橫向</strong><p>第一章與城鎮探索以橫式畫面呈現。</p>↻</div></div>
 </div>
@@ -4285,7 +4289,7 @@ html.stage-locked #app #topGameHud #hudPhase{font-size:clamp(10px,1.65vw,17px)}
 <script src="./assets/scene_spatial_motion_v1.js?v=2-flight-test"></script>
 <script src="./assets/bird_motion_live_v1.js?v=2-hop-joints"></script>
 <script src="./assets/scene_environment_v1.js?v=11-bird"></script>
-<script src="./assets/weather_system_v1.js?v=2"></script>
+<script src="./assets/weather_system_v1.js?v=3-climate"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/scene_objects_v1.js?v=20261124-2"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
@@ -4460,16 +4464,17 @@ let previewPeriod=null,previewWeather=null;
 let currentWeather=null;
 function syncWeather(){
  const engine=window.DungeonWeatherV1;if(!engine)return;
- currentWeather=previewWeather?{kind:previewWeather,...engine.kinds[previewWeather]}:engine.at(s.seed,s.worldMinutes);
+ currentWeather=previewWeather?{kind:previewWeather,...engine.kinds[previewWeather],...engine.climate(s.seed,s.worldMinutes,previewWeather),wet:engine.kinds[previewWeather].rain*.85}:engine.at(s.seed,s.worldMinutes);
  const indoor=INDOOR_SCENES.has(s.scene);const app=$('app');app.dataset.weather=currentWeather.kind;
+ engine.exposure(s,indoor);app.style.setProperty('--weather-wind',String(currentWeather.wind));app.style.setProperty('--weather-wind-angle',(1+currentWeather.wind*7).toFixed(2)+'deg');app.style.setProperty('--weather-wind-duration',(7.4-currentWeather.wind*4.2).toFixed(2)+'s');
  const label=indoor?'室內 · 外面'+currentWeather.name:currentWeather.name;
  $('hudPhase').textContent+=(' · '+currentWeather.name+(previewWeather?'*':''));
  $('worldClock').textContent+=' · '+label;
- $('hudPhase').title='當前天氣：'+label;
- if(!indoor&&currentWeather.kind!=='clear')$('subplace').textContent=({cloudy:'雲層遮住天光',fog:'薄霧在四周緩緩瀰漫',drizzle:'細雨落在周圍',rain:'雨水打濕了周遭景物'})[currentWeather.kind]||label;
+ $('hudPhase').title='當前天氣：'+label+' · '+currentWeather.season+'第'+currentWeather.seasonDay+'日 · '+currentWeather.temperature+'°C';
+ if(!indoor&&currentWeather.kind!=='clear')$('subplace').textContent=({cloudy:'雲層遮住天光',fog:'薄霧在四周緩緩瀰漫',drizzle:'細雨落在周圍',rain:'雨水打濕了周遭景物',storm:'風雨加劇，遠處偶有雷光'})[currentWeather.kind]||label;
  engine.set(currentWeather,indoor,window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 }
-function selectWeatherPreview(kind){if(kind!=='auto'&&!window.DungeonWeatherV1?.kinds[kind])return;previewWeather=kind==='auto'?null:kind;$('menuVeil').classList.add('hidden');syncTimeAtmosphere();}
+function selectWeatherPreview(kind){if(kind!=='auto'&&!window.DungeonWeatherV1?.kinds[kind])return;previewWeather=kind==='auto'?null:kind;$('menuVeil').classList.add('hidden');syncTimeAtmosphere();renderHotspots();renderPlaceDrawer();}
 
 function syncTimeAtmosphere(){
  normalizeGameTime();
@@ -6703,6 +6708,7 @@ function renderSideTab(tab,out){
   state.textContent=paperDollRestPreview.sleep==='awake'?
  (s.flags.rescued?'清醒 · 已受救援':'清醒 · 獨自探索'):
  window.DungeonExpressionMotion.restSleep[paperDollRestPreview.sleep]+'（預覽）';profile.appendChild(state);
+ const wet=document.createElement('div');wet.className='protagonist-stat';const wetName=document.createElement('span');wetName.textContent='衣物潮濕';const wetValue=document.createElement('strong');wetValue.textContent=Math.round(s.weatherExposure?.wetness||0)+'%';wet.append(wetName,wetValue);profile.appendChild(wet);
   const hp=document.createElement('div');hp.className='protagonist-stat';
   const hpName=document.createElement('span');hpName.textContent='♥ HP';
   const hpNum=document.createElement('strong');hpNum.textContent=s.hp+' / '+s.maxHp;
@@ -6945,6 +6951,7 @@ function renderPlaceDrawer(){
  hero.appendChild(intro);summary.appendChild(hero);
  const description=document.createElement('p');description.className='location-summary-description';
  description.textContent=locationMeta.description;summary.appendChild(description);
+ if(currentWeather&&previewCard.current){const weatherInfo=document.createElement('p');weatherInfo.className='location-weather-info';weatherInfo.textContent=currentWeather.season+' · '+currentWeather.temperature+'°C · '+(INDOOR_SCENES.has(s.scene)?'室外':'')+currentWeather.name+(previewWeather?'（預覽）':'')+' · 地表'+(currentWeather.wet>.6?'濕潤':currentWeather.wet>.15?'微濕':'偏乾');summary.appendChild(weatherInfo);}
  bindLocationPreviewSwipe(summary);
  out.appendChild(summary);
  const resourceSection=document.createElement('section');resourceSection.className='location-resource-section';
@@ -7338,7 +7345,7 @@ function renderFeed(){
  }
 }
 const addUnique=(arr,value)=>{if(!arr.includes(value))arr.push(value);};
-function save(){s.savedAt=Date.now();try{localStorage.setItem(KEY,JSON.stringify(s));}catch{}};
+function save(){window.DungeonWeatherV1?.exposure(s,INDOOR_SCENES.has(s.scene));s.savedAt=Date.now();try{localStorage.setItem(KEY,JSON.stringify(s));}catch{}};
 function toast(msg){$('toast').textContent=msg;$('toast').classList.add('active');clearTimeout(toastHandle);toastHandle=setTimeout(()=>$('toast').classList.remove('active'),2400);}
 function beep(f=440){if(!s.sound)return;try{const AC=window.AudioContext||window.webkitAudioContext;const ctx=new AC(),osc=ctx.createOscillator(),gain=ctx.createGain();osc.type='sine';osc.frequency.value=f;gain.gain.setValueAtTime(.035,ctx.currentTime);gain.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.16);osc.connect(gain).connect(ctx.destination);osc.start();osc.stop(ctx.currentTime+.18);setTimeout(()=>ctx.close(),400);}catch{}}
 function note(id,msg){const first=!s.seen.includes(id);addUnique(s.seen,id);addUnique(s.notes,msg);if(first)addTravel('discovery',msg,discoveryThought[id]||'我先把這件事記下來。');save();toast('已記錄：'+msg);beep(680);}
@@ -7976,6 +7983,8 @@ function renderForestV4(el){
  const keep=new Set();
  const bindings=forestV4MaterialBindings();
  let live=window.DungeonForestV4Life?.layout(s,cfg,window.DUNGEON_FOREST_V4_SPAWNS||[],bindings)||cfg;
+ const weather=window.DungeonWeatherV1;const weatherKind=previewWeather||weather?.at(s.seed,s.worldMinutes).kind;
+ if(weather&&weatherKind)live=live.filter(o=>{const k=o.assetId.replace('forest4_','');return !['bird','rabbit','beetle','butterfly'].includes(k)||weather.activity(k,weatherKind);});
  if(new URLSearchParams(location.search).get('wildlife')==='bird'&&DEV_PREVIEW_MODE){const bird=cfg.find(o=>o.assetId==='forest4_bird');if(bird)live=[...live.filter(o=>o.assetId!=='forest4_bird'),{...bird,id:'preview-bird-flight',visible:true}];}
  if(new URLSearchParams(location.search).get('wildlife')==='beetle'&&DEV_PREVIEW_MODE){const beetle=cfg.find(o=>o.assetId==='forest4_beetle');if(beetle)live=[...live.filter(o=>o.assetId!=='forest4_beetle'),{...beetle,id:'preview-beetle-flight',x:60,y:70,width:3.5,z:18,visible:true}];}
  for(const o of live){
@@ -8120,7 +8129,7 @@ $('travelOpenJournal').onclick=()=>journal('journey');
 $('regionMapBtn').onclick=()=>journal('map');$('journalBtn').onclick=()=>journal('journey');$('mapBtn').onclick=()=>journal('map');$('journalClose').onclick=()=>$('journalVeil').classList.add('hidden');$('hintBtn').onclick=()=>{showHints=!showHints;renderHotspots();toast(showHints?'僅顯示附近可互動位置，不影響主線':'已隱藏互動提示');};$('menuBtn').onclick=()=>{$('menuVeil').classList.remove('hidden');$('soundBtn').textContent='音效：'+(s.sound?'開啟':'關閉');};$('menuClose').onclick=()=>$('menuVeil').classList.add('hidden');$('dialogClose').onclick=closeDialog;
 for(const btn of document.querySelectorAll('[data-preview-period]'))btn.onclick=()=>selectTimePreview(btn.dataset.previewPeriod);
 for(const btn of document.querySelectorAll('[data-preview-weather]'))btn.onclick=()=>selectWeatherPreview(btn.dataset.previewWeather);
-$('timePreviewTag').onclick=()=>{previewPeriod=null;previewWeather=null;syncTimeAtmosphere();};
+$('timePreviewTag').onclick=()=>{previewPeriod=null;previewWeather=null;syncTimeAtmosphere();renderHotspots();renderPlaceDrawer();};
 $('sceneDialogueNext').onclick=e=>{e.stopPropagation();nextSceneDialogue();};
 $('sceneDialogue').onclick=e=>{if(e.target.closest('button'))return;nextSceneDialogue();};
 $('soundBtn').onclick=()=>{s.sound=!s.sound;$('soundBtn').textContent='音效：'+(s.sound?'開啟':'關閉');save();beep(520);};
