@@ -42,7 +42,7 @@ window.DungeonWeatherV1=(function(){
   if(shown.rain>.008&&!reduced){
    const t=ms/1000,amount=Math.ceil(particles.length*shown.rain);
    ctx.lineCap='round';ctx.lineWidth=.75;ctx.strokeStyle='rgba(209,228,239,'+(.26+shown.rain*.16)+')';ctx.beginPath();
-   for(let i=0;i<amount;i++){const p=particles[i],y=(p.y+t*p.speed)% (H+24)-12,x=((p.x+t*35*shown.wind)% (W+40))-20;ctx.moveTo(x,y);ctx.lineTo(x-2-shown.wind*5,y+p.len);}
+   for(let i=0;i<amount;i++){const p=particles[i],y=(p.y+t*p.speed)% (H+24)-12,x=((p.x+t*35*shown.wind)% (W+40))-20;ctx.moveTo(x,y);ctx.lineTo(x+1+shown.wind*3,y+p.len);}
    ctx.stroke();
   }
  }
