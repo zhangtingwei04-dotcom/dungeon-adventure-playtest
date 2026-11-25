@@ -49,6 +49,19 @@ window.DungeonWeatherV1=(function(){
   const delta=kind==='blizzard'?hours/3:kind==='snow'?hours/6:-hours*(temp<=0?0:temp<=5?.045:temp<=12?.105:.19);
   return clamp(cover+delta,0,1);
  }
+ // Water accumulates cold independently of ground frost.
+ function waterFreezeStep(previous,temp,minutes,kind='clear'){
+  const h=Math.max(0,minutes)/60,cold=clamp(-temp/8,0,1.7),warm=Math.max(0,temp);
+  const change=(old,rate,thaw,threshold=0)=>clamp((old||0)+h*(temp<0?Math.max(0,cold-threshold)*rate:-warm*thaw),0,1);
+  const poolIce=change(previous.poolIce,.27,.065),edgeIce=change(previous.edgeIce,.16,.045,.05),flowIce=change(previous.flowIce,.075,.055,.40);
+  const snowRate=kind==='blizzard'?.36:kind==='snow'?.18:0;
+  const iceSnow=clamp((previous.iceSnow||0)+h*(temp<0&&poolIce>.35?snowRate*poolIce:-warm*.08),0,poolIce);
+  return {poolIce,edgeIce,flowIce,iceSnow};
+ }
+ function waterIceLabel(env={}){
+  const p=env.poolIce||0,e=env.edgeIce||0,f=env.flowIce||0;
+  return f>=.65&&p>=.85?'深度凍結':p>=.55||e>=.5?'局部凍結':p>=.15||e>=.12?'薄冰':Math.max(p,e)>.025?'初霜':'流動';
+ }
  // Independent surface states; all transitions use elapsed game time.
  function environmentStep(previous,kind,temp,minutes){
   const h=Math.max(0,minutes)/60,k=kinds[kind]||kinds.clear;
@@ -60,9 +73,9 @@ window.DungeonWeatherV1=(function(){
   const plantWet=clamp((previous.plantWet||0)+h*(rain*.56+(kind==='fog'?.075:0)-evap*.84)+melt*.32,0,1);
   const puddles=clamp((previous.puddles||0)+h*(rain*.30*(.35+.65*soil)-evap*.72-.025)+melt*.63,0,1);
   const frost=clamp((previous.frost||0)+h*(temp<=0?.14*(.35+.65*plantWet)+(k.snow||0)*.08:-(.055+temp*.018)),0,1);
-  return {snowCover,soil,plantWet,puddles,frost,wet:clamp(soil*.7+puddles*.3,0,1)};
+  return {snowCover,soil,plantWet,puddles,frost,wet:clamp(soil*.7+puddles*.3,0,1),...waterFreezeStep(previous,temp,minutes,kind)};
  }
- const emptyEnvironment=()=>({snowCover:0,soil:0,plantWet:0,puddles:0,frost:0,wet:0});
+ const emptyEnvironment=()=>({snowCover:0,soil:0,plantWet:0,puddles:0,frost:0,wet:0,poolIce:0,edgeIce:0,flowIce:0,iceSnow:0});
  function at(seed,minutes){
   const block=Math.floor(Math.max(0,Number(minutes)||0)/180);
   const key=String(seed??'world');let history=histories.get(key);
@@ -83,7 +96,7 @@ window.DungeonWeatherV1=(function(){
   const env=environmentStep(states[index],kind,climate(seed,index*180+90,kind).temperature,elapsed);
   return {kind,...kinds[kind],snow:kinds[kind].snow||0,...climate(seed,minutes,kind),...env,...windAt(key,minutes,kind),block};
  }
- let canvas=null,ctx=null,shown={shade:0,fog:0,rain:0,wind:0,wet:0,snow:0,snowCover:0,overcast:0,snowSpeed:0,snowDrift:0,soil:0,plantWet:0,puddles:0,frost:0,windDir:1},target=kinds.clear,last=0,hidden=true,reduced=false;
+ let canvas=null,ctx=null,shown={shade:0,fog:0,rain:0,wind:0,wet:0,snow:0,snowCover:0,overcast:0,snowSpeed:0,snowDrift:0,soil:0,plantWet:0,puddles:0,frost:0,poolIce:0,edgeIce:0,flowIce:0,iceSnow:0,windDir:1},target=kinds.clear,last=0,hidden=true,reduced=false;
  const W=640,H=360,particles=Array.from({length:102},(_,i)=>({x:hash('x',i)*W,y:hash('y',i)*H,speed:150+hash('s',i)*190,len:7+hash('l',i)*11}));
  const snowParticles=Array.from({length:170},(_,i)=>({x:hash('snow-x',i)*W,y:hash('snow-y',i)*H}));
  const windDebris=Array.from({length:24},(_,i)=>({x:hash('wind-x',i)*W,y:H*(.36+hash('wind-y',i)*.59),size:1.4+hash('wind-size',i)*2.6,phase:hash('wind-phase',i)*6.28}));
@@ -126,7 +139,7 @@ window.DungeonWeatherV1=(function(){
    if(ms-lastEnvironmentLabel>=350||ms<lastEnvironmentLabel){
     lastEnvironmentLabel=ms;
     const label=sceneHost.querySelector?.('.location-weather-info[data-weather-prefix]');
-    if(label){const state=shown.snowCover>.85?'厚雪':shown.snowCover>.15?'薄雪':shown.puddles>.25?'積水':shown.soil>.15?'濕潤':shown.frost>.15?'覆霜':'偏乾';const next=label.dataset.weatherPrefix+state+' · '+windLabel(shown.wind,shown.windDir);if(label.textContent!==next)label.textContent=next;}
+    if(label){const state=shown.snowCover>.85?'厚雪':shown.snowCover>.15?'薄雪':shown.puddles>.25?'積水':shown.soil>.15?'濕潤':shown.frost>.15?'覆霜':'偏乾';const next=label.dataset.weatherPrefix+state+' · '+windLabel(shown.wind,shown.windDir)+(label.dataset.waterStatus==='true'?' · 水域'+waterIceLabel(shown):'');if(label.textContent!==next)label.textContent=next;}
    }
   }
   // A few moving leaves or drifting loose snow show wind even without falling rain/snow.
@@ -232,5 +245,5 @@ window.DungeonWeatherV1=(function(){
   return !winter||plant.winterHardy===true;
  }
  function activity(kind,weather){if(weather==='storm'||weather==='blizzard')return false;if(weather==='snow')return kind==='rabbit';if(weather==='rain')return kind==='beetle'||kind==='rabbit';if(weather==='drizzle')return kind!=='butterfly';return true;}
- return {kinds,at,bind,set,draw,drawGround,puddleLevel,season,climate,exposure,activity,unlockAudio,snowVelocity,snowStep,environmentStep,plantSpawnAllowed,windAt,windLevel,windLabel,gustAt,windVisual,environment:()=>({...shown})};
+ return {kinds,at,bind,set,draw,drawGround,puddleLevel,season,climate,exposure,activity,unlockAudio,snowVelocity,snowStep,environmentStep,plantSpawnAllowed,windAt,windLevel,windLabel,gustAt,windVisual,waterFreezeStep,waterIceLabel,environment:()=>({...shown})};
 })();
