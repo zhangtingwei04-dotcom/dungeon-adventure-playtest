@@ -30,6 +30,14 @@ window.DungeonRabbitArticulation=(function(){
   }else if(v.mode==='crouch'||v.mode==='land'){a[0]=-.045;a[1]=.08;a[2]=.075;a[3]=-.07;a[4]=.055;}
   return a;
  }
+ // Recolour only pale fur, preserving dark outlines, pink inner ears and moon marking.
+ function goldenFur(data,w,h,p=0){
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){const i=(y*w+x)*4,r=data[i],g=data[i+1],b=data[i+2];if(data[i+3]<12)continue;
+   const light=(r+g+b)/3,fur=ramp(light,60,155)*(1-ramp(r-g,34,65))*(1-ramp(g-b,42,76));
+   const belly=ramp(y-p,78,109)*(1-ramp(x-p,36,66));const blend=fur*(1-.64*belly);
+   data[i]=Math.round(clamp(r+6*blend,0,255));data[i+1]=Math.round(clamp(g-27*blend,0,255));data[i+2]=Math.round(clamp(b-77*blend,0,255));
+  }return data;
+ }
  const rigs=new WeakMap();
  function attach(node){
   const img=node.querySelector('.forest-v4-art img');if(!img)return;
@@ -41,6 +49,7 @@ window.DungeonRabbitArticulation=(function(){
    try{
     ctx.clearRect(0,0,CW,CH);ctx.drawImage(img,P,P,W,H);
     const source=ctx.getImageData(0,0,CW,CH).data;
+    if(node.dataset.rabbitVariant==='golden')goldenFur(source,CW,CH,P);
     const out=ctx.createImageData(CW,CH);
     art.appendChild(can);rigs.set(node,{ctx,source,out,last:-Infinity,dx:new Float32Array(n),dy:new Float32Array(n)});
     node.dataset.rabbitRig='ready';
@@ -65,5 +74,5 @@ window.DungeonRabbitArticulation=(function(){
   }
   ctx.putImageData(out,0,0);
  }
- return {attach,render,angles,weights};
+ return {attach,render,angles,weights,goldenFur};
 })();
