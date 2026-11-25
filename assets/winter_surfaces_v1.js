@@ -45,7 +45,31 @@ window.DungeonWinterV1=(function(){
    const g=ctx.createLinearGradient(x,y-ry,x,y+ry);g.addColorStop(0,'rgba(219,232,229,'+(q*.86)+')');g.addColorStop(.6,'rgba(194,214,217,'+(q*.76)+')');g.addColorStop(1,'rgba(143,173,183,'+(q*.62)+')');ctx.fillStyle=g;ctx.fill();
   });ctx.restore();}
  const cache=new Map();
- const weights={wagon:1,crate_large:.86,crate_small:.86,crate_open:.48,barrel:.8,sack:.62,wheel_flat:.67,plank:.75,plank_lean:.32,rock_group:.85,rock_small:.9,log:.78,branch:.6,grass_a:.38,grass_b:.38,purple_flower:.22,white_flower:.22,lavender:.28,yellow_shrub:.45,mushroom:.45};
+ // Burial is visual only: do not remove resources, change positions or mutate saves.
+ const burial={grass_a:1,grass_b:.76,purple_flower:.86,white_flower:.9,lavender:.53,yellow_shrub:.48,mushroom:.91};
+ function plantDepth(kind,x,y,width){
+  const base=burial[kind]||0;if(!base)return 0;
+  const sheltered=x<38&&y<74?.78:1;
+  const size=clamp(1.14-(width-3)*.035,.76,1.12);
+  return clamp(base*sheltered*size,0,1);
+ }
+ function bounds(source){
+  const w=Math.min(160,source.naturalWidth),h=Math.max(1,Math.round(source.naturalHeight*w/source.naturalWidth));
+  const cv=document.createElement('canvas');cv.width=w;cv.height=h;const cx=cv.getContext('2d',{willReadFrequently:true});
+  cx.drawImage(source,0,0,w,h);const d=cx.getImageData(0,0,w,h).data;let top=h,bottom=-1,left=w,right=-1;
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++)if(d[(y*w+x)*4+3]>150){top=Math.min(top,y);bottom=Math.max(bottom,y);left=Math.min(left,x);right=Math.max(right,x);}
+  return bottom<0?null:{padding:(h-1-bottom)/h*100,height:(bottom-top+1)/h*100,left:left/w*100,right:(w-1-right)/w*100};
+ }
+ function applyBurial(node,art,source,kind){
+  const depth=plantDepth(kind,parseFloat(node.style.left)||50,parseFloat(node.style.top)||80,parseFloat(node.style.width)||5);
+  if(!depth)return;
+  const key='bounds:'+source.src;let b=cache.get(key);if(!b){b=bounds(source);if(!b)return;cache.set(key,b);}
+  node.dataset.winterPlant='true';
+  art.style.setProperty('--winter-padding',b.padding+'%');art.style.setProperty('--winter-depth',(b.height*depth)+'%');
+  art.style.setProperty('--winter-left',Math.max(0,b.left-4)+'%');art.style.setProperty('--winter-right',Math.max(0,b.right-4)+'%');
+ }
+
+ const weights={vine:.25,wagon:1,crate_large:.86,crate_small:.86,crate_open:.48,barrel:.8,sack:.62,wheel_flat:.67,plank:.75,plank_lean:.32,rock_group:.85,rock_small:.9,log:.78,branch:.6,grass_a:.38,grass_b:.38,purple_flower:.22,white_flower:.22,lavender:.28,yellow_shrub:.45,mushroom:.45};
  function cap(source,kind){
   const w=Math.min(320,source.naturalWidth),h=Math.max(1,Math.round(source.naturalHeight*w/source.naturalWidth));if(!w||!h)return null;
   const cv=document.createElement('canvas');cv.width=w;cv.height=h;const cx=cv.getContext('2d',{willReadFrequently:true});if(!cx)return null;
@@ -60,8 +84,8 @@ window.DungeonWinterV1=(function(){
  }
  function attach(node,art,img,kind){
   const weight=weights[kind];if(!weight)return;
-  const init=()=>{if(!node.isConnected||!img.naturalWidth||art.querySelector('.winter-snow-cap'))return;try{const key=kind+':'+img.src;let base=cache.get(key);if(!base){base=cap(img,kind);if(!base)return;cache.set(key,base);}const cv=document.createElement('canvas');cv.width=base.width;cv.height=base.height;cv.getContext('2d').drawImage(base,0,0);cv.className='winter-snow-cap';cv.setAttribute('aria-hidden','true');cv.style.setProperty('--snow-hold',String(weight));art.appendChild(cv);}catch{}};
+  const init=()=>{if(!node.isConnected||!img.naturalWidth||art.querySelector('.winter-snow-cap'))return;try{applyBurial(node,art,img,kind);const key=kind+':'+img.src;let base=cache.get(key);if(!base){base=cap(img,kind);if(!base)return;cache.set(key,base);}const cv=document.createElement('canvas');cv.width=base.width;cv.height=base.height;cv.getContext('2d').drawImage(base,0,0);cv.className='winter-snow-cap';cv.setAttribute('aria-hidden','true');cv.style.setProperty('--snow-hold',String(weight));art.appendChild(cv);}catch{}};
   if(img.complete&&img.naturalWidth)queueMicrotask(init);else img.addEventListener('load',init,{once:true});
  }
- return {ground,attach,weights};
+ return {ground,attach,weights,plantDepth};
 })();
