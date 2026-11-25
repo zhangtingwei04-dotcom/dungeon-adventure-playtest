@@ -85,3 +85,16 @@ cache.clear();assert.equal(cache.size(),0);
 const pending=R.imageCache(2,()=>({complete:false,naturalWidth:0}));
 assert.equal(pending.get('pending'),null);assert.equal(pending.size(),1);
 console.log('PASS: render resource once-load, LRU, pending-image and clear checks');
+
+
+const aq={};new vm.Script(read('assets/adaptive_quality_v1.js').toString()).runInNewContext({window:aq});
+const quality=aq.DungeonAdaptiveQualityV1.create();
+let qms=0;function feedQuality(n,dt){for(let i=0;i<n;i++){qms+=dt;quality.sample(qms)}}
+feedQuality(180,16);assert.equal(quality.profile().name,'full');
+feedQuality(180,60);assert.equal(quality.profile().name,'light');
+feedQuality(1100,16);assert.equal(quality.profile().name,'full');
+quality.pause();assert.equal(quality.snapshot().fps,null);
+const fixedQualityTest=aq.DungeonAdaptiveQualityV1.create({fixed:0});
+for(let i=0;i<500;i++)fixedQualityTest.sample(i*100);
+assert.equal(fixedQualityTest.profile().name,'full');
+console.log('PASS: adaptive visual quality hysteresis, recovery, pause and fixed mode');
