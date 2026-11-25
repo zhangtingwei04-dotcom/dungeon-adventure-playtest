@@ -112,8 +112,9 @@ window.DungeonWeatherV1=(function(){
   if(canvas)canvas.hidden=hidden;
   if(hidden&&ctx)ctx.clearRect(0,0,W,H);if(hidden&&sceneHost){for(const key of ['snow-cover','plant-wet','frost','soil-wet','puddle-level'])sceneHost.style.setProperty('--'+key,'0');}
  }
- function draw(ms){
+ function draw(ms,particleScale=1){
   if(!ctx||hidden)return;
+  const density=Number.isFinite(particleScale)?clamp(particleScale,.5,1):1;
   const dt=last?clamp((ms-last)/1000,0,.1):.05;last=ms;
   if(weatherPreview){previewEnv=environmentStep(previewEnv,target.kind,target.temperature??(snowPreview?-3:12),dt*18);Object.assign(target,previewEnv);}
   for(const k of Object.keys(shown)){
@@ -146,7 +147,7 @@ window.DungeonWeatherV1=(function(){
   }
   // A few moving leaves or drifting loose snow show wind even without falling rain/snow.
   if(!reduced&&shown.wind>.30&&Math.abs(shown.windDir)>.08){
-   const t=ms/1000,strong=clamp((shown.wind-.30)/.70,0,1),count=Math.ceil(24*strong),pow=windVisual(shown.wind).strength;
+   const t=ms/1000,strong=clamp((shown.wind-.30)/.70,0,1),count=Math.ceil(24*strong*density),pow=windVisual(shown.wind).strength;
    const snowy=shown.snowCover>.18||shown.snow>.15;
    ctx.save();ctx.lineCap='round';
    for(let i=0;i<count;i++){
@@ -160,7 +161,7 @@ window.DungeonWeatherV1=(function(){
   }
   if(shown.snow>.01&&!reduced){
    const t=ms/1000,storm=clamp((shown.snowSpeed-1)/3.2,0,1);
-   const amount=Math.min(snowParticles.length,Math.ceil((75+85*storm)*shown.snow));
+   const amount=Math.min(snowParticles.length,Math.ceil((75+85*storm)*shown.snow*density));
    ctx.fillStyle='rgba(235,244,246,'+(.42+shown.snow*.22)+')';ctx.beginPath();
    for(let i=0;i<amount;i++){const p=snowParticles[i],v=snowVelocity(i,shown.snowSpeed,(40*shown.wind+235*Math.pow(shown.wind,1.5))*shown.windDir);
     p.x=((p.x+(v.x+Math.sin(t*1.4+i)*(2+18*shown.wind))*dt)%W+W)%W;p.y=(p.y+v.y*dt)%H;
@@ -172,13 +173,13 @@ window.DungeonWeatherV1=(function(){
    const id=Math.floor(clock/17.7);if(cycle>=6.2&&cycle<7.2&&id!==lastThunder){lastThunder=id;thunder();}
   }
   if(shown.rain>.008&&!reduced){
-   const t=ms/1000,amount=Math.min(particles.length,Math.ceil(particles.length*shown.rain));
+   const t=ms/1000,amount=Math.min(particles.length,Math.ceil(particles.length*shown.rain*density));
    ctx.lineCap='round';ctx.lineWidth=.75;ctx.strokeStyle='rgba(209,228,239,'+(.26+shown.rain*.16)+')';ctx.beginPath();
    for(let i=0;i<amount;i++){const p=particles[i];p.x=((p.x+dt*(25*shown.wind+155*Math.pow(shown.wind,1.5))*shown.windDir)%(W+40)+W+40)%(W+40);p.y=(p.y+dt*p.speed)%(H+24);const x=p.x-20,y=p.y-12;ctx.moveTo(x,y);ctx.lineTo(x+(shown.wind*3+Math.pow(shown.wind,1.5)*11)*shown.windDir,y+p.len);}
    ctx.stroke();
    // Tiny ground-level splashes; never mask the stream or foreground objects.
    ctx.strokeStyle='rgba(200,220,224,'+(shown.rain*.20)+')';ctx.beginPath();
-   for(let i=0;i<12*shown.rain;i++){const q=(t*2.3+hash('splash',i))%1,x=hash('splash-x',i)*W,y=H*(.79+hash('splash-y',i)*.19);ctx.moveTo(x-2*q,y-q);ctx.lineTo(x+2*q,y-q);}
+   for(let i=0;i<12*shown.rain*density;i++){const q=(t*2.3+hash('splash',i))%1,x=hash('splash-x',i)*W,y=H*(.79+hash('splash-y',i)*.19);ctx.moveTo(x-2*q,y-q);ctx.lineTo(x+2*q,y-q);}
    ctx.stroke();
   }
  }
