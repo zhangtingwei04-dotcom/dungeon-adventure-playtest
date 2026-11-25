@@ -3933,7 +3933,7 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 </style>
 <link rel="stylesheet" href="./assets/scene_light_v1.css?v=20261124-1">
 <link rel="stylesheet" href="./assets/forest_v4_integration.css?v=2">
-<link rel="stylesheet" href="./assets/scene_environment_v1.css?v=1">
+<link rel="stylesheet" href="./assets/scene_environment_v1.css?v=2">
 </head>
 <body>
 <div id="app"><div id="worldFrame" aria-hidden="true">
@@ -4267,7 +4267,7 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 </script>
 <script src="./assets/forest_v4_spawns.js?v=1"></script>
 <script src="./assets/forest_v4_integration.js?v=4"></script>
-<script src="./assets/scene_environment_v1.js?v=1"></script>
+<script src="./assets/scene_environment_v1.js?v=2"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/scene_objects_v1.js?v=20261124-2"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
@@ -4981,7 +4981,18 @@ function exploreArea(){
  if(site==='wreck'&&forestV4Active())window.DungeonForestV4Life?.update(s,window.DUNGEON_FOREST_V4_LAYOUT.scenes.wreck,window.DUNGEON_FOREST_V4_SPAWNS||[],periodForMinutes(s.worldMinutes));
  for(const label of sceneFinds)addTravel('discovery','在'+names[site][0]+'發現'+label+'。',label==='路過的旅人'?'可以直接在場景中上前交談。':'先觀察牠的動靜，再決定是否接近。');
  const feature=latest.route?'並找到新的路線卡':latest.wreckFound?'，還發現林邊舊馬車殘骸':'，留意到新的環境細節';
- addTravel('daily','在'+names[site][0]+'進行第'+count+'次探索（約10分鐘，'+gameTime(s.worldMinutes)+'）'+feature+'。','這裡還有許多可以慢慢觀察的東西。');
+ if(site==='wreck'&&forestEnvironmentActive()){
+  const day=Math.floor(s.worldMinutes/1440)+1,ordinary=!latest.route&&!latest.wreckFound&&!newMaterials&&!sceneFinds.length;
+  const lastLog=s.travelLog?.[s.travelLog.length-1];
+  const key='wreck-'+day;
+  if(ordinary&&lastLog?.exploreGroup===key){
+   const total=(lastLog.exploreCount||1)+1;
+   s.travelLog[s.travelLog.length-1]={...lastLog,exploreCount:total,message:'在'+names[site][0]+'連續探索 '+total+' 次（約'+total*10+'分鐘，截至 '+gameTime(s.worldMinutes)+'），留意到環境細節。',thought:'周圍暫時沒有新的發現。',time:Date.now()};
+  }else{
+   addTravel('daily','在'+names[site][0]+'進行第'+count+'次探索（約10分鐘，'+gameTime(s.worldMinutes)+'）'+feature+(newMaterials?'，發現可收集材料':'')+'。',ordinary?'周圍暫時沒有新的發現。':'我留意到了新的線索。');
+   if(ordinary&&s.travelLog?.length)Object.assign(s.travelLog[s.travelLog.length-1],{exploreGroup:key,exploreCount:1});
+  }
+ }else addTravel('daily','在'+names[site][0]+'進行第'+count+'次探索（約10分鐘，'+gameTime(s.worldMinutes)+'）'+feature+'。','這裡還有許多可以慢慢觀察的東西。');
  save();render();toast(explorationToast(site,latest,newMaterials)+(sceneFinds.length?' · 發現'+sceneFinds.join('、'):'')+((site==='clearing'&&!sceneFinds.length&&window.DungeonSceneObjectsV1?.creatureVisible(s))?' · 留意場景中的生物':''));
 }
 
@@ -7924,7 +7935,11 @@ function forestEnvironmentActive(){return DEV_PREVIEW_MODE&&window.DUNGEON_FORES
 function renderForestV4(el){
  const cfg=window.DUNGEON_FOREST_V4_LAYOUT?.scenes?.wreck,assets=window.DUNGEON_FOREST_V4_ASSETS;
  if(!cfg||!assets)return;
- const layer=document.createElement('div');layer.className='forest-v4-layer';if(forestEnvironmentActive())layer.classList.add('env-v1');
+ const smooth=forestEnvironmentActive();
+ const existing=smooth?el.querySelector('.forest-v4-layer'):null;
+ const layer=existing||document.createElement('div');layer.className='forest-v4-layer';if(smooth)layer.classList.add('env-v1');
+ const previous=new Map(Array.from(layer.children).filter(n=>n.dataset.objectId).map(n=>[n.dataset.objectId,n]));
+ const keep=new Set();
  const bindings=forestV4MaterialBindings();
  const live=window.DungeonForestV4Life?.layout(s,cfg,window.DUNGEON_FOREST_V4_SPAWNS||[],bindings)||cfg;
  for(const o of live){
@@ -7934,12 +7949,28 @@ function renderForestV4(el){
   const plant=/^(grass_|.*flower|lavender|yellow_shrub|vine)/.test(k);
   const finds=bindings.get(o.id)||[];
   const interactive=finds.length>0||animal||k==='wagon'||k==='wheel_flat'||k.startsWith('crate')||['barrel','sack','plank','plank_lean'].includes(k);
-  const node=document.createElement(interactive?'button':'div');if(interactive){node.type='button';node.setAttribute('aria-label',o.name+(finds.length?'：可收集'+finds.map(f=>f.material).join('、'):''));node.title=o.name+(finds.length?' · 可收集':'');node.onclick=()=>guardedAction(()=>forestV4Action(o));}else node.setAttribute('aria-hidden','true');
+  const signature=JSON.stringify([o.assetId,o.x,o.y,o.width,o.z,o.rotation,o.flip,o.artVariant,o.contactGrass,interactive]);
+  let old=previous.get(o.id);
+  if(smooth&&old&&old.dataset.renderSignature===signature){
+   keep.add(old);old._exitTimer&&clearTimeout(old._exitTimer);old._exitTimer=null;old.classList.remove('env-leaving');old.style.pointerEvents='';
+   if(interactive){old.disabled=false;old.onclick=()=>guardedAction(()=>forestV4Action(o));old.setAttribute('aria-label',o.name+(finds.length?'：可收集'+finds.map(f=>f.material).join('、'):''));old.title=o.name+(finds.length?' · 可收集':'');}
+   updateForestFindCue(old,finds,k);continue;
+  }
+  if(old){clearTimeout(old._exitTimer);old.remove();}
+  const node=document.createElement(interactive?'button':'div');node.dataset.renderSignature=signature;if(interactive){node.type='button';node.setAttribute('aria-label',o.name+(finds.length?'：可收集'+finds.map(f=>f.material).join('、'):''));node.title=o.name+(finds.length?' · 可收集':'');node.onclick=()=>guardedAction(()=>forestV4Action(o));}else node.setAttribute('aria-hidden','true');
   node.className='forest-v4-object';node.dataset.objectId=o.id;node.dataset.motion=animal?'animal':plant?'plant':'fixed';node.style.left=o.x+'%';node.style.top=o.y+'%';node.style.width=o.width+'%';node.style.zIndex=10+o.z;
   const art=document.createElement('span');art.className='forest-v4-art';art.style.transform='scaleX('+(o.flip?-1:1)+') rotate('+o.rotation+'deg)';
-  const im=document.createElement('img');im.src=o.artVariant==='barrel-side'?'./assets/forest_v4_barrel_side.svg?v=1':a.src;if(o.artVariant==='barrel-side')im.onerror=()=>{im.onerror=null;im.src=a.src;art.style.transform='rotate(72deg)';};im.alt='';im.draggable=false;art.appendChild(im);node.appendChild(art);window.DungeonForestV4Integration?.apply(node,o,assets);if(forestEnvironmentActive())window.DungeonSceneEnvironmentV1?.apply(node,art,im,o);if(finds.length){const cue=document.createElement('span');cue.className='forest-v4-find-cue';cue.textContent='可收集';cue.setAttribute('aria-hidden','true');node.appendChild(cue);}layer.appendChild(node);
+  const im=document.createElement('img');im.src=o.artVariant==='barrel-side'?'./assets/forest_v4_barrel_side.svg?v=1':a.src;if(o.artVariant==='barrel-side')im.onerror=()=>{im.onerror=null;im.src=a.src;art.style.transform='rotate(72deg)';};im.alt='';im.draggable=false;art.appendChild(im);node.appendChild(art);window.DungeonForestV4Integration?.apply(node,o,assets);if(forestEnvironmentActive())window.DungeonSceneEnvironmentV1?.apply(node,art,im,o);updateForestFindCue(node,finds,k);keep.add(node);if(smooth&&existing&&!old)node.classList.add('env-entering');layer.appendChild(node);
  }
- el.appendChild(layer);
+ if(smooth)for(const node of previous.values()){if(keep.has(node)||!node.isConnected||node._exitTimer)continue;node.classList.remove('env-entering');node.classList.add('env-leaving');node.style.pointerEvents='none';if(node.tagName==='BUTTON')node.disabled=true;node._exitTimer=setTimeout(()=>{node.remove();},220);}
+ if(!existing)el.appendChild(layer);
+}
+function updateForestFindCue(node,finds,k){
+ let cue=node.querySelector('.forest-v4-find-cue');
+ if(!finds.length){cue?.remove();return;}
+ if(!cue){cue=document.createElement('span');cue.className='forest-v4-find-cue';cue.setAttribute('aria-hidden','true');node.appendChild(cue);}
+ cue.textContent='可收集';cue.classList.toggle('env-wagon-cue',k==='wagon');
+
 }
 function renderWorldObjects(el){
  const engine=window.DungeonSceneObjectsV1;if(!engine||encounterPending)return;
@@ -7957,7 +7988,10 @@ function renderWorldObjects(el){
  }
 }
 function renderHotspots(){
- const el=$('hotspots');el.replaceChildren();
+ const el=$('hotspots');const stable=forestV4Active()&&forestEnvironmentActive();
+ $('app').classList.toggle('env-repair-v2',stable);
+ if(stable){for(const child of Array.from(el.children))if(!child.classList.contains('forest-v4-layer'))child.remove();}
+ else el.replaceChildren();
  if(forestV4Active()){renderForestV4(el);renderWorldObjects(el);}else if(!(DEV_PREVIEW_MODE&&s.scene==='wreck'&&editorForestSrc)){renderOpeningWagonTrial(el);renderWorldObjects(el);}
  const per={wreck:[['散落貨箱',.36,.71,glance],['車輪痕跡',.45,.53,marks],['離開的林道',.85,.57,()=>change('trail'),'trail'],['探索周遭',.73,.65,exploreArea,null]],trail:[['沿小徑前進',.55,.48,rescue,'gate'],['石拱遺跡',.79,.49,()=>change('ruin'),'ruin'],['路旁舊石碑',.13,.49,inspectTrailMarker],['林間草木',.29,.59,()=>change('clearing'),'clearing'],['返回馬車',.45,.62,()=>change('wreck'),'wreck'],['探索周遭',.7,.62,exploreArea,null]],clearing:[['微光',59,69,light],['聲音',75,46,soundInForest]],ruin:[['石門',51,45,ruinLook]],inn:[['鏡子',73,43,innMark]],guild:[['公告板',69,49,guildBoard]],outskirts:[['舊路標',67,49,roadsideSign]],home:[['留守夥伴',48,59,meetHome]]};
  if(!showHints)return;
@@ -8157,7 +8191,7 @@ function sceneDraw(time){
  if(s.scene==='wreck'&&emptyForestReady){
   ctx.save();ctx.imageSmoothingEnabled=true;
   const w=emptyForest.naturalWidth,h=emptyForest.naturalHeight,fit=Math.max(W/w,H/h);
-  ctx.drawImage(emptyForest,(W-w*fit)/2,(H-h*fit)/2,w*fit,h*fit);ctx.restore();if(forestV4Active()&&forestEnvironmentActive()&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches)window.DungeonSceneEnvironmentV1?.draw(ctx,'forestV4',time,W,H);return;
+  ctx.drawImage(emptyForest,(W-w*fit)/2,(H-h*fit)/2,w*fit,h*fit);ctx.restore();if(forestV4Active()&&forestEnvironmentActive()&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches)window.DungeonSceneEnvironmentV1?.draw(ctx,'forestV4',time,W,H,previewPeriod||periodForMinutes(s.worldMinutes),emptyForest);return;
  }
  if(s.scene==='wreck'&&approvedWreckReady){
   ctx.save();ctx.imageSmoothingEnabled=false;
