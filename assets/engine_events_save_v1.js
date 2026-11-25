@@ -67,7 +67,8 @@ window.DungeonDataSchemaV1=(function(){
    r.rustBeetleMigrated=true;
   }
  }
- const definitions=Object.freeze({wallet:Object.freeze({version:1,steps:Object.freeze([wallet]),normalize:wallet}),exploration:Object.freeze({version:1,steps:Object.freeze([exploration]),normalize:exploration}),forestRare:Object.freeze({version:1,steps:Object.freeze([forestRare]),normalize:forestRare})});
+ function objectWorld(a){const w=ensureMap(a,'objectWorld');ensureMap(w,'scenes');}
+ const definitions=Object.freeze({objectWorld:Object.freeze({version:1,steps:Object.freeze([objectWorld]),normalize:objectWorld}),wallet:Object.freeze({version:1,steps:Object.freeze([wallet]),normalize:wallet}),exploration:Object.freeze({version:1,steps:Object.freeze([exploration]),normalize:exploration}),forestRare:Object.freeze({version:1,steps:Object.freeze([forestRare]),normalize:forestRare})});
  function migrate(a){
   if(!map(a.engineSave))throw Error('缺少存檔版本資訊');
   const old=a.engineSave.domains;
