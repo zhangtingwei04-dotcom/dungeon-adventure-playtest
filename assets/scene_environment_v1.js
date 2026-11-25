@@ -15,8 +15,15 @@ window.DungeonSceneEnvironmentV1=(function(){
  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
  const frac=v=>v-Math.floor(v);
  function path(ctx,poly){ctx.beginPath();poly.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.closePath();ctx.clip();}
+ function waterProfile(env={}){
+  const soil=clamp(env.soil||0,0,1),rain=clamp(env.rain||0,0,1),puddles=clamp(env.puddles||0,0,1),frost=clamp(env.frost||0,0,1);
+  const volume=clamp(.85+soil*.38+puddles*.22+rain*.13,.85,1.55);
+  const ice=clamp((frost-.20)/.80,0,1)*.68;
+  return {volume,ice,speed:volume*(1-ice*.55)};
+ }
  function draw(ctx,id,t,w=960,h=540,period='day',source=null){
   const p=profiles[id];if(!p||!Number.isFinite(t))return;
+  const water=waterProfile(window.DungeonWeatherV1?.environment?.()||{});
   ctx.save();ctx.scale(w/960,h/540);
   // The source has baked sunlight. Suppress it locally at dusk/night, rather than adding another beam.
   const dim=p.neutral?0:period==='night'?.48:period==='dusk'?.29:period==='dawn'?.12:0;
@@ -30,16 +37,16 @@ window.DungeonSceneEnvironmentV1=(function(){
   // Re-use the real painted water texture, gently advecting it down the cascade.
   if(source?.naturalWidth&&source?.naturalHeight){
    const sw=source.naturalWidth,sh=source.naturalHeight,fit=Math.max(960/sw,540/sh),ox=(960-sw*fit)/2,oy=(540-sh*fit)/2;
-   const [dx,dy,dw,dh]=p.cascade||[826,140,66,96],delta=2+frac(t*.65)*8;
-   ctx.save();ctx.globalAlpha=.27;
+   const [dx,dy,dw,dh]=p.cascade||[826,140,66,96],delta=2+frac(t*.65*water.speed)*8;
+   ctx.save();ctx.globalAlpha=.27*(1-water.ice*.35);
    ctx.drawImage(source,(dx-ox)/fit,(dy-oy)/fit,dw/fit,(dh-delta)/fit,dx,dy+delta,dw,dh-delta);
    ctx.restore();
   }
   // Moving highlights are clipped to the actual cascade, not surrounding rocks.
   ctx.lineCap='round';
-  for(let i=0;i<20;i++){
-   const [dx,dy,dw,dh]=p.cascade||[826,140,66,96];const x=dx+8+(i*17%(dw-12)),y=dy+2+frac(t*(.72+(i%4)*.12)+i*.173)*(dh-2);
-   const len=13+i%4*6;
+  for(let i=0;i<Math.round(20*water.volume*(1-water.ice*.35));i++){
+   const [dx,dy,dw,dh]=p.cascade||[826,140,66,96];const x=dx+8+(i*17%(dw-12)),y=dy+2+frac(t*(.72+(i%4)*.12)*water.speed+i*.173)*(dh-2);
+   const len=(13+i%4*6)*water.volume;
    const g=ctx.createLinearGradient(x,y,x-1,y+len);
    g.addColorStop(0,'rgba(224,248,255,0)');g.addColorStop(.45,'rgba(220,246,255,.52)');g.addColorStop(1,'rgba(220,246,255,0)');
    ctx.strokeStyle=g;ctx.lineWidth=1.1+(i%3)*.65;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-1.6,y+len);ctx.stroke();
@@ -47,10 +54,23 @@ window.DungeonSceneEnvironmentV1=(function(){
   ctx.restore();
   // Subtle spray in the waterfall basin; no opaque white overlay.
   ctx.save();path(ctx,p.waterfall);
-  for(let i=0;i<9;i++){const q=frac(t*.92+i*.137),x=838+i*5+Math.sin(t*1.4+i)*5,y=(p.neutral?242:233)-q*15,r=3+q*10;const g=ctx.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,'rgba(213,238,249,'+(.25*(1-q))+')');g.addColorStop(1,'rgba(213,238,249,0)');ctx.fillStyle=g;ctx.fillRect(x-r,y-r,r*2,r*2);}
+  for(let i=0;i<Math.round(9*water.volume*(1-water.ice*.6));i++){const q=frac(t*.92*water.speed+i*.137),x=838+i*5+Math.sin(t*1.4+i)*5,y=(p.neutral?242:233)-q*15,r=3+q*10;const g=ctx.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,'rgba(213,238,249,'+(.25*(1-q)*(1-water.ice*.5))+')');g.addColorStop(1,'rgba(213,238,249,0)');ctx.fillStyle=g;ctx.fillRect(x-r,y-r,r*2,r*2);}
   ctx.restore();
   // Separate small stream zones avoid painted foreground rocks.
-  for(let j=0;j<p.pools.length;j++){ctx.save();path(ctx,p.pools[j]);const poly=p.pools[j],minX=Math.min(...poly.map(v=>v[0])),maxX=Math.max(...poly.map(v=>v[0])),minY=Math.min(...poly.map(v=>v[1])),maxY=Math.max(...poly.map(v=>v[1]));for(let i=0;i<8;i++){const q=frac(t*(.30+i*.025)+i*.31+j*.12),x=minX+q*(maxX-minX),y=minY+((i*.37)%1)*(maxY-minY);const alpha=.38*Math.sin(Math.PI*q);ctx.strokeStyle='rgba(205,240,250,'+alpha+')';ctx.lineWidth=1.15;ctx.beginPath();ctx.moveTo(x,y);ctx.quadraticCurveTo(x+4,y-.8,x+13+i%3*4,y);ctx.stroke();}ctx.restore();}
+  for(let j=0;j<p.pools.length;j++){ctx.save();path(ctx,p.pools[j]);const poly=p.pools[j],minX=Math.min(...poly.map(v=>v[0])),maxX=Math.max(...poly.map(v=>v[0])),minY=Math.min(...poly.map(v=>v[1])),maxY=Math.max(...poly.map(v=>v[1]));for(let i=0;i<8;i++){const q=frac(t*(.30+i*.025)*water.speed+i*.31+j*.12),x=minX+q*(maxX-minX),y=minY+((i*.37)%1)*(maxY-minY);const alpha=.38*Math.sin(Math.PI*q)*(1-water.ice*.65);ctx.strokeStyle='rgba(205,240,250,'+alpha+')';ctx.lineWidth=1.15;ctx.beginPath();ctx.moveTo(x,y);ctx.quadraticCurveTo(x+4,y-.8,x+13+i%3*4,y);ctx.stroke();}ctx.restore();}
+  // Cold buildup is restricted to the real water margins. The central cascade keeps flowing.
+  if(water.ice>.02){
+   ctx.save();path(ctx,p.waterfall);
+   const [dx,dy,dw,dh]=p.cascade||[826,140,66,96];
+   for(const side of [-1,1]){
+    const x=side<0?dx+3:dx+dw-3;
+    const g=ctx.createLinearGradient(x,0,x-side*15,0);
+    g.addColorStop(0,'rgba(207,235,242,'+(water.ice*.85)+')');g.addColorStop(1,'rgba(207,235,242,0)');
+    ctx.fillStyle=g;ctx.fillRect(side<0?x:x-15,dy,15,dh);
+    ctx.fillStyle='rgba(184,219,232,'+(water.ice*.8)+')';
+    for(let i=0;i<5;i++){const xx=x-side*i*2,yy=dy+4+i%3*5;ctx.beginPath();ctx.moveTo(xx-1.2,yy);ctx.lineTo(xx+1.4,yy);ctx.lineTo(xx,yy+(7+i%3*5)*water.ice);ctx.closePath();ctx.fill();}
+   }ctx.restore();
+  }
   ctx.restore();
  }
  function objectProfile(o,id='forestV4'){
@@ -182,5 +202,5 @@ window.DungeonSceneEnvironmentV1=(function(){
    if(node.dataset.wildState!==v.mode)node.dataset.wildState=v.mode;
   }
  }
- return {profiles,draw,objectProfile,apply,attachWildlife,tickWildlife,wildlifeSample};
+ return {profiles,draw,objectProfile,apply,attachWildlife,tickWildlife,wildlifeSample,waterProfile};
 })();
