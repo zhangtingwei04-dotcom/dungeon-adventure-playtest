@@ -146,3 +146,25 @@ const quotaStorage={getItem:k=>saveMap.get(k)??null,setItem:(k,v)=>{if(k==='game
 assert(!secureSave.write(quotaStorage,'game',saveActor,saveScenes));
 assert.equal(saveMap.get('game'),beforeQuota);
 console.log('PASS: verified writes, integrity checks, previous recovery, legacy compatibility, separate slots and quota safety');
+
+
+const legacyActor={v:1,scene:'wreck',hp:16,maxHp:16,party:[0,1,2,3],seen:['rareGoblin'],notes:['拾鐵小妖'],items:['x'],flags:{},visits:{wreck:1},worldMinutes:960,wallet:{silver:8,copper:19},forestRare:{checkedDays:{goblin:3},sighted:{goblin:true},hints:{},ingredients:{x:2},goblinGearTaken:true},extra:{future:1},travelLog:[{message:'拾鐵小妖'}]};
+const originalLegacy=JSON.stringify(legacyActor);
+const migratedDomain=secureSave.prepare(legacyActor,saveScenes);
+assert.equal(JSON.stringify(legacyActor),originalLegacy);
+assert.equal(migratedDomain.engineSave.schema,1);
+assert.equal(migratedDomain.engineSave.domains.forestRare,1);
+assert.equal(migratedDomain.wallet.silver,8);
+assert.equal(migratedDomain.items[0],'x');
+assert.equal(migratedDomain.extra.future,1);
+assert.equal(migratedDomain.forestRare.checkedDays.beetle,3);
+assert.equal(migratedDomain.forestRare.ingredients.x,2);
+assert(migratedDomain.forestRare.beetleGearTaken);
+assert.equal(migratedDomain.notes[0],'鏽殼甲蟲');
+assert(migratedDomain.seen.includes('rareGoblin')&&migratedDomain.seen.includes('rareBeetle'));
+assert(!Object.hasOwn(migratedDomain,'routeDiscovery'),'Legacy route availability must be handled by live route migration');
+assert.equal(JSON.stringify(secureSave.prepare(migratedDomain,saveScenes)),JSON.stringify(migratedDomain));
+assert.equal(secureSave.parse(secureSave.exportText(migratedDomain,saveScenes),saveScenes).wallet.copper,19);
+const futureDomain=JSON.parse(JSON.stringify(migratedDomain));futureDomain.engineSave.domains.wallet=2;
+assert.throws(()=>secureSave.prepare(futureDomain,saveScenes),/系統版本不相容/);
+console.log('PASS: domain migration preserves progress, old route semantics, unknown fields and rejects unsupported known versions');
