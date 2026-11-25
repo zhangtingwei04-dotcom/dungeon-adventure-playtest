@@ -8060,7 +8060,7 @@ function forestV4Action(o){
  const options=finds.map(item=>({label:'收集：'+item.material,fn:()=>collectExplorationMaterial('wreck',item.id)}));
  if(k==='wagon'||k==='wheel_flat')options.push({label:'仔細調查刻痕',fn:marks});
  if(k.startsWith('crate'))options.push({label:'檢查貨箱',fn:glance});
- if(o.rabbitVariant==='golden')options.push({label:'安靜觀察並記錄',fn:()=>{if(!o.previewOnly){normalizeForestRare();s.forestRare.sighted.goldenRabbit=true;note('goldenRabbit','在林間目擊稀有的金紋兔');}else toast('金紋兔外觀預覽');}});
+ if(o.rabbitVariant==='golden')options.push({label:'安靜觀察並記錄',fn:()=>{if(!o.previewOnly){normalizeForestRare();s.forestRare.sighted.goldenRabbit=true;note('goldenRabbit','在林間目擊稀有的金紋兔');renderHotspots();}else toast('金紋兔外觀預覽');}});
  options.push({label:info.type==='living'?'不打擾牠':'先離開',fn:()=>{}});
  dialog(info.name,info.description+(finds.length?'\n\n附近有探索時發現的可收集材料。':''),options,info.type==='living'?'生態觀察':'物件調查');
 }
