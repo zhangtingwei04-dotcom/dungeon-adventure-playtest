@@ -103,7 +103,19 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 <p>下方會載入目前 GitHub Pages 的正式遊戲程式，但使用獨立的開發測試存檔。此區是玩法預覽；裝備庫調整尚未寫入遊戲時，不會同步改動下方的遊戲角色。</p>
 <div class="toolbar"><button class="primary" id="reloadGame">重新載入測試</button><button id="launchGame">全頁開啟測試遊戲</button><button id="openLive">開啟正式遊戲</button><button id="clearPreview">清除測試存檔</button></div>
 <div class="hint">建議 iPhone 橫向操作。內嵌預覽保留遊戲原本 1536×707 版面；如果畫面太小，按「全頁開啟測試遊戲」。正式遊戲存檔與預覽存檔分開。</div>
-<div class="gameWindow" id="gameWindow"><iframe id="gameFrame" title="迷宮盡頭的燈火：獨立存檔的遊戲預覽" src="./?dev-preview=1&amp;bagSplit=trial&amp;v=studio-bag-20261124" loading="lazy" allow="fullscreen"></iframe></div>
+<div class="gameWindow" id="gameWindow"><iframe id="gameFrame" title="迷宮盡頭的燈火：獨立存檔的遊戲預覽" src="./?dev-preview=1&amp;perf=1&amp;bagSplit=trial&amp;v=studio-perf-v1" loading="lazy" allow="fullscreen"></iframe></div>
+<div class="panel" style="margin-top:12px" id="livePerfPanel">
+<h2>即時效能監測 V1</h2>
+<p class="hint" id="livePerfStatus" role="status">等待測試遊戲載入。數據來自本機預覽，不代表正式版本或其他裝置的表現。</p>
+<div class="layout" style="grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
+<div class="hint">瀏覽器影格回呼<br><strong id="livePerfFPS">—</strong></div><div class="hint">場景繪製頻率<br><strong id="livePerfDraw">—</strong></div>
+<div class="hint">影格間隔 P95<br><strong id="livePerfP95">—</strong></div><div class="hint">縮圖快取<br><strong id="livePerfCache">—</strong></div>
+<div class="hint">遊戲 DOM 元素<br><strong id="livePerfDOM">—</strong></div><div class="hint">JS Heap（支援時）<br><strong id="livePerfHeap">—</strong></div></div>
+<h3>系統 CPU 同步耗時（平均 / P95）</h3><div id="livePerfCosts" class="hint">—</div>
+<h3>圖片載入至完成事件</h3><div id="livePerfLoads" class="hint">—</div>
+<div class="toolbar"><button id="refreshLivePerf" type="button">更新讀數</button><button id="exportLivePerf" type="button">匯出效能 JSON</button></div>
+<p class="hint">回呼頻率不等於 GPU 實際呈現 FPS；場景繪製原本約每 68ms 更新一次。iPhone Safari 通常不提供 JS Heap 數值，顯示不支援時不推估。耗時僅同步 CPU，不含 GPU 或全系統成本。</p>
+</div>
 </div>
 </section>
 <section id="page-library" data-page="library" hidden>
@@ -408,6 +420,32 @@ function editableTransform(){
  return transforms[selectedKey()];
 }
 let gameFrameInitialized=false;
+let latestLivePerf=null;
+function updateLivePerf(){
+ if(document.hidden||$('page-game').hidden)return;
+ const status=$('livePerfStatus');
+ try{
+  const child=$('gameFrame').contentWindow;
+  const sample=typeof child?.DungeonPerformanceSnapshotV1==='function'?child.DungeonPerformanceSnapshotV1():null;
+  if(!sample||sample.hidden){latestLivePerf=null;status.textContent='等待監測資料（需載入新版遊戲預覽）';for(const id of ['FPS','Draw','P95','Cache','DOM','Heap','Costs','Loads'])$('livePerf'+id).textContent='—';return;}
+  latestLivePerf={capturedAt:new Date().toISOString(),...sample};
+  const num=(n,d=1)=>Number.isFinite(n)?n.toFixed(d):'—';
+  $('livePerfFPS').textContent=num(sample.frameRate)+' FPS';
+  $('livePerfDraw').textContent=num(sample.drawRate)+' 次／秒';
+  $('livePerfP95').textContent=num(sample.frameMs?.p95)+' ms';
+  $('livePerfCache').textContent=sample.thumbnailCache+' / '+sample.thumbnailCacheLimit;
+  $('livePerfDOM').textContent=String(sample.domNodes);
+  $('livePerfHeap').textContent=sample.heapBytes==null?'瀏覽器不支援':num(sample.heapBytes/1048576)+' MiB';
+  const labels={scene:'場景',weather:'天氣',wildlife:'生物',thumbnail:'縮圖',forest:'森林底圖',wagon:'馬車備圖',trail:'林間小徑',panorama:'備用全景'};
+  $('livePerfCosts').textContent=Object.entries(sample.costs||{}).map(([k,v])=>(labels[k]||k)+'：'+num(v.avg,2)+' / '+num(v.p95,2)+' ms').join(' ｜ ')||'尚無樣本';
+  $('livePerfLoads').textContent=Object.entries(sample.loads||{}).map(([k,v])=>(labels[k]||k)+'：'+num(v.ms)+' ms（'+(v.ok?'完成':'失敗')+'）').join(' ｜ ')||'尚無完成事件';
+  status.textContent='目前場景：'+sample.scene+' ｜ 影格樣本：'+(sample.frameMs?.count||0)+' ｜ '+new Date().toLocaleTimeString('zh-TW');
+ }catch(e){latestLivePerf=null;status.textContent='監測暫不可用：'+e.message;}
+}
+$('refreshLivePerf').onclick=updateLivePerf;
+$('exportLivePerf').onclick=()=>{updateLivePerf();if(!latestLivePerf){toast('尚無效能讀數');return;}const blob=new Blob([JSON.stringify(latestLivePerf,null,2)],{type:'application/json'});downloadBlob(blob,'dungeon-performance-v1.json');};
+setInterval(updateLivePerf,1000);
+
 function item(id){return catalogue.find(a=>a.id===id)}
 function k(id,gender,layer){return id+':'+gender+':'+layer}
 function toast(msg){const el=$('toast');el.textContent=msg;el.style.display='block';clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.style.display='none',2600)}
@@ -1377,13 +1415,13 @@ for(const b of document.querySelectorAll('[data-tab]'))b.onclick=()=>setTab(b.da
 $('openBodyMeasure').onclick=()=>openUrl('./body-measure-studio.html?v=3');
 $('openLegacyArmScan').onclick=()=>openUrl('./arm-horizontal-scan.html?v=1');
 $('openManualArm').onclick=()=>openUrl('./arm-manual-measure.html?v=2');
-$('reloadGame').onclick=()=>{$('gameFrame').src='./?dev-preview=1&bagSplit=trial&v='+Date.now();toast('已重新載入獨立測試存檔')};
-$('launchGame').onclick=()=>openUrl('./?dev-preview=1&bagSplit=trial&v=studio-full');
+$('reloadGame').onclick=()=>{$('gameFrame').src='./?dev-preview=1&perf=1&bagSplit=trial&v='+Date.now();toast('已重新載入獨立測試存檔')};
+$('launchGame').onclick=()=>openUrl('./?dev-preview=1&perf=1&bagSplit=trial&v=studio-full');
 $('openLive').onclick=()=>openUrl('./');
 $('clearPreview').onclick=()=>{
  if(!confirm('確定清除開發預覽存檔？正式遊戲存檔完全不會更動。'))return;
  localStorage.removeItem('dungeon_adventure_ch1_devpreview_v1');
- $('gameFrame').src='./?dev-preview=1&bagSplit=trial&v='+Date.now();
+ $('gameFrame').src='./?dev-preview=1&perf=1&bagSplit=trial&v='+Date.now();
  toast('開發測試存檔已清除');
 };
 $('assetSelect').onchange=e=>{selected=e.target.value;const a=item(selected);editingLayer=a.layers.includes(editingLayer)?editingLayer:a.layers[0];update();persist()};
