@@ -227,16 +227,10 @@ window.DungeonWeatherV1=(function(){
   }
   g.restore();
  }
+ // Compatibility entry point only; character environment owns all character exposure rules.
  function exposure(s,indoor){
-  const now=Math.max(0,Math.floor(Number(s.worldMinutes)||0)),old=s.weatherExposure;
-  if(!old||!Number.isFinite(old.minute)||old.minute>now){s.weatherExposure={minute:now,wetness:0,comfort:100,indoor:Boolean(indoor)};return s.weatherExposure;}
-  let value=clamp(Number(old.wetness)||0,0,100),comfort=clamp(Number.isFinite(old.comfort)?old.comfort:100,0,100),start=Math.max(old.minute,now-1440*2);
-  while(start<now){const end=Math.min(now,(Math.floor(start/180)+1)*180),weather=at(s.seed,start),dt=end-start;
-   value=clamp(value+(old.indoor?-.65:weather.rain>.05?weather.rain*.72:(weather.kind==='snow'||weather.kind==='blizzard')?.16:-(.12+weather.wind*.18))*dt,0,100);
-   const stress=old.indoor?0:Math.max(0,12-weather.temperature)*.035*(1+weather.wind*.7)+Math.max(0,weather.temperature-30)*.025+value*.0014;
-   comfort=clamp(comfort+(stress>0?-stress:.22)*dt,0,100);start=end;
-  }
-  return s.weatherExposure={minute:now,wetness:value,comfort,indoor:Boolean(indoor)};
+  const core=window.DungeonCharacterEnvironmentV1;
+  return core?core.advance(s,indoor,at):s.weatherExposure;
  }
  // Existing fixed scenery is not subject to spawning rules. Future species may opt into snow.
  function plantSpawnAllowed(weather,plant={}){
