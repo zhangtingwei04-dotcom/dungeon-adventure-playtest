@@ -186,6 +186,56 @@ window.DungeonSceneEnvironmentV1=(function(){
   else if(mode==='graze'){sy=1-.025*(.5+.5*Math.sin(b.age*3));}
   return {x:-54*b.q,lift,sx,sy,flip:b.face===-1?1:-1,mode,behavior:b.mode};
  }
+ // The live scene supplies the currently visible props. No mutation of gameplay resources.
+ let actionMap=null;
+ function setActionMap(objects){actionMap=window.DungeonSpatialMotion?.buildActionMap(objects)||null;}
+ function rabbitPointTick(b,dt,env,anchor,map){
+  const nav=window.DungeonSpatialMotion;dt=clamp(dt,0,.12);
+  if(!b.position){b.position={x:anchor.x,y:anchor.y,z:anchor.z};b.age=b.duration;}
+  const bad=['rain','storm','blizzard'].includes(env.kind)||(env.rain||0)>.65;
+  const foodAvailable=b.point?.type==='food'&&map.food.some(o=>o.id===b.point.sourceId)&&(env.snowCover||0)<.15&&env.kind!=='snow'&&!bad;
+  b.hunger=clamp(b.hunger+dt*(b.mode==='graze'&&foodAvailable?-.11:.014),0,1);
+  b.energy=clamp(b.energy+dt*(['rest','shelter','hunker'].includes(b.mode)?.09:b.mode==='point-hop'?-.045:-.008),0,1);
+  b.alert=clamp(b.alert+dt*(bad?.16:-.12),0,1);
+  b.comfort=clamp(b.comfort+dt*(bad&&b.mode!=='shelter'?-.08:.05),0,1);
+  b.age+=dt;
+  if(b.mode==='point-hop'&&b.age>=b.duration){b.position={...b.point};b.mode='arrived';b.age=0;}
+  if(b.mode==='point-hop'&&!nav.segmentClear(b.position,b.point,map,anchor)){
+   b.mode='sniff';b.age=0;b.duration=.4;b.point=null;
+  }
+  if(b.mode==='arrived'||b.age>=b.duration||(bad&&!['point-hop','shelter','hunker'].includes(b.mode))||(b.mode==='graze'&&!foodAvailable)){
+   const pts=nav.actionPoints(anchor,map,b.position,env);
+   const near=(type)=>nav.nearest(pts,type,b.position);
+   const roll=()=>{b.serial=(Math.imul(b.serial,1664525)+1013904223)>>>0;return b.serial/4294967296;};
+   let point=null,mode='sniff',duration=1.8;
+   if(bad){point=near('shelter');mode=point?'shelter':'hunker';duration=3.6;}
+   else if(b.energy<.35){point=near('rest');mode='rest';duration=4.5;}
+   else if(b.alert>.6){mode='alert';duration=2.1;}
+   else if(b.hunger>.52&&near('food')){point=near('food');mode='graze';duration=3.1;}
+   else{
+    const q=roll();
+    if(q<.35){const choices=pts.filter(p=>['explore','rest'].includes(p.type)&&nav.metric(p,b.position)>.5);point=choices[Math.floor(roll()*choices.length)]||null;mode='sniff';duration=1.4;}
+    else if(q<.58){mode='sniff';duration=1.8;}
+    else if(q<.77){mode='groom';duration=2.7;}
+    else{mode='rest';duration=2.4;}
+   }
+   b.point=point;
+   if(point&&nav.metric(point,b.position)>.45){
+    b.fromPosition={...b.position};b.mode='point-hop';b.age=0;
+    b.duration=Math.max(.5,Math.ceil(nav.metric(point,b.position)/2.4)*(b.golden?.65:.58));b.arrivalMode=mode;
+    if(Math.abs(point.x-b.position.x)>.1)b.face=point.x<b.position.x?-1:1;
+   }else{b.mode=mode;b.age=0;b.duration=duration;}
+  }
+  let lift=0,sx=1,sy=1,mode=b.mode;
+  if(mode==='point-hop'){
+   const n=Math.max(1,Math.round(b.duration/(b.golden?.65:.58))),q=clamp(b.age/b.duration,0,1)*n,k=Math.min(n-1,Math.floor(q)),f=clamp(q-k,0,1),p=(k+ease(f))/n;
+   b.position={x:b.fromPosition.x+(b.point.x-b.fromPosition.x)*p,y:b.fromPosition.y+(b.point.y-b.fromPosition.y)*p,z:anchor.z+Math.round((b.fromPosition.y+(b.point.y-b.fromPosition.y)*p-anchor.y)*.25)};
+   lift=17*Math.sin(Math.PI*f);sx=1+.045*Math.sin(Math.PI*f);sy=1-.055*Math.sin(Math.PI*f);mode='hop';
+  }else if(['rest','shelter','hunker','graze'].includes(mode)){sy=1-.026*(.5+.5*Math.sin(b.age*2));if(mode==='hunker')mode='shelter';}
+  const height=anchor.width*(16/9)/(anchor.artAspect||1);
+  const position={x:b.position.x,y:b.position.y,z:mode==='shelter'&&b.point?.type==='shelter'?b.point.z:anchor.z+Math.round((b.position.y-anchor.y)*.25),h:height*lift/100};
+  return {x:0,lift,sx,sy,flip:b.face===-1?1:-1,mode,behavior:b.mode,position,pointId:b.point?.id||''};
+ }
  function attachWildlife(node,o){
   const kind=String(o.assetId||'').replace(/^forest4_/,'');
   if(kind==='bird'){
@@ -233,13 +283,13 @@ window.DungeonSceneEnvironmentV1=(function(){
    }
    const dt=a.lastTick===null?0:(ms-a.lastTick)/1000;a.lastTick=ms;
    const env=a.brain?{...window.DungeonWeatherV1?.environment?.(),kind:weatherKind}:null;
-   const v=a.brain?rabbitTick(a.brain,dt,env):wildlifeSample(a.kind,elapsed,a.dir);
-   if(a.brain)node.dataset.wildBehavior=v.behavior;
+   const v=a.brain?(actionMap&&window.DungeonSpatialMotion?rabbitPointTick(a.brain,dt,env,a.anchor,actionMap):rabbitTick(a.brain,dt,env)):wildlifeSample(a.kind,elapsed,a.dir);
+   if(a.brain){node.dataset.wildBehavior=v.behavior;node.dataset.wildPoint=v.pointId||'';}
    try{
     if(a.kind==='rabbit')window.DungeonRabbitArticulation?.render(node,v,elapsed,ms);
     else if(a.kind==='beetle')window.DungeonBeetleArticulation?.render(node,v,elapsed,ms);
    }catch(err){node.removeAttribute(a.kind==='rabbit'?'data-rabbit-rig':'data-beetle-rig');}
-   const spatial=window.DungeonSpatialMotion?.sample(a.anchor,v,a.kind);
+   const spatial=v.position?window.DungeonSpatialMotion?.project(a.anchor,v.position):window.DungeonSpatialMotion?.sample(a.anchor,v,a.kind);
    if(spatial){
     node.dataset.spatialMotion='true';
     node.style.setProperty('--wild-world-x',spatial.x.toFixed(3)+'%');
@@ -255,5 +305,5 @@ window.DungeonSceneEnvironmentV1=(function(){
    if(node.dataset.wildState!==v.mode)node.dataset.wildState=v.mode;
   }
  }
- return {profiles,draw,objectProfile,apply,attachWildlife,tickWildlife,wildlifeSample,waterProfile,rabbitBrain,rabbitTick,rabbitDecision};
+ return {profiles,draw,objectProfile,apply,attachWildlife,tickWildlife,wildlifeSample,waterProfile,rabbitBrain,rabbitTick,rabbitDecision,rabbitPointTick,setActionMap};
 })();
