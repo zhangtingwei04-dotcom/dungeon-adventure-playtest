@@ -4314,6 +4314,7 @@ html.stage-locked #app #topGameHud #hudPhase{font-size:clamp(10px,1.65vw,17px)}
 <script src="./assets/performance_monitor_v1.js?v=1"></script>
 <script src="./assets/adaptive_quality_v1.js?v=1"></script>
 <script src="./assets/fault_isolation_v1.js?v=1"></script>
+<script src="./assets/object_investigation_v1.js?v=1"></script>
 <script>window.DungeonRuntimeFaultsV1=window.DungeonFaultIsolationV1.create();</script>
 <script>
 // Current scene is the sole base. D remains an explicit research preview.
@@ -8012,19 +8013,15 @@ function forestV4MaterialBindings(){
 }
 function forestV4Action(o){
  if(encounterPending||modal||s.flags.inBattle||$('app').classList.contains('scene-dialogue-active'))return;
- const k=o.assetId.replace('forest4_','');
- const finds=forestV4MaterialBindings().get(o.id)||[];
- if(finds.length){
-  const options=finds.map(item=>({label:'收集：'+item.material,fn:()=>collectExplorationMaterial('wreck',item.id)}));
-  if(k==='wagon')options.push({label:'調查馬車痕跡',fn:()=>marks()});
-  options.push({label:'暫時不收集',fn:()=>{}});
-  dialog(o.name,'探索時在這裡發現了可以收集的材料。',options,'場景採集');return;
- }
- if(o.rabbitVariant==='golden'){dialog('稀有遭遇｜金紋兔','一隻披著金黃色毛皮的長耳兔停在附近，側身仍有熟悉的月牙紋路。牠警覺地豎起耳朵。',[{label:'安靜觀察並記錄',fn:()=>{if(!o.previewOnly){normalizeForestRare();s.forestRare.sighted.goldenRabbit=true;note('goldenRabbit','在林間目擊稀有的金紋兔');}else toast('金紋兔外觀預覽');}},{label:'不打擾牠',fn:()=>{}}],'生態觀察');return;}
- if(k==='wagon'||k==='wheel_flat'){marks();return;}
- if(k.startsWith('crate')){glance();return;}
- const descriptions={barrel:'木桶經過風吹雨淋，木板已經有些變色。',sack:'一個沾有泥土的舊布袋。',plank:'散落的木板看起來是事故留下的。',plank_lean:'一塊靠在殘骸旁的木板。',bird:'小鳥在枝葉間停留，偶爾轉動頭部。',rabbit:'長耳生物安靜地停留在草地上。',beetle:'一隻甲蟲停留在附近。',butterfly:'蝴蝶在林間輕輕拍動翅膀。'};
- dialog(o.name,descriptions[k]||'你留意到這個物件。',[{label:'繼續觀察周圍',fn:()=>{}}],'場景觀察');
+ const k=o.assetId.replace('forest4_',''),finds=forestV4MaterialBindings().get(o.id)||[];
+ const info=window.DungeonObjectInvestigationV1.describe(o,finds);
+ if(!info)return;
+ const options=finds.map(item=>({label:'收集：'+item.material,fn:()=>collectExplorationMaterial('wreck',item.id)}));
+ if(k==='wagon'||k==='wheel_flat')options.push({label:'仔細調查刻痕',fn:marks});
+ if(k.startsWith('crate'))options.push({label:'檢查貨箱',fn:glance});
+ if(o.rabbitVariant==='golden')options.push({label:'安靜觀察並記錄',fn:()=>{if(!o.previewOnly){normalizeForestRare();s.forestRare.sighted.goldenRabbit=true;note('goldenRabbit','在林間目擊稀有的金紋兔');}else toast('金紋兔外觀預覽');}});
+ options.push({label:info.type==='living'?'不打擾牠':'先離開',fn:()=>{}});
+ dialog(info.name,info.description+(finds.length?'\n\n附近有探索時發現的可收集材料。':''),options,info.type==='living'?'生態觀察':'物件調查');
 }
 function forestEnvironmentActive(){return DEV_PREVIEW_MODE&&window.DUNGEON_FOREST_V4_LAYOUT?.revision==='accident-d-preview'&&new URLSearchParams(location.search).get('env')!=='off';}
 function plantSpawnWeather(){
@@ -8057,17 +8054,19 @@ function renderForestV4(el){
   const animal=['bird','rabbit','beetle','butterfly'].includes(k);
   const plant=/^(grass_|.*flower|lavender|yellow_shrub|vine)/.test(k);
   const finds=bindings.get(o.id)||[];
-  const interactive=finds.length>0||animal||k==='wagon'||k==='wheel_flat'||k.startsWith('crate')||['barrel','sack','plank','plank_lean'].includes(k);
+  const investigation=window.DungeonObjectInvestigationV1.describe(o,finds);
+  const interactive=!!investigation;
   const signature=JSON.stringify([o.assetId,o.x,o.y,o.width,o.z,o.rotation,o.flip,o.artVariant,o.contactGrass,interactive,o.rabbitVariant]);
   let old=previous.get(o.id);
   if(smooth&&old&&old.dataset.renderSignature===signature){
    keep.add(old);old._exitTimer&&clearTimeout(old._exitTimer);old._exitTimer=null;old.classList.remove('env-leaving');old.style.pointerEvents='';
    if(interactive){old.disabled=false;old.onclick=()=>guardedAction(()=>forestV4Action(o));old.setAttribute('aria-label',o.name+(finds.length?'：可收集'+finds.map(f=>f.material).join('、'):''));old.title=o.name+(finds.length?' · 可收集':'');}
+   if(investigation){old.dataset.objectLifecycle=investigation.type;old.dataset.objectVisualState=investigation.visualState;}
    updateForestFindCue(old,finds,k);continue;
   }
   if(old){clearTimeout(old._exitTimer);old.remove();}
   const node=document.createElement(interactive?'button':'div');node.dataset.renderSignature=signature;if(interactive){node.type='button';node.setAttribute('aria-label',o.name+(finds.length?'：可收集'+finds.map(f=>f.material).join('、'):''));node.title=o.name+(finds.length?' · 可收集':'');node.onclick=()=>guardedAction(()=>forestV4Action(o));}else node.setAttribute('aria-hidden','true');
-  node.className='forest-v4-object';node.dataset.objectId=o.id;node.dataset.motion=animal?'animal':plant?'plant':'fixed';node.dataset.liveKind=k;if(o.rabbitVariant)node.dataset.rabbitVariant=o.rabbitVariant;node.style.setProperty('--env-motion-delay',(-([...o.id].reduce((n,ch)=>(n*31+ch.charCodeAt(0))%89,0)/10))+'s');node.style.left=o.x+'%';node.style.top=o.y+'%';node.style.width=o.width+'%';node.style.zIndex=10+o.z;
+  node.className='forest-v4-object';if(investigation){node.dataset.objectLifecycle=investigation.type;node.dataset.objectVisualState=investigation.visualState;}node.dataset.objectId=o.id;node.dataset.motion=animal?'animal':plant?'plant':'fixed';node.dataset.liveKind=k;if(o.rabbitVariant)node.dataset.rabbitVariant=o.rabbitVariant;node.style.setProperty('--env-motion-delay',(-([...o.id].reduce((n,ch)=>(n*31+ch.charCodeAt(0))%89,0)/10))+'s');node.style.left=o.x+'%';node.style.top=o.y+'%';node.style.width=o.width+'%';node.style.zIndex=10+o.z;
   const art=document.createElement('span');art.className='forest-v4-art';art.style.transform='scaleX('+(o.flip?-1:1)+') rotate('+o.rotation+'deg)';
   const im=document.createElement('img');im.src=o.artVariant==='barrel-side'?'./assets/forest_v4_barrel_side.svg?v=1':a.src;if(o.artVariant==='barrel-side')im.onerror=()=>{im.onerror=null;im.src=a.src;art.style.transform='rotate(72deg)';};im.alt='';im.draggable=false;art.appendChild(im);node.appendChild(art);if(window.DungeonWinterV1?.weights[k])window.DungeonWinterV1.attach(node,art,im,k);window.DungeonForestV4Integration?.apply(node,o,assets);if(liveMotion)window.DungeonSceneEnvironmentV1?.attachWildlife(node,o);if(forestEnvironmentActive())window.DungeonSceneEnvironmentV1?.apply(node,art,im,o);updateForestFindCue(node,finds,k);keep.add(node);if(smooth&&existing&&!old)node.classList.add('env-entering');layer.appendChild(node);
  }
