@@ -4429,7 +4429,7 @@ html.stage-locked #app #topGameHud #hudPhase{font-size:clamp(10px,1.65vw,17px)}
 <script src="./assets/scene_environment_v1.js?v=17-species-wind"></script>
 <script src="./assets/winter_surfaces_v1.js?v=8-contour-snow"></script>
 <script src="./assets/engine_foundation_v1.js?v=1"></script>
-<script src="./assets/engine_events_save_v1.js?v=1"></script>
+<script src="./assets/engine_events_save_v1.js?v=1.1"></script>
 <script src="./assets/character_environment_v1.js?v=1.1"></script>
 <script src="./assets/weather_system_v1.js?v=23-character-core"></script>
 <script src="./assets/trail_forest_v1.js"></script>
@@ -5171,7 +5171,7 @@ function exploreArea(){
   const key='wreck-'+day;
   if(ordinary&&lastLog?.exploreGroup===key){
    const total=(lastLog.exploreCount||1)+1;
-   s.travelLog[s.travelLog.length-1]={...lastLog,exploreCount:total,message:'在'+names[site][0]+'連續探索 '+total+' 次（約'+total*10+'分鐘，截至 '+gameTime(s.worldMinutes)+'），留意到環境細節。',thought:'周圍暫時沒有新的發現。',time:Date.now()};
+   window.DungeonEventsV1.updateTravel(s,{exploreCount:total,message:'在'+names[site][0]+'連續探索 '+total+' 次（約'+total*10+'分鐘，截至 '+gameTime(s.worldMinutes)+'），留意到環境細節。',thought:'周圍暫時沒有新的發現。',time:Date.now()});
   }else{
    addTravel('daily','在'+names[site][0]+'進行第'+count+'次探索（約10分鐘，'+gameTime(s.worldMinutes)+'）'+feature+(newMaterials?'，發現可收集材料':'')+'。',ordinary?'周圍暫時沒有新的發現。':'我留意到了新的線索。');
    if(ordinary&&s.travelLog?.length)Object.assign(s.travelLog[s.travelLog.length-1],{exploreGroup:key,exploreCount:1});
