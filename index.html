@@ -4285,7 +4285,7 @@ html.stage-locked #app #topGameHud #hudPhase{font-size:clamp(10px,1.65vw,17px)}
 <script src="./assets/scene_spatial_motion_v1.js?v=2-flight-test"></script>
 <script src="./assets/bird_motion_live_v1.js?v=2-hop-joints"></script>
 <script src="./assets/scene_environment_v1.js?v=11-bird"></script>
-<script src="./assets/weather_system_v1.js?v=1"></script>
+<script src="./assets/weather_system_v1.js?v=2"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/scene_objects_v1.js?v=20261124-2"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
@@ -4463,10 +4463,10 @@ function syncWeather(){
  currentWeather=previewWeather?{kind:previewWeather,...engine.kinds[previewWeather]}:engine.at(s.seed,s.worldMinutes);
  const indoor=INDOOR_SCENES.has(s.scene);const app=$('app');app.dataset.weather=currentWeather.kind;
  const label=indoor?'室內 · 外面'+currentWeather.name:currentWeather.name;
- $('hudPhase').textContent+=(' · '+label+(previewWeather?'（預覽）':''));
+ $('hudPhase').textContent+=(' · '+currentWeather.name+(previewWeather?'*':''));
  $('worldClock').textContent+=' · '+label;
  $('hudPhase').title='當前天氣：'+label;
- if(!indoor&&currentWeather.kind!=='clear')$('subplace').textContent=label+' · '+atmosphereSubtitle(s.scene,previewPeriod||periodForMinutes(s.worldMinutes));
+ if(!indoor&&currentWeather.kind!=='clear')$('subplace').textContent=({cloudy:'雲層遮住天光',fog:'薄霧在四周緩緩瀰漫',drizzle:'細雨落在周圍',rain:'雨水打濕了周遭景物'})[currentWeather.kind]||label;
  engine.set(currentWeather,indoor,window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 }
 function selectWeatherPreview(kind){if(kind!=='auto'&&!window.DungeonWeatherV1?.kinds[kind])return;previewWeather=kind==='auto'?null:kind;$('menuVeil').classList.add('hidden');syncTimeAtmosphere();}
