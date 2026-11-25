@@ -156,11 +156,56 @@
  for(const v of Object.values(entries))Object.freeze(v);
  Object.freeze(entries);
  function get(assetId){return Object.hasOwn(entries,assetId)?entries[assetId]:null;}
- function describe(obj,finds=[]){
-  const def=get(obj?.assetId);if(!def)return null;
-  const pending=Array.isArray(finds)?finds.length:0;
-  const golden=obj.rabbitVariant==='golden';
-  return {name:golden?'金紋兔':def.name,type:def.type,description:golden?'一隻金黃色的長耳兔停在附近，側身仍有熟悉的月牙紋路。':def.description,visualPolicy:def.visualPolicy,visualState:pending?'resource-available':'normal',collectible:pending>0};
+ // Stable scene/object IDs, independent of shared artwork.
+ const safeId=id=>typeof id==='string'&&/^[a-zA-Z0-9_-]{1,100}$/.test(id)&&!['constructor','prototype','__proto__'].includes(id);
+ const record=x=>x&&typeof x==='object'&&!Array.isArray(x);
+ function read(actor,scene,id){
+  if(!safeId(scene)||!safeId(id))return null;
+  const r=actor?.objectWorld?.scenes?.[scene]?.[id];
+  return record(r)?r:null;
  }
- root.DungeonObjectInvestigationV1=Object.freeze({get,describe,ids:()=>Object.keys(entries)});
+ function state(actor,scene,id){
+  if(!safeId(scene)||!safeId(id))throw Error('Invalid scene object identity');
+  if(!record(actor.objectWorld))actor.objectWorld={scenes:{}};
+  const w=actor.objectWorld;if(!record(w.scenes))w.scenes={};
+  if(!Object.hasOwn(w.scenes,scene)||!record(w.scenes[scene]))w.scenes[scene]={};
+  const objects=w.scenes[scene];if(!Object.hasOwn(objects,id)||!record(objects[id]))objects[id]={};
+  return objects[id];
+ }
+ function visible(actor,scene,obj){return read(actor,scene,obj.id)?.removed!==true;}
+ function inspect(actor,scene,obj){
+  const d=get(obj?.assetId);if(!d||d.type==='living'||obj.previewOnly||!visible(actor,scene,obj))return false;
+  if(read(actor,scene,obj.id)?.inspected===true)return false;
+  const r=state(actor,scene,obj.id);r.inspected=true;r.firstInspectedAt=actor.worldMinutes;return true;
+ }
+ function collect(actor,scene,obj){
+  const d=get(obj?.assetId);if(!d||d.type==='living'||obj.previewOnly||!visible(actor,scene,obj))return false;
+  const r=state(actor,scene,obj.id);
+  r.collected=(Number.isSafeInteger(r.collected)&&r.collected>=0?r.collected:0)+1;
+  r.lastCollectedAt=actor.worldMinutes;return true;
+ }
+ // Future quest/ecology handlers call this explicitly after an authored event resolves.
+ // No wall-clock or automatic cleanup is enabled. Validate all targets before mutation.
+ function applyWorldEvent(actor,event,objects){
+  if(!safeId(event?.id)||!safeId(event?.scene)||!['cleanup','decay','regrowth'].includes(event?.kind)||!Array.isArray(event.targets)||!event.targets.length||new Set(event.targets).size!==event.targets.length)return false;
+  const targets=event.targets.map(id=>objects.find(o=>o.id===id));
+  if(targets.some(o=>!o||!safeId(o.id)||!get(o.assetId)||o.previewOnly||get(o.assetId).type==='living'))return false;
+  if(event.kind==='regrowth'&&targets.some(o=>get(o.assetId).type!=='renewable'))return false;
+  if(event.kind==='decay'&&targets.some(o=>!['renewable','removable'].includes(get(o.assetId).type)&&o.assetId!=='forest4_log'))return false;
+  if(event.kind==='cleanup'&&targets.some(o=>!['container','removable','persistent'].includes(get(o.assetId).type)||o.assetId.startsWith('forest4_rock')))return false;
+  if(targets.every(o=>read(actor,event.scene,o.id)?.lastWorldEvent===event.id))return false;
+  for(const o of targets){
+   const r=state(actor,event.scene,o.id);if(r.lastWorldEvent===event.id)continue;
+   r.removed=event.kind!=='regrowth';r.lastWorldEvent=event.id;r.lastWorldEventKind=event.kind;r.changedAt=actor.worldMinutes;
+  }
+  return true;
+ }
+ function describe(obj,finds=[],actor=null,scene='wreck'){
+  const def=get(obj?.assetId);if(!def)return null;
+  const r=read(actor,scene,obj.id),pending=Array.isArray(finds)?finds.length:0;
+  const golden=obj.rabbitVariant==='golden';
+  const visualState=r?.removed?'removed':pending?'resource-available':r?.collected>0?'resource-taken':r?.inspected?'inspected':'normal';
+  return {name:golden?'金紋兔':def.name,type:def.type,description:golden?'一隻金黃色的長耳兔停在附近，側身仍有熟悉的月牙紋路。':def.description,visualPolicy:def.visualPolicy,visualState,collectible:pending>0&&!r?.removed};
+ }
+ root.DungeonObjectInvestigationV1=Object.freeze({get,describe,read,visible,inspect,collect,applyWorldEvent,ids:()=>Object.keys(entries)});
 })(window);
