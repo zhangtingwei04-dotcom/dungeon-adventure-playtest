@@ -120,7 +120,8 @@ window.DungeonWeatherV1=(function(){
    const value=k==='wind'?gustAt(windOverride??target.wind,ms/1000):k==='windDir'?(windDirectionOverride??target.windDir??1):(target[k]||0);
    shown[k]+=(value-shown[k])*(1-Math.exp(-dt*(k==='windDir'?1.25:3)));
   }
-  const allowed=plantSpawnAllowed({kind:target.kind,snowCover:weatherPreview?shown.snowCover:target.snowCover});
+  const spawnWeather={kind:target.kind,snowCover:weatherPreview?shown.snowCover:target.snowCover};
+  const allowed=String(plantSpawnAllowed(spawnWeather))+':'+String(activity('rabbit',{kind:target.kind,snowCover:Math.max(shown.snowCover,spawnWeather.snowCover||0)}));
   if(plantWindow!==allowed){const before=plantWindow;plantWindow=allowed;if(before!==null)onPlantWindowChanged?.();}
   ctx.clearRect(0,0,W,H);
   if(shown.shade>.003){ctx.fillStyle='rgba(38,55,62,'+shown.shade.toFixed(3)+')';ctx.fillRect(0,0,W,H);}
@@ -244,6 +245,12 @@ window.DungeonWeatherV1=(function(){
   if(Array.isArray(plant.allowedWeather)&&!plant.allowedWeather.includes(kind))return false;
   return !winter||plant.winterHardy===true;
  }
- function activity(kind,weather){if(weather==='storm'||weather==='blizzard')return false;if(weather==='snow')return kind==='rabbit';if(weather==='rain')return kind==='beetle'||kind==='rabbit';if(weather==='drizzle')return kind!=='butterfly';return true;}
+ function activity(kind,weather){
+  const type=typeof weather==='string'?weather:weather?.kind,cover=typeof weather==='object'?(weather?.snowCover||0):0;
+  if(kind==='rabbit'&&(type==='snow'||type==='blizzard'||cover>=.15))return false;
+  if(type==='storm'||type==='blizzard'||type==='snow')return false;
+  if(type==='rain')return kind==='beetle'||kind==='rabbit';
+  if(type==='drizzle')return kind!=='butterfly';return true;
+ }
  return {kinds,at,bind,set,draw,drawGround,puddleLevel,season,climate,exposure,activity,unlockAudio,snowVelocity,snowStep,environmentStep,plantSpawnAllowed,windAt,windLevel,windLabel,gustAt,windVisual,waterFreezeStep,waterIceLabel,environment:()=>({...shown})};
 })();
