@@ -25,17 +25,22 @@ window.DungeonWinterV1=(function(){
    m.fillStyle='white';poly(terrain);m.globalCompositeOperation='destination-out';holes.forEach(poly);
    const pixels=b.getImageData(0,0,w,h).data,area=m.getImageData(0,0,w,h).data,frame=o.createImageData(w,h),threshold=new Float32Array(w*h),d=frame.data;
    for(let y=0,j=0;y<h;y++)for(let x=0;x<w;x++,j++){const i=j*4;if(!area[i+3])continue;const r=pixels[i],g=pixels[i+1],bl=pixels[i+2],l=.25*r+.55*g+.20*bl;
-    const n=.48+.19*Math.sin(x*.048+y*.038)+.15*Math.cos(x*.084-y*.064)+.10*Math.sin(x*.19+y*.12)+.06*Math.cos(y*.31-x*.17);
+    const grain=Math.sin(x*12.9898+y*78.233)*43758.5453,noise=grain-Math.floor(grain)-.5;
+    const green=clamp((g-r-4)/32,0,1),shade=clamp((95-l)/95,0,1);
+    const n=.43+.15*Math.sin(x*.048+y*.038)+.13*Math.cos(x*.084-y*.064)+.11*Math.sin(x*.19+y*.12)+.07*Math.cos(y*.31-x*.17)+noise*.14+green*.16+shade*.12;
     threshold[j]=clamp(n,.04,.96);
     // Retain small-scale source detail and terrain shading in a cool snow palette.
-    d[i]=clamp(202+(l-110)*.32,145,246);d[i+1]=clamp(218+(l-110)*.28,165,251);d[i+2]=clamp(223+(l-110)*.25,174,255);
+    const texture=(l-110)*.76+noise*13+4*Math.sin(x*.19+y*.25);
+    d[i]=clamp(198+texture,93,244);d[i+1]=clamp(213+texture*.91,107,250);d[i+2]=clamp(222+texture*.86,119,255);
+    // Keep some painted vegetation and dark rock texture even under heavy snow.
+    area[i+3]=Math.round(area[i+3]*(1-green*.28-shade*.13));
    }
    surface={source:img,w,h,out,o,frame,threshold,area,last:-1};return surface;
   }catch{return null;}
  }
  function paintSurface(ctx,cover,w,h,source){
   const a=makeSurface(source);if(!a)return false;const level=Math.round(clamp(cover,0,1)*48)/48;
-  if(a.last!==level){const d=a.frame.data;for(let j=0;j<a.threshold.length;j++){const i=j*4,mask=a.area[i+3];if(!mask){d[i+3]=0;continue;}const v=clamp((level-a.threshold[j]+.11)/.22,0,1);const edge=v*v*(3-2*v);const complete=clamp((level-.88)/.12,0,1);d[i+3]=Math.round(mask*Math.max(edge*.96,complete*.98));}a.o.putImageData(a.frame,0,0);a.last=level;}
+  if(a.last!==level){const d=a.frame.data;for(let j=0;j<a.threshold.length;j++){const i=j*4,mask=a.area[i+3];if(!mask){d[i+3]=0;continue;}const v=clamp((level-a.threshold[j]+.11)/.22,0,1);const edge=v*v*(3-2*v);const complete=clamp((level-.88)/.12,0,1);d[i+3]=Math.round(mask*Math.max(edge*.91,complete*.87));}a.o.putImageData(a.frame,0,0);a.last=level;}
   ctx.drawImage(a.out,0,0,w,h);return true;
  }
  function ground(ctx,cover,w,h,source=null){if(cover<.025)return;if(source&&paintSurface(ctx,cover,w,h,source))return;ctx.save();ctx.scale(w/640,h/360);
@@ -76,10 +81,11 @@ window.DungeonWinterV1=(function(){
   cx.drawImage(source,0,0,w,h);const src=cx.getImageData(0,0,w,h).data,out=cx.createImageData(w,h),d=out.data;
   const top=new Int32Array(w).fill(-1);
   for(let x=0;x<w;x++)for(let y=0;y<h;y++){if(src[(y*w+x)*4+3]>180){top[x]=y;break;}}
-  const thickness=Math.max(2,Math.min(17,h*(kind==='wagon'?.085:kind.startsWith('grass')?.11:.17)));
+  const thickness=Math.max(2,Math.min(kind==='wagon'?42:25,h*(kind==='wagon'?.20:kind.startsWith('grass')?.11:.24)));
   for(let x=1;x<w-1;x++){const y=top[x];if(y<0||top[x-1]<0||top[x+1]<0||Math.abs(top[x-1]-top[x+1])>Math.max(5,thickness*1.8))continue;
-   const n=.68+.26*Math.sin(x*.43)+.12*Math.cos(x*1.21),depth=Math.max(1,thickness*n);
-   for(let dy=0;dy<depth;dy++){const yy=y+dy;if(yy>=h)break;const i=(yy*w+x)*4;if(src[i+3]<140)continue;const q=dy/depth;d[i]=Math.round(231-q*54);d[i+1]=Math.round(239-q*36);d[i+2]=Math.round(239-q*25);d[i+3]=Math.round(src[i+3]*(1-q*.64));}
+   const n=.77+.17*Math.sin(x*.17)+.10*Math.cos(x*.81),depth=Math.max(1,thickness*n);
+   for(let dy=0;dy<depth;dy++){const yy=y+dy;if(yy>=h)break;const i=(yy*w+x)*4;if(src[i+3]<140)continue;const q=dy/depth;const l=.25*src[i]+.55*src[i+1]+.2*src[i+2],detail=(l-115)*.25;
+    d[i]=clamp(Math.round(231-q*47+detail),0,255);d[i+1]=clamp(Math.round(239-q*36+detail),0,255);d[i+2]=clamp(Math.round(244-q*28+detail),0,255);d[i+3]=Math.round(src[i+3]*(1-q*.80));}
   }cx.clearRect(0,0,w,h);cx.putImageData(out,0,0);return cv;
  }
  // Sparse highlights sampled from opaque sprite pixels; never paint outside the asset.
