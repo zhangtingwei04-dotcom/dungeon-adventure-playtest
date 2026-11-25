@@ -122,6 +122,9 @@ window.DungeonSceneEnvironmentV1=(function(){
    if(!window.DungeonBirdMotion)return;
    const anchor={id:o.id,x:o.x,y:o.y,width:o.width,z:o.z};
    node.dataset.birdMotion='true';
+   for(const [key,value] of Object.entries({x:o.x+'%',y:o.y+'%',width:o.width+'%',z:String(10+o.z)})){
+    node.style.setProperty('--bird-anchor-'+key,value);node.style.setProperty('--bird-'+key,value);
+   }
    wildlife.set(node,{kind,anchor,phase:1.8,start:null});
    window.DungeonBirdMotion.attach(node);
    return;
