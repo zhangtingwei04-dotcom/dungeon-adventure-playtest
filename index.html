@@ -4348,9 +4348,9 @@ html.stage-locked #app #topGameHud #hudPhase{font-size:clamp(10px,1.65vw,17px)}
 <script src="./assets/forest_v4_integration.js?v=8-grass"></script>
 <script src="./assets/rabbit_articulation_live_v1.js?v=3-behavior"></script>
 <script src="./assets/beetle_articulation_live_v1.js?v=2-flight"></script>
-<script src="./assets/scene_spatial_motion_v1.js?v=2-flight-test"></script>
+<script src="./assets/scene_spatial_motion_v1.js?v=3-action-map"></script>
 <script src="./assets/bird_motion_live_v1.js?v=2-hop-joints"></script>
-<script src="./assets/scene_environment_v1.js?v=14-rabbit-brain"></script>
+<script src="./assets/scene_environment_v1.js?v=15-action-points"></script>
 <script src="./assets/winter_surfaces_v1.js?v=4-wet-materials"></script>
 <script src="./assets/weather_system_v1.js?v=13-winter-plants"></script>
 <script src="./assets/trail_forest_v1.js"></script>
@@ -8060,6 +8060,7 @@ function renderForestV4(el){
  if(new URLSearchParams(location.search).get('wildlife')==='golden-rabbit'&&DEV_PREVIEW_MODE){const rabbit=cfg.find(o=>o.assetId==='forest4_rabbit');if(rabbit)live=[...live.filter(o=>o.assetId!=='forest4_rabbit'),{...rabbit,name:'金紋兔',rabbitVariant:'golden',previewOnly:true,visible:true}];}
  if(new URLSearchParams(location.search).get('wildlife')==='bird'&&DEV_PREVIEW_MODE){const bird=cfg.find(o=>o.assetId==='forest4_bird');if(bird)live=[...live.filter(o=>o.assetId!=='forest4_bird'),{...bird,id:'preview-bird-flight',visible:true}];}
  if(new URLSearchParams(location.search).get('wildlife')==='beetle'&&DEV_PREVIEW_MODE){const beetle=cfg.find(o=>o.assetId==='forest4_beetle');if(beetle)live=[...live.filter(o=>o.assetId!=='forest4_beetle'),{...beetle,id:'preview-beetle-flight',x:60,y:70,width:3.5,z:18,visible:true}];}
+ window.DungeonSceneEnvironmentV1?.setActionMap(live.filter(o=>o.visible&&assets[o.assetId]?.src));
  for(const o of live){
   const a=assets[o.assetId];if(!o.visible||!a?.src)continue;
   const k=o.assetId.replace('forest4_','');
