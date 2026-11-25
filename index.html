@@ -4354,7 +4354,7 @@ window.DUNGEON_FOREST_V4_LAYOUT=window.DUNGEON_WRECK_CURRENT_LAYOUT;
 <script src="./assets/engine_foundation_v1.js?v=1"></script>
 <script src="./assets/engine_events_save_v1.js?v=1.4-object-state"></script>
 <script src="./assets/character_environment_v1.js?v=1.1"></script>
-<script src="./assets/weather_system_v1.js?v=24-adaptive-visual"></script>
+<script src="./assets/weather_system_v1.js?v=25-local-environment"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/scene_objects_v1.js?v=20261125-winter"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
@@ -4522,12 +4522,13 @@ let currentWeather=null;
 function characterEnvironmentView(){
  const core=window.DungeonCharacterEnvironmentV1,weather=window.DungeonWeatherV1;
  if(!core||!weather)return null;
- return core.snapshot(s,weather.at(s.seed,s.worldMinutes),INDOOR_SCENES.has(s.scene));
+ return core.snapshot(s,weather.at(s.seed,s.worldMinutes,s.scene),INDOOR_SCENES.has(s.scene));
 }
 function syncWeather(){
  const engine=window.DungeonWeatherV1;if(!engine)return;
- currentWeather=previewWeather?{kind:previewWeather,...engine.kinds[previewWeather],...engine.climate(s.seed,s.worldMinutes,previewWeather),...Object.fromEntries(['snowCover','soil','plantWet','puddles','frost','wet','poolIce','edgeIce','flowIce','iceSnow'].map(key=>[key,engine.environment()[key]]))}:engine.at(s.seed,s.worldMinutes);
- if(previewWeather){const k=engine.kinds[previewWeather],climate=engine.climate(s.seed,s.worldMinutes,previewWeather);Object.assign(currentWeather,k,climate,{kind:previewWeather,temperature:previewWeather==='blizzard'?-6:previewWeather==='snow'?-2:Math.max(6,climate.temperature),windDir:-1});}
+ const actual=engine.at(s.seed,s.worldMinutes,s.scene);
+ currentWeather=previewWeather?{...actual,kind:previewWeather}:actual;
+ if(previewWeather){const k=engine.kinds[previewWeather],climate=engine.climate(s.seed,s.worldMinutes,previewWeather),p=engine.profileFor(s.scene);Object.assign(currentWeather,k,climate,{kind:previewWeather,temperature:(previewWeather==='blizzard'?-6:previewWeather==='snow'?-2:Math.max(6,climate.temperature))+p.temp,wind:k.wind*p.wind,rain:k.rain*p.rain,snow:(k.snow||0)*p.snow,windDir:-1});}
  if(previewWind!==null)currentWeather.wind=previewWind/5;if(previewWindDir!==null)currentWeather.windDir=previewWindDir;
  const indoor=INDOOR_SCENES.has(s.scene);const app=$('app');app.dataset.weather=currentWeather.kind;
  engine.exposure(s,indoor);app.style.setProperty('--weather-wind',String(currentWeather.wind));const windMotion=engine.windVisual(currentWeather.wind,currentWeather.windDir??1);app.style.setProperty('--weather-wind-angle',windMotion.angle.toFixed(2)+'deg');app.style.setProperty('--weather-wind-duration',windMotion.duration.toFixed(2)+'s');app.style.setProperty('--weather-wind-lean',windMotion.lean.toFixed(3));
@@ -7021,16 +7022,16 @@ function renderPlaceDrawer(){
  description.textContent=locationMeta.description;summary.appendChild(description);
  if(currentWeather){
   const engine=window.DungeonWeatherV1,indoor=INDOOR_SCENES.has(previewId);
-  const sameRegionWeather=previewCard.current||!INDOOR_SCENES.has(s.scene);
-  const env=sameRegionWeather?currentWeather:engine.at(s.seed,s.worldMinutes);
+  // Each destination reads its own surface history.
+  const env=previewCard.current?currentWeather:engine.at(s.seed,s.worldMinutes,previewId);
   const weatherInfo=document.createElement('p');weatherInfo.className='location-weather-info';weatherInfo.dataset.waterStatus=String(previewId==='wreck');
-  const prefix=env.season+' · '+env.temperature+'°C · '+(indoor?'室外':'')+env.name+(previewWeather?'（預覽）':'');
+  const prefix=env.season+' · '+env.temperature+'°C · '+(indoor?'室外':'')+env.name+(previewWeather&&previewCard.current?'（預覽）':'');
   const state=env.snowCover>.85?'厚雪':env.snowCover>.15?'薄雪':env.puddles>.25?'積水':env.wet>.15?'濕潤':'偏乾';
   const wind=engine.windLabel(env.wind,env.windDir);
-  if(!indoor&&!INDOOR_SCENES.has(s.scene)){weatherInfo.dataset.weatherPrefix=prefix+' · 地表';weatherInfo.textContent=weatherInfo.dataset.weatherPrefix+state+' · '+wind;}
+  if(!indoor&&previewCard.current){weatherInfo.dataset.weatherPrefix=prefix+' · 地表';weatherInfo.textContent=weatherInfo.dataset.weatherPrefix+state+' · '+wind;}
   else weatherInfo.textContent=prefix+' · '+(indoor?'室內 · ':'地表'+state+' · ')+wind;
   if(previewId==='wreck')weatherInfo.textContent+=' · 水域'+engine.waterIceLabel(env);
-  if(!previewCard.current)weatherInfo.title='同一區域的天氣預覽，實際地表狀況以到達後為準。';
+  if(!previewCard.current)weatherInfo.title='依目的地地形與目前世界時間推算；抵達時將隨旅途時間更新。';
   summary.appendChild(weatherInfo);
  }
  bindLocationPreviewSwipe(summary);
@@ -7347,7 +7348,7 @@ normalizeGameTime();normalizeRecovery();normalizeForestRare();normalizeBeetleCar
  const engine=window.DungeonEngineV1;
  const definitions=[
  ['character.environment','1.1',['engine.time'],'DungeonCharacterEnvironmentV1'],
- ['world.weather','23',['engine.time','character.environment'],'DungeonWeatherV1'],
+ ['world.weather','25',['engine.time','character.environment'],'DungeonWeatherV1'],
  ['world.spatial','3',['engine.registry'],'DungeonSpatialMotion'],
  ['world.scene-environment','17',['world.spatial','world.weather'],'DungeonSceneEnvironmentV1'],
  ['world.winter-surfaces','8',['world.weather'],'DungeonWinterV1'],
@@ -8097,7 +8098,7 @@ function forestV4Action(o){
 function forestEnvironmentActive(){return DEV_PREVIEW_MODE&&window.DUNGEON_FOREST_V4_LAYOUT?.revision==='accident-d-preview'&&new URLSearchParams(location.search).get('env')!=='off';}
 function plantSpawnWeather(){
  const engine=window.DungeonWeatherV1;if(!engine)return null;
- return previewWeather?{kind:previewWeather,snowCover:engine.environment().snowCover}:engine.at(s.seed,s.worldMinutes);
+ return previewWeather?{kind:previewWeather,snowCover:engine.environment().snowCover,wind:currentWeather?.wind||0}:engine.at(s.seed,s.worldMinutes,s.scene);
 }
 function renderForestV4(el){
  const cfg=window.DUNGEON_FOREST_V4_LAYOUT?.scenes?.wreck,assets=window.DUNGEON_FOREST_V4_ASSETS;
@@ -8496,7 +8497,7 @@ function sceneDraw(time,sceneId=s.scene,thumbnail=false){
  if(sceneId==='wreck'&&emptyForestReady){
   ctx.save();ctx.imageSmoothingEnabled=true;
   const w=emptyForest.naturalWidth,h=emptyForest.naturalHeight,fit=Math.max(W/w,H/h);
-  ctx.drawImage(emptyForest,(W-w*fit)/2,(H-h*fit)/2,w*fit,h*fit);ctx.restore();if(!thumbnail&&forestV4Active()&&new URLSearchParams(location.search).get('env')!=='off'&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches)window.DungeonSceneEnvironmentV1?.draw(ctx,neutralForestSelected?'forestV5':'forestV4',time,W,H,previewPeriod||periodForMinutes(s.worldMinutes),emptyForest);if(!thumbnail)window.DungeonWeatherV1?.drawGround(ctx,time,W,H,forestV4Active()&&neutralForestSelected,emptyForest);else if(neutralForestSelected){const weather=window.DungeonWeatherV1?.environment();window.DungeonWinterV1?.ground(ctx,weather?.snowCover||0,W,H,emptyForest,weather?.frost||0);}return;
+  ctx.drawImage(emptyForest,(W-w*fit)/2,(H-h*fit)/2,w*fit,h*fit);ctx.restore();if(!thumbnail&&forestV4Active()&&new URLSearchParams(location.search).get('env')!=='off'&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches)window.DungeonSceneEnvironmentV1?.draw(ctx,neutralForestSelected?'forestV5':'forestV4',time,W,H,previewPeriod||periodForMinutes(s.worldMinutes),emptyForest);if(!thumbnail)window.DungeonWeatherV1?.drawGround(ctx,time,W,H,forestV4Active()&&neutralForestSelected,emptyForest);else if(neutralForestSelected){const weather=window.DungeonWeatherV1?.at(s.seed,s.worldMinutes,sceneId);window.DungeonWinterV1?.ground(ctx,weather?.snowCover||0,W,H,emptyForest,weather?.frost||0);}return;
  }
  if(sceneId==='wreck'&&approvedWreckReady){
   ctx.save();ctx.imageSmoothingEnabled=false;
@@ -8566,6 +8567,10 @@ function drawLocationThumbnail(ms){
     const tone=window.DungeonForestV4Integration?.profile(o);try{if('filter' in g){if(o.assetId==='forest4_wagon')g.filter='brightness(.94) saturate(.65) contrast(.95)';else if(tone)g.filter='brightness('+tone.brightness+') saturate('+tone.saturation+') contrast('+tone.contrast+')';}}catch{}
     g.drawImage(img,-width/2,-height,width,height);g.restore();
    }
+  }
+  if(!INDOOR_SCENES.has(id)){
+   const env=window.DungeonWeatherV1?.at(s.seed,s.worldMinutes,id);
+   if(env){g.save();g.fillStyle='rgba(38,55,62,'+(env.shade||0)+')';g.fillRect(0,0,W,H);if(env.fog>0){g.fillStyle='rgba(190,207,201,'+(env.fog*.45)+')';g.fillRect(0,0,W,H);}g.restore();}
   }
  }
  cv.dataset.drawn=id;
