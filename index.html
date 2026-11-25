@@ -4305,6 +4305,7 @@ html.stage-locked #app #topGameHud #hudPhase{font-size:clamp(10px,1.65vw,17px)}
 <script src="./assets/wreck_current_layout_v1.js?v=1"></script>
 <script src="./assets/render_resources_v1.js?v=1"></script>
 <script src="./assets/performance_monitor_v1.js?v=1"></script>
+<script src="./assets/adaptive_quality_v1.js?v=1"></script>
 <script>
 // Current scene is the sole base. D remains an explicit research preview.
 window.DUNGEON_FOREST_V4_LAYOUT=window.DUNGEON_WRECK_CURRENT_LAYOUT;
@@ -4321,7 +4322,7 @@ window.DUNGEON_FOREST_V4_LAYOUT=window.DUNGEON_WRECK_CURRENT_LAYOUT;
 <script src="./assets/engine_foundation_v1.js?v=1"></script>
 <script src="./assets/engine_events_save_v1.js?v=1.1"></script>
 <script src="./assets/character_environment_v1.js?v=1.1"></script>
-<script src="./assets/weather_system_v1.js?v=23-character-core"></script>
+<script src="./assets/weather_system_v1.js?v=24-adaptive-visual"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/scene_objects_v1.js?v=20261125-winter"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
@@ -8251,7 +8252,10 @@ window.DungeonWeatherV1?.bind($('weatherOverlay'));
 let t=0,last=0;
 const renderPerf=window.DungeonPerformanceV1.create({enabled:DEV_PREVIEW_MODE&&new URLSearchParams(location.search).get('perf')==='1'});
 const perfMeasure=(name,fn)=>renderPerf?renderPerf.measure(name,fn):fn();
-if(renderPerf)document.addEventListener('visibilitychange',()=>{if(document.hidden)renderPerf.pause();});
+const qualityParam=DEV_PREVIEW_MODE?new URLSearchParams(location.search).get('quality'):null;
+const fixedQuality=({full:0,balanced:1,light:2})[qualityParam]??null;
+const adaptiveQuality=window.DungeonAdaptiveQualityV1.create({fixed:fixedQuality});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){renderPerf?.pause();adaptiveQuality.pause();}});
 const emptyForest=new Image();let emptyForestReady=false;
 emptyForest.decoding='async';
 emptyForest.onload=()=>{renderPerf?.finish('forest',true);emptyForestReady=emptyForest.naturalWidth>0;if(s.scene==='wreck'){refreshSceneFraming();renderHotspots();sceneDraw(t);}};
@@ -8374,7 +8378,7 @@ function locationThumbImage(src){return locationThumbAssets.get(src);}
 function drawLocationThumbnail(ms){
  const figure=$('placeDrawerList')?.querySelector('.side-scene-preview[data-scene]'),cv=figure?.querySelector('canvas');
  if(!cv)return;const id=figure.dataset.scene;
- if(ms-lastLocationThumb<850&&cv.dataset.drawn===id)return;
+ if(ms-lastLocationThumb<adaptiveQuality.profile().thumbnailMs&&cv.dataset.drawn===id)return;
  lastLocationThumb=ms;
  const g=cv.getContext('2d');if(!g)return;
  g.setTransform(cv.width/W,0,0,cv.height/H,0,0);g.clearRect(0,0,W,H);
@@ -8415,13 +8419,13 @@ function drawLocationThumbnail(ms){
  cv.dataset.drawn=id;
 }
 
-function size(){const d=Math.min(devicePixelRatio||1,1.5);can.width=Math.floor(W*d);can.height=Math.floor(H*d);ctx.setTransform(d,0,0,d,0,0);}size();window.addEventListener('resize',()=>{size();refreshSceneFraming();renderHotspots();});refreshSceneFraming();const wildlifeMotionQuery=window.matchMedia('(prefers-reduced-motion: reduce)');if(renderPerf)Object.defineProperty(window,'DungeonPerformanceSnapshotV1',{value:()=>renderPerf.snapshot({scene:s.scene,thumbnailCache:locationThumbAssets.size(),thumbnailCacheLimit:24,domNodes:document.getElementsByTagName('*').length,heapBytes:performance.memory?.usedJSHeapSize??null,hidden:document.hidden})});
+function size(){const d=Math.min(devicePixelRatio||1,1.5);can.width=Math.floor(W*d);can.height=Math.floor(H*d);ctx.setTransform(d,0,0,d,0,0);}size();window.addEventListener('resize',()=>{size();refreshSceneFraming();renderHotspots();});refreshSceneFraming();const wildlifeMotionQuery=window.matchMedia('(prefers-reduced-motion: reduce)');if(renderPerf)Object.defineProperty(window,'DungeonPerformanceSnapshotV1',{value:()=>renderPerf.snapshot({scene:s.scene,thumbnailCache:locationThumbAssets.size(),thumbnailCacheLimit:24,domNodes:document.getElementsByTagName('*').length,heapBytes:performance.memory?.usedJSHeapSize??null,hidden:document.hidden,adaptiveQuality:adaptiveQuality.snapshot()})});
 function frame(ms){
  requestAnimationFrame(frame);
  if(document.hidden){window.DungeonSceneEnvironmentV1?.tickWildlife(ms,false);return;}
- renderPerf?.frame(ms);
+ adaptiveQuality.sample(ms);renderPerf?.frame(ms);
  perfMeasure('wildlife',()=>window.DungeonSceneEnvironmentV1?.tickWildlife(ms,s.scene==='wreck'&&!wildlifeMotionQuery.matches,previewWeather||currentWeather?.kind||'clear'));
- if(ms-last>68){t=ms/1000;renderPerf?.draw(ms);try{perfMeasure('scene',()=>sceneDraw(t));}finally{perfMeasure('weather',()=>window.DungeonWeatherV1?.draw(ms));try{perfMeasure('thumbnail',()=>drawLocationThumbnail(ms));}catch(err){/* Thumbnail never interrupts gameplay. */}last=ms;}}
+ if(ms-last>68){t=ms/1000;renderPerf?.draw(ms);try{perfMeasure('scene',()=>sceneDraw(t));}finally{perfMeasure('weather',()=>window.DungeonWeatherV1?.draw(ms,adaptiveQuality.profile().particleScale));try{perfMeasure('thumbnail',()=>drawLocationThumbnail(ms));}catch(err){/* Thumbnail never interrupts gameplay. */}last=ms;}}
 }requestAnimationFrame(frame);render();
 })();
 </script>
