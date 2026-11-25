@@ -3938,6 +3938,7 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <style id="weather-v1-style">
  #sceneStage #weatherOverlay{position:absolute;inset:0;width:100%;height:100%;z-index:4;pointer-events:none;object-fit:fill;display:block}
 #sceneStage #weatherOverlay[hidden]{display:none!important}
+#app #sceneStage .forest-v4-object[data-rabbit-variant="golden"] .forest-v4-art img{filter:sepia(.62) saturate(1.45) var(--scene-light,brightness(1))}
 #sceneStage .forest-v4-art:has(.winter-snow-cap){position:relative}
 #sceneStage .winter-snow-cap{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:calc(var(--snow-cover,0) * var(--snow-hold,1));filter:var(--scene-light,brightness(1));image-rendering:auto;display:block}
 #app[data-indoor="false"][data-weather="snow"][data-period="day"]{--scene-light:brightness(.88) saturate(.72) contrast(.91)}
@@ -4299,9 +4300,9 @@ html.stage-locked #app #topGameHud #hudPhase{font-size:clamp(10px,1.65vw,17px)}
 
 (function(){if(!/(?:^|[?&])layout=d(?:&|$)/.test(location.search))return;const b=window.DUNGEON_FOREST_V4_ORIGINAL_LAYOUT;if(!b?.scenes?.wreck)return;const patch={"v4-wagon0":{"x":31,"y":69.5,"width":32,"z":5,"rotation":8},"v4-crate_large1":{"x":54,"y":78,"width":7.5,"z":21,"rotation":-9},"v4-crate_small2":{"x":14.7,"y":73.6,"width":3.5,"z":17,"rotation":-5,"contactGrass":true},"v4-crate_open5":{"x":43.1,"y":73,"width":7.6,"z":12,"rotation":-10},"v4-sack6":{"x":49.5,"y":70,"width":4.2,"z":13,"rotation":12},"v4-wheel_flat7":{"x":30,"y":82,"width":10.6,"z":24,"rotation":10},"v4-plank8":{"x":39.9,"y":83,"width":6.8,"z":11,"rotation":-18},"v4-plank_lean9":{"x":39.6,"y":71.5,"width":4.5,"z":4,"rotation":-14},"v4-grass_a10":{"x":22.8,"y":69,"width":8,"z":8,"rotation":0},"v4-grass_b11":{"x":32,"y":70.5,"width":7.4,"z":8,"rotation":0},"v4-rabbit16":{"x":84.8,"y":68.2,"width":3.8,"z":7,"rotation":0},"v4-purple_flower13":{"x":84.6,"y":81.2,"width":3.8,"z":10,"rotation":-3},"v4-white_flower14":{"x":25.4,"y":82.2,"width":4.3,"z":10,"rotation":0},"v4-barrel4":{"visible":false}};const extra={"id":"v4-d-chassis-support","assetId":"forest4_chassis","name":"斷裂底盤","x":40,"y":72.2,"width":13,"z":3,"visible":true,"flip":false,"rotation":6};window.DUNGEON_FOREST_V4_LAYOUT={...b,layoutVariant:'accident-b',revision:'accident-d-preview',scenes:{...b.scenes,wreck:[...b.scenes.wreck.map(o=>({...o,...(patch[o.id]||{})})),extra]}};})();
 </script>
-<script src="./assets/forest_v4_spawns.js?v=2-rabbit-depth"></script>
+<script src="./assets/forest_v4_spawns.js?v=3-golden"></script>
 <script src="./assets/forest_v4_integration.js?v=8-grass"></script>
-<script src="./assets/rabbit_articulation_live_v1.js?v=1"></script>
+<script src="./assets/rabbit_articulation_live_v1.js?v=2-golden"></script>
 <script src="./assets/beetle_articulation_live_v1.js?v=2-flight"></script>
 <script src="./assets/scene_spatial_motion_v1.js?v=2-flight-test"></script>
 <script src="./assets/bird_motion_live_v1.js?v=2-hop-joints"></script>
@@ -7752,6 +7753,7 @@ function renderCreatureBestiary(out){
    description:s.beetle.captured?'已捕獲｜背甲會附著金屬碎片，通常不主動攻擊。':
     s.beetle.seen?'已目擊｜林邊舊馬車附近的金屬收集者。':
     '商人線索｜金屬扣件不明原因被搬走。'},
+  ...(s.forestRare.sighted.goldenRabbit?[{found:true,name:'金紋兔',description:'稀有目擊｜月紋兔的金色毛色變異，保留月牙形紋路；目前只在林間觀察到。'}]:[]),
   {found:!!s.forestRare.sighted.rabbit,name:'月紋兔',
    description:'已目擊｜石門附近的長耳生物，會尋找特殊植物。'},
   {found:!!s.flags.creatureResolved||s.seen.includes('sound'),name:'陌生林地生物',
@@ -7986,6 +7988,7 @@ function forestV4Action(o){
   options.push({label:'暫時不收集',fn:()=>{}});
   dialog(o.name,'探索時在這裡發現了可以收集的材料。',options,'場景採集');return;
  }
+ if(o.rabbitVariant==='golden'){dialog('稀有遭遇｜金紋兔','一隻披著金黃色毛皮的長耳兔停在附近，側身仍有熟悉的月牙紋路。牠警覺地豎起耳朵。',[{label:'安靜觀察並記錄',fn:()=>{if(!o.previewOnly){normalizeForestRare();s.forestRare.sighted.goldenRabbit=true;note('goldenRabbit','在林間目擊稀有的金紋兔');}else toast('金紋兔外觀預覽');}},{label:'不打擾牠',fn:()=>{}}],'生態觀察');return;}
  if(k==='wagon'||k==='wheel_flat'){marks();return;}
  if(k.startsWith('crate')){glance();return;}
  const descriptions={barrel:'木桶經過風吹雨淋，木板已經有些變色。',sack:'一個沾有泥土的舊布袋。',plank:'散落的木板看起來是事故留下的。',plank_lean:'一塊靠在殘骸旁的木板。',bird:'小鳥在枝葉間停留，偶爾轉動頭部。',rabbit:'長耳生物安靜地停留在草地上。',beetle:'一隻甲蟲停留在附近。',butterfly:'蝴蝶在林間輕輕拍動翅膀。'};
@@ -8005,6 +8008,7 @@ function renderForestV4(el){
  let live=window.DungeonForestV4Life?.layout(s,cfg,window.DUNGEON_FOREST_V4_SPAWNS||[],bindings)||cfg;
  const weather=window.DungeonWeatherV1;const weatherKind=previewWeather||weather?.at(s.seed,s.worldMinutes).kind;
  if(weather&&weatherKind)live=live.filter(o=>{const k=o.assetId.replace('forest4_','');return !['bird','rabbit','beetle','butterfly'].includes(k)||weather.activity(k,weatherKind);});
+ if(new URLSearchParams(location.search).get('wildlife')==='golden-rabbit'&&DEV_PREVIEW_MODE){const rabbit=cfg.find(o=>o.assetId==='forest4_rabbit');if(rabbit)live=[...live.filter(o=>o.assetId!=='forest4_rabbit'),{...rabbit,name:'金紋兔',rabbitVariant:'golden',previewOnly:true,visible:true}];}
  if(new URLSearchParams(location.search).get('wildlife')==='bird'&&DEV_PREVIEW_MODE){const bird=cfg.find(o=>o.assetId==='forest4_bird');if(bird)live=[...live.filter(o=>o.assetId!=='forest4_bird'),{...bird,id:'preview-bird-flight',visible:true}];}
  if(new URLSearchParams(location.search).get('wildlife')==='beetle'&&DEV_PREVIEW_MODE){const beetle=cfg.find(o=>o.assetId==='forest4_beetle');if(beetle)live=[...live.filter(o=>o.assetId!=='forest4_beetle'),{...beetle,id:'preview-beetle-flight',x:60,y:70,width:3.5,z:18,visible:true}];}
  for(const o of live){
@@ -8014,7 +8018,7 @@ function renderForestV4(el){
   const plant=/^(grass_|.*flower|lavender|yellow_shrub|vine)/.test(k);
   const finds=bindings.get(o.id)||[];
   const interactive=finds.length>0||animal||k==='wagon'||k==='wheel_flat'||k.startsWith('crate')||['barrel','sack','plank','plank_lean'].includes(k);
-  const signature=JSON.stringify([o.assetId,o.x,o.y,o.width,o.z,o.rotation,o.flip,o.artVariant,o.contactGrass,interactive]);
+  const signature=JSON.stringify([o.assetId,o.x,o.y,o.width,o.z,o.rotation,o.flip,o.artVariant,o.contactGrass,interactive,o.rabbitVariant]);
   let old=previous.get(o.id);
   if(smooth&&old&&old.dataset.renderSignature===signature){
    keep.add(old);old._exitTimer&&clearTimeout(old._exitTimer);old._exitTimer=null;old.classList.remove('env-leaving');old.style.pointerEvents='';
@@ -8023,7 +8027,7 @@ function renderForestV4(el){
   }
   if(old){clearTimeout(old._exitTimer);old.remove();}
   const node=document.createElement(interactive?'button':'div');node.dataset.renderSignature=signature;if(interactive){node.type='button';node.setAttribute('aria-label',o.name+(finds.length?'：可收集'+finds.map(f=>f.material).join('、'):''));node.title=o.name+(finds.length?' · 可收集':'');node.onclick=()=>guardedAction(()=>forestV4Action(o));}else node.setAttribute('aria-hidden','true');
-  node.className='forest-v4-object';node.dataset.objectId=o.id;node.dataset.motion=animal?'animal':plant?'plant':'fixed';node.dataset.liveKind=k;node.style.setProperty('--env-motion-delay',(-([...o.id].reduce((n,ch)=>(n*31+ch.charCodeAt(0))%89,0)/10))+'s');node.style.left=o.x+'%';node.style.top=o.y+'%';node.style.width=o.width+'%';node.style.zIndex=10+o.z;
+  node.className='forest-v4-object';node.dataset.objectId=o.id;node.dataset.motion=animal?'animal':plant?'plant':'fixed';node.dataset.liveKind=k;if(o.rabbitVariant)node.dataset.rabbitVariant=o.rabbitVariant;node.style.setProperty('--env-motion-delay',(-([...o.id].reduce((n,ch)=>(n*31+ch.charCodeAt(0))%89,0)/10))+'s');node.style.left=o.x+'%';node.style.top=o.y+'%';node.style.width=o.width+'%';node.style.zIndex=10+o.z;
   const art=document.createElement('span');art.className='forest-v4-art';art.style.transform='scaleX('+(o.flip?-1:1)+') rotate('+o.rotation+'deg)';
   const im=document.createElement('img');im.src=o.artVariant==='barrel-side'?'./assets/forest_v4_barrel_side.svg?v=1':a.src;if(o.artVariant==='barrel-side')im.onerror=()=>{im.onerror=null;im.src=a.src;art.style.transform='rotate(72deg)';};im.alt='';im.draggable=false;art.appendChild(im);node.appendChild(art);if(window.DungeonWinterV1?.weights[k])window.DungeonWinterV1.attach(node,art,im,k);window.DungeonForestV4Integration?.apply(node,o,assets);if(liveMotion)window.DungeonSceneEnvironmentV1?.attachWildlife(node,o);if(forestEnvironmentActive())window.DungeonSceneEnvironmentV1?.apply(node,art,im,o);updateForestFindCue(node,finds,k);keep.add(node);if(smooth&&existing&&!old)node.classList.add('env-entering');layer.appendChild(node);
  }
