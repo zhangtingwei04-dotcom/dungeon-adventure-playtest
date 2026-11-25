@@ -3966,7 +3966,11 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 @media(prefers-reduced-motion:reduce){#sceneStage .forest-v4-object .winter-snow-cap{animation:none!important}}
 /* Weathered material response: retain the original artwork and ground anchors. */
 #app[data-indoor="false"] #sceneStage .forest-v4-object[data-surface-wet="material"] .forest-v4-art>img{
- filter:var(--scene-light,brightness(1)) brightness(calc(1 - var(--plant-wet,0) * var(--surface-wet-weight,.6) * .19)) saturate(calc(1 + var(--plant-wet,0) * .08));
+ filter:brightness(var(--v4-brightness,1)) saturate(var(--v4-saturation,1)) contrast(var(--v4-contrast,1)) var(--scene-light,brightness(1)) brightness(calc(1 - var(--plant-wet,0) * var(--surface-wet-weight,.6) * .19)) saturate(calc(1 + var(--plant-wet,0) * .08));
+}
+/* Worn wagon canvas and wood should not overpower the forest palette. */
+#app[data-indoor="false"][data-period] #sceneStage .forest-v4-object[data-live-kind="wagon"] .forest-v4-art>img{
+ filter:brightness(.94) saturate(.65) contrast(.95) var(--scene-light,brightness(1)) brightness(calc(1 - var(--plant-wet,0) * .13));
 }
 #sceneStage .surface-wet-glints{
  position:absolute;inset:0;width:100%;height:100%;pointer-events:none;display:block;
@@ -4304,56 +4308,69 @@ html.stage-locked #app #topGameHud #hudPhase{font-size:clamp(10px,1.65vw,17px)}
  const overrides={
   "v4-wagon0": {
     "x": 30.8,
-    "y": 72.2,
+    "y": 69.8,
     "width": 37,
     "rotation": 2
   },
-  "v4-grass_a10": {"x":25.5,"y":70.5,"z":4},
-  "v4-grass_b11": {"x":33.7,"y":71.1,"width":5.1,"z":4},
+  "v4-grass_a10": {
+    "x": 25.5,
+    "y": 70.5,
+    "z": 4
+  },
+  "v4-grass_b11": {
+    "x": 33.7,
+    "y": 71.1,
+    "width": 5.1,
+    "z": 4,
+    "visible": false
+  },
   "v4-plank_lean9": {
     "x": 42.6,
     "y": 74.4,
     "width": 3.8,
     "z": 4,
-    "rotation": -8
+    "rotation": -8,
+    "visible": false
   },
   "v4-wheel_flat7": {
-    "x": 33.9,
-    "y": 86.5,
-    "width": 11.3,
-    "rotation": 6
-},
+    "x": 39,
+    "y": 85.7,
+    "width": 10.8,
+    "rotation": 4
+  },
   "v4-crate_large1": {
-    "x": 47.3,
-    "y": 80.1,
+    "x": 47.7,
+    "y": 78.5,
     "width": 6.8,
     "rotation": -3
-},
+  },
   "v4-crate_small2": {
     "x": 44.6,
     "y": 73.8,
     "width": 3.8,
-    "rotation": 8
+    "rotation": 8,
+    "visible": false
   },
   "v4-crate_open5": {
     "x": 46.4,
     "y": 75.2,
     "width": 7.6,
-    "rotation": -6
+    "rotation": -6,
+    "visible": false
   },
   "v4-sack6": {
-    "x": 49.5,
-    "y": 72.8,
-    "width": 3.9,
-    "z": 13,
-    "rotation": 12
+    "x": 53.2,
+    "y": 79.1,
+    "width": 4.4,
+    "z": 22,
+    "rotation": 6
   },
   "v4-plank8": {
-    "x": 43.3,
-    "y": 86.2,
-    "width": 6.8,
+    "x": 47.5,
+    "y": 87,
+    "width": 6.5,
     "rotation": -19
-},
+  },
   "v4-rabbit16": {
     "x": 86,
     "y": 70.1,
@@ -4366,8 +4383,29 @@ html.stage-locked #app #topGameHud #hudPhase{font-size:clamp(10px,1.65vw,17px)}
     "width": 3.8,
     "rotation": -3
   },
-  "object-mwuw8uyw-i6ihju": {"x":69.1,"y":75.8,"width":8.4,"rotation":5},
+  "object-mwuw8uyw-i6ihju": {
+    "x": 69.1,
+    "y": 75.8,
+    "width": 8.4,
+    "rotation": 5,
+    "visible": false
+  },
   "v4-barrel4": {
+    "visible": false
+  },
+  "object-mwuv250p-uzdjf7": {
+    "visible": false
+  },
+  "object-mwuv5puk-q16xf6": {
+    "visible": false
+  },
+  "object-mwuv6tcc-adz1cv": {
+    "visible": false
+  },
+  "object-mwuv6uwa-1hi1e7": {
+    "visible": false
+  },
+  "object-mwuv87s2-2i2kr9": {
     "visible": false
   }
 };
