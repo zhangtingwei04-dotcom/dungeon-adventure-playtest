@@ -1,0 +1,44 @@
+name: Game regression
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: '30 21 * * *'
+permissions:
+  contents: read
+concurrency:
+  group: game-regression-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  regression:
+    name: Mobile landscape / ${{ matrix.browser }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install test runner
+        run: npm install --no-save --no-package-lock playwright@1.56.1
+      - name: Install browser
+        run: npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Run real game regression
+        env:
+          TEST_BROWSER: ${{ matrix.browser }}
+        run: node tests/regression.cjs
+      - name: Preserve report and screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: game-regression-${{ matrix.browser }}
+          path: test-results/
+          if-no-files-found: warn
+          retention-days: 14
