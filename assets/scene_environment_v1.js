@@ -144,6 +144,48 @@ window.DungeonSceneEnvironmentV1=(function(){
   // Original rabbit art faces left; original beetle art faces right.
   return {x:x*dir,lift,sx,sy,flip:face===(rabbit?-1:1)?1:-1,mode};
  }
+ // Rabbit decisions use the existing authored local ground route (no unverified cross-scene path).
+ function rabbitBrain(seed=0,golden=false){
+  return {q:0,face:-1,mode:'sniff',age:0,duration:1.4,from:0,to:0,hunger:.48,energy:.85,alert:.25,comfort:1,serial:Math.floor(seed*997),golden};
+ }
+ function rabbitDecision(b,env={}){
+  const kind=env.kind||'clear',rain=env.rain||0,snow=env.snowCover||0;
+  const dangerous=kind==='storm'||kind==='blizzard',wet=dangerous||kind==='rain'||rain>.65;
+  if(wet)return b.q<.98?{mode:'shelter-hop',to:1}:{mode:'shelter',duration:3.8};
+  if(b.mode==='shelter'&&b.q>.02)return {mode:'hop',to:0};
+  if(b.energy<.35)return {mode:'rest',duration:4.5};
+  if(b.alert>.6)return {mode:'alert',duration:2.1};
+  if(b.hunger>.52&&snow<.15&&kind!=='snow')return {mode:'graze',duration:3.1};
+  const roll=((Math.imul(++b.serial,1664525)+1013904223)>>>0)/4294967296;
+  if(roll<.37)return {mode:'hop',to:b.q>.5?0:1};
+  if(roll<.58)return {mode:'sniff',duration:1.8};
+  if(roll<.76)return {mode:'groom',duration:2.7};
+  return {mode:'rest',duration:2.4+(b.golden?.8:0)};
+ }
+ function rabbitTick(b,dt,env={}){
+  dt=clamp(dt,0,.12);const bad=env.kind==='storm'||env.kind==='blizzard'||env.kind==='rain';
+  b.hunger=clamp(b.hunger+dt*(b.mode==='graze'?-.11:.014),0,1);
+  b.energy=clamp(b.energy+dt*(b.mode==='rest'||b.mode==='shelter'?.09:b.mode.includes('hop')?-.045:-.008),0,1);
+  b.alert=clamp(b.alert+dt*(bad?.16:-.12),0,1);
+  b.comfort=clamp(b.comfort+dt*(bad&&b.mode!=='shelter'?-.08:.05),0,1);
+  b.age+=dt;
+  const moving=b.mode==='hop'||b.mode==='shelter-hop';
+  // Finish a hop before responding to weather; never teleport on a weather change.
+  if(b.age>=b.duration||(bad&&!moving&&b.mode!=='shelter')){
+   if(moving)b.q=b.to;
+   const next=rabbitDecision(b,env);b.mode=next.mode;b.age=0;b.from=b.q;b.to=next.to??b.q;
+   b.duration=next.duration??(b.golden?.65:.58)*Math.max(1,Math.ceil(Math.abs(b.to-b.from)*3));
+   if(b.to!==b.from)b.face=b.to>b.from?-1:1;
+  }
+  let lift=0,sx=1,sy=1,mode=b.mode;
+  if(mode==='hop'||mode==='shelter-hop'){
+   const q=clamp(b.age/b.duration,0,1),n=Math.max(1,Math.ceil(Math.abs(b.to-b.from)*3)),step=q*n,k=Math.min(n-1,Math.floor(step)),f=clamp(step-k,0,1);
+   b.q=b.from+(b.to-b.from)*(k+ease(f))/n;lift=17*Math.sin(Math.PI*f);
+   sx=1+.045*Math.sin(Math.PI*f);sy=1-.055*Math.sin(Math.PI*f);mode='hop';
+  }else if(mode==='shelter'||mode==='rest'){sy=1-.026*(.5+.5*Math.sin(b.age*2));}
+  else if(mode==='graze'){sy=1-.025*(.5+.5*Math.sin(b.age*3));}
+  return {x:-54*b.q,lift,sx,sy,flip:b.face===-1?1:-1,mode,behavior:b.mode};
+ }
  function attachWildlife(node,o){
   const kind=String(o.assetId||'').replace(/^forest4_/,'');
   if(kind==='bird'){
@@ -166,11 +208,11 @@ window.DungeonSceneEnvironmentV1=(function(){
   node.style.setProperty('--wild-anchor-x',o.x+'%');
   node.style.setProperty('--wild-anchor-y',o.y+'%');
   node.style.setProperty('--wild-anchor-width',o.width+'%');
-  wildlife.set(node,{kind,dir,phase,start:null,anchor});
+  wildlife.set(node,{kind,dir,phase,start:null,anchor,brain:kind==='rabbit'?rabbitBrain(hash/997,node.dataset.rabbitVariant==='golden'):null,lastTick:null});
   if(kind==='rabbit')window.DungeonRabbitArticulation?.attach(node);
   else if(kind==='beetle')window.DungeonBeetleArticulation?.attach(node);
  }
- function tickWildlife(ms,active){
+ function tickWildlife(ms,active,weatherKind='clear'){
   if(!active){for(const [node] of wildlife)if(!node.isConnected)wildlife.delete(node);return;}
   for(const [node,a] of wildlife){
    if(!node.isConnected){wildlife.delete(node);continue;}
@@ -189,7 +231,10 @@ window.DungeonSceneEnvironmentV1=(function(){
     node.dataset.birdState=v.mode;
     continue;
    }
-   const v=wildlifeSample(a.kind,elapsed,a.dir);
+   const dt=a.lastTick===null?0:(ms-a.lastTick)/1000;a.lastTick=ms;
+   const env=a.brain?{...window.DungeonWeatherV1?.environment?.(),kind:weatherKind}:null;
+   const v=a.brain?rabbitTick(a.brain,dt,env):wildlifeSample(a.kind,elapsed,a.dir);
+   if(a.brain)node.dataset.wildBehavior=v.behavior;
    try{
     if(a.kind==='rabbit')window.DungeonRabbitArticulation?.render(node,v,elapsed,ms);
     else if(a.kind==='beetle')window.DungeonBeetleArticulation?.render(node,v,elapsed,ms);
@@ -210,5 +255,5 @@ window.DungeonSceneEnvironmentV1=(function(){
    if(node.dataset.wildState!==v.mode)node.dataset.wildState=v.mode;
   }
  }
- return {profiles,draw,objectProfile,apply,attachWildlife,tickWildlife,wildlifeSample,waterProfile};
+ return {profiles,draw,objectProfile,apply,attachWildlife,tickWildlife,wildlifeSample,waterProfile,rabbitBrain,rabbitTick,rabbitDecision};
 })();
