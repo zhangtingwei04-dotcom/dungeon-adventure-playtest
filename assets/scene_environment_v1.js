@@ -70,5 +70,66 @@ window.DungeonSceneEnvironmentV1=(function(){
    art.style.setProperty('--env-art-mask','url("'+src+'")');art.classList.add('env-lit-art');
   }
  }
- return {profiles,draw,objectProfile,apply};
+ // Local wildlife motion uses the authored spawn as a ground anchor.
+ // The node follows the ground; only the art rises during a hop.
+ const wildlife=new Map();
+ const ease=q=>q*q*(3-2*q);
+ function wildlifeSample(kind,t,dir=-1){
+  const rabbit=kind==='rabbit',period=rabbit?13.7:10.9;
+  const u=((t%period)+period)%period;
+  let x=0,lift=0,sx=1,sy=1,face=dir,mode='rest';
+  if(rabbit){
+   const hop=(start,from,to,duration)=>{
+    const q=clamp((u-start)/duration,0,1);
+    x=from+(to-from)*ease(q);lift=17*Math.sin(Math.PI*q);
+    sx=1+.045*Math.sin(Math.PI*q);sy=1-.055*Math.sin(Math.PI*q);
+    mode='hop';
+   };
+   if(u<2.4){sy=1-.012*(.5+.5*Math.sin(u*3));}
+   else if(u<2.65){sy=.94;sx=1.04;mode='crouch';}
+   else if(u<3.12){hop(2.65,0,26,.47);}
+   else if(u<3.3){x=26;sy=.94;sx=1.035;mode='land';}
+   else if(u<3.79){hop(3.3,26,54,.49);}
+   else if(u<4.02){x=54;sy=.95;sx=1.03;mode='land';}
+   else if(u<8.3){x=54;sy=1-.025*(.5+.5*Math.sin((u-4.02)*2.5));mode='pause';}
+   else if(u<8.65){x=54;face=-dir;sy=.95;mode='turn';}
+   else if(u<9.15){face=-dir;hop(8.65,54,26,.5);}
+   else if(u<9.34){x=26;face=-dir;sy=.95;mode='land';}
+   else if(u<9.84){face=-dir;hop(9.34,26,0,.5);}
+   else if(u<11.3){face=-dir;sy=1-.012*(.5+.5*Math.sin(u*3));}
+   else{sy=1-.01*(.5+.5*Math.sin(u*3));}
+  }else{
+   if(u<1.2){mode='rest';}
+   else if(u<4.2){x=30*ease((u-1.2)/3);mode='crawl';}
+   else if(u<5.2){x=30;mode='pause';}
+   else if(u<6.2){x=30;face=-dir;mode='turn';}
+   else if(u<9.2){x=30*(1-ease((u-6.2)/3));face=-dir;mode='crawl';}
+   else if(u<10.2){face=-dir;mode='pause';}
+   if(mode==='crawl'){sy=1+.018*Math.sin(u*34);sx=1+.012*Math.cos(u*34);}
+  }
+  // Original rabbit art faces left; original beetle art faces right.
+  return {x:x*dir,lift,sx,sy,flip:face===(rabbit?-1:1)?1:-1,mode};
+ }
+ function attachWildlife(node,o){
+  const kind=String(o.assetId||'').replace(/^forest4_/,'');
+  if(kind!=='rabbit'&&kind!=='beetle')return;
+  const dir=kind==='rabbit'?-1:(o.x>75?-1:1);
+  const hash=Array.from(String(o.id||kind)).reduce((n,ch)=>(n*31+ch.charCodeAt(0))%997,0);
+  node.dataset.wildlife=kind;
+  wildlife.set(node,{kind,dir,phase:hash/100,start:null});
+ }
+ function tickWildlife(ms,active){
+  if(!active){for(const [node] of wildlife)if(!node.isConnected)wildlife.delete(node);return;}
+  for(const [node,a] of wildlife){
+   if(!node.isConnected){wildlife.delete(node);continue;}
+   if(a.start===null)a.start=ms;
+   const v=wildlifeSample(a.kind,(ms-a.start)/1000+a.phase,a.dir);
+   node.style.setProperty('--wild-x',v.x.toFixed(2)+'%');
+   node.style.setProperty('--wild-lift',(-v.lift).toFixed(2)+'%');
+   node.style.setProperty('--wild-sx',(v.flip*v.sx).toFixed(3));
+   node.style.setProperty('--wild-sy',v.sy.toFixed(3));
+   if(node.dataset.wildState!==v.mode)node.dataset.wildState=v.mode;
+  }
+ }
+ return {profiles,draw,objectProfile,apply,attachWildlife,tickWildlife,wildlifeSample};
 })();
