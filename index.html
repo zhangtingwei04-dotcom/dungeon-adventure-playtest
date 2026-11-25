@@ -4315,6 +4315,7 @@ html.stage-locked #app #topGameHud #hudPhase{font-size:clamp(10px,1.65vw,17px)}
 <script src="./assets/adaptive_quality_v1.js?v=1"></script>
 <script src="./assets/fault_isolation_v1.js?v=1"></script>
 <script src="./assets/object_investigation_v1.js?v=2-world-state"></script>
+<script src="./assets/opening_progression_v1.js?v=1"></script>
 <script>window.DungeonRuntimeFaultsV1=window.DungeonFaultIsolationV1.create();</script>
 <script>
 // Current scene is the sole base. D remains an explicit research preview.
@@ -5003,8 +5004,16 @@ function explorationToast(site,last,newMaterials){
  const suffix=(last.route||last.wreckFound||newMaterials>0)?' · 查看右側「地點」':'';
  return '探索完成 · '+notices.join('、')+suffix;
 }
+function openingDepartureCue(){
+ if(!window.DungeonOpeningProgressionV1.markCue(s))return false;
+ addTravel('scene','事故現場已大致查看完畢，車轍延伸向林間小徑。','這裡沒有能安全過夜的地方。沿著道路找人，比繼續翻找殘骸更有希望。');
+ save();render();
+ openSceneDialogue([{speaker:'旁白',text:'你再次望向破損的車架。附近能查看的地方已經大致找過了，車轍沿著林間小徑延伸。'},{speaker:'你',text:'「再待下去也找不到更多答案。先沿路找找有沒有人吧。」'}]);
+ return true;
+}
 function exploreArea(){
  if(encounterPending||!EXPLORATION_AREAS[s.scene])return;
+ if(!window.DungeonOpeningProgressionV1.view(s).canExplore){if(!openingDepartureCue())toast('事故現場已探索完畢，仍可調查物件或沿道路離開。');return;}
  normalizeExploration();normalizeRouteDiscovery();normalizeRecovery();
  const site=s.scene,area=EXPLORATION_AREAS[site],e=s.exploration;
  window.DungeonSceneObjectsV1?.normalize(s);
@@ -5051,7 +5060,7 @@ function exploreArea(){
    if(ordinary&&s.travelLog?.length)Object.assign(s.travelLog[s.travelLog.length-1],{exploreGroup:key,exploreCount:1});
   }
  }else addTravel('daily','在'+names[site][0]+'進行第'+count+'次探索（約10分鐘，'+gameTime(s.worldMinutes)+'）'+feature+'。','這裡還有許多可以慢慢觀察的東西。');
- save();render();toast(explorationToast(site,latest,newMaterials)+(sceneFinds.length?' · 發現'+sceneFinds.join('、'):'')+((site==='clearing'&&!sceneFinds.length&&window.DungeonSceneObjectsV1?.creatureVisible(s))?' · 留意場景中的生物':''));
+ save();render();if(site==='wreck'&&openingDepartureCue())return;toast(explorationToast(site,latest,newMaterials)+(sceneFinds.length?' · 發現'+sceneFinds.join('、'):'')+((site==='clearing'&&!sceneFinds.length&&window.DungeonSceneObjectsV1?.creatureVisible(s))?' · 留意場景中的生物':''));
 }
 
 /* Persistent discovered destinations; drawer open/closed and expanded card are only UI. */
@@ -7522,7 +7531,7 @@ function openWreckIntroduction(){
  openSceneDialogue([
   {speaker:'旁白',text:'你從毀壞的車篷下爬出來，泥土的涼意讓你逐漸清醒。'},
   {speaker:'旁白',text:'陽光穿過樹冠，灑在斷裂的車板上。林間只有風聲與鳥鳴。'},
-  {speaker:'你',text:'「我怎麼會在這裡？……先看看四周吧。」'}
+  {speaker:'你',text:'「我怎麼會在這裡？……先看看四周，再沿著道路找人吧。」'}
  ]);
 }
 function guardedAction(fn){const now=Date.now();if(now-lastActionAt<300)return;lastActionAt=now;fn?.();}
@@ -7808,7 +7817,7 @@ function battleStart(){s.flags.inBattle=true;s.flags.monsterHp=12;s.flags.guardi
 function battleDialog(text){const m=s.flags.monsterHp||0;const choices=[];if(m>0&&s.hp>0){choices.push({label:'攻擊',fn:()=>battleTurn('attack')},{label:'防禦',fn:()=>battleTurn('guard')},{label:'撤退',fn:()=>battleTurn('retreat')});}else{choices.push({label:'返回探索',fn:()=>{s.flags.inBattle=false;s.flags.creatureResolved=true;render();}});}dialog('遭遇戰 · 林地生物',`你的體力 ${s.hp}/${s.maxHp}　|　對手狀態 ${Math.max(0,m)}/12\n\n${text}`,choices,'戰鬥測試',true);}
 function battleTurn(kind){if(kind==='retreat'){s.flags.inBattle=false;s.flags.creatureResolved=true;note('retreat','你選擇脫離戰鬥');render();return;}let text='';let damage=0;if(kind==='attack'){damage=4+(s.seed+s.hp+s.flags.monsterHp)%3;s.flags.monsterHp=Math.max(0,s.flags.monsterHp-damage);text=`你擊中對方，造成 ${damage} 點傷害。`; }else{text='你穩住腳步，準備防禦。';}addTravel('combat',text,'下一步得保持警覺。');if(s.flags.monsterHp<=0){s.flags.creatureResolved=true;s.flags.inBattle=false;note('victory','你完成一次陌生生物遭遇戰');s.flags.battles=(s.flags.battles||0)+1;dialog('戰鬥結束',text+'\n\n生物後退，消失在草叢深處。你留下了少量關於牠行動方式的記憶。',[{label:'繼續探索',fn:()=>render()}],'戰鬥結果',true);save();return;}const hit=kind==='guard'?1:3;s.hp=Math.max(0,s.hp-hit);text+=`\n對方反擊，你受到 ${hit} 點傷害。`;addTravel('combat',`對方反擊，你受到 ${hit} 點傷害。`,'不能大意。');if(s.hp===0){s.flags.inBattle=false;s.flags.creatureResolved=true;s.hp=5;note('defeat','你在林間體力不支，稍後重新站起');dialog('暫時失去意識','你在林間倒下。過了一段時間才再次醒來，身體虛弱。\n\n這是原型的安全失敗處理，並不代表主角的「活遺物」能力已經覺醒。',[{label:'返回小徑',fn:()=>change('trail')}],'測試規則',true);}else{battleDialog(text);}renderPlayerStatus();save();}
 function entries(){const a={
- wreck:[routeAction('沿著道路離開','trail',()=>change('trail'),true),action('查看倒塌貨箱',glance),action('查看車輪痕跡',marks)],
+ wreck:[routeAction(window.DungeonOpeningProgressionV1.view(s).exhausted?'循著車轍前往小徑':'沿著道路離開','trail',()=>change('trail'),true),action('查看倒塌貨箱',glance),action('查看車輪痕跡',marks)],
  trail:[routeAction(s.flags.rescued?'前往城鎮':'沿道路繼續前進','gate',rescue,true),action(s.recovery.found?'調查舊馬車殘骸':'搜索林邊 · 12分鐘',searchForest,false,true),...(s.recovery.found?[action('留意甲蟲活動痕跡 · 8分鐘',()=>forestRareCheck('beetle'))]:[]),...(s.recovery.found&&s.beetle.questAccepted&&!s.beetle.captured?[action('設置甲蟲誘捕盒 · 10分鐘',captureRustBeetle)]:[]),routeAction('進入林間空地','clearing',()=>change('clearing')),routeAction('走近舊石門','ruin',()=>change('ruin')),action('查看路旁舊石碑',inspectTrailMarker),routeAction('返回馬車','wreck',()=>change('wreck'))],
  clearing:[routeAction('返回小徑','trail',()=>change('trail'),true),action('觀察空地生態 · 6分鐘',()=>observeForestEcology('clearing'),false,true),...(!s.flags.lightTaken?[action('查看樹根旁的微光',light)]:[]),action('留意林間聲響',soundInForest)],
  ruin:[routeAction('返回小徑','trail',()=>change('trail'),true),action('觀察石門生態 · 6分鐘',()=>observeForestEcology('ruin'),false,true),action('看看古老石門',ruinLook),action('觀察石門旁的長耳腳印 · 8分鐘',()=>forestRareCheck('rabbit'))],
@@ -7822,7 +7831,9 @@ function entries(){const a={
 };
  const filtered=(a[s.scene]||[]).filter(x=>!x.routeTo||routeKnown(s.scene,x.routeTo));
  const primary=!filtered.some(x=>x.primary);
- filtered.unshift(action('探索周遭 · 10分鐘',exploreArea,primary,!primary));
+ const opening=window.DungeonOpeningProgressionV1.view(s);
+ if(opening.canExplore)filtered.unshift(action('探索周遭 · 10分鐘',exploreArea,primary,!primary));
+ else if(opening.needsCue)filtered.unshift(action('辨認離開方向',openingDepartureCue,primary,!primary));
  return filtered;
 }
 const ACTION_GLYPHS=Object.freeze({
@@ -7900,7 +7911,7 @@ function renderSceneInfoBar(){
  const localWeather=!INDOOR_SCENES.has(s.scene)?weatherNotes[currentWeather?.kind]:null;
  const defaultScene=localWeather||SCENE_SENSE_NOTES[s.scene]||{text:names[s.scene]?.[1]||'',senses:[]};
  const last=s.exploration?.last?.[s.scene];
- $('sceneObservationText').textContent=!localWeather&&typeof last?.observation==='string'&&last.observation?
+ $('sceneObservationText').textContent=window.DungeonOpeningProgressionV1.view(s).exhausted?'已大致查看事故現場；車轍指向林間小徑。可以繼續調查現有物件，或沿路尋找他人。':!localWeather&&typeof last?.observation==='string'&&last.observation?
   last.observation:defaultScene.text;
  const senseRoot=$('sceneSenses');
  senseRoot.replaceChildren();
@@ -7943,7 +7954,7 @@ function renderSceneInfoBar(){
 }
 
 function render(){if(!names[s.scene])s.scene='wreck';normalizeGameTime();tickBeetleCare();$('place').textContent=names[s.scene][0];$('hudPlace').textContent=names[s.scene][0];$('hudChapter').textContent=s.flags.morning?'CHAPTER 02':'CHAPTER 01';syncTimeAtmosphere();$('partyChip').textContent=s.flags.rescued?'與冒險者相遇':'獨自探索';$('hpChip').textContent=`體力 ${s.hp}/${s.maxHp}`;renderPlayerStatus();$('chapterChip').textContent=s.flags.morning?'第二章 · 清晨':s.flags.chapterDone?'第一章片段完成':'第一章';const texts={
- wreck:'你從毀壞的車篷下爬出來，泥土的涼意讓你逐漸清醒。',
+ wreck:window.DungeonOpeningProgressionV1.view(s).exhausted?'事故現場已大致探索完畢。車轍延伸向林間小徑，沿道路找人或許更有希望。':'你從毀壞的車篷下爬出來，泥土的涼意讓你逐漸清醒。',
  trail:s.flags.rescued?'你沿著車轍走到林道，遠方的城鎮逐漸清晰。可以回望事故現場，也可以繼續前進。':'樹影遮住前方道路。你可以搜索林邊的舊物與生物痕跡，或花一點時間辨認道路，將發現的岔路逐一記入地圖。',
  clearing:'陌生的風聲、樹根間的微光。你可以接近，也可以完全不理會。',
  ruin:'古老石門默默矗立。它像是某個故事的開始，但你現在可以直接離開。',
