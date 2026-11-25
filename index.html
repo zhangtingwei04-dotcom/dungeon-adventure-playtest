@@ -4001,7 +4001,7 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 
 .location-weather-info{margin:3px 0 4px;font-size:11px;line-height:1.25;color:#d6c7a2;overflow-wrap:anywhere}
 #app[data-weather] #sceneStage .forest-v4-layer.env-motion-v2 .forest-v4-object[data-motion="plant"]:not([data-live-kind="vine"]) .forest-v4-art img{animation:weather-plant-wind var(--weather-wind-duration,7.4s) ease-in-out infinite;animation-delay:var(--env-motion-delay,0s);transform-origin:50% 100%}
-@keyframes weather-plant-wind{0%,100%{transform:skewX(0)}30%{transform:skewX(var(--weather-wind-angle,2deg))}65%{transform:skewX(calc(var(--weather-wind-angle,2deg) * -.45))}}
+@keyframes weather-plant-wind{0%,100%{transform:skewX(calc(var(--weather-wind-angle,0deg) * -.42)) scaleY(calc(1 - var(--weather-wind-lean,0) * .55))}30%{transform:skewX(calc(var(--weather-wind-angle,0deg) * -1)) scaleY(calc(1 - var(--weather-wind-lean,0)))}65%{transform:skewX(calc(var(--weather-wind-angle,0deg) * -.65)) scaleY(calc(1 - var(--weather-wind-lean,0) * .78))}}
 @media(prefers-reduced-motion:reduce){#app[data-weather] #sceneStage .forest-v4-layer.env-motion-v2 .forest-v4-object[data-motion="plant"] .forest-v4-art img{animation:none!important}}
 /* Individual grass rhythm: keep root anchor and synchronize the original art with all overlays. */
 #sceneStage .forest-v4-object[data-grass-detail="true"] .forest-v4-art>img,
@@ -4015,9 +4015,9 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
  animation-delay:var(--env-motion-delay,0s);
 }
 @keyframes individual-grass-wind{
- 0%,100%{transform:skewX(calc(var(--weather-wind-angle,2deg) * var(--grass-wind,1) * .18)) scaleY(calc(1 - var(--snow-cover,0) * .07 - var(--plant-wet,0) * .025))}
- 32%{transform:skewX(calc(var(--weather-wind-angle,2deg) * var(--grass-wind,1))) scaleY(calc(1 - var(--snow-cover,0) * .09 - var(--plant-wet,0) * .035))}
- 72%{transform:skewX(calc(var(--weather-wind-angle,2deg) * var(--grass-wind,1) * -.16)) scaleY(calc(1 - var(--snow-cover,0) * .07 - var(--plant-wet,0) * .025))}
+ 0%,100%{transform:skewX(calc(var(--weather-wind-angle,0deg) * var(--grass-wind,1) * -.44)) scaleY(calc(1 - var(--snow-cover,0) * .07 - var(--plant-wet,0) * .025 - var(--weather-wind-lean,0) * var(--grass-wind,1) * .55))}
+ 32%{transform:skewX(calc(var(--weather-wind-angle,0deg) * var(--grass-wind,1) * -1)) scaleY(calc(1 - var(--snow-cover,0) * .09 - var(--plant-wet,0) * .035 - var(--weather-wind-lean,0) * var(--grass-wind,1)))}
+ 72%{transform:skewX(calc(var(--weather-wind-angle,0deg) * var(--grass-wind,1) * -.69)) scaleY(calc(1 - var(--snow-cover,0) * .07 - var(--plant-wet,0) * .025 - var(--weather-wind-lean,0) * var(--grass-wind,1) * .76))}
 }
 #app[data-indoor="false"] #sceneStage .forest-v4-object[data-grass-detail="true"] .forest-v4-art>img{
  filter:var(--scene-light,brightness(1)) brightness(calc(var(--grass-tone,1) - var(--plant-wet,0) * .10)) saturate(calc(1 - var(--frost,0) * .19));
@@ -4385,7 +4385,7 @@ html.stage-locked #app #topGameHud #hudPhase{font-size:clamp(10px,1.65vw,17px)}
 <script src="./assets/bird_motion_live_v1.js?v=2-hop-joints"></script>
 <script src="./assets/scene_environment_v1.js?v=15-action-points"></script>
 <script src="./assets/winter_surfaces_v1.js?v=6-grass-detail"></script>
-<script src="./assets/weather_system_v1.js?v=16-wind-gust"></script>
+<script src="./assets/weather_system_v1.js?v=17-strong-wind"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/scene_objects_v1.js?v=20261125-winter"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
@@ -4564,7 +4564,7 @@ function syncWeather(){
  if(previewWeather){const k=engine.kinds[previewWeather],climate=engine.climate(s.seed,s.worldMinutes,previewWeather);Object.assign(currentWeather,k,climate,{kind:previewWeather,temperature:previewWeather==='blizzard'?-6:previewWeather==='snow'?-2:Math.max(6,climate.temperature),windDir:-1});}
  if(previewWind!==null)currentWeather.wind=previewWind/5;if(previewWindDir!==null)currentWeather.windDir=previewWindDir;
  const indoor=INDOOR_SCENES.has(s.scene);const app=$('app');app.dataset.weather=currentWeather.kind;
- engine.exposure(s,indoor);app.style.setProperty('--weather-wind',String(currentWeather.wind));app.style.setProperty('--weather-wind-angle',(currentWeather.wind*10*(currentWeather.windDir??1)).toFixed(2)+'deg');app.style.setProperty('--weather-wind-duration',(7.4-currentWeather.wind*4.2).toFixed(2)+'s');
+ engine.exposure(s,indoor);app.style.setProperty('--weather-wind',String(currentWeather.wind));const windMotion=engine.windVisual(currentWeather.wind,currentWeather.windDir??1);app.style.setProperty('--weather-wind-angle',windMotion.angle.toFixed(2)+'deg');app.style.setProperty('--weather-wind-duration',windMotion.duration.toFixed(2)+'s');app.style.setProperty('--weather-wind-lean',windMotion.lean.toFixed(3));
  const label=indoor?'室內 · 外面'+currentWeather.name:currentWeather.name;
  $('hudPhase').textContent+=(' · '+currentWeather.name+(previewWeather||previewWind!==null||previewWindDir!==null?'*':''));
  $('worldClock').textContent+=' · '+label;
