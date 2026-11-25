@@ -159,11 +159,19 @@ window.DungeonForestV4Life=(function engine(){
    else if(roll<.25)v.animals[k]=null;else if(roll<.75){const others=options.filter(o=>o.id!==old);v.animals[k]=others.length?others[Math.min(others.length-1,Math.floor(random()*others.length))].id:old;}else v.animals[k]=old;
   }
  }
+ // One stable roll per eligible exploration; reloads and UI renders never reroll.
+ function goldenEncounter(s){
+  const minute=Math.max(0,Math.floor(Number(s.worldMinutes)||0)),hour=minute%1440/60;
+  if(!(hour>=5&&hour<8||hour>=17&&hour<20))return false;
+  const day=Math.floor(minute/1440),count=s.exploration?.counts?.wreck||0;
+  let h=2166136261;for(const ch of String(s.seed??0)+':gold-rabbit:'+day+':'+count){h=Math.imul(h^ch.charCodeAt(0),16777619);}h^=h>>>16;h=Math.imul(h,0x7feb352d);h^=h>>>15;
+  return (h>>>0)/4294967296<.01;
+ }
  function layout(s,base,slots,materialBindings){
   const v=state(s);const out=base.filter(o=>!animalKinds.includes(kind(o)));for(const k of animalKinds){const original=base.find(o=>o.visible&&kind(o)===k);if(!original)continue;
-   const id=Object.hasOwn(v.animals,k)?v.animals[k]:original.id;const target=[...base,...slots].find(o=>o.id===id&&o.visible&&kind(o)===k);if(target)out.push(target);}
+   const id=Object.hasOwn(v.animals,k)?v.animals[k]:original.id;const target=[...base,...slots].find(o=>o.id===id&&o.visible&&kind(o)===k);if(target)out.push(k==='rabbit'&&goldenEncounter(s)?{...target,name:'金紋兔',rabbitVariant:'golden'}:target);}
   for(const o of slots){if(!o.visible)continue;if(kind(o)==='branch'&&materialBindings.has(o.id))out.push(o);if(kind(o).startsWith('grass_')){const day=Math.floor(Math.max(0,s.worldMinutes||0)/1440);const offset=o.id==='spawn-grass-6'?0:2;const phase=(day+offset)%4;if(phase!==0)out.push({...o,width:o.width*(phase===1?.65:phase===2?1:.8)});}}
   return out;
  }
- return {update,layout};
+ return {update,layout,goldenEncounter};
 })();
