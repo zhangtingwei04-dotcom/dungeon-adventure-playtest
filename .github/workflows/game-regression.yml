@@ -26,6 +26,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Check approved art baselines and consumers
+        run: node tests/art-lifecycle.cjs
       - name: Run cross-module integration and long simulation
         run: node tests/integration.cjs
       - name: Install test runner
