@@ -4314,7 +4314,7 @@ html.stage-locked #app #topGameHud #hudPhase{font-size:clamp(10px,1.65vw,17px)}
 <script src="./assets/performance_monitor_v1.js?v=1"></script>
 <script src="./assets/adaptive_quality_v1.js?v=1"></script>
 <script src="./assets/fault_isolation_v1.js?v=1"></script>
-<script src="./assets/object_investigation_v1.js?v=1"></script>
+<script src="./assets/object_investigation_v1.js?v=2-world-state"></script>
 <script>window.DungeonRuntimeFaultsV1=window.DungeonFaultIsolationV1.create();</script>
 <script>
 // Current scene is the sole base. D remains an explicit research preview.
@@ -4330,7 +4330,7 @@ window.DUNGEON_FOREST_V4_LAYOUT=window.DUNGEON_WRECK_CURRENT_LAYOUT;
 <script src="./assets/scene_environment_v1.js?v=17-species-wind"></script>
 <script src="./assets/winter_surfaces_v1.js?v=8-contour-snow"></script>
 <script src="./assets/engine_foundation_v1.js?v=1"></script>
-<script src="./assets/engine_events_save_v1.js?v=1.3-domains"></script>
+<script src="./assets/engine_events_save_v1.js?v=1.4-object-state"></script>
 <script src="./assets/character_environment_v1.js?v=1.1"></script>
 <script src="./assets/weather_system_v1.js?v=24-adaptive-visual"></script>
 <script src="./assets/trail_forest_v1.js"></script>
@@ -4980,6 +4980,11 @@ function collectExplorationMaterial(site,id){
  if(index<0)return;
  const find=queue[index];
  if(daily.collected>=2){toast('今天從這裡帶走的普通材料已達上限。');return;}
+ if(site==='wreck'&&forestV4Active()){
+  const bound=[...forestV4MaterialBindings()].find(([,items])=>items.some(item=>item.id===id));
+  const target=bound&&[...(window.DUNGEON_FOREST_V4_LAYOUT?.scenes?.wreck||[]),...(window.DUNGEON_FOREST_V4_SPAWNS||[])].find(o=>o.id===bound[0]);
+  if(target)window.DungeonObjectInvestigationV1.collect(s,site,target);
+ }
  daily.collected++;
  queue.splice(index,1);
  s.recovery.parts[find.material]=(s.recovery.parts[find.material]||0)+1;
@@ -8009,13 +8014,16 @@ function bindForestV4Materials(layout,queue){
  return map;
 }
 function forestV4MaterialBindings(){
- return bindForestV4Materials([...(window.DUNGEON_FOREST_V4_LAYOUT?.scenes?.wreck||[]),...(window.DUNGEON_FOREST_V4_SPAWNS||[])],s.exploration?.pending?.wreck||[]);
+ return bindForestV4Materials([...(window.DUNGEON_FOREST_V4_LAYOUT?.scenes?.wreck||[]),...(window.DUNGEON_FOREST_V4_SPAWNS||[])].filter(o=>window.DungeonObjectInvestigationV1.visible(s,'wreck',o)),s.exploration?.pending?.wreck||[]);
 }
 function forestV4Action(o){
  if(encounterPending||modal||s.flags.inBattle||$('app').classList.contains('scene-dialogue-active'))return;
  const k=o.assetId.replace('forest4_',''),finds=forestV4MaterialBindings().get(o.id)||[];
- const info=window.DungeonObjectInvestigationV1.describe(o,finds);
+ const objectCore=window.DungeonObjectInvestigationV1;
+ if(!objectCore.visible(s,'wreck',o))return;
+ const info=objectCore.describe(o,finds,s,'wreck');
  if(!info)return;
+ if(objectCore.inspect(s,'wreck',o))save();
  const options=finds.map(item=>({label:'收集：'+item.material,fn:()=>collectExplorationMaterial('wreck',item.id)}));
  if(k==='wagon'||k==='wheel_flat')options.push({label:'仔細調查刻痕',fn:marks});
  if(k.startsWith('crate'))options.push({label:'檢查貨箱',fn:glance});
@@ -8047,6 +8055,7 @@ function renderForestV4(el){
  if(weather&&spawnWeather){const env={...spawnWeather,wind:previewWind!==null?previewWind/5:(currentWeather?.wind??weather.environment().behaviorWind??0),snowCover:Math.max(spawnWeather.snowCover||0,weather.environment().snowCover||0)};
   live=live.filter(o=>{const k=o.assetId.replace('forest4_','');return !['rabbit','bird','beetle','butterfly'].includes(k)||weather.activity(k,env);});
  }
+ live=live.filter(o=>window.DungeonObjectInvestigationV1?.visible(s,'wreck',o)!==false);
  window.DungeonSceneEnvironmentV1?.setActionMap(live.filter(o=>o.visible&&assets[o.assetId]?.src));
  for(const o of live){
   const a=assets[o.assetId];if(!o.visible||!a?.src)continue;
@@ -8054,7 +8063,7 @@ function renderForestV4(el){
   const animal=['bird','rabbit','beetle','butterfly'].includes(k);
   const plant=/^(grass_|.*flower|lavender|yellow_shrub|vine)/.test(k);
   const finds=bindings.get(o.id)||[];
-  const investigation=window.DungeonObjectInvestigationV1.describe(o,finds);
+  const investigation=window.DungeonObjectInvestigationV1.describe(o,finds,s,'wreck');
   const interactive=!!investigation;
   const signature=JSON.stringify([o.assetId,o.x,o.y,o.width,o.z,o.rotation,o.flip,o.artVariant,o.contactGrass,interactive,o.rabbitVariant]);
   let old=previous.get(o.id);
@@ -8083,7 +8092,7 @@ function updateForestFindCue(node,finds,k){
 function renderWorldObjects(el){
  const engine=window.DungeonSceneObjectsV1;if(!engine||encounterPending)return;
  for(const obj of engine.objects(s,plantSpawnWeather())){
-  if(forestV4Active()&&obj.material)continue;
+  if(forestV4Active()&&obj.material&&[...forestV4MaterialBindings().values()].some(list=>list.some(item=>item.id===obj.id)))continue;
   if(obj.decorative){
    if(forestV4Active())continue;
    const patch=document.createElement('div');patch.className='world-vegetation';patch.dataset.stage=obj.stage;patch.style.left=obj.x+'%';patch.style.top=obj.y+'%';patch.setAttribute('aria-hidden','true');
@@ -8473,7 +8482,7 @@ function drawLocationThumbnail(ms){
   if(id==='wreck'&&emptyForestReady&&forestV4Selected){
    const layout=window.DUNGEON_FOREST_V4_LAYOUT?.scenes?.wreck||[];
    for(const o of [...layout].sort((a,b)=>a.z-b.z)){
-    if(!o.visible||/forest4_(rabbit|bird|butterfly|beetle)$/.test(o.assetId))continue;
+    if(!o.visible||!window.DungeonObjectInvestigationV1.visible(s,'wreck',o)||/forest4_(rabbit|bird|butterfly|beetle)$/.test(o.assetId))continue;
     const img=locationThumbImage(window.DUNGEON_FOREST_V4_ASSETS?.[o.assetId]?.src);if(!img)continue;
     const width=o.width*W/100,height=width*img.naturalHeight/img.naturalWidth;
     g.save();g.translate(o.x*W/100,o.y*H/100);g.rotate((o.rotation||0)*Math.PI/180);g.scale(o.flip?-1:1,1);
