@@ -9,7 +9,8 @@ window.DungeonSpatialMotion=(function(){
   'spawn-rabbit-3':{dx:-2.4,dy:1.6,curve:.4,frontZ:5},
   'v4-beetle17':{dx:1.1,dy:.9,curve:.22,frontZ:10},
   'spawn-beetle-2':{dx:1.1,dy:1.1,curve:.25,frontZ:10},
-  'spawn-beetle-3':{dx:-1.3,dy:1.0,curve:.25,frontZ:10}
+  'spawn-beetle-3':{dx:-1.3,dy:1.0,curve:.25,frontZ:10},
+  'preview-beetle-flight':{dx:3.5,dy:2.4,curve:.5,frontZ:18}
  };
  function project(anchor,position,aspect=16/9){
   const x=clamp(position.x,2,98),y=clamp(position.y,3,97);
