@@ -23,6 +23,11 @@ window.DungeonEventsV1=(function(){
   actor.travelLog.push(entry);if(actor.travelLog.length>120)actor.travelLog.splice(0,actor.travelLog.length-120);
   emit('travel.recorded',actor,{type,message,thought});return true;
  }
+ function updateTravel(actor,patch){
+  if(!Array.isArray(actor.travelLog)||!actor.travelLog.length)return false;
+  const last=actor.travelLog.at(-1);actor.travelLog[actor.travelLog.length-1]={...last,...patch};
+  emit('travel.updated',actor,{type:last.type});return true;
+ }
  function discovery(actor,id,message,thought=''){
   if(!Array.isArray(actor.seen))actor.seen=[];
   if(!Array.isArray(actor.notes))actor.notes=[];
@@ -31,7 +36,7 @@ window.DungeonEventsV1=(function(){
   if(first){appendTravel(actor,'discovery',message,thought);emit('discovery.recorded',actor,{id,message});}
   return first;
  }
- return Object.freeze({on,emit,appendTravel,discovery,diagnostics:()=>({subscriptions:[...handlers].map(([type,set])=>({type,ids:[...set.keys()]})),history:history.slice(),errors:errors.slice()})});
+ return Object.freeze({on,emit,appendTravel,updateTravel,discovery,diagnostics:()=>({subscriptions:[...handlers].map(([type,set])=>({type,ids:[...set.keys()]})),history:history.slice(),errors:errors.slice()})});
 })();
 window.DungeonSaveV1=(function(events){
  const CURRENT=1,PROJECT='dungeon-adventure',migrations=new Map();let last={state:'idle'},writeProtected=false;
