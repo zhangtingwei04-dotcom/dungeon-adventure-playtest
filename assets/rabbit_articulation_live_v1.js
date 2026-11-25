@@ -24,6 +24,16 @@ window.DungeonRabbitArticulation=(function(){
   const a=[.014*Math.sin(t*2),.035*Math.sin(t*1.7+1),.032*Math.sin(t*1.5),0,0,0];
   if(v.mode==='pause'){
    const q=(.5-.5*Math.cos(t*2.4));a[0]=-.19*q+.023*Math.sin(t*8)*q;a[1]=.14*q;a[2]=.12*q;a[3]=-.045*q;
+  }else if(v.mode==='graze'){
+   const q=.75+.25*Math.sin(t*4.3);a[0]=-.24*q;a[1]=.12*q;a[2]=.095*q;a[3]=-.05;
+  }else if(v.mode==='sniff'){
+   a[0]=-.06+.048*Math.sin(t*7);a[1]=.075*Math.sin(t*3.4);a[2]=.06*Math.sin(t*3.4+1);
+  }else if(v.mode==='groom'){
+   a[0]=.11+.07*Math.sin(t*5);a[3]=-.27*(.5+.5*Math.sin(t*5));a[1]=-.08;a[2]=.09;
+  }else if(v.mode==='alert'){
+   a[0]=.085;a[1]=-.12+.035*Math.sin(t*5);a[2]=-.10+.04*Math.sin(t*4);
+  }else if(v.mode==='shelter'){
+   a[0]=-.09;a[1]=.13;a[2]=.12;a[3]=-.05;
   }else if(v.mode==='turn'){a[0]=.07;a[1]=-.14;a[2]=.12*Math.sin(t*7);}
   else if(v.mode==='hop'){
    const q=clamp(v.lift/17,0,1);a[0]=.085*q;a[1]=.14*q;a[2]=.17*q;a[3]=.34*q;a[4]=-.29*q;a[5]=.12*q;
