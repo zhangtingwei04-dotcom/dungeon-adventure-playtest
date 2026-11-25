@@ -99,13 +99,19 @@ window.DungeonSceneEnvironmentV1=(function(){
    else if(u<11.3){face=-dir;sy=1-.012*(.5+.5*Math.sin(u*3));}
    else{sy=1-.01*(.5+.5*Math.sin(u*3));}
   }else{
+   const flightCycle=Math.floor(t/10.9)%2===1;
+   let wingOpen=0;
    if(u<1.2){mode='rest';}
    else if(u<4.2){x=30*ease((u-1.2)/3);mode='crawl';}
    else if(u<5.2){x=30;mode='pause';}
-   else if(u<6.2){x=30;face=-dir;mode='turn';}
-   else if(u<9.2){x=30*(1-ease((u-6.2)/3));face=-dir;mode='crawl';}
-   else if(u<10.2){face=-dir;mode='pause';}
+   else if(u<6.2){x=30;face=-dir;mode=flightCycle&&u>=5.45?'unfold':'turn';if(mode==='unfold')wingOpen=ease(clamp((u-5.45)/.75,0,1));}
+   else if(u<9.2){const q=clamp((u-6.2)/3,0,1);x=30*(1-ease(q));face=-dir;mode=flightCycle?'fly':'crawl';
+    if(flightCycle){wingOpen=1;lift=125*Math.pow(Math.sin(Math.PI*q),1.3)*(1+.035*Math.sin(q*Math.PI*6));}
+   }
+   else if(u<10.2){face=-dir;mode=flightCycle&&u<9.85?'fold':'pause';if(mode==='fold')wingOpen=1-ease(clamp((u-9.2)/.65,0,1));}
+   if(flightCycle&&mode==='fly'){sx=1;sy=1;}
    if(mode==='crawl'){sy=1+.018*Math.sin(u*34);sx=1+.012*Math.cos(u*34);}
+   return {x:x*dir,lift,sx,sy,flip:face===1?1:-1,mode,wingOpen};
   }
   // Original rabbit art faces left; original beetle art faces right.
   return {x:x*dir,lift,sx,sy,flip:face===(rabbit?-1:1)?1:-1,mode};
