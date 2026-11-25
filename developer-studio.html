@@ -1425,6 +1425,7 @@ $('openLive').onclick=()=>openUrl('./');
 $('clearPreview').onclick=()=>{
  if(!confirm('確定清除開發預覽存檔？正式遊戲存檔完全不會更動。'))return;
  localStorage.removeItem('dungeon_adventure_ch1_devpreview_v1');
+ localStorage.removeItem('dungeon_adventure_ch1_devpreview_v1.previous-v1');
  $('gameFrame').src='./?dev-preview=1&perf=1&bagSplit=trial&v='+Date.now();
  toast('開發測試存檔已清除');
 };
