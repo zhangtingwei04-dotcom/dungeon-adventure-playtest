@@ -35,8 +35,9 @@ window.DungeonSceneObjectsV1=(function makeSceneObjectEngine(){
   const [x,y]=creatureSlots[v.slot];
   return {id:'forest-creature',kind:'creature',x,y,label:'陌生林地生物'};
  }
- function plants(o,s){
+ function plants(o,s,weather){
   const site=s.scene;if(!sites.includes(site))return [];
+  if(window.DungeonWeatherV1&&!window.DungeonWeatherV1.plantSpawnAllowed(weather))return [];
   const day=Math.floor(Math.max(0,s.worldMinutes||0)/1440);
   let p=o.plants[site];
   if(!p||!Number.isInteger(p.startDay)||p.startDay>day){p={startDay:day};o.plants[site]=p;}
@@ -84,13 +85,13 @@ window.DungeonSceneObjectsV1=(function makeSceneObjectEngine(){
  function dismissTraveler(s,site){
   const r=normalize(s).travelers[site];if(r)r.until=Math.min(r.until,s.worldMinutes);
  }
- function objects(s){
+ function objects(s,weather=window.DungeonWeatherV1?.at(s.seed,s.worldMinutes)){
   const o=normalize(s),site=s.scene,now=s.worldMinutes,a=[];
   if(site==='trail'&&s.recovery?.found)a.push({id:'old-wreck',kind:'wreck',x:20,y:71,label:s.recovery.looted?'已搜集的舊馬車':'舊馬車殘骸'});
   const npc=o.travelers[site];
   if(npc&&npc.until>now&&s.flags?.rescued)a.push({id:'traveler',kind:'npc',x:52,y:77,label:specs.npc.label});
   const animal=life.creature(o,s);if(animal)a.push(animal);
-  a.push(...life.plants(o,s));
+  a.push(...life.plants(o,s,weather));
   const positions=[[31,91],[82,90],[57,94]];
   const queue=s.exploration?.pending?.[site];
   if(Array.isArray(queue))queue.slice(0,3).forEach((r,i)=>{
