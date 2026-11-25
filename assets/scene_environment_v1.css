@@ -1,0 +1,20 @@
+/* D2 environment experiment; opt-in scope is set on the forest layer. */
+#sceneStage .forest-v4-layer.env-v1 .env-lit-art{position:relative}
+#sceneStage .forest-v4-layer.env-v1 .env-lit-art::after{
+ content:"";position:absolute;inset:0;pointer-events:none;
+ background:linear-gradient(145deg,rgba(246,218,144,calc(.12 * var(--env-light,.4))),transparent 44%,rgba(29,55,35,var(--env-shade,.08)) 100%);
+ -webkit-mask-image:var(--env-art-mask);mask-image:var(--env-art-mask);
+ -webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+ opacity:var(--env-local-opacity,1);
+}
+#app[data-period="night"] .forest-v4-layer.env-v1{--env-local-opacity:.28}
+#app[data-period="dawn"] .forest-v4-layer.env-v1{--env-local-opacity:.72}
+#app[data-period="dusk"] .forest-v4-layer.env-v1{--env-local-opacity:.8}
+#sceneStage .forest-v4-layer.env-v1 .forest-v4-object[data-motion="plant"] img{animation-delay:var(--env-delay,0s);animation-duration:6.2s}
+#sceneStage .forest-v4-layer.env-v1 .forest-v4-object[data-env-kind="butterfly"] img{animation:env-butterfly 1.7s ease-in-out infinite;animation-delay:var(--env-delay,0s)}
+#sceneStage .forest-v4-layer.env-v1 .forest-v4-object[data-env-kind="bird"] img{animation:env-bird 5.6s ease-in-out infinite;animation-delay:var(--env-delay,0s)}
+#sceneStage .forest-v4-layer.env-v1 .forest-v4-object[data-motion="animal"] .env-lit-art::after,
+#sceneStage .forest-v4-layer.env-v1 .forest-v4-object[data-motion="plant"] .env-lit-art::after{display:none}
+@keyframes env-butterfly{0%,100%{transform:translateY(0) scaleX(1)}25%{transform:translateY(-4%) scaleX(.75)}50%{transform:translateY(-7%) scaleX(1)}75%{transform:translateY(-3%) scaleX(.78)}}
+@keyframes env-bird{0%,77%,100%{transform:scale(1)}83%{transform:scale(1.025,.98)}90%{transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){#sceneStage .forest-v4-layer.env-v1 .forest-v4-object img{animation:none!important}}
