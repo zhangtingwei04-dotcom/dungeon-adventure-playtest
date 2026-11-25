@@ -4510,7 +4510,7 @@ let previewPeriod=null,previewWeather=null;
 let currentWeather=null;
 function syncWeather(){
  const engine=window.DungeonWeatherV1;if(!engine)return;
- currentWeather=previewWeather?{kind:previewWeather,...engine.kinds[previewWeather],...engine.climate(s.seed,s.worldMinutes,previewWeather),...engine.environment()}:engine.at(s.seed,s.worldMinutes);
+ currentWeather=previewWeather?{kind:previewWeather,...engine.kinds[previewWeather],...engine.climate(s.seed,s.worldMinutes,previewWeather),...Object.fromEntries(['snowCover','soil','plantWet','puddles','frost','wet'].map(key=>[key,engine.environment()[key]]))}:engine.at(s.seed,s.worldMinutes);
  if(previewWeather){const k=engine.kinds[previewWeather],climate=engine.climate(s.seed,s.worldMinutes,previewWeather);Object.assign(currentWeather,k,climate,{kind:previewWeather,temperature:previewWeather==='blizzard'?-6:previewWeather==='snow'?-2:Math.max(6,climate.temperature),windDir:-1});}
  const indoor=INDOOR_SCENES.has(s.scene);const app=$('app');app.dataset.weather=currentWeather.kind;
  engine.exposure(s,indoor);app.style.setProperty('--weather-wind',String(currentWeather.wind));app.style.setProperty('--weather-wind-angle',(1+currentWeather.wind*7).toFixed(2)+'deg');app.style.setProperty('--weather-wind-duration',(7.4-currentWeather.wind*4.2).toFixed(2)+'s');
