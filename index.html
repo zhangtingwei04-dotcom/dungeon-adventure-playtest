@@ -4426,9 +4426,9 @@ html.stage-locked #app #topGameHud #hudPhase{font-size:clamp(10px,1.65vw,17px)}
 <script src="./assets/beetle_articulation_live_v1.js?v=2-flight"></script>
 <script src="./assets/scene_spatial_motion_v1.js?v=3-action-map"></script>
 <script src="./assets/bird_motion_live_v1.js?v=2-hop-joints"></script>
-<script src="./assets/scene_environment_v1.js?v=16-water-ice"></script>
+<script src="./assets/scene_environment_v1.js?v=17-species-wind"></script>
 <script src="./assets/winter_surfaces_v1.js?v=8-contour-snow"></script>
-<script src="./assets/weather_system_v1.js?v=19-winter-wildlife"></script>
+<script src="./assets/weather_system_v1.js?v=20-species-wind"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/scene_objects_v1.js?v=20261125-winter"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
@@ -8141,7 +8141,7 @@ function renderForestV4(el){
  if(new URLSearchParams(location.search).get('wildlife')==='bird'&&DEV_PREVIEW_MODE){const bird=cfg.find(o=>o.assetId==='forest4_bird');if(bird)live=[...live.filter(o=>o.assetId!=='forest4_bird'),{...bird,id:'preview-bird-flight',visible:true}];}
  if(new URLSearchParams(location.search).get('wildlife')==='beetle'&&DEV_PREVIEW_MODE){const beetle=cfg.find(o=>o.assetId==='forest4_beetle');if(beetle)live=[...live.filter(o=>o.assetId!=='forest4_beetle'),{...beetle,id:'preview-beetle-flight',x:60,y:70,width:3.5,z:18,visible:true}];}
  // Apply after all spawn selection, including developer wildlife previews.
- if(weather&&spawnWeather){const env={...spawnWeather,snowCover:Math.max(spawnWeather.snowCover||0,weather.environment().snowCover||0)};
+ if(weather&&spawnWeather){const env={...spawnWeather,wind:previewWind!==null?previewWind/5:(currentWeather?.wind??weather.environment().behaviorWind??0),snowCover:Math.max(spawnWeather.snowCover||0,weather.environment().snowCover||0)};
   live=live.filter(o=>{const k=o.assetId.replace('forest4_','');return !['rabbit','bird','beetle','butterfly'].includes(k)||weather.activity(k,env);});
  }
  window.DungeonSceneEnvironmentV1?.setActionMap(live.filter(o=>o.visible&&assets[o.assetId]?.src));
@@ -8287,7 +8287,7 @@ $('travelOpenJournal').onclick=()=>journal('journey');
 $('regionMapBtn').onclick=()=>journal('map');$('journalBtn').onclick=()=>journal('journey');$('mapBtn').onclick=()=>journal('map');$('journalClose').onclick=()=>$('journalVeil').classList.add('hidden');$('hintBtn').onclick=()=>{showHints=!showHints;renderHotspots();toast(showHints?'僅顯示附近可互動位置，不影響主線':'已隱藏互動提示');};$('menuBtn').onclick=()=>{$('menuVeil').classList.remove('hidden');$('soundBtn').textContent='音效：'+(s.sound?'開啟':'關閉');};$('menuClose').onclick=()=>$('menuVeil').classList.add('hidden');$('dialogClose').onclick=closeDialog;
 for(const btn of document.querySelectorAll('[data-preview-period]'))btn.onclick=()=>selectTimePreview(btn.dataset.previewPeriod);
 $('hudWeatherBtn').onclick=()=>{ $('menuVeil').classList.remove('hidden');$('soundBtn').textContent='音效：'+(s.sound?'開啟':'關閉');requestAnimationFrame(()=>$('weatherSettingsHeading').scrollIntoView({block:'start',behavior:'auto'})); };
- $('menuVeil').addEventListener('click',event=>{const button=event.target.closest('[data-preview-weather]');if(button){event.preventDefault();selectWeatherPreview(button.dataset.previewWeather);return;}const wind=event.target.closest('[data-preview-wind],[data-preview-wind-dir]');if(wind){event.preventDefault();if(wind.hasAttribute('data-preview-wind'))previewWind=wind.dataset.previewWind==='auto'?null:Number(wind.dataset.previewWind);else previewWindDir=wind.dataset.previewWindDir==='auto'?null:Number(wind.dataset.previewWindDir);$('menuVeil').classList.add('hidden');syncTimeAtmosphere();renderPlaceDrawer();renderSceneInfoBar();toast('風力預覽：'+window.DungeonWeatherV1.windLabel(currentWeather.wind,currentWeather.windDir));}});
+ $('menuVeil').addEventListener('click',event=>{const button=event.target.closest('[data-preview-weather]');if(button){event.preventDefault();selectWeatherPreview(button.dataset.previewWeather);return;}const wind=event.target.closest('[data-preview-wind],[data-preview-wind-dir]');if(wind){event.preventDefault();if(wind.hasAttribute('data-preview-wind'))previewWind=wind.dataset.previewWind==='auto'?null:Number(wind.dataset.previewWind);else previewWindDir=wind.dataset.previewWindDir==='auto'?null:Number(wind.dataset.previewWindDir);$('menuVeil').classList.add('hidden');syncTimeAtmosphere();renderHotspots();renderPlaceDrawer();renderSceneInfoBar();toast('風力預覽：'+window.DungeonWeatherV1.windLabel(currentWeather.wind,currentWeather.windDir));}});
 $('timePreviewTag').onclick=()=>{previewPeriod=null;previewWeather=null;previewWind=null;previewWindDir=null;syncTimeAtmosphere();renderHotspots();renderPlaceDrawer();renderSceneInfoBar();};
 $('sceneDialogueNext').onclick=e=>{e.stopPropagation();nextSceneDialogue();};
 $('sceneDialogue').onclick=e=>{if(e.target.closest('button'))return;nextSceneDialogue();};
