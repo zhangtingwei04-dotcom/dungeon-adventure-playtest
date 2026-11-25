@@ -47,6 +47,8 @@ window.DungeonForestV4Integration=(function integration(){
   if(k==='wheel_flat')p={...p,grassWidth:0,grassOpacity:0};
   // Multi-contact shadows for the original wagon sprite; the terrain itself supplies grass.
   if(k==='wagon')p={...p,grassWidth:0,grassOpacity:0,shadowProfile:'wagon-multi-contact'};
+  // Tone down the grass on the right of the mounted wheel, not all forest vegetation.
+  if(o.id==='v4-grass_b11'&&window.DUNGEON_FOREST_V4_LAYOUT?.revision==='accident-c')p={...p,brightness:.82,saturation:.70,contrast:.92,shadowOpacity:.25};
   // Depth correction is intentionally restrained: only art appearance, never dimensions.
   const depth=Math.max(0,Math.min(1,(70-o.y)/45));
   return {...p,ground:!airborne,brightness:Math.max(.8,Math.min(1,p.brightness+depth*.025)),saturation:Math.max(.65,p.saturation-depth*.045),contrast:p.contrast-depth*.025,angle:k==='wheel_flat'||k==='plank'?o.rotation*.5:0};
