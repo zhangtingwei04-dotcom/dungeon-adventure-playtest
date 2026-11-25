@@ -38,6 +38,57 @@ window.DungeonEventsV1=(function(){
  }
  return Object.freeze({on,emit,appendTravel,updateTravel,discovery,diagnostics:()=>({subscriptions:[...handlers].map(([type,set])=>({type,ids:[...set.keys()]})),history:history.slice(),errors:errors.slice()})});
 })();
+/* Domain schema V1. Independent revisions, additive metadata, no new gameplay. */
+window.DungeonDataSchemaV1=(function(){
+ const map=x=>x!==null&&typeof x==='object'&&!Array.isArray(x)&&!['__proto__','constructor','prototype'].some(k=>Object.hasOwn(x,k));
+ function ensureMap(a,k){if(!map(a[k]))a[k]={};return a[k];}
+ function wallet(a){
+  if(!map(a.wallet))a.wallet={silver:1,copper:12};
+  for(const k of ['silver','copper'])if(!Number.isSafeInteger(a.wallet[k])||a.wallet[k]<0)a.wallet[k]=0;
+ }
+ function exploration(a){
+  const e=ensureMap(a,'exploration');
+  for(const k of ['counts','routeProgress','pending','daily','last'])ensureMap(e,k);
+  // The game owns the material catalog and route-specific validation.
+ }
+ function forestRare(a){
+  const r=ensureMap(a,'forestRare');
+  for(const k of ['checkedDays','sighted','hints','ingredients'])ensureMap(r,k);
+  if(r.checkedDays.beetle===undefined&&Number.isFinite(r.checkedDays.goblin))r.checkedDays.beetle=r.checkedDays.goblin;
+  if(r.sighted.beetle===undefined&&r.sighted.goblin)r.sighted.beetle=true;
+  if(r.hints.beetle===undefined&&r.hints.goblin)r.hints.beetle=true;
+  r.beetleGearTaken=!!(r.beetleGearTaken||r.goblinGearTaken);
+  r.rabbitHerbTaken=!!r.rabbitHerbTaken;
+  if(!r.rustBeetleMigrated){
+   const rename=x=>typeof x==='string'?x.replaceAll('拾鐵小妖','鏽殼甲蟲'):x;
+   if(Array.isArray(a.notes))a.notes=a.notes.map(rename);
+   if(Array.isArray(a.travelLog))for(const e of a.travelLog)if(map(e)){e.message=rename(e.message);e.thought=rename(e.thought);}
+   if(Array.isArray(a.seen)&&a.seen.includes('rareGoblin')&&!a.seen.includes('rareBeetle'))a.seen.push('rareBeetle');
+   r.rustBeetleMigrated=true;
+  }
+ }
+ const definitions=Object.freeze({wallet:Object.freeze({version:1,steps:Object.freeze([wallet]),normalize:wallet}),exploration:Object.freeze({version:1,steps:Object.freeze([exploration]),normalize:exploration}),forestRare:Object.freeze({version:1,steps:Object.freeze([forestRare]),normalize:forestRare})});
+ function migrate(a){
+  if(!map(a.engineSave))throw Error('缺少存檔版本資訊');
+  const old=a.engineSave.domains;
+  if(old!==undefined&&!map(old))throw Error('系統版本資訊不相容');
+  const versions={...(old||{})};
+  // Preflight every known version before changing any field.
+  for(const [id,d] of Object.entries(definitions)){
+   const v=Object.hasOwn(versions,id)?versions[id]:0;
+   if(!Number.isInteger(v)||v<0||v>d.version)throw Error('系統版本不相容：'+id);
+  }
+  for(const [id,d] of Object.entries(definitions)){
+   let v=versions[id]??0;
+   while(v<d.version){const step=d.steps[v];if(!step)throw Error('缺少系統遷移：'+id);step(a);v++;}
+   d.normalize(a);versions[id]=v;
+  }
+  a.engineSave.domains=versions;
+  return a;
+ }
+ function normalize(a,id){if(!Object.hasOwn(definitions,id))throw Error('未知資料系統');definitions[id].normalize(a);return a[id];}
+ return Object.freeze({migrate,normalize,versions:()=>Object.fromEntries(Object.entries(definitions).map(([k,d])=>[k,d.version]))});
+})();
 window.DungeonSaveV1=(function(events){
  const CURRENT=1,PROJECT='dungeon-adventure',migrations=new Map();let last={state:'idle'},writeProtected=false,replacementAllowed=false;
  const record=x=>x!==null&&typeof x==='object'&&!Array.isArray(x);
@@ -55,6 +106,7 @@ window.DungeonSaveV1=(function(events){
   while(version<CURRENT){const migrate=migrations.get(version);if(!migrate)throw Error('缺少存檔遷移');j=migrate(j);version++;if(j.engineSave?.schema!==version)throw Error('遷移版本錯誤');}
   if(!valid(j,scenes))throw Error('遷移後存檔不相容');
   window.DungeonGameTimeV1.normalize(j);
+  window.DungeonDataSchemaV1.migrate(j);
   if(!Array.isArray(j.travelLog))j.travelLog=[];
   j.travelLog=j.travelLog.filter(e=>record(e)&&typeof e.message==='string').slice(-120);
   if(typeof j.feedCollapsed!=='boolean')j.feedCollapsed=false;
@@ -87,7 +139,7 @@ window.DungeonSaveV1=(function(events){
    const candidate=prepare(actor,scenes);candidate.savedAt=Date.now();
    const raw=storage.getItem(key);let prior=null;
    if(raw!=null){try{prior=parse(raw,scenes);}catch(err){if(!replacementAllowed){writeProtected=true;throw err;}}}
-   if(prior&&prior.saveIntegrityV1&&progress(prior)===progress(candidate)){
+   if(prior&&prior.saveIntegrityV1&&progress(JSON.parse(raw))===progress(candidate)){
     actor.engineSave=prior.engineSave;actor.savedAt=prior.savedAt;replacementAllowed=false;writeProtected=false;
     last={state:'saved',schema:CURRENT,integrity:'verified',unchanged:true};return true;
    }
@@ -110,4 +162,5 @@ window.DungeonSaveV1=(function(events){
  return Object.freeze({CURRENT,valid,prepare,parse,read,write,exportText,previous,backupKey,registerMigration,allowReplacement:()=>{replacementAllowed=true;writeProtected=false;},diagnostics:()=>({...last,writeProtected})});
 })(window.DungeonEventsV1);
 window.DungeonEngineV1.register({id:'engine.events',version:'1.0.0',requires:['engine.registry']});
-window.DungeonEngineV1.register({id:'engine.save',version:'1.0.0',requires:['engine.time','engine.events']});
+window.DungeonEngineV1.register({id:'engine.data-schema',version:'1.0.0',requires:['engine.registry']});
+window.DungeonEngineV1.register({id:'engine.save',version:'1.3.0',requires:['engine.time','engine.events','engine.data-schema']});
