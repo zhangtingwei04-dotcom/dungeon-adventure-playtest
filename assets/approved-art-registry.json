@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "project": "迷宮盡頭的燈火",
-  "scope": "首批已確認服裝；不是完整遊戲素材清冊",
+  "scope": "已確認的服裝與男性頭部基準；不是完整遊戲素材清冊。保留正式修正版所需的原始圖層。",
   "policy": {
     "approvedOnly": true,
     "retainRejectedArt": false,
@@ -67,6 +67,51 @@
         "index.html",
         "developer-studio.html"
       ],
+      "visualAcceptance": "pending-device"
+    },
+    {
+      "id": "trousers",
+      "name": "旅行長褲",
+      "version": "V2",
+      "category": "服裝",
+      "path": "assets/travel_trousers_workbench_v2.js",
+      "evidence": "素材註明採用核准設計，正式遊戲裝備及總工作台均引用；實機外觀待確認。",
+      "consumers": [
+        "index.html",
+        "developer-studio.html"
+      ],
+      "blob": "62bb8cb53040031cb7fd58211ebf23db4830b73c",
+      "state": "approved",
+      "visualAcceptance": "pending-device"
+    },
+    {
+      "id": "male-head-source",
+      "name": "男性頭部原始五圖層",
+      "version": "V3",
+      "category": "角色",
+      "path": "assets/male_approved_v3_layers.js",
+      "evidence": "原始註記確認 2026-11-21 核准；修正版仍直接依賴本檔案，不視為淘汰素材。",
+      "consumers": [
+        "index.html",
+        "developer-studio.html"
+      ],
+      "blob": "d326d387ea9c80f4a0d231627782edf3b2aa4133",
+      "state": "approved",
+      "visualAcceptance": "pending-device"
+    },
+    {
+      "id": "male-head-corrected",
+      "name": "男性頭部眉眼分層修正",
+      "version": "V2（基於頭部 V3）",
+      "category": "角色",
+      "path": "assets/male_v3_corrected_layers_v2.js",
+      "evidence": "正式遊戲與總工作台優先讀取修正版；保留核准 V3 頭皮、眼色、嘴與頭髮。",
+      "consumers": [
+        "index.html",
+        "developer-studio.html"
+      ],
+      "blob": "690f71337d28dcc8f8112a594fbf13fbc115b0a2",
+      "state": "approved",
       "visualAcceptance": "pending-device"
     }
   ]
