@@ -168,3 +168,14 @@ assert.equal(secureSave.parse(secureSave.exportText(migratedDomain,saveScenes),s
 const futureDomain=JSON.parse(JSON.stringify(migratedDomain));futureDomain.engineSave.domains.wallet=2;
 assert.throws(()=>secureSave.prepare(futureDomain,saveScenes),/系統版本不相容/);
 console.log('PASS: domain migration preserves progress, old route semantics, unknown fields and rejects unsupported known versions');
+
+
+const objectWindow={};for(const f of ['object_investigation_v1','wreck_current_layout_v1','forest_v4_spawns'])new vm.Script(read('assets/'+f+'.js').toString()).runInNewContext({window:objectWindow});
+const investigation=objectWindow.DungeonObjectInvestigationV1;
+const forestObjects=[...objectWindow.DUNGEON_WRECK_CURRENT_LAYOUT.scenes.wreck,...objectWindow.DUNGEON_FOREST_V4_SPAWNS];
+for(const o of forestObjects){assert(investigation.describe(o),'Missing investigation '+o.id);assert.equal(investigation.describe(o).collectible,false);}
+const wagonObject=forestObjects.find(o=>o.assetId==='forest4_wagon');
+assert.equal(investigation.describe(wagonObject,[{id:'sample'}]).visualState,'resource-available');
+assert.equal(investigation.describe(wagonObject,[]).visualState,'normal');
+assert.equal(investigation.describe(wagonObject,[]).type,'container');
+console.log('PASS: investigation coverage and resource-state separation');
