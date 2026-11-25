@@ -98,3 +98,18 @@ const fixedQualityTest=aq.DungeonAdaptiveQualityV1.create({fixed:0});
 for(let i=0;i<500;i++)fixedQualityTest.sample(i*100);
 assert.equal(fixedQualityTest.profile().name,'full');
 console.log('PASS: adaptive visual quality hysteresis, recovery, pause and fixed mode');
+
+
+const faultsWindow={};new vm.Script(read('assets/fault_isolation_v1.js').toString()).runInNewContext({window:faultsWindow});
+let faultClock=0,faultCalls=0;
+const isolator=faultsWindow.DungeonFaultIsolationV1.create({clock:()=>faultClock});
+for(let i=0;i<3;i++)assert.equal(isolator.run('thumbnail',()=>{faultCalls++;throw Error('private-data')},{cooldown:3000}),false);
+assert.equal(isolator.run('thumbnail',()=>faultCalls++),false);
+assert.equal(faultCalls,3);
+assert.equal(isolator.run('weather',()=>faultCalls++),true);
+faultClock=3001;assert.equal(isolator.run('thumbnail',()=>faultCalls++),true);
+assert.equal(isolator.snapshot().systems.find(x=>x.id==='thumbnail').recoveries,1);
+assert(!JSON.stringify(isolator.snapshot()).includes('private-data'));
+for(let i=0;i<100;i++){isolator.fail('weather',Error('test'));isolator.recover('weather');}
+assert.equal(isolator.snapshot().events.length,40);
+console.log('PASS: runtime isolation, cooldown, recovery, bounded diagnostics and redaction');
