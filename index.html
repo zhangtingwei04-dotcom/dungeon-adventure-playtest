@@ -4429,6 +4429,7 @@ html.stage-locked #app #topGameHud #hudPhase{font-size:clamp(10px,1.65vw,17px)}
 <script src="./assets/scene_environment_v1.js?v=17-species-wind"></script>
 <script src="./assets/winter_surfaces_v1.js?v=8-contour-snow"></script>
 <script src="./assets/engine_foundation_v1.js?v=1"></script>
+<script src="./assets/engine_events_save_v1.js?v=1"></script>
 <script src="./assets/character_environment_v1.js?v=1.1"></script>
 <script src="./assets/weather_system_v1.js?v=23-character-core"></script>
 <script src="./assets/trail_forest_v1.js"></script>
@@ -7411,9 +7412,10 @@ function paintActorSprite(canvas,memberId,emotion='neutral',time=performance.now
 function randomSeed(){return (Date.now()^((Math.random()*4294967295)>>>0))>>>0;}
 function selectFour(seed){let a=[0,1,2,3,4,5],v=seed>>>0;for(let i=a.length-1;i>0;i--){v=(Math.imul(v,1664525)+1013904223)>>>0;let j=v%(i+1);[a[i],a[j]]=[a[j],a[i]];}return a.slice(0,4).sort((x,y)=>x-y);}
 function initial(){const seed=randomSeed();return{v:1,seed,scene:'wreck',worldMinutes:960,routeDiscovery:{known:[],searchCounts:{}},placeCardsViewed:[],exploration:{counts:{},routeProgress:{},pending:{},daily:{},last:{}},recovery:{found:false,looted:false,items:[],parts:{}},forestEcology:{checkedDays:{},observed:{},ingredients:{},leafCollected:false},forestRare:{checkedDays:{},sighted:{},hints:{},ingredients:{},beetleGearTaken:false,rabbitHerbTaken:false},beetle:{questAccepted:false,questCompleted:false,captured:false,terrarium:false,seen:false,food:72,clean:85,comfort:68,lastDay:0},wallet:{silver:1,copper:12},equipmentV1:createStartingEquipmentV1(),appearanceV1:{hairColor:'#c8cbd0',templateId:'human_male_base_v2_shirtless'},hp:16,maxHp:16,seen:[],notes:[],items:[],party:selectFour(seed),flags:{},visits:{wreck:1},savedAt:Date.now(),sound:false,feedCollapsed:false,travelHudMode:'compact',travelLog:[{type:'daily',message:'在毀壞的馬車篷內醒來，扶著斷裂木板爬到了外面。',thought:'我怎麼會在這裡？先看看四周吧。',scene:'wreck',time:Date.now()}]};}
-function validSave(j){return !!(j&&j.v===1&&names[j.scene]&&Number.isFinite(j.hp)&&Number.isFinite(j.maxHp)&&Array.isArray(j.party)&&j.party.length===4&&new Set(j.party).size===4&&j.party.every(i=>Number.isInteger(i)&&i>=0&&i<6)&&Array.isArray(j.seen)&&Array.isArray(j.notes)&&Array.isArray(j.items)&&j.flags&&typeof j.flags==='object'&&j.visits&&typeof j.visits==='object');}
-function load(){try{const j=JSON.parse(localStorage.getItem(KEY));return validSave(j)?j:null;}catch{return null;}}
-let s=load()||initial(), hasSave=!!load(),modal=null,showHints=false,journalTab='discoveries',toastHandle=null;
+function validSave(j){return window.DungeonSaveV1.valid(j,names);}
+function load(){try{return window.DungeonSaveV1.read(localStorage,KEY,names);}catch{return null;}}
+const loadedSave=load();
+let s=loadedSave||initial(),hasSave=!!loadedSave,modal=null,showHints=false,journalTab='discoveries',toastHandle=null;
 let backpackView='all',equipmentSelected='bag';
 normalizeWallet();normalizeEquipmentV1();normalizeAppearanceV1();
 if(!Array.isArray(s.travelLog))s.travelLog=[];
@@ -7435,11 +7437,14 @@ normalizeGameTime();normalizeRecovery();normalizeForestRare();normalizeBeetleCar
  for(const [id,version,requires,key] of definitions)engine.register({id,version,requires,available:()=>key?!!window[key]:true});
  engine.onTime('world.weather',(actor,event)=>window.DungeonWeatherV1.exposure(actor,INDOOR_SCENES.has(event.fromScene)));
  engine.onTime('world.beetle-care',(actor,event)=>{if(actor===s&&event.daysCrossed>0)tickBeetleCare(false);});
+ engine.onTime('engine.events',(actor,event)=>window.DungeonEventsV1.emit('time.advanced',actor,event));
+ window.DungeonEventsV1.on('travel.recorded','ui.travel-feed',(actor)=>{if(actor===s){save();renderFeed();}});
+ window.DungeonEventsV1.on('travel.updated','ui.travel-feed',(actor)=>{if(actor===s){save();renderFeed();}});
 })();
 if(typeof s.feedCollapsed!=='boolean')s.feedCollapsed=false;if(!['compact','expanded'].includes(s.travelHudMode))s.travelHudMode='compact';
 const moveThought={wreck:'一切似乎從這片殘骸開始。',trail:'沿著道路走，也許能遇見其他人。',clearing:'這裡比想像中安靜。',ruin:'這座古老建築還藏著多少故事？',gate:'終於看到有人生活的地方了。',inn:'至少現在能稍微休息。',lobby:'普通的早晨，也讓我感到安心。',street:'這個世界的人們也在過自己的日子。',guild:'或許能在這裡找到一些方向。',outskirts:'前方還有很多我不知道的地方。',home:'這裡承載著六個人一起生活的痕跡。'};
 const discoveryThought={wagon:'馬車在我醒來前就毀了。',scratches:'這些刻痕究竟是誰留下的？',light:'那道微光似乎有些奇怪。',sound:'先觀察牠會怎麼行動。',rescue:'原來這裡還有人願意幫助陌生人。',sigil:'背上的紋印……究竟代表什麼？',innkeeper:'也許能在這裡慢慢熟悉城鎮。',secondMeet:'沒想到會再見到他們。',leftbehind:'六個人都有自己的生活。',guildClerk:'公會看起來不只有打怪的工作。',roadSign:'原來這條路有人經常使用。'};
-function addTravel(type,message,thought=''){if(!Array.isArray(s.travelLog))s.travelLog=[];const last=s.travelLog[s.travelLog.length-1];if(last&&last.message===message&&last.scene===s.scene)return;s.travelLog.push({type,message,thought,scene:s.scene,time:Date.now()});if(s.travelLog.length>120)s.travelLog.splice(0,s.travelLog.length-120);save();renderFeed();}
+function addTravel(type,message,thought=''){return window.DungeonEventsV1.appendTravel(s,type,message,thought);}
 let feedRenderedArray=null,feedRenderedLength=0,feedRenderedLast=null,feedRenderedMode=null;
 function renderFeed(){
  const feed=$('travelFeed');if(!feed)return;
@@ -7521,10 +7526,10 @@ function renderFeed(){
  }
 }
 const addUnique=(arr,value)=>{if(!arr.includes(value))arr.push(value);};
-function save(){window.DungeonWeatherV1?.exposure(s,INDOOR_SCENES.has(s.scene));s.savedAt=Date.now();try{localStorage.setItem(KEY,JSON.stringify(s));}catch{}};
+function save(){window.DungeonWeatherV1?.exposure(s,INDOOR_SCENES.has(s.scene));try{return window.DungeonSaveV1.write(localStorage,KEY,s,names);}catch{return false;}};
 function toast(msg){$('toast').textContent=msg;$('toast').classList.add('active');clearTimeout(toastHandle);toastHandle=setTimeout(()=>$('toast').classList.remove('active'),2400);}
 function beep(f=440){if(!s.sound)return;try{const AC=window.AudioContext||window.webkitAudioContext;const ctx=new AC(),osc=ctx.createOscillator(),gain=ctx.createGain();osc.type='sine';osc.frequency.value=f;gain.gain.setValueAtTime(.035,ctx.currentTime);gain.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.16);osc.connect(gain).connect(ctx.destination);osc.start();osc.stop(ctx.currentTime+.18);setTimeout(()=>ctx.close(),400);}catch{}}
-function note(id,msg){const first=!s.seen.includes(id);addUnique(s.seen,id);addUnique(s.notes,msg);if(first)addTravel('discovery',msg,discoveryThought[id]||'我先把這件事記下來。');save();toast('已記錄：'+msg);beep(680);}
+function note(id,msg){window.DungeonEventsV1.discovery(s,id,msg,discoveryThought[id]||'我先把這件事記下來。');save();toast('已記錄：'+msg);beep(680);}
 let lastMoveAt=0,lastActionAt=0,encounterPending=false,encounterTimer=null,encounterToken=0;
 // A 2D pan, not an artificial perspective rotation. 1.12x zoom allows 6% travel on either side.
 /* Per-scene camera distance: 1 = current view; >1 = camera farther away.
@@ -8326,10 +8331,10 @@ $('sceneDialogueNext').onclick=e=>{e.stopPropagation();nextSceneDialogue();};
 $('sceneDialogue').onclick=e=>{if(e.target.closest('button'))return;nextSceneDialogue();};
 $('soundBtn').onclick=()=>{s.sound=!s.sound;if(s.sound)window.DungeonWeatherV1?.unlockAudio();$('soundBtn').textContent='音效：'+(s.sound?'開啟':'關閉');syncTimeAtmosphere();save();beep(520);};
  document.addEventListener('pointerdown',()=>{if(s.sound)window.DungeonWeatherV1?.unlockAudio();},{passive:true});
-$('engineDiagnosticsBtn').onclick=()=>{const d=window.DungeonEngineV1.diagnostics();$('menuVeil').classList.add('hidden');dialog('共用核心診斷',d.modules.map(m=>m.id+' v'+m.version+' · '+({ready:'正常',missing:'缺少模組',blocked:'相依未就緒',error:'錯誤'}[m.state]||m.state)).join('\n')+'\n\n時間更新接入：'+d.timeListeners.join('、')+'\n近期錯誤：'+(d.faults.length?d.faults.map(f=>f.id+'：'+f.message).join('\n'):'無'),[{label:'返回',fn:()=>{}}],'開發診斷');};
-$('restartBtn').onclick=()=>{if(!confirm('確定重新開始？目前本機存檔將被覆蓋。'))return;closeSceneDialogue();s=initial();paperDollTryOn=false;equipmentSelected='bag';previewPeriod=null;hideSceneActors();hideSceneInspection();refreshSceneFraming();$('menuVeil').classList.add('hidden');render();openWreckIntroduction();toast('已開始新的旅程');};
-$('exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify(s,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='dungeon-adventure-save-v02.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};$('importBtn').onclick=()=>$('fileInput').click();$('fileInput').onchange=async e=>{try{const text=await e.target.files[0].text(),j=JSON.parse(text);if(!validSave(j))throw Error('格式不相容');s=j;previewPeriod=null;normalizeGameTime();normalizeRecovery();normalizeForestRare();normalizeBeetleCare();normalizeForestEcology();normalizeRouteDiscovery();normalizeExploration();normalizePlaceCards();closePlaceDrawer();hideSceneActors();hideSceneInspection();refreshSceneFraming();if(!Array.isArray(s.travelLog))s.travelLog=[];if(typeof s.feedCollapsed!=='boolean')s.feedCollapsed=false;if(!['compact','expanded'].includes(s.travelHudMode))s.travelHudMode='compact';save();render();$('menuVeil').classList.add('hidden');toast('已匯入存檔');}catch{alert('無法讀取這份存檔。');}e.target.value='';};
-$('startBtn').onclick=()=>{closeSceneDialogue();s=initial();paperDollTryOn=false;equipmentSelected='bag';previewPeriod=null;refreshSceneFraming();hasSave=true;$('startVeil').classList.add('hidden');render();openWreckIntroduction();};if(hasSave){$('continueBtn').classList.remove('hidden');$('continueBtn').onclick=()=>{$('startVeil').classList.add('hidden');render();if(s.flags.inBattle)battleDialog('繼續尚未結束的遭遇戰。');else openWreckIntroduction();};}
+$('engineDiagnosticsBtn').onclick=()=>{const d=window.DungeonEngineV1.diagnostics(),ev=window.DungeonEventsV1.diagnostics(),sv=window.DungeonSaveV1.diagnostics();$('menuVeil').classList.add('hidden');dialog('共用核心診斷',d.modules.map(m=>m.id+' v'+m.version+' · '+({ready:'正常',missing:'缺少模組',blocked:'相依未就緒',error:'錯誤'}[m.state]||m.state)).join('\n')+'\n\n時間更新接入：'+d.timeListeners.join('、')+'\n事件訂閱：'+ev.subscriptions.map(x=>x.type).join('、')+'\n存檔狀態：'+sv.state+(sv.message?' · '+sv.message:'')+'\n近期錯誤：'+([...d.faults,...ev.errors].length?[...d.faults,...ev.errors].map(f=>f.id+'：'+f.message).join('\n'):'無'),[{label:'返回',fn:()=>{}}],'開發診斷');};
+$('restartBtn').onclick=()=>{if(!confirm('確定重新開始？目前本機存檔將被覆蓋。'))return;closeSceneDialogue();window.DungeonSaveV1.allowReplacement();s=initial();paperDollTryOn=false;equipmentSelected='bag';previewPeriod=null;previewWeather=null;previewWind=null;previewWindDir=null;hideSceneActors();hideSceneInspection();refreshSceneFraming();$('menuVeil').classList.add('hidden');render();openWreckIntroduction();toast('已開始新的旅程');};
+$('exportBtn').onclick=()=>{const blob=new Blob([window.DungeonSaveV1.exportText(s,names)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='dungeon-adventure-save-v02.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};$('importBtn').onclick=()=>$('fileInput').click();$('fileInput').onchange=async e=>{try{const text=await e.target.files[0].text(),j=window.DungeonSaveV1.parse(text,names);s=j;previewPeriod=null;previewWeather=null;previewWind=null;previewWindDir=null;normalizeWallet();normalizeEquipmentV1();normalizeAppearanceV1();normalizeGameTime();normalizeRecovery();normalizeForestRare();normalizeBeetleCare();normalizeForestEcology();normalizeRouteDiscovery();normalizeExploration();normalizePlaceCards();closePlaceDrawer();hideSceneActors();hideSceneInspection();refreshSceneFraming();if(!Array.isArray(s.travelLog))s.travelLog=[];if(typeof s.feedCollapsed!=='boolean')s.feedCollapsed=false;if(!['compact','expanded'].includes(s.travelHudMode))s.travelHudMode='compact';window.DungeonSaveV1.allowReplacement();const stored=save();render();$('menuVeil').classList.add('hidden');toast(stored?'已匯入存檔':'已匯入至本次遊戲，但本機儲存失敗');}catch{alert('無法讀取這份存檔。');}e.target.value='';};
+$('startBtn').onclick=()=>{if(window.DungeonSaveV1.diagnostics().writeProtected&&!confirm('原始存檔無法讀取。確定開始新遊戲並覆寫？'))return;closeSceneDialogue();window.DungeonSaveV1.allowReplacement();s=initial();paperDollTryOn=false;equipmentSelected='bag';previewPeriod=null;refreshSceneFraming();hasSave=true;$('startVeil').classList.add('hidden');render();openWreckIntroduction();};if(hasSave){$('continueBtn').classList.remove('hidden');$('continueBtn').onclick=()=>{$('startVeil').classList.add('hidden');render();if(s.flags.inBattle)battleDialog('繼續尚未結束的遭遇戰。');else openWreckIntroduction();};}
 window.addEventListener('keydown',e=>{
 if(e.metaKey||e.ctrlKey||e.altKey||e.target.matches('input,textarea,select,[contenteditable="true"]'))return;
 if(sceneDialogueState.open){
