@@ -4294,7 +4294,7 @@ html.stage-locked #app #topGameHud #hudPhase{font-size:clamp(10px,1.65vw,17px)}
 <script src="./assets/scene_spatial_motion_v1.js?v=2-flight-test"></script>
 <script src="./assets/bird_motion_live_v1.js?v=2-hop-joints"></script>
 <script src="./assets/scene_environment_v1.js?v=11-bird"></script>
-<script src="./assets/weather_system_v1.js?v=4-seasonal-effects"></script>
+<script src="./assets/weather_system_v1.js?v=5-puddles"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/scene_objects_v1.js?v=20261124-2"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
@@ -4469,7 +4469,7 @@ let previewPeriod=null,previewWeather=null;
 let currentWeather=null;
 function syncWeather(){
  const engine=window.DungeonWeatherV1;if(!engine)return;
- currentWeather=previewWeather?{kind:previewWeather,...engine.kinds[previewWeather],...engine.climate(s.seed,s.worldMinutes,previewWeather),wet:engine.kinds[previewWeather].rain*.85,snowCover:previewWeather==='snow'?.55:0}:engine.at(s.seed,s.worldMinutes);
+ currentWeather=previewWeather?{kind:previewWeather,...engine.kinds[previewWeather],...engine.climate(s.seed,s.worldMinutes,previewWeather),wet:previewWeather==='rain'||previewWeather==='storm'?.92:engine.kinds[previewWeather].rain*.85,snowCover:previewWeather==='snow'?.55:0}:engine.at(s.seed,s.worldMinutes);
  const indoor=INDOOR_SCENES.has(s.scene);const app=$('app');app.dataset.weather=currentWeather.kind;
  engine.exposure(s,indoor);app.style.setProperty('--weather-wind',String(currentWeather.wind));app.style.setProperty('--weather-wind-angle',(1+currentWeather.wind*7).toFixed(2)+'deg');app.style.setProperty('--weather-wind-duration',(7.4-currentWeather.wind*4.2).toFixed(2)+'s');
  const label=indoor?'室內 · 外面'+currentWeather.name:currentWeather.name;
@@ -8248,7 +8248,7 @@ function sceneDraw(time){
  if(s.scene==='wreck'&&emptyForestReady){
   ctx.save();ctx.imageSmoothingEnabled=true;
   const w=emptyForest.naturalWidth,h=emptyForest.naturalHeight,fit=Math.max(W/w,H/h);
-  ctx.drawImage(emptyForest,(W-w*fit)/2,(H-h*fit)/2,w*fit,h*fit);ctx.restore();if(forestV4Active()&&new URLSearchParams(location.search).get('env')!=='off'&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches)window.DungeonSceneEnvironmentV1?.draw(ctx,neutralForestSelected?'forestV5':'forestV4',time,W,H,previewPeriod||periodForMinutes(s.worldMinutes),emptyForest);return;
+  ctx.drawImage(emptyForest,(W-w*fit)/2,(H-h*fit)/2,w*fit,h*fit);ctx.restore();if(forestV4Active()&&new URLSearchParams(location.search).get('env')!=='off'&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches)window.DungeonSceneEnvironmentV1?.draw(ctx,neutralForestSelected?'forestV5':'forestV4',time,W,H,previewPeriod||periodForMinutes(s.worldMinutes),emptyForest);window.DungeonWeatherV1?.drawGround(ctx,time,W,H,forestV4Active()&&neutralForestSelected);return;
  }
  if(s.scene==='wreck'&&approvedWreckReady){
   ctx.save();ctx.imageSmoothingEnabled=false;
