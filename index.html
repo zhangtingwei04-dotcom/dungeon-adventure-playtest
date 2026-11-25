@@ -4897,10 +4897,9 @@ function normalizeRouteDiscovery(){
  const rd=s.routeDiscovery;
  if(!Array.isArray(rd.known))rd.known=[];
  rd.known=Array.from(new Set(rd.known.filter(k=>typeof k==='string'&&ROUTE_TIMES.some(r=>routeKey(r.a,r.b)===k))));
- // The visible road out of the wreck is always accessible; searching remains optional.
- // Migrate existing saves without revealing the other, still-hidden pathways.
+ // Preserve already travelled routes in legacy saves, but do not grant a new player an exit.
  const exitKey=routeKey('wreck','trail');
- if(!rd.known.includes(exitKey))rd.known.push(exitKey);
+ if((s.flags?.openingDepartureDone||s.flags?.rescued||Number(s.visits?.trail)>0||s.scene!=='wreck')&&!rd.known.includes(exitKey))rd.known.push(exitKey);
  if(!rd.searchCounts||typeof rd.searchCounts!=='object'||Array.isArray(rd.searchCounts))rd.searchCounts={};
 }
 function routeKnown(a,b){
@@ -5007,6 +5006,8 @@ function explorationToast(site,last,newMaterials){
 function openingView(){return window.DungeonOpeningProgressionV1.view(s,travelTimeFor('wreck','trail'));}
 function openingDepartureCue(){
  if(!openingView().needsCue)return false;
+ // A story observation resolves the exit even if an older save reached the deadline without discovering it.
+ if(!routeKnown('wreck','trail')){discoverRoute('wreck','trail');addTravel('discovery','循著車轍辨認出一條通往林間小徑的道路。','終於找到可以離開的方向。');}
  if(window.DungeonOpeningProgressionV1.markCue(s,travelTimeFor('wreck','trail'))){
   addTravel('scene','事故現場已大致查看完畢，車轍延伸向林間小徑。','天色即將轉暗，得趁還看得清道路時離開。');
   save();render();
@@ -7537,7 +7538,7 @@ function openWreckIntroduction(){
  openSceneDialogue([
   {speaker:'旁白',text:'你從毀壞的車篷下爬出來，泥土的涼意讓你逐漸清醒。'},
   {speaker:'旁白',text:'陽光穿過樹冠，灑在斷裂的車板上。林間只有風聲與鳥鳴。'},
-  {speaker:'你',text:'「我怎麼會在這裡？……先看看四周，再沿著道路找人吧。」'}
+  {speaker:'你',text:'「我怎麼會在這裡？……先看看四周，也許能找到離開的方向。」'}
  ]);
 }
 function guardedAction(fn){const now=Date.now();if(now-lastActionAt<300)return;lastActionAt=now;fn?.();}
@@ -7545,7 +7546,7 @@ function change(scene,mode='walk'){
  if(encounterPending||!names[scene]||scene===s.scene)return;
  closeSceneDialogue();
  closePlaceDrawer();
- if(travelRoute(s.scene,scene)&&!routeKnown(s.scene,scene)){toast('尚未發現這條道路，請先探索周圍。');return;}
+ if((s.scene==='wreck'&&!travelRoute('wreck',scene))||(travelRoute(s.scene,scene)&&!routeKnown(s.scene,scene))){toast('尚未發現這條道路，請先探索周圍。');return;}
  const duration=travelTimeFor(s.scene,scene,mode);
  if(duration===null){toast('此路線目前無法使用馬車，請選擇步行。');return;}
  const now=Date.now();if(now-lastMoveAt<300)return;lastMoveAt=now;
@@ -7657,7 +7658,7 @@ function inspectTrailMarker(){
  ]);
 }
 function glance(){s.flags.wagonLooked=true;note('wagon','馬車在你醒來之前就已被毀壞');dialog('傾斜的貨箱','一個貨箱倒扣在木板間。箱子裡只有濕透的布料與碎木屑，看不出它原本運送什麼。',[{label:'放回木板',fn:()=>{}}],'可選發現');}
-function marks(){note('scratches','車板上有不明的深刻痕跡');dialog('破裂的車輪','車輪旁留下幾道深深的刻痕。也許是什麼野獸，但你無法確定。你可以帶著疑問繼續前進。',[{label:'查看附近的道路',fn:()=>routeKnown('wreck','trail')?change('trail'):discoverNearbyRoute()},{label:'暫時留在這裡',fn:()=>{}}],'可選發現');}
+function marks(){note('scratches','車板上有不明的深刻痕跡');const known=routeKnown('wreck','trail');dialog('破裂的車輪','車輪旁留下幾道深深的刻痕。也許是什麼野獸，但你無法確定。'+(known?'你已辨認出車轍通往林間小徑。':'泥土上的車轍似乎延伸到樹叢深處。'),[{label:known?'沿已發現的道路前進':'循著車轍探索 · 10分鐘',fn:()=>known?change('trail'):discoverNearbyRoute()},{label:'暫時留在這裡',fn:()=>{}}],'可選發現');}
 function light(){s.flags.lightSeen=true;note('light','空地的樹根旁有微光');dialog('樹根間的微光','你發現一件形狀奇怪的東西。它沒有立即展現任何用途，也無法確定是否安全。',[{label:'記下位置',fn:()=>note('lightMark','已在日誌記下微光所在位置')},{label:'收起碎片',fn:()=>{addUnique(s.items,'不明的微光碎片（測試物品）');s.flags.lightTaken=true;note('lightTake','取得一件來源不明的微光碎片');render();}},{label:'先不碰它',fn:()=>{}}],'未知發現');}
 function soundInForest(){if(!s.flags.creatureResolved&&(s.exploration?.counts?.clearing||0)>0&&window.DungeonSceneObjectsV1&&!window.DungeonSceneObjectsV1.creatureVisible(s)){dialog('林間暫時安靜','剛才的生物已離開這一帶。繼續探索，也許還會遇見牠。',[{label:'繼續觀察',fn:()=>{}}],'森林觀察');return;}if(s.flags.creatureResolved){dialog('寂靜再次降臨','那陣聲響沒有再出現。遠處的森林仍有許多你不認識的生物。',[{label:'離開',fn:()=>{}}]);return;}note('sound','林間傳來陌生生物的動靜');dialog('樹叢正在晃動','一隻陌生的林地生物從草葉後露出身影。它沒有立刻攻擊，只是警戒地注視著你。',[{label:'保持距離',fn:()=>{s.flags.creatureResolved=true;note('avoid','你選擇避開陌生生物');render();}},{label:'嘗試繞過',fn:()=>{s.flags.creatureResolved=true;note('avoid','你沒有和陌生生物發生衝突');render();}},{label:'進入戰鬥測試',fn:()=>battleStart()}],'未知遭遇');}
 function ruinLook(){note('ruin','森林裡有一座被苔蘚覆蓋的舊石門');dialog('石門的另一面','古老的門框已失去原本的功能。遠處仍可看到朦朧的空間，但暫時沒有可以安全通行的路。',[{label:'記下這座遺構',fn:()=>note('ruinMark','已記錄無名石門的位置')},{label:'返回小徑',fn:()=>change('trail')}],'特殊探索');}
