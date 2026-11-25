@@ -3946,14 +3946,17 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 #sceneStage .forest-v4-object[data-winter-plant="true"] .winter-snow-cap{
  clip-path:inset(0 0 calc(var(--winter-padding,0%) + var(--winter-depth,0%) * var(--snow-cover,0)) 0);
 }
-#sceneStage .forest-v4-object[data-winter-plant="true"] .forest-v4-art::before{
- content:"";position:absolute;pointer-events:none;z-index:2;left:var(--winter-left,0%);right:var(--winter-right,0%);
- bottom:var(--winter-padding,0%);height:calc(var(--winter-depth,0%) * var(--snow-cover,0));
- opacity:clamp(0,calc(var(--snow-cover,0) * 3),.98);
- background:linear-gradient(180deg,#e3edf0 0%,#c5d9dd 38%,#b6cdd2 75%,#b6cdd200 100%);
- clip-path:polygon(0 24%,9% 10%,19% 15%,30% 0,43% 9%,56% 3%,70% 14%,81% 5%,92% 17%,100% 30%,100% 100%,0 100%);
- filter:var(--scene-light,brightness(1));
+/* The terrain snow layer is the burial surface; no rectangular pseudo-element. */
+#sceneStage .forest-v4-object[data-winter-plant="true"] .forest-v4-art::before{content:none}
+#sceneStage .forest-v4-object[data-winter-plant="true"] .forest-v4-art>img,
+#sceneStage .forest-v4-object[data-winter-plant="true"] .winter-snow-cap,
+#sceneStage .forest-v4-object[data-winter-plant="true"] .surface-wet-glints{
+ clip-path:none;
+ -webkit-mask-image:linear-gradient(to top,transparent calc(var(--snow-cover,0) * var(--winter-depth,0%) + var(--winter-padding,0%) - 5%),#000 calc(var(--snow-cover,0) * var(--winter-depth,0%) + var(--winter-padding,0%) + 5%));
+ mask-image:linear-gradient(to top,transparent calc(var(--snow-cover,0) * var(--winter-depth,0%) + var(--winter-padding,0%) - 5%),#000 calc(var(--snow-cover,0) * var(--winter-depth,0%) + var(--winter-padding,0%) + 5%));
 }
+#app[data-weather="blizzard"] #sceneStage .forest-v4-object[data-wild-behavior="hunker"]{opacity:0;transition:opacity 1.7s ease;pointer-events:none!important}
+
 #sceneStage .forest-v4-object[data-motion="plant"] .winter-snow-cap{transform-origin:50% 100%;animation:living-sway 5.2s ease-in-out infinite}
 #sceneStage .forest-v4-layer.env-v1 .forest-v4-object[data-motion="plant"] .winter-snow-cap{animation-delay:var(--env-delay,0s);animation-duration:6.2s}
 #app[data-weather] #sceneStage .forest-v4-layer.env-motion-v2 .forest-v4-object[data-motion="plant"]:not([data-live-kind="vine"]) .winter-snow-cap{animation:weather-plant-wind var(--weather-wind-duration,7.4s) ease-in-out infinite;animation-delay:var(--env-motion-delay,0s)}
@@ -3986,7 +3989,7 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
  opacity:clamp(0,calc(max(var(--snow-cover,0),var(--frost,0) * .65) * var(--snow-hold,1)),1);
 }
 #app[data-indoor="false"][data-weather="snow"][data-period="day"]{--scene-light:brightness(.88) saturate(.72) contrast(.91)}
-#app[data-indoor="false"][data-weather="blizzard"][data-period="day"]{--scene-light:brightness(.75) saturate(.55) contrast(.86)}
+#app[data-indoor="false"][data-weather="blizzard"][data-period="day"]{--scene-light:brightness(.84) saturate(.68) contrast(.94)}
 #app[data-indoor="false"][data-weather="snow"][data-period="dusk"],#app[data-indoor="false"][data-weather="blizzard"][data-period="dusk"]{--scene-light:brightness(.67) saturate(.61) contrast(.88)}
 /* Overcast uses shared lighting on the forest, wagon, plants and articulated creatures.
    Keep midday visibly daytime, without the warm yellow highlights of clear weather. */
@@ -4351,8 +4354,8 @@ html.stage-locked #app #topGameHud #hudPhase{font-size:clamp(10px,1.65vw,17px)}
 <script src="./assets/scene_spatial_motion_v1.js?v=3-action-map"></script>
 <script src="./assets/bird_motion_live_v1.js?v=2-hop-joints"></script>
 <script src="./assets/scene_environment_v1.js?v=15-action-points"></script>
-<script src="./assets/winter_surfaces_v1.js?v=4-wet-materials"></script>
-<script src="./assets/weather_system_v1.js?v=13-winter-plants"></script>
+<script src="./assets/winter_surfaces_v1.js?v=5-snow-texture"></script>
+<script src="./assets/weather_system_v1.js?v=14-blizzard-detail"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/scene_objects_v1.js?v=20261125-winter"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
@@ -4539,7 +4542,7 @@ function syncWeather(){
  if(!indoor&&currentWeather.kind!=='clear')$('subplace').textContent=({cloudy:'雲層遮住天光',fog:'薄霧在四周緩緩瀰漫',drizzle:'細雨落在周圍',rain:'雨水打濕了周遭景物',storm:'風雨加劇，遠處偶有雷光',snow:'雪花緩緩飄落，空氣寒冷',blizzard:'風雪交加，遠方景物逐漸模糊'})[currentWeather.kind]||label;
  engine.set(currentWeather,indoor,window.matchMedia('(prefers-reduced-motion: reduce)').matches,{scene:s.scene,sound:s.sound,sceneHost:app,onPlantWindowChanged:()=>renderHotspots(),weatherPreview:Boolean(previewWeather),snowPreview:previewWeather==='snow'||previewWeather==='blizzard'});
 }
-function selectWeatherPreview(kind){const engine=window.DungeonWeatherV1;if(!engine){toast('天氣模組尚未載入，請重新整理遊戲。');return;}if(kind!=='auto'&&!engine.kinds[kind])return;if(s.sound)engine.unlockAudio();previewWeather=kind==='auto'?null:kind;$('menuVeil').classList.add('hidden');syncTimeAtmosphere();engine.draw(performance.now());toast(kind==='auto'?'已恢復自然天氣':'天氣預覽：'+engine.kinds[kind].name+(INDOOR_SCENES.has(s.scene)?'（室內不顯示雨霧）':''));renderHotspots();renderPlaceDrawer();}
+function selectWeatherPreview(kind){const engine=window.DungeonWeatherV1;if(!engine){toast('天氣模組尚未載入，請重新整理遊戲。');return;}if(kind!=='auto'&&!engine.kinds[kind])return;if(s.sound)engine.unlockAudio();previewWeather=kind==='auto'?null:kind;$('menuVeil').classList.add('hidden');syncTimeAtmosphere();engine.draw(performance.now());toast(kind==='auto'?'已恢復自然天氣':'天氣預覽：'+engine.kinds[kind].name+(INDOOR_SCENES.has(s.scene)?'（室內不顯示雨霧）':''));renderHotspots();renderPlaceDrawer();renderSceneInfoBar();}
 
 function syncTimeAtmosphere(){
  normalizeGameTime();
@@ -7905,16 +7908,18 @@ function renderSceneInfoBar(){
  const observation=$('sceneObservationScroll'),companions=$('sceneCompanionScroll'),clues=$('sceneClueScroll');
  const lastScrolls=[observation,companions,clues].map(node=>node.scrollTop);
  const previousScene=panel.dataset.scene;
- const defaultScene=SCENE_SENSE_NOTES[s.scene]||{text:names[s.scene]?.[1]||'',senses:[]};
+ const weatherNotes={cloudy:{text:'雲層遮住天光，林地光線柔和。',senses:['☁ 陰天','〰 林風']},fog:{text:'薄霧籠罩周圍，遠處輪廓模糊。',senses:['≋ 薄霧','◌ 潮氣']},drizzle:{text:'細雨打在葉面，空氣微涼。',senses:['♪ 細雨','◌ 潮濕']},rain:{text:'雨滴落入泥地，水聲蓋過林間細響。',senses:['♪ 雨聲','◌ 積水']},storm:{text:'強風與雷雨交加，林間生物尋找遮蔽。',senses:['ϟ 雷雨','〰 強風']},snow:{text:'雪花飄落，草木逐漸覆上霜雪。',senses:['❄ 降雪','◌ 寒冷']},blizzard:{text:'風雪呼嘯，周遭生物躲避寒風。',senses:['❄ 風雪','〰 強風']}};
+ const localWeather=!INDOOR_SCENES.has(s.scene)?weatherNotes[currentWeather?.kind]:null;
+ const defaultScene=localWeather||SCENE_SENSE_NOTES[s.scene]||{text:names[s.scene]?.[1]||'',senses:[]};
  const last=s.exploration?.last?.[s.scene];
- $('sceneObservationText').textContent=typeof last?.observation==='string'&&last.observation?
+ $('sceneObservationText').textContent=!localWeather&&typeof last?.observation==='string'&&last.observation?
   last.observation:defaultScene.text;
  const senseRoot=$('sceneSenses');
  senseRoot.replaceChildren();
  for(const label of defaultScene.senses){
   const el=document.createElement('span');el.textContent=label;senseRoot.appendChild(el);
  }
- if(periodForMinutes(s.worldMinutes)==='night'&&(s.scene==='wreck'||s.scene==='trail'||s.scene==='clearing')){
+ if(!localWeather&&(previewPeriod||periodForMinutes(s.worldMinutes))==='night'&&(s.scene==='wreck'||s.scene==='trail'||s.scene==='clearing')){
   senseRoot.replaceChildren();
   for(const value of ['◌ 夜色','〰 林風']){
    const el=document.createElement('span');el.textContent=value;senseRoot.appendChild(el);
