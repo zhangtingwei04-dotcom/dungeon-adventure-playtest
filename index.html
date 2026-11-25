@@ -4056,6 +4056,17 @@ html.stage-locked #app #topGameHud #hudPhase{font-size:clamp(10px,1.65vw,17px)}
 #sceneStage .hotspot.scene-investigation.on,#sceneStage .hotspot.scene-investigation:focus-visible{opacity:1;border-color:#f9e3ae;background:rgba(43,75,56,.6)}
 #sceneStage .scene-investigation span{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:16px;color:#fff0c6;background:#102820dd;border:1px solid #d4b77a;padding:3px 6px;border-radius:4px;pointer-events:none}
 </style>
+<style>
+#sceneStage .discovery-summary{position:absolute;top:4%;left:50%;transform:translateX(-50%);max-width:90%;width:max-content;z-index:8;background:#16372fee;border:1px solid #d2b67e;color:#fff0bd;border-radius:5px;padding:5px 9px;font-size:clamp(12px,1.65vw,17px);line-height:1.35;text-align:center;pointer-events:none;box-shadow:0 2px 8px #061d16aa;animation:discovery-appear .3s ease-out}
+#sceneStage .discovery-summary[hidden]{display:none!important}
+#sceneStage .discovery-object-cue{position:absolute;left:50%;bottom:100%;transform:translateX(-50%);white-space:nowrap;font-size:clamp(11px,1.4vw,15px);font-weight:700;line-height:1.2;color:#ffeb9b;background:#263323ee;border:1px solid #e0b963;border-radius:5px;padding:3px 5px;pointer-events:none;box-shadow:0 0 8px #e0b96388;animation:discovery-appear .6s ease-out}
+#sceneStage .discovery-object-cue[data-kind="rare"]{color:#ead2ff;border-color:#bd9cde;background:#38264aee}
+#sceneStage .discovery-object-cue[data-kind="clue"]{color:#d9efff;border-color:#a1c0d3;background:#203746ee}
+#sceneStage .hotspot.discovery-route-cue{opacity:1;pointer-events:auto;width:36px;height:36px;min-width:36px;min-height:36px;font-size:24px;color:#e5ffd3;border:2px solid #9ac47d;background:#254d38e8;box-shadow:0 0 9px #9ac47da0;animation:discovery-appear .6s ease-out}
+@keyframes discovery-appear{from{opacity:.25}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){#sceneStage .discovery-summary,#sceneStage .discovery-object-cue,#sceneStage .discovery-route-cue{animation:none}}
+#app.scene-dialogue-active .discovery-summary,#app.encounter-pending .discovery-summary{visibility:hidden}
+</style>
 </head>
 <body>
 <div id="app"><div id="worldFrame" aria-hidden="true">
@@ -4316,6 +4327,7 @@ html.stage-locked #app #topGameHud #hudPhase{font-size:clamp(10px,1.65vw,17px)}
 <script src="./assets/fault_isolation_v1.js?v=1"></script>
 <script src="./assets/object_investigation_v1.js?v=2-world-state"></script>
 <script src="./assets/opening_progression_v1.js?v=2-departure"></script>
+<script src="./assets/discovery_cue_v1.js?v=1"></script>
 <script>window.DungeonRuntimeFaultsV1=window.DungeonFaultIsolationV1.create();</script>
 <script>
 // Current scene is the sole base. D remains an explicit research preview.
@@ -4608,6 +4620,7 @@ function searchForest(){
 function inspectOtherWreck(){
  normalizeRecovery();
  if(!s.recovery.found)return;
+ if(!s.flags.trailWreckInspected){s.flags.trailWreckInspected=true;save();renderHotspots();}
  if(s.recovery.looted){
   dialog('舊馬車殘骸','這裡能安全帶走的東西已經搜集完了。',[
    {label:'查看物品與材料',fn:()=>journal('items')},{label:'離開',fn:()=>{}}
@@ -5065,7 +5078,7 @@ function exploreArea(){
    if(ordinary&&s.travelLog?.length)Object.assign(s.travelLog[s.travelLog.length-1],{exploreGroup:key,exploreCount:1});
   }
  }else addTravel('daily','在'+names[site][0]+'進行第'+count+'次探索（約10分鐘，'+gameTime(s.worldMinutes)+'）'+feature+'。','這裡還有許多可以慢慢觀察的東西。');
- save();render();if(site==='wreck'&&openingDepartureCue())return;toast(explorationToast(site,latest,newMaterials)+(sceneFinds.length?' · 發現'+sceneFinds.join('、'):'')+((site==='clearing'&&!sceneFinds.length&&window.DungeonSceneObjectsV1?.creatureVisible(s))?' · 留意場景中的生物':''));
+ save();render();showDiscoverySummary({routeName:latest.route?routeCardTitle(site,latest.route):'',wreck:latest.wreckFound,materials:newMaterials,encounters:sceneFinds});if(site==='wreck'&&openingDepartureCue())return;toast(explorationToast(site,latest,newMaterials)+(sceneFinds.length?' · 發現'+sceneFinds.join('、'):'')+((site==='clearing'&&!sceneFinds.length&&window.DungeonSceneObjectsV1?.creatureVisible(s))?' · 留意場景中的生物':''));
 }
 
 /* Persistent discovered destinations; drawer open/closed and expanded card are only UI. */
@@ -7551,6 +7564,7 @@ function change(scene,mode='walk'){
  if(duration===null){toast('此路線目前無法使用馬車，請選擇步行。');return;}
  const now=Date.now();if(now-lastMoveAt<300)return;lastMoveAt=now;
  hideSceneInspection();hideSceneActors();
+ const discoveryBanner=$('sceneStage').querySelector('.discovery-summary');if(discoveryBanner)discoveryBanner.hidden=true;
  previewPeriod=null;
  advanceGameTime(duration,'travel:'+mode,scene);
  if(s.scene==='wreck'&&scene==='trail')window.DungeonOpeningProgressionV1.finish(s);
@@ -8101,12 +8115,24 @@ function renderForestV4(el){
  if(smooth)for(const node of previous.values()){if(keep.has(node)||!node.isConnected||node._exitTimer)continue;node.classList.remove('env-entering');node.classList.add('env-leaving');node.style.pointerEvents='none';if(node.tagName==='BUTTON')node.disabled=true;node._exitTimer=setTimeout(()=>{node.remove();},220);}
  if(!existing)el.appendChild(layer);
 }
+let discoverySummaryTimer=null;
+function showDiscoverySummary(data){
+ const parts=window.DungeonDiscoveryCueV1.summary(data);if(!parts.length)return;
+ const stage=$('sceneStage');let banner=stage.querySelector('.discovery-summary');
+ if(!banner){banner=document.createElement('div');banner.className='discovery-summary';banner.setAttribute('role','status');stage.appendChild(banner);}
+ banner.textContent=parts.join(' · ');banner.hidden=false;
+ clearTimeout(discoverySummaryTimer);discoverySummaryTimer=setTimeout(()=>{banner.hidden=true;},3400);
+}
+function applyDiscoveryCue(node,info){
+ let cue=node.querySelector('.discovery-object-cue');
+ if(!info){cue?.remove();return;}
+ if(!cue){cue=document.createElement('span');cue.className='discovery-object-cue';cue.setAttribute('aria-hidden','true');node.appendChild(cue);}
+ cue.dataset.kind=info.kind;cue.textContent=info.symbol+' '+info.label;
+}
 function updateForestFindCue(node,finds,k){
- let cue=node.querySelector('.forest-v4-find-cue');
- if(!finds.length){cue?.remove();return;}
- if(!cue){cue=document.createElement('span');cue.className='forest-v4-find-cue';cue.setAttribute('aria-hidden','true');node.appendChild(cue);}
- cue.textContent='可收集';cue.classList.toggle('env-wagon-cue',k==='wagon');
-
+ node.querySelector('.forest-v4-find-cue')?.remove();
+ const rare=node.dataset.rabbitVariant==='golden';
+ applyDiscoveryCue(node,window.DungeonDiscoveryCueV1.object({pending:finds.length,rare,observed:!!s.forestRare?.sighted?.goldenRabbit}));
 }
 function renderWorldObjects(el){
  const engine=window.DungeonSceneObjectsV1;if(!engine||encounterPending)return;
@@ -8120,6 +8146,7 @@ function renderWorldObjects(el){
   const b=document.createElement('button');b.type='button';b.className='world-object';b.dataset.kind=obj.kind;b.dataset.objectId=obj.id;b.style.left=obj.x+'%';b.style.top=obj.y+'%';b.setAttribute('aria-label',obj.label+(obj.material?'：'+obj.material:''));
   const cv=document.createElement('canvas');cv.setAttribute('aria-hidden','true');engine.sprite(cv,obj.kind);
   const caption=document.createElement('span');caption.textContent=obj.label;b.append(cv,caption);
+  applyDiscoveryCue(b,window.DungeonDiscoveryCueV1.object({pending:obj.material?1:0,clue:obj.kind==='wreck',observed:!!s.flags.trailWreckInspected||!!s.recovery.looted}));
   b.onclick=()=>guardedAction(()=>interactSceneObject(obj.id));el.appendChild(b);
  }
 }
@@ -8176,10 +8203,11 @@ function renderHotspots(){
   button.onclick=()=>guardedAction(()=>{if(!encounterPending&&!modal&&!s.flags.inBattle&&!$('app').classList.contains('scene-dialogue-active'))o.fn();});
   el.appendChild(button);
  }
- if(!showHints)return;
  const panorama=s.scene==='wreck'?((emptyForestReady||approvedWreckReady)?null:wreckPanoramaCrop()):s.scene==='trail'?(trailForestReady?trailIllustrationCrop():trailPanoramaCrop()):null;
  for(const [label,x,y,fn,to] of per[s.scene]||[]){
+  const routeCue=to?window.DungeonDiscoveryCueV1.route(routeKnown(s.scene,to),!!s.visits[to]):null;
   if(to&&!routeKnown(s.scene,to))continue;
+  if(!showHints&&!routeCue)continue;
   if(['wreck','trail','clearing','ruin'].includes(s.scene)&&!to)continue;
   /* The exploration hotspot stays usable after all routes are known. */
   let screenX=panorama?100*(x*panorama.width-panorama.sourceX)/panorama.cropWidth:x;
@@ -8188,7 +8216,7 @@ function renderHotspots(){
   if(!panorama&&s.scene==='wreck'){screenX=x*100;screenY=y*100;}
   const b=document.createElement('button');b.className='hotspot on';
   b.style.left=screenX+'%';b.style.top=screenY+'%';
-  b.title=label;b.setAttribute('aria-label',label);b.onclick=fn;el.appendChild(b);
+  b.title=label;b.setAttribute('aria-label',label);b.onclick=()=>guardedAction(fn);if(routeCue){b.classList.add('discovery-route-cue');b.textContent=routeCue.symbol;b.setAttribute('aria-label','新道路：'+label);}el.appendChild(b);
  }
 }
 function renderRouteMap(out){
