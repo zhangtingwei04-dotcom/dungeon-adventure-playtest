@@ -156,7 +156,7 @@ window.DungeonSceneEnvironmentV1=(function(){
   if(b.energy<.35)return {mode:'rest',duration:4.5};
   if(b.alert>.6)return {mode:'alert',duration:2.1};
   if(b.hunger>.52&&snow<.15&&kind!=='snow')return {mode:'graze',duration:3.1};
-  const roll=((Math.imul(++b.serial,1664525)+1013904223)>>>0)/4294967296;
+  b.serial=(Math.imul(b.serial,1664525)+1013904223)>>>0;const roll=b.serial/4294967296;
   if(roll<.37)return {mode:'hop',to:b.q>.5?0:1};
   if(roll<.58)return {mode:'sniff',duration:1.8};
   if(roll<.76)return {mode:'groom',duration:2.7};
