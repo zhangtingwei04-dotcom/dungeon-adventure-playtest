@@ -5153,6 +5153,22 @@ function openingDepartureCue(){
  openSceneDialogue([{speaker:'旁白',text:late?'天色已經轉暗，車轍仍指向林間小徑。':'林間的光線開始轉弱，車轍沿著小徑伸向遠方。'},{speaker:'你',text:'「不能再耽擱了，沿著道路找人吧。」'}], 'opening-departure');
  return true;
 }
+// Exploration encounters are separate from the one-time story creature.
+const HOSTILE_EXPLORATION=Object.freeze({clearing:.30,trail:.12,ruin:.18});
+function hostileEncounterCheck(actor,weather={},roll=Math.random()){
+ const site=actor.scene,base=HOSTILE_EXPLORATION[site];
+ if(!base||!actor.flags?.rescued||actor.flags.inBattle||actor.hp<=0)return false;
+ if(['blizzard','storm','thunderstorm'].includes(weather.kind)||Number(weather.wind)>=.85)return false;
+ const history=actor.flags.explorationEncountersV1||(actor.flags.explorationEncountersV1={});
+ const record=history[site]||(history[site]={misses:0,last:-10000,total:0});
+ if(actor.worldMinutes-record.last<40)return false;
+ const hour=Math.floor((actor.worldMinutes%1440)/60);
+ const probability=base*((hour<6||hour>=19)?1.25:1);
+ const forced=site==='clearing'&&record.total===0&&record.misses>=2;
+ if(!forced&&roll>=probability){record.misses++;return false;}
+ record.misses=0;record.last=actor.worldMinutes;record.total++;
+ return true;
+}
 function exploreArea(){
  if(activeDialogueSurface()||encounterPending||modal||sceneDialogueState.open||!EXPLORATION_AREAS[s.scene])return;
  if(openingAdventure()&&!routeKnown(s.scene,s.scene==='wreck'?'trail':'gate')){observeOpening();return;}
@@ -5166,6 +5182,12 @@ function exploreArea(){
  const timeCost=10;
  recoveryTime(timeCost);
  const count=(e.counts[site]||0)+1;e.counts[site]=count;
+ // Interrupt the search before rolling materials/routes. No overlapping discovery dialogs.
+ const actualWeather=window.DungeonWeatherV1?.at(s.seed,s.worldMinutes,site)||{};
+ if(hostileEncounterCheck(s,actualWeather)){
+  e.last[site]={route:null,routeProgress:false,wreckFound:false,observation:'探索時遭到陌生生物襲擊。'};
+  battleStart({ambush:true});return;
+ }
  const latest={route:null,routeProgress:false,wreckFound:false};
  const next=nextHiddenRoute(site);
  if(next){
@@ -8076,10 +8098,16 @@ function normalizeBattle(){
  return state;
 }
 let lastBattleAction=0,battleAnimating=false;
-function battleStart(){
+function battleStart(options={}){
  if(s.flags.inBattle)return;
- s.flags.inBattle=true;s.flags.monsterHp=12;s.flags.battleV2={enemyHp:12,turn:0,intent:'pounce',distance:1,focused:false,braced:false,result:null,feedback:'牠警戒地盯著你。'};
- lastBattleAction=0;save();render();battleDialog();
+ const ambush=options.ambush===true;
+ const hit=ambush?Math.min(2,Math.max(0,s.hp)):0;
+ s.hp=Math.max(0,s.hp-hit);
+ s.flags.inBattle=true;s.flags.monsterHp=12;
+ s.flags.battleV2={enemyHp:12,turn:0,intent:ambush?'watch':'pounce',distance:ambush?0:1,focused:false,braced:false,result:s.hp===0?'defeat':null,source:ambush?'exploration':'story',feedback:ambush?'草叢突然晃動，一隻陌生生物撲了過來！受到 '+hit+' 點傷害。':'牠警戒地盯著你。'};
+ if(ambush){addTravel('combat','在'+names[s.scene][0]+'探索時遭到生物突襲。'+(s.hp===0?'你體力不支。':''),'事情發生得太突然了。');}
+ lastBattleAction=0;save();render();
+ if(ambush){$('battleSurface').dataset.distance='1';playBattleMotion('ambush',{damage:0,hit,enemyAction:'pounce'});}
 }
 function renderBattleSurface(){
  const host=$('battleSurface');
@@ -8142,7 +8170,7 @@ function playBattleMotion(kind,result){
 function finishBattle(){
  if(!s.flags.inBattle)return;
  const state=normalizeBattle();if(!state.result)return;
- s.flags.inBattle=false;s.flags.creatureResolved=true;
+ s.flags.inBattle=false;if(state.source!=='exploration')s.flags.creatureResolved=true;
  if(state.result==='defeat'){s.hp=Math.min(s.maxHp,5);advanceGameTime(20,'combat-recovery');}
  $('battleSurface').classList.add('hidden');syncDialogueInputLock();save();render();
 }
