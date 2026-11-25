@@ -106,7 +106,7 @@ window.DungeonSceneEnvironmentV1=(function(){
    else if(u<5.2){x=30;mode='pause';}
    else if(u<6.2){x=30;face=-dir;mode=flightCycle&&u>=5.45?'unfold':'turn';if(mode==='unfold')wingOpen=ease(clamp((u-5.45)/.75,0,1));}
    else if(u<9.2){const q=clamp((u-6.2)/3,0,1);x=30*(1-ease(q));face=-dir;mode=flightCycle?'fly':'crawl';
-    if(flightCycle){wingOpen=1;lift=125*Math.pow(Math.sin(Math.PI*q),1.3)*(1+.035*Math.sin(q*Math.PI*6));}
+    if(flightCycle){wingOpen=1;lift=235*Math.pow(Math.sin(Math.PI*q),1.3)*(1+.035*Math.sin(q*Math.PI*6));}
    }
    else if(u<10.2){face=-dir;mode=flightCycle&&u<9.85?'fold':'pause';if(mode==='fold')wingOpen=1-ease(clamp((u-9.2)/.65,0,1));}
    if(flightCycle&&mode==='fly'){sx=1;sy=1;}
@@ -121,12 +121,13 @@ window.DungeonSceneEnvironmentV1=(function(){
   if(kind!=='rabbit'&&kind!=='beetle')return;
   const dir=kind==='rabbit'?-1:(o.x>75?-1:1);
   const hash=Array.from(String(o.id||kind)).reduce((n,ch)=>(n*31+ch.charCodeAt(0))%997,0);
+  const phase=kind==='beetle'?15.0+(hash%100)/200:hash/100;
   node.dataset.wildlife=kind;
   const anchor={id:o.id,x:o.x,y:o.y,width:o.width,z:o.z,artAspect:kind==='rabbit'?114/121:145/89};
   node.style.setProperty('--wild-anchor-x',o.x+'%');
   node.style.setProperty('--wild-anchor-y',o.y+'%');
   node.style.setProperty('--wild-anchor-width',o.width+'%');
-  wildlife.set(node,{kind,dir,phase:hash/100,start:null,anchor});
+  wildlife.set(node,{kind,dir,phase,start:null,anchor});
   if(kind==='rabbit')window.DungeonRabbitArticulation?.attach(node);
   else if(kind==='beetle')window.DungeonBeetleArticulation?.attach(node);
  }
@@ -137,8 +138,10 @@ window.DungeonSceneEnvironmentV1=(function(){
    if(a.start===null)a.start=ms;
    const elapsed=(ms-a.start)/1000+a.phase;
    const v=wildlifeSample(a.kind,elapsed,a.dir);
-   if(a.kind==='rabbit')window.DungeonRabbitArticulation?.render(node,v,elapsed,ms);
-   else if(a.kind==='beetle')window.DungeonBeetleArticulation?.render(node,v,elapsed,ms);
+   try{
+    if(a.kind==='rabbit')window.DungeonRabbitArticulation?.render(node,v,elapsed,ms);
+    else if(a.kind==='beetle')window.DungeonBeetleArticulation?.render(node,v,elapsed,ms);
+   }catch(err){node.removeAttribute(a.kind==='rabbit'?'data-rabbit-rig':'data-beetle-rig');}
    const spatial=window.DungeonSpatialMotion?.sample(a.anchor,v,a.kind);
    if(spatial){
     node.dataset.spatialMotion='true';
