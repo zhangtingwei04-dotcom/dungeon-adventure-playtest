@@ -82,9 +82,39 @@ window.DungeonWinterV1=(function(){
    for(let dy=0;dy<depth;dy++){const yy=y+dy;if(yy>=h)break;const i=(yy*w+x)*4;if(src[i+3]<140)continue;const q=dy/depth;d[i]=Math.round(231-q*54);d[i+1]=Math.round(239-q*36);d[i+2]=Math.round(239-q*25);d[i+3]=Math.round(src[i+3]*(1-q*.64));}
   }cx.clearRect(0,0,w,h);cx.putImageData(out,0,0);return cv;
  }
+ // Sparse highlights sampled from opaque sprite pixels; never paint outside the asset.
+ const wetMaterials={wagon:.82,crate_large:.65,crate_small:.65,crate_open:.6,barrel:.66,sack:.32,wheel_flat:.46,plank:.53,plank_lean:.48,rock_group:.78,rock_small:.8,log:.58,branch:.42};
+ function wetGlints(source,kind){
+  const plant=Boolean(burial[kind]||kind==='vine'),w=Math.min(240,source.naturalWidth),h=Math.max(1,Math.round(source.naturalHeight*w/source.naturalWidth));
+  if(!w||!h)return null;const cv=document.createElement('canvas');cv.width=w;cv.height=h;
+  const g=cv.getContext('2d',{willReadFrequently:true});if(!g)return null;g.drawImage(source,0,0,w,h);
+  const data=g.getImageData(0,0,w,h).data;g.clearRect(0,0,w,h);
+  const opaque=(x,y)=>x>=0&&x<w&&y>=0&&y<h&&data[(y*w+x)*4+3]>215;
+  const count=plant?Math.min(12,Math.max(3,Math.round(w/14))):Math.min(22,Math.max(4,Math.round(w/10)));
+  let drawn=0;
+  for(let i=0;i<500&&drawn<count;i++){
+   const x=2+((i*73+19)%Math.max(1,w-4)),y=2+((i*47+Math.floor(i/7)*11)%Math.max(1,h-4));
+   if(!opaque(x,y)||!opaque(x+1,y)||!opaque(x,y+1))continue;
+   const p=(y*w+x)*4,l=(data[p]+data[p+1]+data[p+2])/3;
+   if(l<65||plant&&y>h*.72||!plant&&y>h*.83)continue;
+   g.fillStyle='rgba(172,204,214,.42)';g.fillRect(x,y+1,1,1);
+   g.fillStyle='rgba(220,241,244,.87)';g.fillRect(x,y,1,1);
+   if(!plant&&opaque(x+1,y+1)){g.fillStyle='rgba(184,216,226,.48)';g.fillRect(x+1,y+1,1,1);}
+   drawn++;
+  }return cv;
+ }
+ function attachWet(node,art,img,kind){
+  const plant=Boolean(burial[kind]||kind==='vine'),weight=plant?.88:wetMaterials[kind];
+  if(!weight||art.querySelector('.surface-wet-glints'))return;
+  const key='wet:'+kind+':'+img.src;let base=cache.get(key);
+  if(!base){base=wetGlints(img,kind);if(!base)return;cache.set(key,base);}
+  const cv=document.createElement('canvas');cv.width=base.width;cv.height=base.height;cv.getContext('2d').drawImage(base,0,0);
+  cv.className='surface-wet-glints';cv.setAttribute('aria-hidden','true');cv.style.setProperty('--surface-wet-weight',String(weight));
+  node.dataset.surfaceWet=plant?'plant':'material';node.style.setProperty('--surface-wet-weight',String(weight));art.appendChild(cv);
+ }
  function attach(node,art,img,kind){
   const weight=weights[kind];if(!weight)return;
-  const init=()=>{if(!node.isConnected||!img.naturalWidth||art.querySelector('.winter-snow-cap'))return;try{applyBurial(node,art,img,kind);const key=kind+':'+img.src;let base=cache.get(key);if(!base){base=cap(img,kind);if(!base)return;cache.set(key,base);}const cv=document.createElement('canvas');cv.width=base.width;cv.height=base.height;cv.getContext('2d').drawImage(base,0,0);cv.className='winter-snow-cap';cv.setAttribute('aria-hidden','true');cv.style.setProperty('--snow-hold',String(weight));art.appendChild(cv);}catch{}};
+  const init=()=>{if(!node.isConnected||!img.naturalWidth||art.querySelector('.winter-snow-cap'))return;try{applyBurial(node,art,img,kind);attachWet(node,art,img,kind);const key=kind+':'+img.src;let base=cache.get(key);if(!base){base=cap(img,kind);if(!base)return;cache.set(key,base);}const cv=document.createElement('canvas');cv.width=base.width;cv.height=base.height;cv.getContext('2d').drawImage(base,0,0);cv.className='winter-snow-cap';cv.setAttribute('aria-hidden','true');cv.style.setProperty('--snow-hold',String(weight));art.appendChild(cv);}catch{}};
   if(img.complete&&img.naturalWidth)queueMicrotask(init);else img.addEventListener('load',init,{once:true});
  }
  return {ground,attach,weights,plantDepth};
