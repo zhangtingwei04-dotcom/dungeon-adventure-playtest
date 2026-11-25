@@ -4181,6 +4181,7 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <script src="./assets/approved_wagon_art_v1.js"></script>
 <script src="./assets/wreck_empty_forest_preview_v1.js?v=20261124"></script>
 <script src="./assets/forest_v4_background.js?v=1"></script>
+<script src="./assets/forest_v5_neutral_background.js?v=1"></script>
 <script src="./assets/forest_v4_assets_1.js?v=1"></script>
 <script src="./assets/forest_v4_assets_2.js?v=1"></script>
 <script src="./assets/forest_v4_assets_3.js?v=1"></script>
@@ -4267,7 +4268,7 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 </script>
 <script src="./assets/forest_v4_spawns.js?v=1"></script>
 <script src="./assets/forest_v4_integration.js?v=4"></script>
-<script src="./assets/scene_environment_v1.js?v=2"></script>
+<script src="./assets/scene_environment_v1.js?v=3"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/scene_objects_v1.js?v=20261124-2"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
@@ -8122,7 +8123,8 @@ if(DEV_PREVIEW_MODE&&new URLSearchParams(location.search).get('forest')==='edito
 const forestMode=new URLSearchParams(location.search).get('forest');
 if(window.DUNGEON_FOREST_V4_LAYOUT?.revision==='accident-c'){document.title=document.title.replace(/ · C2$/,'')+' · C2';document.documentElement.dataset.forestLayout='accident-c';}
 const forestV4Selected=forestMode!=='original'&&forestMode!=='old'&&forestMode!=='editor'&&new URLSearchParams(location.search).get('wagon')!=='trial'&&!!window.DUNGEON_FOREST_V4_BACKGROUND?.src&&Array.isArray(window.DUNGEON_FOREST_V4_LAYOUT?.scenes?.wreck)&&window.DUNGEON_FOREST_V4_LAYOUT.scenes.wreck.every(o=>!!window.DUNGEON_FOREST_V4_ASSETS?.[o.assetId]?.src);
-if(forestMode!=='original'&&(editorForestSrc||forestV4Selected||window.DUNGEON_WRECK_EMPTY_FOREST))emptyForest.src=editorForestSrc||(forestV4Selected?window.DUNGEON_FOREST_V4_BACKGROUND.src:window.DUNGEON_WRECK_EMPTY_FOREST);
+const neutralForestSelected=forestV4Selected&&forestMode!=='sunlit'&&!!window.DUNGEON_FOREST_V5_BACKGROUND?.src;
+if(forestMode!=='original'&&(editorForestSrc||forestV4Selected||window.DUNGEON_WRECK_EMPTY_FOREST))emptyForest.src=editorForestSrc||(forestV4Selected?(neutralForestSelected?window.DUNGEON_FOREST_V5_BACKGROUND.src:window.DUNGEON_FOREST_V4_BACKGROUND.src):window.DUNGEON_WRECK_EMPTY_FOREST);
 const approvedWreck=new Image();let approvedWreckReady=false;
 approvedWreck.onload=()=>{
  approvedWreckReady=approvedWreck.naturalWidth>0;
@@ -8191,7 +8193,7 @@ function sceneDraw(time){
  if(s.scene==='wreck'&&emptyForestReady){
   ctx.save();ctx.imageSmoothingEnabled=true;
   const w=emptyForest.naturalWidth,h=emptyForest.naturalHeight,fit=Math.max(W/w,H/h);
-  ctx.drawImage(emptyForest,(W-w*fit)/2,(H-h*fit)/2,w*fit,h*fit);ctx.restore();if(forestV4Active()&&forestEnvironmentActive()&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches)window.DungeonSceneEnvironmentV1?.draw(ctx,'forestV4',time,W,H,previewPeriod||periodForMinutes(s.worldMinutes),emptyForest);return;
+  ctx.drawImage(emptyForest,(W-w*fit)/2,(H-h*fit)/2,w*fit,h*fit);ctx.restore();if(forestV4Active()&&forestEnvironmentActive()&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches)window.DungeonSceneEnvironmentV1?.draw(ctx,neutralForestSelected?'forestV5':'forestV4',time,W,H,previewPeriod||periodForMinutes(s.worldMinutes),emptyForest);return;
  }
  if(s.scene==='wreck'&&approvedWreckReady){
   ctx.save();ctx.imageSmoothingEnabled=false;
