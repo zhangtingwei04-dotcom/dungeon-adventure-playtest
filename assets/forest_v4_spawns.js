@@ -167,10 +167,10 @@ window.DungeonForestV4Life=(function engine(){
   let h=2166136261;for(const ch of String(s.seed??0)+':gold-rabbit:'+day+':'+count){h=Math.imul(h^ch.charCodeAt(0),16777619);}h^=h>>>16;h=Math.imul(h,0x7feb352d);h^=h>>>15;
   return (h>>>0)/4294967296<.01;
  }
- function layout(s,base,slots,materialBindings){
+ function layout(s,base,slots,materialBindings,weather=window.DungeonWeatherV1?.at(s.seed,s.worldMinutes)){ 
   const v=state(s);const out=base.filter(o=>!animalKinds.includes(kind(o)));for(const k of animalKinds){const original=base.find(o=>o.visible&&kind(o)===k);if(!original)continue;
    const id=Object.hasOwn(v.animals,k)?v.animals[k]:original.id;const target=[...base,...slots].find(o=>o.id===id&&o.visible&&kind(o)===k);if(target)out.push(k==='rabbit'&&goldenEncounter(s)?{...target,name:'金紋兔',rabbitVariant:'golden'}:target);}
-  for(const o of slots){if(!o.visible)continue;if(kind(o)==='branch'&&materialBindings.has(o.id))out.push(o);if(kind(o).startsWith('grass_')){const day=Math.floor(Math.max(0,s.worldMinutes||0)/1440);const offset=o.id==='spawn-grass-6'?0:2;const phase=(day+offset)%4;if(phase!==0)out.push({...o,width:o.width*(phase===1?.65:phase===2?1:.8)});}}
+  for(const o of slots){if(!o.visible)continue;if(kind(o)==='branch'&&materialBindings.has(o.id))out.push(o);if(kind(o).startsWith('grass_')||o.plantSpawn===true){if(window.DungeonWeatherV1&&!window.DungeonWeatherV1.plantSpawnAllowed(weather,o))continue;const day=Math.floor(Math.max(0,s.worldMinutes||0)/1440);const offset=o.id==='spawn-grass-6'?0:2;const phase=(day+offset)%4;if(phase!==0)out.push({...o,width:o.width*(phase===1?.65:phase===2?1:.8)});}}
   return out;
  }
  return {update,layout,goldenEncounter};
