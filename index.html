@@ -4149,6 +4149,16 @@ html.stage-locked #app #battleSurface .battle-intent{font-size:17px}
 html.stage-locked #app #battleSurface .battle-feedback{font-size:15px}
 html.stage-locked #app #battleSurface .battle-actions button{font-size:17px;min-height:38px}
 @media(prefers-reduced-motion:reduce){#battleSurface .battle-creature,#battleSurface .battle-meter span{transition:none}}
+/* M-001: transparent frontal sprite, world lighting and contact shadow. */
+#sceneStage #battleSurface .battle-creature{object-fit:contain;image-rendering:pixelated;filter:var(--scene-light,brightness(1)) drop-shadow(0 2px 1px #081410aa);z-index:1}
+#sceneStage #battleSurface[data-distance="0"] .battle-creature{width:43%;height:49%;top:48%}
+#sceneStage #battleSurface[data-distance="1"] .battle-creature{width:32%;height:38%;top:43%}
+#sceneStage #battleSurface[data-distance="2"] .battle-creature{width:20%;height:24%;top:38%}
+#battleSurface .battle-ground-shadow{position:absolute;left:50%;top:67%;width:35%;height:6%;background:#08130e99;border-radius:50%;transform:translate(-50%,-50%);filter:blur(3px);pointer-events:none}
+#battleSurface[data-distance="1"] .battle-ground-shadow{top:59%;width:26%;height:4.5%}
+#battleSurface[data-distance="2"] .battle-ground-shadow{top:49%;width:16%;height:3%}
+#battleSurface[data-result="true"] .battle-ground-shadow{opacity:.35}
+#sceneStage .world-object[data-kind="creature"] .forest-monster-art{display:block;width:100%;height:auto;image-rendering:pixelated;filter:var(--scene-light,brightness(1)) drop-shadow(0 3px 2px #091b15bb)}
 /* One attention target at a time. */
 #app #travelFeed,#app #placeDrawer{transition:opacity .22s ease}
 #app.scene-dialogue-active #travelFeed,#app.scene-dialogue-active #placeDrawer,#app:has(#dialogVeil:not(.hidden)) #travelFeed,#app:has(#dialogVeil:not(.hidden)) #placeDrawer{opacity:.52}
@@ -8034,7 +8044,7 @@ function renderCreatureBestiary(out){
   ...(s.forestRare.sighted.goldenRabbit?[{found:true,name:'金紋兔',description:'稀有目擊｜月紋兔的金色毛色變異，保留月牙形紋路；目前只在林間觀察到。'}]:[]),
   {found:!!s.forestRare.sighted.rabbit,name:'月紋兔',
    description:'已目擊｜石門附近的長耳生物，會尋找特殊植物。'},
-  {found:!!s.flags.creatureResolved||s.seen.includes('sound'),name:'陌生林地生物',
+  {found:!!s.flags.openingMonsterResolved||!!s.flags.creatureResolved||!!s.flags.battleV2||s.seen.includes('sound'),name:'苔棘鬃獸',
    description:'初步觀察｜對陌生人保持警戒，不一定主動攻擊。'}
  ]){
   const row=document.createElement('div');row.className='rust-bestiary-entry';
@@ -8049,6 +8059,10 @@ function roadsideSign(){if(!s.flags.roadSignSeen){s.flags.roadSignSeen=true;note
 function countryside(){dialog('遠處的森林','視線越過路口，遠方樹影隨風起伏。你聽見不知名的小動物穿過草叢，卻沒有看清牠的模樣。\n\n這一帶暫時沒有必須完成的事件。更深的野外冒險將在後續版本開放。',[{label:'記住這片景色',fn:()=>note('landscape','在近郊眺望尚未探索的森林')},{label:'安靜離開',fn:()=>{}}],'未知的邊界');}
 function rest(){s.hp=s.maxHp;advanceGameTime(20,'rest');clearTimePreview();addTravel('daily','短暫休息約20分鐘，體力恢復了（'+gameTime(s.worldMinutes)+'）。','現在感覺好多了。');save();toast('短暫休息後，體力恢復了。');render();}
 // Pure turn resolution shared by the scene UI and future combatants.
+const MONSTER_CATALOG_V1=Object.freeze({
+ moss_spine_beast:Object.freeze({id:'moss_spine_beast',name:'苔棘鬃獸',sprite:'./assets/monsters/moss_spine_beast_front.png',openingHp:8,forestHp:12,habitat:'潮濕森林及廢棄馬車附近'})
+});
+function battleMonster(state){return MONSTER_CATALOG_V1[state?.monsterId]||MONSTER_CATALOG_V1.moss_spine_beast;}
 const BATTLE_INTENTS=Object.freeze({
  pounce:'牠壓低身體，後腿微微繃緊。',
  heavy:'牠抬起前肢，身體向後蓄力。',
@@ -8113,8 +8127,9 @@ function battleStart(options={}){
  const opening=options.opening===true,ambush=options.ambush===true;
  const hit=ambush?Math.min(opening?1:2,Math.max(0,s.hp-(opening?1:0))):0;
  s.hp=Math.max(0,s.hp-hit);
- s.flags.inBattle=true;s.flags.monsterHp=opening?8:12;
- s.flags.battleV2={enemyHp:opening?8:12,maxEnemyHp:opening?8:12,turn:0,intent:opening?'pounce':ambush?'watch':'pounce',distance:ambush?0:1,focused:false,braced:false,result:s.hp===0?'defeat':null,source:opening?'opening':ambush?'exploration':'story',feedback:opening?'車架下傳來低吼，陌生生物猛然撲出！'+(hit?'受到 '+hit+' 點傷害。':'你及時退開。'):ambush?'草叢突然晃動，一隻陌生生物撲了過來！受到 '+hit+' 點傷害。':'牠警戒地盯著你。'};
+ const monster=MONSTER_CATALOG_V1.moss_spine_beast,maxHp=opening?monster.openingHp:monster.forestHp;
+ s.flags.inBattle=true;s.flags.monsterHp=maxHp;
+ s.flags.battleV2={monsterId:monster.id,enemyHp:maxHp,maxEnemyHp:maxHp,turn:0,intent:opening?'pounce':ambush?'watch':'pounce',distance:ambush?0:1,focused:false,braced:false,result:s.hp===0?'defeat':null,source:opening?'opening':ambush?'exploration':'story',feedback:opening?'車架下傳來低吼，陌生生物猛然撲出！'+(hit?'受到 '+hit+' 點傷害。':'你及時退開。'):ambush?'草叢突然晃動，一隻陌生生物撲了過來！受到 '+hit+' 點傷害。':'牠警戒地盯著你。'};
  if(ambush){addTravel('combat','在'+names[s.scene][0]+'探索時遭到生物突襲。'+(s.hp===0?'你體力不支。':''),'事情發生得太突然了。');}
  lastBattleAction=0;save();render();
  if(ambush){$('battleSurface').dataset.distance='1';playBattleMotion('ambush',{damage:0,hit,enemyAction:'pounce'});}
@@ -8126,9 +8141,11 @@ function renderBattleSurface(){
  const state=normalizeBattle();
  host.classList.remove('hidden');host.dataset.intent=state.intent;host.dataset.distance=String(state.distance);host.dataset.result=String(!!state.result);
  host.replaceChildren();
- const head=document.createElement('div');head.className='battle-head';head.textContent=(state.source==='opening'?'馬車旁的陌生生物':'陌生林地生物')+' · '+(state.result?'遭遇結束':'第 '+(state.turn+1)+' 回合');
+ const monster=battleMonster(state);
+ const head=document.createElement('div');head.className='battle-head';head.textContent=monster.name+' · '+(state.result?'遭遇結束':'第 '+(state.turn+1)+' 回合');
  const meter=document.createElement('div');meter.className='battle-meter';meter.setAttribute('aria-label','對手狀態');const fill=document.createElement('span');fill.style.width=state.enemyHp/(state.maxEnemyHp||12)*100+'%';meter.appendChild(fill);head.appendChild(meter);const range=document.createElement('div');range.className='battle-range';range.textContent='距離：'+BATTLE_DISTANCES[state.distance];head.appendChild(range);
- const sprite=document.createElement('canvas');sprite.className='battle-creature';sprite.setAttribute('aria-hidden','true');window.DungeonSceneObjectsV1?.sprite(sprite,'creature');
+ const sprite=document.createElement('img');sprite.className='battle-creature';sprite.src=monster.sprite;sprite.alt=monster.name;sprite.draggable=false;
+ const shadow=document.createElement('div');shadow.className='battle-ground-shadow';shadow.setAttribute('aria-hidden','true');
  const controls=document.createElement('div');controls.className='battle-controls';
  const intent=document.createElement('p');intent.className='battle-intent';
  intent.textContent=state.result?({victory:'牠退回了林中。',retreat:'你已脫離遭遇。',defeat:'你體力不支，倒了下來。'}[state.result]):BATTLE_INTENTS[state.intent];
@@ -8136,7 +8153,7 @@ function renderBattleSurface(){
  const choices=document.createElement('div');choices.className='battle-actions';
  const buttons=state.result?[['finish',state.result==='defeat'?'稍後醒來':'繼續探索']]:[['attack','攻擊'],['guard','防禦'],['dodge','閃避'],['observe','觀察'],['approach','靠近'],['backstep','拉開'],['retreat','撤離']];
  for(const [id,label] of buttons){const button=document.createElement('button');button.type='button';button.textContent=label;button.disabled=(id==='attack'&&state.distance>0)||(id==='approach'&&state.distance===0)||(id==='backstep'&&state.distance===2);if(button.disabled)button.title=id==='attack'?'徒手攻擊需要近距離':'已達距離界線';button.onclick=()=>id==='finish'?finishBattle():battleTurn(id);choices.appendChild(button);}
- controls.append(intent,feedback,choices);host.append(head,sprite,controls);syncDialogueInputLock();
+ controls.append(intent,feedback,choices);host.append(head,shadow,sprite,controls);syncDialogueInputLock();
 }
 function battleDialog(){renderBattleSurface();}
 function battleTurn(kind){
@@ -8150,7 +8167,7 @@ function battleTurn(kind){
  advanceGameTime(1,'combat');syncTimeAtmosphere();
  if(result.state.result){
   const outcome=result.state.result;
-  const text=outcome==='victory'?'擊退陌生林地生物。':outcome==='retreat'?'從陌生林地生物身旁撤離。':'與陌生林地生物遭遇時體力不支。';
+  const text=outcome==='victory'?'擊退苔棘鬃獸。':outcome==='retreat'?'從苔棘鬃獸身旁撤離。':'與苔棘鬃獸遭遇時體力不支。';
   addTravel('combat',text,outcome==='victory'?'牠的行動有跡可循。':'往後得更小心。');
   if(outcome==='victory')s.flags.battles=(s.flags.battles||0)+1;
  }
@@ -8498,8 +8515,8 @@ function renderWorldObjects(el){
    const canvas=document.createElement('canvas');engine.sprite(canvas,obj.kind,obj.stage);patch.appendChild(canvas);el.appendChild(patch);continue;
   }
   const b=document.createElement('button');b.type='button';b.className='world-object';b.dataset.kind=obj.kind;b.dataset.objectId=obj.id;b.style.left=obj.x+'%';b.style.top=obj.y+'%';b.setAttribute('aria-label',obj.label+(obj.material?'：'+obj.material:''));
-  const cv=document.createElement('canvas');cv.setAttribute('aria-hidden','true');engine.sprite(cv,obj.kind);
-  const caption=document.createElement('span');caption.textContent=obj.label;b.append(cv,caption);
+  const cv=document.createElement(obj.kind==='creature'?'img':'canvas');cv.setAttribute('aria-hidden','true');if(obj.kind==='creature'){cv.src=MONSTER_CATALOG_V1.moss_spine_beast.sprite;cv.alt='';cv.className='forest-monster-art';b.setAttribute('aria-label','苔棘鬃獸');}else engine.sprite(cv,obj.kind);
+  const caption=document.createElement('span');caption.textContent=obj.kind==='creature'?'苔棘鬃獸':obj.label;b.append(cv,caption);
   applyDiscoveryCue(b,window.DungeonDiscoveryCueV1.object({pending:obj.material?1:0,clue:obj.kind==='wreck',observed:!!s.flags.trailWreckInspected||!!s.recovery.looted}));
   b.onclick=()=>guardedAction(()=>interactSceneObject(obj.id));el.appendChild(b);
  }
