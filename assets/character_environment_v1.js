@@ -22,7 +22,7 @@ window.DungeonCharacterEnvironmentV1=(function(){
  }
  function conditions(weather={},p=protection(),wetness=0,indoor=false){
   const ambient=indoor?20:num(weather.temperature,20),wind=indoor?0:clamp(num(weather.wind),0,1);
-  const felt=ambient-Math.max(0,18-ambient)*wind*.42*(1-p.windproof)-wetness*.065+Math.min(12,p.warmth*.16);
+  const felt=ambient-Math.max(0,18-ambient)*wind*.42*(1-p.windproof)-wetness*.065+Math.min(indoor?6:12,p.warmth*.16);
   const cold=Math.max(0,16-felt),heat=Math.max(0,felt-29)+(ambient>26?(1-p.breathability)*p.warmth*.055:0);
   return {ambient,felt:Math.round(felt),cold,heat,wind};
  }
@@ -32,7 +32,7 @@ window.DungeonCharacterEnvironmentV1=(function(){
   const drying=(indoor?.65:.14+c.wind*.2+Math.max(0,c.ambient-12)*.012)*p.dryRate;
   const wetness=clamp(num(old.wetness)+dt*(rain*.72*(1-p.waterproof)+(snow?.16*(1-p.waterproof):0)-(!rain&&!snow?drying:0)+c.heat*.012),0,100);
   const stress=c.cold*.026+c.heat*.030+wetness*.0014;
-  const comfort=clamp(num(old.comfort,100)+dt*(stress>.035?-stress:(indoor?.42:.22)),0,100);
+  const comfort=clamp(num(old.comfort,100)+dt*(indoor?.42:stress>.035?-stress:.22),0,100);
   return {wetness,comfort};
  }
  function advance(actor,indoor,weatherAt){
