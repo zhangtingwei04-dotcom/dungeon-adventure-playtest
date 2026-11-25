@@ -74,3 +74,21 @@ html.stage-locked #app #placeDrawerPanel.is-location-tab .location-resource-head
 html.stage-locked #app #placeDrawerPanel.is-location-tab .location-resource-tile{height:32px!important;box-sizing:border-box}
 html.stage-locked #app #placeDrawerPanel.is-location-tab .location-resource-icon{font-size:22px!important}
 html.stage-locked #app #placeDrawerPanel.is-location-tab #placePrimaryActions{position:relative;flex-shrink:0!important}
+
+/* Ground movement moves the interactive node and its contact shadow together.
+   The art alone lifts off the ground during rabbit hops. */
+#sceneStage .forest-v4-layer .forest-v4-object[data-wildlife]{
+ translate:var(--wild-x,0%) 0;will-change:translate;
+}
+#sceneStage .forest-v4-layer .forest-v4-object[data-wildlife] .forest-v4-art img{
+ animation:none!important;
+ transform:translateY(var(--wild-lift,0%)) scale(var(--wild-sx,1),var(--wild-sy,1));
+ transform-origin:50% 100%;will-change:transform;
+}
+#sceneStage .forest-v4-layer .forest-v4-object[data-wildlife="rabbit"][data-wild-state="hop"]::before{
+ opacity:calc(var(--v4-shadow-strength,1) * var(--v4-shadow-opacity,.65) * .72);
+}
+@media(prefers-reduced-motion:reduce){
+ #sceneStage .forest-v4-layer .forest-v4-object[data-wildlife]{translate:none;will-change:auto}
+ #sceneStage .forest-v4-layer .forest-v4-object[data-wildlife] .forest-v4-art img{transform:none;will-change:auto}
+}
