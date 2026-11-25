@@ -4112,6 +4112,19 @@ html.stage-locked #app #travelFeed #travelRecent .diary-thought{font-size:14px}
 .recollection-details summary{cursor:pointer;min-height:26px}
 .recollection-details p{color:#c8c6b6}
 /* Scene-first tactical combat, using the same pixel creature and background. */
+#battleSurface .battle-range{font-size:12px;color:#c7c4a9;margin-top:3px}
+#battleSurface[data-distance="0"] .battle-creature{width:37%;height:46%;top:49%}
+#battleSurface[data-distance="1"] .battle-creature{width:27%;height:34%;top:44%}
+#battleSurface[data-distance="2"] .battle-creature{width:17%;height:23%;top:39%}
+#battleSurface .battle-fx{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1}
+#battleSurface .battle-controls,#battleSurface .battle-head{z-index:2}
+#battleSurface .battle-fx-hand{position:absolute;width:18%;height:26%;bottom:7%;left:61%;border-radius:30% 38% 15% 15%;background:linear-gradient(125deg,#b8a07c 0 37%,#7a684f 38% 49%,#485849 50% 100%);border:2px solid #302b24;transform:translateY(130%) rotate(-35deg);box-shadow:3px 3px 0 #17231a;opacity:0}
+#battleSurface .battle-fx-hand.left{left:22%;transform:translateY(130%) rotate(35deg)}
+#battleSurface .battle-fx-flash{position:absolute;inset:0;opacity:0;background:radial-gradient(ellipse,transparent 20%,#661d17bb 100%)}
+#battleSurface .battle-actions button:disabled{opacity:.36;cursor:default}
+html.stage-locked #app #battleSurface .battle-range{font-size:14px}
+@media(prefers-reduced-motion:reduce){#battleSurface .battle-fx-hand,#battleSurface .battle-fx-flash{display:none}}
+
 #sceneStage #battleSurface{position:absolute;inset:0;z-index:9;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:3% 4%;pointer-events:auto;background:linear-gradient(180deg,#0d201a60,transparent 34%,transparent 55%,#0c1a16c0)}
 #sceneStage #battleSurface.hidden{display:none!important}
 #battleSurface .battle-head{width:min(86%,360px);text-align:center;color:#eee5ce;text-shadow:0 1px 3px #000;font-size:clamp(12px,1.6vw,18px)}
@@ -4126,7 +4139,7 @@ html.stage-locked #app #travelFeed #travelRecent .diary-thought{font-size:14px}
 #battleSurface .battle-controls{position:relative;width:100%;padding:8px 10px;background:#132821ed;border:1px solid #b6a07577;border-radius:5px;box-shadow:0 3px 9px #06130f88}
 #battleSurface .battle-intent{color:#f0e1bb;font-size:clamp(11px,1.5vw,16px);line-height:1.35;margin:0 0 4px}
 #battleSurface .battle-feedback{font-size:clamp(10px,1.3vw,14px);line-height:1.3;color:#b5c4b1;min-height:1.3em;margin:0 0 6px}
-#battleSurface .battle-actions{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
+#battleSurface .battle-actions{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
 #battleSurface .battle-actions button{color:#eee4cd;background:#2e4539;border:1px solid #8f8861;border-radius:3px;min-width:0;min-height:32px;font-size:clamp(11px,1.5vw,16px);padding:4px 1px;white-space:nowrap}
 #battleSurface .battle-actions button:active{background:#51654b}
 #battleSurface[data-result="true"] .battle-actions{grid-template-columns:1fr}
@@ -8011,79 +8024,90 @@ const BATTLE_INTENTS=Object.freeze({
  watch:'牠停下腳步，盯著你的動作。',
  exposed:'牠失去平衡，露出了側腹。'
 });
+const BATTLE_DISTANCES=['近距','中距','遠距'];
 function resolveBattleTurn(previous,playerHp,action,ground={}){
  const state={...previous},intent=BATTLE_INTENTS[state.intent]?state.intent:'watch';
+ state.distance=Number.isInteger(state.distance)?Math.max(0,Math.min(2,state.distance)):1;
  const hp=Math.max(0,Number(playerHp)||0),slippery=!!ground.slippery;
- if(state.result||!['attack','guard','dodge','observe','retreat'].includes(action))return {state,hp,damage:0,hit:0};
- state.turn++;let damage=0,hit=0,feedback='',next='watch';
+ if(state.result||!['attack','guard','dodge','observe','retreat','approach','backstep'].includes(action)||(action==='attack'&&state.distance>0)||(action==='approach'&&state.distance===0)||(action==='backstep'&&state.distance===2))return {state,hp,damage:0,hit:0,skipped:true};
+ const before=state.distance;
+ state.turn++;let damage=0,hit=0,feedback='',next='watch',enemyAction='watch';
+ if(action==='approach'){state.distance--;feedback='你向前一步，縮短距離。';}
+ if(action==='backstep'){state.distance++;feedback='你後退一步，拉開距離。';}
  if(action==='retreat'){
-  hit=intent==='pounce'?(state.braced?0:2):intent==='heavy'?(state.braced?0:1):0;
-  state.result=hp<=hit?'defeat':'retreat';feedback=hit?'你趁機拉開距離，但被擦傷。':'你慢慢退開，牠沒有追上來。';
- }else if(action==='attack'){
-  damage=(intent==='exposed'?6:3)+(state.focused?2:0);
-  hit=intent==='pounce'?4:intent==='heavy'?5:intent==='watch'?1:0;
-  next=intent==='exposed'?'watch':intent==='watch'?'heavy':'watch';
-  feedback=intent==='exposed'?'你抓住破綻，擊中牠的側腹。':'你上前攻擊。';
-  state.focused=false;
- }else if(action==='guard'){
-  hit=intent==='heavy'?1:intent==='pounce'?2:0;next=intent==='heavy'?'exposed':intent==='watch'?'pounce':'heavy';
-  feedback=intent==='heavy'?'你擋下重擊，牠失去平衡。':'你穩住腳步，護住身體。';
- }else if(action==='dodge'){
-  hit=intent==='pounce'?(slippery?1:0):intent==='heavy'?(slippery?3:2):0;
-  next=intent==='pounce'?'exposed':intent==='watch'?'heavy':'watch';
-  feedback=intent==='pounce'?'你側身避開撲擊，牠撲空了。':intent==='heavy'?'牠的攻擊範圍比預期更廣。':'你拉開了身位。';
-  if(slippery&&hit)feedback+='地面有些濕滑。';
+  hit=intent==='pounce'&&before<2?(state.braced?0:2):intent==='heavy'&&before===0?(state.braced?0:1):0;
+  state.result=hp<=hit?'defeat':'retreat';feedback=hit?'你趁機拉開距離，但被擦傷。':'你慢慢退開，牠沒有追上來。';state.distance=2;enemyAction=hit?'pounce':'withdraw';
  }else{
-  hit=intent==='pounce'?3:intent==='heavy'?4:0;state.focused=true;
-  next=intent==='watch'?'pounce':intent==='exposed'?'watch':'heavy';
-  feedback=intent==='watch'?'你看清牠的重心，下一次攻擊更容易命中。':'你留意牠的動作，找出了薄弱位置。';
+  if(action==='attack'){
+   damage=(intent==='exposed'?6:3)+(state.focused?2:0);
+   state.focused=false;feedback=intent==='exposed'?'你抓住破綻，擊中牠的側腹。':'你上前攻擊。';
+  }else if(action==='guard')feedback='你穩住腳步，護住身體。';
+  else if(action==='dodge')feedback='你向側面閃避。';
+  else if(action==='observe'){state.focused=true;feedback='你仔細觀察牠的重心與弱點。';}
+  state.enemyHp=Math.max(0,state.enemyHp-damage);
+  if(state.enemyHp<=3){state.result='victory';state.distance=2;enemyAction='withdraw';feedback+=' 牠退縮了，不再想繼續戰鬥。';}
+  else if(intent==='pounce'){
+   enemyAction='pounce';
+   if(state.distance===2){state.distance=1;next='watch';feedback+=' 牠向前撲近，尚未碰到你。';}
+   else if(action==='dodge'){state.distance=0;hit=slippery?1:0;next='exposed';feedback+=' 牠撲空，露出破綻。';}
+   else{state.distance=0;hit=action==='guard'?2:action==='observe'?3:4;next=action==='guard'?'heavy':'watch';feedback+=' 牠猛然撲近。';}
+  }else if(intent==='heavy'){
+   if(state.distance>0){enemyAction='heavy';next='exposed';feedback+=' 重擊落空。';}
+   else{enemyAction='heavy';hit=action==='guard'?1:action==='dodge'?(slippery?3:2):action==='observe'?4:5;next=action==='guard'?'exposed':'watch';if(action==='guard')feedback+=' 你擋下重擊，牠失去平衡。';}
+  }else if(intent==='exposed'){next=state.distance===0?'watch':'pounce';}
+  else{
+   if(state.distance>0){state.distance--;enemyAction='approach';feedback+=' 牠慢慢接近。';}
+   next=state.distance===0?'heavy':'pounce';
+  }
  }
+ if(slippery&&action==='dodge'&&hit)feedback+=' 地面有些濕滑。';
  state.braced=action==='guard'||action==='dodge';
- state.enemyHp=Math.max(0,state.enemyHp-damage);
- if(!state.result&&state.enemyHp<=3){state.result='victory';hit=0;feedback+=' 牠退縮了，不再想繼續戰鬥。';}
  const nextHp=Math.max(0,hp-hit);
  if(nextHp===0)state.result='defeat';
  state.intent=next;state.feedback=feedback+(damage?' 造成 '+damage+' 點傷害。':'')+(hit?' 受到 '+hit+' 點傷害。':'');
- return {state,hp:nextHp,damage,hit};
+ return {state,hp:nextHp,damage,hit,enemyAction};
 }
 function normalizeBattle(){
  const old=s.flags.battleV2;
  if(!old||!Number.isFinite(old.enemyHp)||!Number.isInteger(old.turn)||!BATTLE_INTENTS[old.intent]){
   s.flags.battleV2={enemyHp:Math.min(12,Math.max(0,Number(s.flags.monsterHp??12))),turn:0,intent:'pounce',focused:false,braced:false,result:null,feedback:'牠警戒地盯著你。'};
  }
- return s.flags.battleV2;
+ const state=s.flags.battleV2;if(!Number.isInteger(state.distance))state.distance=1;state.distance=Math.max(0,Math.min(2,state.distance));
+ return state;
 }
-let lastBattleAction=0;
+let lastBattleAction=0,battleAnimating=false;
 function battleStart(){
  if(s.flags.inBattle)return;
- s.flags.inBattle=true;s.flags.monsterHp=12;s.flags.battleV2={enemyHp:12,turn:0,intent:'pounce',focused:false,braced:false,result:null,feedback:'牠警戒地盯著你。'};
+ s.flags.inBattle=true;s.flags.monsterHp=12;s.flags.battleV2={enemyHp:12,turn:0,intent:'pounce',distance:1,focused:false,braced:false,result:null,feedback:'牠警戒地盯著你。'};
  lastBattleAction=0;save();render();battleDialog();
 }
 function renderBattleSurface(){
  const host=$('battleSurface');
  if(!s.flags.inBattle||!$('startVeil').classList.contains('hidden')){host.classList.add('hidden');syncDialogueInputLock();return;}
+ if(battleAnimating)return;
  const state=normalizeBattle();
- host.classList.remove('hidden');host.dataset.intent=state.intent;host.dataset.result=String(!!state.result);
+ host.classList.remove('hidden');host.dataset.intent=state.intent;host.dataset.distance=String(state.distance);host.dataset.result=String(!!state.result);
  host.replaceChildren();
  const head=document.createElement('div');head.className='battle-head';head.textContent='陌生林地生物 · '+(state.result?'遭遇結束':'第 '+(state.turn+1)+' 回合');
- const meter=document.createElement('div');meter.className='battle-meter';meter.setAttribute('aria-label','對手狀態');const fill=document.createElement('span');fill.style.width=state.enemyHp/12*100+'%';meter.appendChild(fill);head.appendChild(meter);
+ const meter=document.createElement('div');meter.className='battle-meter';meter.setAttribute('aria-label','對手狀態');const fill=document.createElement('span');fill.style.width=state.enemyHp/12*100+'%';meter.appendChild(fill);head.appendChild(meter);const range=document.createElement('div');range.className='battle-range';range.textContent='距離：'+BATTLE_DISTANCES[state.distance];head.appendChild(range);
  const sprite=document.createElement('canvas');sprite.className='battle-creature';sprite.setAttribute('aria-hidden','true');window.DungeonSceneObjectsV1?.sprite(sprite,'creature');
  const controls=document.createElement('div');controls.className='battle-controls';
  const intent=document.createElement('p');intent.className='battle-intent';
  intent.textContent=state.result?({victory:'牠退回了林中。',retreat:'你已脫離遭遇。',defeat:'你體力不支，倒了下來。'}[state.result]):BATTLE_INTENTS[state.intent];
  const feedback=document.createElement('p');feedback.className='battle-feedback';feedback.setAttribute('aria-live','polite');feedback.textContent=state.feedback||'';
  const choices=document.createElement('div');choices.className='battle-actions';
- const buttons=state.result?[['finish',state.result==='defeat'?'稍後醒來':'繼續探索']]:[['attack','攻擊'],['guard','防禦'],['dodge','閃避'],['observe','觀察'],['retreat','撤離']];
- for(const [id,label] of buttons){const button=document.createElement('button');button.type='button';button.textContent=label;button.onclick=()=>id==='finish'?finishBattle():battleTurn(id);choices.appendChild(button);}
+ const buttons=state.result?[['finish',state.result==='defeat'?'稍後醒來':'繼續探索']]:[['attack','攻擊'],['guard','防禦'],['dodge','閃避'],['observe','觀察'],['approach','靠近'],['backstep','拉開'],['retreat','撤離']];
+ for(const [id,label] of buttons){const button=document.createElement('button');button.type='button';button.textContent=label;button.disabled=(id==='attack'&&state.distance>0)||(id==='approach'&&state.distance===0)||(id==='backstep'&&state.distance===2);if(button.disabled)button.title=id==='attack'?'徒手攻擊需要近距離':'已達距離界線';button.onclick=()=>id==='finish'?finishBattle():battleTurn(id);choices.appendChild(button);}
  controls.append(intent,feedback,choices);host.append(head,sprite,controls);syncDialogueInputLock();
 }
 function battleDialog(){renderBattleSurface();}
 function battleTurn(kind){
- if(!s.flags.inBattle)return;
+ if(!s.flags.inBattle||battleAnimating)return;
  const now=Date.now();if(now-lastBattleAction<300)return;lastBattleAction=now;
  const current=normalizeBattle();if(current.result)return;
  const weather=window.DungeonWeatherV1?.at(s.seed,s.worldMinutes,s.scene)||{};
  const result=resolveBattleTurn(current,s.hp,kind,{slippery:weather.puddles>.35||weather.snowCover>.4||weather.frost>.45});
+ if(result.skipped)return;
  s.flags.battleV2=result.state;s.flags.monsterHp=result.state.enemyHp;s.hp=result.hp;
  advanceGameTime(1,'combat');syncTimeAtmosphere();
  if(result.state.result){
@@ -8092,7 +8116,28 @@ function battleTurn(kind){
   addTravel('combat',text,outcome==='victory'?'牠的行動有跡可循。':'往後得更小心。');
   if(outcome==='victory')s.flags.battles=(s.flags.battles||0)+1;
  }
- save();renderPlayerStatus();renderFeed();renderPlaceDrawer();renderBattleSurface();
+ save();renderPlayerStatus();renderFeed();renderPlaceDrawer();playBattleMotion(kind,result);
+}
+function playBattleMotion(kind,result){
+ const host=$('battleSurface'),sprite=host.querySelector('.battle-creature'),view=$('view');
+ if(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches||!sprite?.animate){renderBattleSurface();return;}
+ battleAnimating=true;for(const button of host.querySelectorAll('button'))button.disabled=true;
+ const fx=document.createElement('div');fx.className='battle-fx';fx.setAttribute('aria-hidden','true');
+ const right=document.createElement('div');right.className='battle-fx-hand';const left=document.createElement('div');left.className='battle-fx-hand left';const flash=document.createElement('div');flash.className='battle-fx-flash';fx.append(right,left,flash);host.appendChild(fx);
+ const motions=[];const anim=(el,frames,options)=>{if(el?.animate){const a=el.animate(frames,options);motions.push(a);}};
+ const base={duration:360,easing:'ease-in-out',fill:'none'};
+ if(kind==='attack')anim(right,[{opacity:0,transform:'translateY(100%) rotate(-30deg)'},{opacity:1,transform:'translate(-130%,-85%) rotate(-35deg)',offset:.42},{opacity:0,transform:'translateY(100%) rotate(-20deg)'}],base);
+ if(kind==='guard')for(const [el,angle] of [[left,30],[right,-30]])anim(el,[{opacity:0,transform:'translateY(100%)'},{opacity:1,transform:'translateY(-30%) rotate('+angle+'deg)',offset:.3},{opacity:1,transform:'translateY(-30%) rotate('+angle+'deg)',offset:.78},{opacity:0,transform:'translateY(100%)'}],{...base,duration:520});
+ if(kind==='dodge')anim(view,[{translate:'0 0'},{translate:'-3% 0',offset:.44},{translate:'0 0'}],base);
+ if(kind==='approach'||kind==='backstep')anim(view,[{scale:1},{scale:kind==='approach'?1.035:1.015,offset:.5},{scale:1}],base);
+ if(result.damage)anim(sprite,[{filter:'drop-shadow(0 6px 4px #0b1615bb)'},{filter:'brightness(1.65) sepia(.45)',offset:.4},{filter:'drop-shadow(0 6px 4px #0b1615bb)'}],{...base,duration:260,delay:110});
+ if(['pounce','heavy','approach','withdraw'].includes(result.enemyAction)){
+  const lunge=result.enemyAction==='pounce'?1.5:result.enemyAction==='heavy'?1.24:result.enemyAction==='approach'?1.18:.65;
+  anim(sprite,[{scale:1},{scale:lunge,translate:result.enemyAction==='withdraw'?'18% -16%':'0 8%',offset:.55},{scale:1,translate:'0 0'}],{...base,duration:390,delay:kind==='attack'?190:0});
+ }
+ if(result.hit){anim(flash,[{opacity:0},{opacity:.72,offset:.28},{opacity:0}],{...base,duration:280,delay:240});anim(view,[{translate:'0 0'},{translate:'1.2% -.6%',offset:.2},{translate:'-1% .5%',offset:.55},{translate:'0 0'}],{...base,duration:220,delay:260});}
+ const finish=()=>{if(!battleAnimating)return;battleAnimating=false;fx.remove();renderBattleSurface();};
+ Promise.allSettled(motions.map(a=>a.finished)).then(finish);setTimeout(finish,900);
 }
 function finishBattle(){
  if(!s.flags.inBattle)return;
@@ -8665,7 +8710,7 @@ const active=activeDialogueSurface();
    return;
   }
   if(e.key==='Escape'){e.preventDefault();if(active.id==='dialogVeil')closeDialog();else if(active.id==='sceneInspection')hideSceneInspection();return;}
-  if(active.id==='battleSurface'&&/^[1-5]$/.test(e.key)){e.preventDefault();active.querySelectorAll('.battle-actions button')[Number(e.key)-1]?.click();return;}
+  if(active.id==='battleSurface'&&/^[1-7]$/.test(e.key)){e.preventDefault();active.querySelectorAll('.battle-actions button')[Number(e.key)-1]?.click();return;}
   if(active.id==='dialogVeil'&&/^[123]$/.test(e.key)){e.preventDefault();$('dialogChoices').querySelectorAll('button')[Number(e.key)-1]?.click();return;}
   if(!active.contains(e.target)||!['Enter',' ','ArrowUp','ArrowDown','PageUp','PageDown'].includes(e.key))e.preventDefault();
   return;
