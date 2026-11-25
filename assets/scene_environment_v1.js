@@ -118,6 +118,7 @@ window.DungeonSceneEnvironmentV1=(function(){
   node.dataset.wildlife=kind;
   wildlife.set(node,{kind,dir,phase:hash/100,start:null});
   if(kind==='rabbit')window.DungeonRabbitArticulation?.attach(node);
+  else if(kind==='beetle')window.DungeonBeetleArticulation?.attach(node);
  }
  function tickWildlife(ms,active){
   if(!active){for(const [node] of wildlife)if(!node.isConnected)wildlife.delete(node);return;}
@@ -127,6 +128,7 @@ window.DungeonSceneEnvironmentV1=(function(){
    const elapsed=(ms-a.start)/1000+a.phase;
    const v=wildlifeSample(a.kind,elapsed,a.dir);
    if(a.kind==='rabbit')window.DungeonRabbitArticulation?.render(node,v,elapsed,ms);
+   else if(a.kind==='beetle')window.DungeonBeetleArticulation?.render(node,v,elapsed,ms);
    node.style.setProperty('--wild-x',v.x.toFixed(2)+'%');
    node.style.setProperty('--wild-lift',(-v.lift).toFixed(2)+'%');
    node.style.setProperty('--wild-sx',(v.flip*v.sx).toFixed(3));
