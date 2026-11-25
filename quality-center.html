@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#102a23"><meta name="robots" content="noindex,nofollow"><title>迷宮盡頭的燈火｜品質管理中心</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC",sans-serif;background:#0b1c19;color:#efead9;color-scheme:dark;--gold:#e0c58b;--line:#766c4e;--muted:#b5c6b8}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#244b3c,#0b1c19 70%);min-height:100dvh}main,header{max-width:1100px;margin:auto;padding:16px}header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}h1{font-size:clamp(20px,4vw,28px);margin:0;color:var(--gold)}h2{font-size:17px;margin:0 0 10px;color:var(--gold)}p,small{font-size:13px;line-height:1.6;color:var(--muted)}a{color:var(--gold)}button,.action{font:inherit;color:var(--gold);border:1px solid var(--line);border-radius:8px;background:#24483b;padding:10px 14px;min-height:42px;text-decoration:none;display:inline-flex;align-items:center;cursor:pointer}button:disabled{opacity:.5}.panel{border:1px solid var(--line);border-radius:12px;background:#16362c;padding:15px;margin-bottom:12px;min-width:0}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.grid>.panel{margin:0}.metric{font-size:26px;font-weight:700;overflow-wrap:anywhere;margin:8px 0}.ok{color:#9ae0af}.bad{color:#ffac9f}.pending{color:#e9ce91}.muted{color:var(--muted)}.row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #ffffff18}.row:last-child{border:0}.row div{min-width:0;overflow-wrap:anywhere}.row span{flex-shrink:0;font-size:13px}.actions{display:flex;gap:8px;flex-wrap:wrap}#runs a{display:block}code{overflow-wrap:anywhere}#notice{min-height:22px}summary{cursor:pointer;color:var(--gold)}@media(max-width:600px){.grid{grid-template-columns:1fr}main,header{padding:10px}}@media(orientation:landscape) and (max-height:500px){header{padding-block:6px}main{padding-block:6px}}
+</style></head><body><header><div><h1>品質管理中心 V1</h1><small>迷宮盡頭的燈火 · 開發者總工作台</small></div><div class="actions"><a class="action" href="./developer-studio.html">返回總台</a><button id="refresh">更新測試結果</button></div></header><main>
+<section class="panel"><h2>最新版本驗收</h2><div id="overall" class="metric muted" role="status">尚未取得資料</div><p id="explain">以 GitHub Actions 實際執行資料為準。尚未取得結果不代表通過。</p><div class="row"><div>main 最新提交</div><code id="head">—</code></div><div class="row"><div>測試對應提交</div><code id="tested">—</code></div><div class="row"><div>測試時間（本地）</div><span id="time">—</span></div><div class="actions"><a id="runLink" class="action" href="https://github.com/zhangtingwei04-dotcom/dungeon-adventure-playtest/actions">開啟 GitHub 測試工作台</a></div><p id="notice" aria-live="polite"></p></section>
+<div class="grid"><section class="panel"><h2>自動化測試</h2><div id="jobs"><p>尚無執行資料</p></div><p>核心與整合、動畫取樣、瀏覽器操作、縮圖與效能紀錄均由測試流程執行。未取得步驟結果時不推定通過。</p></section>
+<section class="panel"><h2>畫面與效能</h2><div class="row"><div>場景截圖／晴雪縮圖</div><span class="pending">待查看報告</span></div><div class="row"><div>FPS／記憶體紀錄</div><span class="pending">待查看報告</span></div><div class="row"><div>iPhone Safari 實機</div><span class="pending">待人工驗收</span></div><p>CI 數值不等同實機表現；截圖變化不等同美術驗收。</p><a id="artifacts" href="https://github.com/zhangtingwei04-dotcom/dungeon-adventure-playtest/actions">查看報告與截圖（Artifacts）</a></section>
+<section class="panel"><h2>發布管理</h2><div class="row"><div>自動測試品質判定</div><span id="gate" class="muted">未知</span></div><div class="row"><div>GitHub Pages 強制發布關卡</div><span class="pending">尚未啟用</span></div><div class="row"><div>正式美術基準庫</div><span class="pending">尚未建立</span></div><p>V1 僅提供驗收狀態，不自動發布、回退或修改遊戲存檔。</p><a href="https://github.com/zhangtingwei04-dotcom/dungeon-adventure-playtest/commits/main/">查看版本紀錄</a></section>
+<section class="panel"><h2>近期測試紀錄</h2><div id="runs"><p>尚未取得資料</p></div><p>此頁使用公開 GitHub API，不需要存入金鑰。若 API 限流，請使用 GitHub 工作台連結。</p></section></div>
+</main><script>
+'use strict';
+const repo='zhangtingwei04-dotcom/dungeon-adventure-playtest',api='https://api.github.com/repos/'+repo;
+const $=id=>document.getElementById(id);
+function classify(head,run){
+ if(!head||!run)return ['未知','muted','目前無法確認最新提交的測試狀態。'];
+ if(head!==run.head_sha)return ['最新提交尚未驗收','pending','最近一次測試不是目前 main 版本，不能沿用其結果。'];
+ if(run.status!=='completed')return ['測試尚未完成','pending','正在排程或執行。'];
+ if(run.conclusion==='success')return ['自動測試通過','ok','目前提交的 CI 已通過；美術及 iPhone 實機仍須人工確認。'];
+ if(run.conclusion==='failure'||run.conclusion==='timed_out'||run.conclusion==='action_required')return ['測試未通過','bad','請查看失敗步驟，修正後重新驗收。'];
+ return ['測試未確認通過','pending','流程已結束，但結果不是成功。'];
+}
+function state(obj){return obj.status==='completed'?(obj.conclusion==='success'?['通過','ok']:obj.conclusion==='failure'?['失敗','bad']:[obj.conclusion||'未知','pending']):[obj.status==='in_progress'?'執行中':'等待中','pending'];}
+async function get(path){const r=await fetch(api+path,{cache:'no-store',headers:{Accept:'application/vnd.github+json'}});if(!r.ok)throw Error('GitHub API HTTP '+r.status);return r.json();}
+function row(parent,title,status,cls){const el=document.createElement('div');el.className='row';const name=document.createElement('div'),span=document.createElement('span');name.textContent=title;span.textContent=status;span.className=cls;el.append(name,span);parent.append(el);return name;}
+function safeLink(url){try{const u=new URL(url);return u.origin==='https://github.com'&&u.pathname.startsWith('/'+repo+'/')?u.href:null;}catch{return null;}}
+function render(head,run){
+ const [label,cls,detail]=classify(head,run);$('overall').textContent=label;$('overall').className='metric '+cls;$('explain').textContent=detail;$('gate').textContent=label;$('gate').className=cls;
+ $('head').textContent=head?.slice(0,12)||'—';$('tested').textContent=run?.head_sha?.slice(0,12)||'—';$('time').textContent=run?.updated_at?new Date(run.updated_at).toLocaleString('zh-TW'):'—';
+ const link=safeLink(run?.html_url);$('runLink').href=link||'https://github.com/'+repo+'/actions';$('artifacts').href=$('runLink').href;
+}
+async function refresh(){
+ $('refresh').disabled=true;$('notice').textContent='正在向 GitHub 讀取…';render(null,null);$('jobs').textContent='尚未取得步驟';$('runs').textContent='尚未取得紀錄';
+ try{
+  const [head,history]=await Promise.all([get('/commits/main'),get('/actions/workflows/game-regression.yml/runs?branch=main&per_page=8')]);
+  const runs=(history.workflow_runs||[]).filter(r=>r.head_branch==='main'&&r.event!=='pull_request'),run=runs.find(r=>r.head_sha===head.sha)||runs[0];render(head.sha,run);
+  $('runs').replaceChildren();for(const r of runs){const [label,cls]=state(r);const name=row($('runs'),'#'+r.run_number+' · '+r.head_sha.slice(0,8),label,cls);const url=safeLink(r.html_url);if(url){const a=document.createElement('a');a.href=url;a.textContent='查看執行紀錄';name.append(a);}}
+  if(!runs.length)$('runs').textContent='沒有可用執行紀錄';
+  if(run){try{const result=await get('/actions/runs/'+run.id+'/jobs?per_page=100');$('jobs').replaceChildren();for(const j of result.jobs||[]){const [label,cls]=state(j);row($('jobs'),j.name,label,cls);for(const step of j.steps||[]){const [sl,sc]=state(step);row($('jobs'),'　'+step.name,sl,sc);}}if(!$('jobs').children.length)$('jobs').textContent='尚未產生工作項目';}catch(e){$('jobs').textContent='無法取得步驟：'+e.message;}}
+  $('notice').textContent='最後查詢：'+new Date().toLocaleString('zh-TW');
+ }catch(e){$('notice').textContent='查詢失敗：'+e.message+'。請開啟 GitHub 測試工作台確認。';render(null,null);}
+ finally{$('refresh').disabled=false;}
+}
+$('refresh').addEventListener('click',refresh);refresh();
+</script></body></html>
