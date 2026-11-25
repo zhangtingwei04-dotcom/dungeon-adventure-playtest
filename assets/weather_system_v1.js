@@ -136,7 +136,7 @@ window.DungeonWeatherV1=(function(){
  function puddleLevel(wet,rain){return clamp(Math.max((wet-.10)/.65,rain*.62),0,1);}
  function drawGround(g,t,width,height,enabled=true,source=null){
   if(hidden||scene!=='wreck'||!enabled||!g)return;
-  window.DungeonWinterV1?.ground(g,shown.snowCover,width,height,source);
+  window.DungeonWinterV1?.ground(g,shown.snowCover,width,height,source,shown.frost);
   const amount=shown.puddles*(1-shown.snowCover*.85);if(amount<.035)return;
   g.save();g.scale(width/W,height/H);
   for(const p of pools){
