@@ -39,7 +39,7 @@ window.DungeonEventsV1=(function(){
  return Object.freeze({on,emit,appendTravel,updateTravel,discovery,diagnostics:()=>({subscriptions:[...handlers].map(([type,set])=>({type,ids:[...set.keys()]})),history:history.slice(),errors:errors.slice()})});
 })();
 window.DungeonSaveV1=(function(events){
- const CURRENT=1,PROJECT='dungeon-adventure',migrations=new Map();let last={state:'idle'},writeProtected=false;
+ const CURRENT=1,PROJECT='dungeon-adventure',migrations=new Map();let last={state:'idle'},writeProtected=false,replacementAllowed=false;
  const record=x=>x!==null&&typeof x==='object'&&!Array.isArray(x);
  const safeMap=x=>record(x)&&!Object.hasOwn(x,'__proto__')&&!Object.hasOwn(x,'constructor')&&!Object.hasOwn(x,'prototype');
  function valid(j,scenes){
@@ -61,21 +61,53 @@ window.DungeonSaveV1=(function(events){
   if(!['compact','expanded'].includes(j.travelHudMode))j.travelHudMode='compact';
   return j;
  }
- function parse(raw,scenes){return prepare(JSON.parse(raw),scenes);}
+ // A lightweight corruption check, not authentication or encryption.
+ const backupKey=key=>key+'.previous-v1';
+ function payload(j){const copy={...j};delete copy.saveIntegrityV1;return JSON.stringify(copy);}
+ function checksum(text){let h=2166136261;for(let i=0;i<text.length;i++)h=Math.imul(h^text.charCodeAt(i),16777619);return (h>>>0).toString(16).padStart(8,'0');}
+ function seal(j){delete j.saveIntegrityV1;j.saveIntegrityV1={algorithm:'fnv1a-utf16-v1',value:checksum(payload(j))};return j;}
+ function progress(j){const copy={...j};delete copy.savedAt;delete copy.saveIntegrityV1;return JSON.stringify(copy);}
+ function parse(raw,scenes){
+  const j=JSON.parse(raw);
+  if(record(j)&&Object.hasOwn(j,'saveIntegrityV1')){
+   const mark=j.saveIntegrityV1;
+   if(!safeMap(mark)||mark.algorithm!=='fnv1a-utf16-v1'||mark.value!==checksum(payload(j)))throw Error('存檔完整性檢查失敗');
+  }
+  return prepare(j,scenes);
+ }
+ function previous(storage,key,scenes){try{const raw=storage.getItem(backupKey(key));return raw==null?null:parse(raw,scenes);}catch{return null;}}
  function read(storage,key,scenes){
-  try{const raw=storage.getItem(key);if(raw==null){last={state:'empty'};return null;}const j=parse(raw,scenes);last={state:'loaded',schema:CURRENT};return j;}catch(err){writeProtected=true;last={state:'read-error',message:String(err?.message||err)};return null;}
+  replacementAllowed=false;writeProtected=false;
+  try{const raw=storage.getItem(key);if(raw==null){last={state:'empty'};return null;}const j=parse(raw,scenes);last={state:'loaded',schema:CURRENT,integrity:j.saveIntegrityV1?'verified':'legacy'};return j;}
+  catch(err){writeProtected=true;last={state:'read-error',message:String(err?.message||err),previousAvailable:!!previous(storage,key,scenes)};return null;}
  }
  function write(storage,key,actor,scenes){
-  if(writeProtected){last={state:'protected',message:'原始存檔無法讀取；禁止自動覆寫，請確認重新開始或匯入。'};return false;}
+  if(writeProtected&&!replacementAllowed){last={state:'protected',message:'原始存檔無法讀取；禁止自動覆寫，請確認重新開始或匯入。',previousAvailable:!!previous(storage,key,scenes)};return false;}
   try{
    const candidate=prepare(actor,scenes);candidate.savedAt=Date.now();
-   const encoded=JSON.stringify(candidate);storage.setItem(key,encoded);
+   const raw=storage.getItem(key);let prior=null;
+   if(raw!=null){try{prior=parse(raw,scenes);}catch(err){if(!replacementAllowed){writeProtected=true;throw err;}}}
+   if(prior&&prior.saveIntegrityV1&&progress(prior)===progress(candidate)){
+    actor.engineSave=prior.engineSave;actor.savedAt=prior.savedAt;replacementAllowed=false;writeProtected=false;
+    last={state:'saved',schema:CURRENT,integrity:'verified',unchanged:true};return true;
+   }
+   if(prior&&progress(prior)!==progress(candidate)){
+    const previousText=JSON.stringify(seal(prior));
+    if(storage.getItem(backupKey(key))!==previousText){
+     storage.setItem(backupKey(key),previousText);
+     if(storage.getItem(backupKey(key))!==previousText)throw Error('上一版存檔驗證失敗');
+    }
+   }
+   const encoded=JSON.stringify(seal(candidate));storage.setItem(key,encoded);
+   if(storage.getItem(key)!==encoded)throw Error('主存檔寫入後驗證失敗');
+   parse(encoded,scenes);
    actor.engineSave=candidate.engineSave;actor.savedAt=candidate.savedAt;
-   last={state:'saved',schema:CURRENT};return true;
-  }catch(err){last={state:'write-error',message:String(err?.message||err)};return false;}
+   delete actor.saveIntegrityV1;
+   replacementAllowed=false;writeProtected=false;last={state:'saved',schema:CURRENT,integrity:'verified'};return true;
+  }catch(err){last={state:writeProtected?'protected':'write-error',message:String(err?.message||err)};return false;}
  }
- function exportText(actor,scenes){return JSON.stringify(prepare(actor,scenes),null,2);}
- return Object.freeze({CURRENT,valid,prepare,parse,read,write,exportText,registerMigration,allowReplacement:()=>{writeProtected=false;},diagnostics:()=>({...last,writeProtected})});
+ function exportText(actor,scenes){return JSON.stringify(seal(prepare(actor,scenes)),null,2);}
+ return Object.freeze({CURRENT,valid,prepare,parse,read,write,exportText,previous,backupKey,registerMigration,allowReplacement:()=>{replacementAllowed=true;writeProtected=false;},diagnostics:()=>({...last,writeProtected})});
 })(window.DungeonEventsV1);
 window.DungeonEngineV1.register({id:'engine.events',version:'1.0.0',requires:['engine.registry']});
 window.DungeonEngineV1.register({id:'engine.save',version:'1.0.0',requires:['engine.time','engine.events']});
