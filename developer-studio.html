@@ -111,7 +111,7 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 <div class="hint">瀏覽器影格回呼<br><strong id="livePerfFPS">—</strong></div><div class="hint">場景繪製頻率<br><strong id="livePerfDraw">—</strong></div>
 <div class="hint">影格間隔 P95<br><strong id="livePerfP95">—</strong></div><div class="hint">縮圖快取<br><strong id="livePerfCache">—</strong></div>
 <div class="hint">遊戲 DOM 元素<br><strong id="livePerfDOM">—</strong></div><div class="hint">JS Heap（支援時）<br><strong id="livePerfHeap">—</strong></div></div>
-<h3>系統 CPU 同步耗時（平均 / P95）</h3><div id="livePerfCosts" class="hint">—</div>
+<h3>自適應視覺品質</h3><div id="livePerfQuality" class="hint">—</div><h3>系統 CPU 同步耗時（平均 / P95）</h3><div id="livePerfCosts" class="hint">—</div>
 <h3>圖片載入至完成事件</h3><div id="livePerfLoads" class="hint">—</div>
 <div class="toolbar"><button id="refreshLivePerf" type="button">更新讀數</button><button id="exportLivePerf" type="button">匯出效能 JSON</button></div>
 <p class="hint">回呼頻率不等於 GPU 實際呈現 FPS；場景繪製原本約每 68ms 更新一次。iPhone Safari 通常不提供 JS Heap 數值，顯示不支援時不推估。耗時僅同步 CPU，不含 GPU 或全系統成本。</p>
@@ -427,7 +427,7 @@ function updateLivePerf(){
  try{
   const child=$('gameFrame').contentWindow;
   const sample=typeof child?.DungeonPerformanceSnapshotV1==='function'?child.DungeonPerformanceSnapshotV1():null;
-  if(!sample||sample.hidden){latestLivePerf=null;status.textContent='等待監測資料（需載入新版遊戲預覽）';for(const id of ['FPS','Draw','P95','Cache','DOM','Heap','Costs','Loads'])$('livePerf'+id).textContent='—';return;}
+  if(!sample||sample.hidden){latestLivePerf=null;status.textContent='等待監測資料（需載入新版遊戲預覽）';for(const id of ['FPS','Draw','P95','Cache','DOM','Heap','Costs','Loads','Quality'])$('livePerf'+id).textContent='—';return;}
   latestLivePerf={capturedAt:new Date().toISOString(),...sample};
   const num=(n,d=1)=>Number.isFinite(n)?n.toFixed(d):'—';
   $('livePerfFPS').textContent=num(sample.frameRate)+' FPS';
@@ -436,6 +436,8 @@ function updateLivePerf(){
   $('livePerfCache').textContent=sample.thumbnailCache+' / '+sample.thumbnailCacheLimit;
   $('livePerfDOM').textContent=String(sample.domNodes);
   $('livePerfHeap').textContent=sample.heapBytes==null?'瀏覽器不支援':num(sample.heapBytes/1048576)+' MiB';
+  const q=sample.adaptiveQuality;
+  $('livePerfQuality').textContent=q?(({full:'完整',balanced:'均衡',light:'輕量'})[q.name]||q.name)+' ｜ 粒子 '+Math.round(q.particleScale*100)+'% ｜ 縮圖 '+q.thumbnailMs+' ms'+(q.locked?' ｜ 固定測試':' ｜ 自動'):'尚未取得';
   const labels={scene:'場景',weather:'天氣',wildlife:'生物',thumbnail:'縮圖',forest:'森林底圖',wagon:'馬車備圖',trail:'林間小徑',panorama:'備用全景'};
   $('livePerfCosts').textContent=Object.entries(sample.costs||{}).map(([k,v])=>(labels[k]||k)+'：'+num(v.avg,2)+' / '+num(v.p95,2)+' ms').join(' ｜ ')||'尚無樣本';
   $('livePerfLoads').textContent=Object.entries(sample.loads||{}).map(([k,v])=>(labels[k]||k)+'：'+num(v.ms)+' ms（'+(v.ok?'完成':'失敗')+'）').join(' ｜ ')||'尚無完成事件';
