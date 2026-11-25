@@ -4069,7 +4069,14 @@ html.stage-locked #app #topGameHud #hudPhase{font-size:clamp(10px,1.65vw,17px)}
 /* Opening adventure: one objective, physical clues, deliberate encounter. */
 #sceneStage .opening-objective{position:absolute;z-index:7;left:4%;top:4%;max-width:82%;padding:5px 10px;background:#12251edb;border-left:2px solid #c8ac71;color:#f0dfb9;font-size:clamp(12px,1.3vw,18px);line-height:1.35;pointer-events:none;text-shadow:0 1px 3px #000}
 #app.scene-dialogue-active .opening-objective,#app.encounter-pending .opening-objective,#app:has(#dialogVeil:not(.hidden)) .opening-objective{visibility:hidden}
-#sceneStage .opening-clue{opacity:1!important;border:1px solid #f1d9a0!important;background:#1a372de8!important;box-shadow:0 0 8px #d8c08280!important;color:#f3d9a1!important;font-size:20px}
+/* Natural, unmarked scene hit areas; explicit hint mode remains available. */
+#sceneStage .hotspot.scene-investigation:not(.on),#sceneStage .hotspot.scene-route-target:not(.on){opacity:0;pointer-events:auto;min-width:36px;min-height:36px;background:transparent;border:0;box-shadow:none}
+#sceneStage .hotspot.scene-investigation:not(.on):focus-visible,#sceneStage .hotspot.scene-route-target:not(.on):focus-visible{opacity:1;outline:2px solid #ddc18b}
+#sceneStage .hotspot.opening-clue:not(.on){opacity:0!important;background:transparent!important;border:0!important;box-shadow:none!important}
+#sceneStage .hotspot.opening-clue:not(.on):focus-visible{opacity:1!important}
+#sceneStage .discovery-object-cue{display:none}
+#app .side-main-action,#app .bottom .action{justify-content:center}
+#app.route-attention .location-preview-travel:not(:disabled){box-shadow:none!important}
 #sceneStage #encounterCue.opening-encounter{pointer-events:auto;z-index:9;padding:7px 10px;background:#132b24f2}
 #encounterCue.opening-encounter button{margin:5px 4px 0;padding:5px 10px;border:1px solid #c5ac78;border-radius:4px;background:#355242;color:#fff2d1;font:inherit}
 #app[data-opening-adventure="true"] #travelFeed,#app[data-opening-adventure="true"] #sceneFuturePanel{opacity:.68}
@@ -4078,7 +4085,7 @@ html.stage-locked #app #topGameHud #hudPhase{font-size:clamp(10px,1.65vw,17px)}
 #app.scene-dialogue-active #travelFeed,#app.scene-dialogue-active #placeDrawer,#app:has(#dialogVeil:not(.hidden)) #travelFeed,#app:has(#dialogVeil:not(.hidden)) #placeDrawer{opacity:.52}
 #app.scene-dialogue-active .discovery-object-cue,#app.scene-dialogue-active .discovery-route-cue,#app.route-attention .discovery-object-cue{visibility:hidden}
 #app.route-attention #travelFeed{opacity:.72}
-#app.route-attention .location-preview-travel:not(:disabled){border-color:#e2c98a!important;box-shadow:0 0 0 1px #d7bd7c,0 0 9px #d7bd7c65!important;color:#fff1c9!important}
+#app.route-attention .location-preview-travel:not(:disabled){border-color:#e2c98a!important;box-shadow:none!important;color:#fff1c9!important}
 #app.route-attention .location-reference-card{animation:discovery-appear .28s ease-out}
 #app:has(#dialogVeil:not(.hidden)) .discovery-summary{visibility:hidden}
 @media(prefers-reduced-motion:reduce){#app #travelFeed,#app #placeDrawer{transition:none}#app.route-attention .location-reference-card{animation:none}}
@@ -7588,7 +7595,7 @@ function renderSceneDialogue(){
  $('sceneDialogueName').textContent=line.speaker;
  $('sceneDialogueText').textContent=line.text;$('sceneDialogueText').scrollTop=0;
  const last=sceneDialogueState.index===sceneDialogueState.lines.length-1;
- $('sceneDialogueNext').textContent=last?(sceneDialogueState.purpose==='opening-departure'?'沿車轍離開 ▸':sceneDialogueState.purpose==='route-preview'?'查看道路 ▸':'結束對話 ▸'):'點擊繼續 ▸';
+ $('sceneDialogueNext').textContent=last?(sceneDialogueState.purpose==='opening-departure'?'沿車轍離開':sceneDialogueState.purpose==='route-preview'?'查看道路':'結束對話'):'點擊繼續';
  $('sceneDialogueNext').setAttribute('aria-label',last?(sceneDialogueState.purpose==='opening-departure'?'沿車轍前往林間小徑':sceneDialogueState.purpose==='route-preview'?'查看新道路':'結束場景對話'):'下一句');
  box.classList.remove('hidden');$('app').classList.add('scene-dialogue-active');
 }
@@ -7948,7 +7955,7 @@ const ACTION_GLYPHS=Object.freeze({
  explore:'<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="2" fill="currentColor"/><path d="m16.7 6.4-3 7.3-6.4 3 3-7.3 6.4-3Z" fill="#f6e5a4" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/></svg>'
 });
 function setActionVisual(button,kind,label){
- button.insertAdjacentHTML('afterbegin',ACTION_GLYPHS[kind]||ACTION_GLYPHS.route);
+ // Text-only action controls; no directional or compass icon.
  const title=document.createElement('span');title.className='action-title';title.textContent=label;
  button.appendChild(title);
 }
@@ -8287,7 +8294,7 @@ function renderHotspots(){
   const button=document.createElement('button');button.type='button';
   button.className='hotspot scene-investigation'+(showHints?' on':'');
   button.dataset.sceneInvestigation=o.id;
-  if(o.id.startsWith('opening-')){button.classList.add('opening-clue');button.textContent='◇';}
+  if(o.id.startsWith('opening-'))button.classList.add('opening-clue');
   button.style.left=o.x+'%';button.style.top=o.y+'%';
   button.title=o.label;button.setAttribute('aria-label',o.label);
   if(showHints){const label=document.createElement('span');label.textContent=o.label;button.appendChild(label);}
@@ -8298,16 +8305,16 @@ function renderHotspots(){
  for(const [label,x,y,fn,to] of per[s.scene]||[]){
   const routeCue=to?window.DungeonDiscoveryCueV1.route(routeKnown(s.scene,to),!!s.visits[to]):null;
   if(to&&!routeKnown(s.scene,to))continue;
-  if(!showHints&&!routeCue)continue;
+  if(!showHints&&!to)continue;
   if(['wreck','trail','clearing','ruin'].includes(s.scene)&&!to)continue;
   /* The exploration hotspot stays usable after all routes are known. */
   let screenX=panorama?100*(x*panorama.width-panorama.sourceX)/panorama.cropWidth:x;
   let screenY=panorama?100*(panorama.destY+(y*panorama.height-panorama.sourceY)/panorama.cropHeight*panorama.destHeight)/H:y;
   if(panorama&&(screenX<0||screenX>100))continue;
   if(!panorama&&s.scene==='wreck'){screenX=x*100;screenY=y*100;}
-  const b=document.createElement('button');b.className='hotspot on';
+  const b=document.createElement('button');b.className='hotspot scene-route-target'+(showHints?' on':'');
   b.style.left=screenX+'%';b.style.top=screenY+'%';
-  b.title=label;b.setAttribute('aria-label',label);b.onclick=()=>guardedAction(fn);if(routeCue){b.classList.add('discovery-route-cue');b.textContent=routeCue.symbol;b.setAttribute('aria-label','新道路：'+label);}el.appendChild(b);
+  b.title=label;b.setAttribute('aria-label',routeCue?'新道路：'+label:label);b.onclick=()=>guardedAction(()=>{if(!encounterPending&&!modal&&!sceneDialogueState.open)fn();});if(showHints){const hint=document.createElement('span');hint.textContent=label;b.appendChild(hint);}el.appendChild(b);
  }
 }
 function renderRouteMap(out){
