@@ -66,7 +66,7 @@ footer{font-size:12px;color:#9cb7a8;padding:18px 0 10px}
 <script src="./assets/male_approved_v3_layers.js?v=1"></script>
 <script src="./assets/male_v3_corrected_layers_v2.js?v=1"></script>
 <script src="./assets/male_v3_head_short5_v1.js?v=1"></script>
-<script src="./assets/male_v3_head_short5_roundtop_v1.js?v=1"></script>
+
 <script src="./assets/male_v3_head_dome2_trial.js?v=2"></script>
 <script src="./assets/male_approved_v3_adapter.js?v=8"></script>
 <script src="./assets/male_five_layer_trial_20261122.js?v=1"></script>
@@ -167,13 +167,12 @@ footer{font-size:12px;color:#9cb7a8;padding:18px 0 10px}
 <div class="links">
 <a href="./?male-head=v3&v=20261122-6" target="_blank" rel="noopener">正式遊戲｜新版男性六零件</a>
 <a href="./paperdoll-customize-preview.html?v=20261122-6" target="_blank" rel="noopener">紙娃娃角色自訂｜新版男性六零件</a>
-<a href="./?male-head=v3-old-dome2&v=20261122-6" target="_blank" rel="noopener">正式遊戲｜舊男頭回退對照</a>
+
 <a href="./male-v3-expression-check.html?v=13" target="_blank" rel="noopener">男性表情完整驗收</a>
 <a href="./male-head-master-v1-preview.html?v=1" target="_blank" rel="noopener">男性光頭母版 V1｜輪廓對照</a>
 <a href="./female-bald-v3-trial.html?v=3" target="_blank" rel="noopener">女性髮片微調頁</a>
 <a href="./cloak-fitting-workbench.html?v=1">男女披風貼合工作台｜全身對照</a>
-<a href="https://github.com/zhangtingwei04-dotcom/dungeon-adventure-playtest/blob/main/docs/paperdoll/windproof-cloak-v3-front-nine-layer-2026-11-24.md" target="_blank" rel="noopener">已停用：防風披風 V3 製作與失敗紀錄</a>
-<a href="./v3-bald-height-preview.html?v=7" target="_blank" rel="noopener">男性頭頂高度對照</a>
+
 <a href="https://github.com/zhangtingwei04-dotcom/dungeon-adventure-playtest/tree/main/docs" target="_blank" rel="noopener">GitHub 開發紀錄</a>
 <a href="https://github.com/zhangtingwei04-dotcom/dungeon-adventure-playtest" target="_blank" rel="noopener">GitHub 原始碼</a>
 </div>
@@ -197,7 +196,7 @@ if(new URLSearchParams(window.location.search).get('male-trial')==='1'){
 }
 var motion=window.DungeonExpressionMotion,adapter=window.DungeonMaleV9Equipment,femaleMotion=window.DungeonFemaleTrialExpressionV1;
 var approved=window.DungeonMaleApprovedV3,corrected=window.DungeonMaleV3CorrectedLayers;
-var short5=window.DungeonMaleV3HeadShort5,round1=window.DungeonMaleV3RoundTop5,dome2=window.DungeonMaleV3DomeTrial;
+var dome2=window.DungeonMaleV3DomeTrial;
 var female=window.DungeonFemaleBaldCandidateV1;
 var maleTrial=window.DungeonMaleFiveLayerTrial20261122;
 var actor=motion?.createActor({id:'dev-workbench-character',status:'normal',blink:true})||null;
@@ -223,19 +222,17 @@ function sourceData(){
   maleTrialHair:maleTrial?.hair_standard,
   maleOriginal:approved?.head_base,
   maleDome2:dome2?.image||corrected?.head_base,
-  maleRound1:round1?.roundedHead,
-  maleFlat5:short5?.adjustedHead,
   maleEyes:corrected?.eyes,maleMouth:corrected?.mouth,maleHair:approved?.hair_standard,
   femaleOriginal:window.DUNGEON_FEMALE_FACE_V2,femaleHair:window.DUNGEON_FEMALE_HAIR_V2,
   femaleTrial:female?.head
  };
 }
 function isFemale(){return state.gender==='female'}
-function activeKey(){return isFemale()?(state.femaleVersion==='original'?'femaleOriginal':'femaleTrial'):({trial5:'maleTrialHead',dome2:'maleDome2',round1:'maleRound1',flat5:'maleFlat5',original:'maleOriginal'}[state.maleVersion]||'maleDome2')}
-function versionLabel(){return isFemale()?(state.femaleVersion==='trial'?'女性試裝光頭 V1':'女性現行原版'):{trial5:'新版男性五層試裝｜短額頭、圓下巴、指定銀白髮',dome2:'男性 V3 正式圓頂 V2',round1:'男性舊修圓 V1',flat5:'男性 5px 未修圓',original:'男性 V3 原始母版'}[state.maleVersion]}
+function activeKey(){return isFemale()?(state.femaleVersion==='original'?'femaleOriginal':'femaleTrial'):({trial5:'maleTrialHead',dome2:'maleDome2'}[state.maleVersion]||'maleDome2')}
+function versionLabel(){return isFemale()?(state.femaleVersion==='trial'?'女性試裝光頭 V1':'女性現行原版'):{trial5:'新版男性五層試裝｜短額頭、圓下巴、指定銀白髮',dome2:'男性 V3 正式圓頂 V2'}[state.maleVersion]}
 function updateSelect(){
  var sel=$('version'),chosen=isFemale()?state.femaleVersion:state.maleVersion;
- var versions=isFemale()?[['trial','新光頭試裝（尚未正式採用）'],['original','原本女性頭部']]:[['trial5','新版男性五層（本次試裝）'],['dome2','圓頂 V2（正式）'],['round1','圓頂 V1（舊版）'],['flat5','頭頂縮短 5px'],['original','原始 V3 母版']];
+ var versions=isFemale()?[['trial','新光頭試裝（尚未正式採用）'],['original','原本女性頭部']]:[['trial5','新版男性五層（本次試裝）'],['dome2','圓頂 V2（正式）']];
  sel.replaceChildren();
  for(var entry of versions){var o=document.createElement('option');o.value=entry[0];o.textContent=entry[1];sel.append(o)}sel.value=chosen;
  $('femaleControls').hidden=!isFemale();
@@ -447,7 +444,7 @@ function restore(raw){
  if(!raw||typeof raw!=='object')throw Error('設定格式不正確');
  state.gender=raw.gender==='male'?'male':'female';
  state.femaleVersion=raw.femaleVersion==='original'?'original':'trial';
- state.maleVersion=['trial5','dome2','round1','flat5','original'].includes(raw.maleVersion)?raw.maleVersion:'dome2';
+ state.maleVersion=['trial5','dome2'].includes(raw.maleVersion)?raw.maleVersion:'dome2';
  state.hair=raw.hair!==false;state.hairX=safeNumber(raw.hairX,-4,4);state.hairY=safeNumber(raw.hairY,-5,3);
  for(var k of ['showGrid','showGuides','animate'])state[k]=!!raw[k];
  state.zoom=[4,6,8].includes(Number(raw.zoom))?Number(raw.zoom):8;
