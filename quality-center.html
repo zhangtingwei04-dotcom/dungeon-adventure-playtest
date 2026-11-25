@@ -6,8 +6,8 @@
 <section class="panel"><h2>最新版本驗收</h2><div id="overall" class="metric muted" role="status">尚未取得資料</div><p id="explain">以 GitHub Actions 實際執行資料為準。尚未取得結果不代表通過。</p><div class="row"><div>main 最新提交</div><code id="head">—</code></div><div class="row"><div>測試對應提交</div><code id="tested">—</code></div><div class="row"><div>測試時間（本地）</div><span id="time">—</span></div><div class="actions"><a id="runLink" class="action" href="https://github.com/zhangtingwei04-dotcom/dungeon-adventure-playtest/actions">開啟 GitHub 測試工作台</a></div><p id="notice" aria-live="polite"></p></section>
 <div class="grid"><section class="panel"><h2>自動化測試</h2><div id="jobs"><p>尚無執行資料</p></div><p>核心與整合、動畫取樣、瀏覽器操作、縮圖與效能紀錄均由測試流程執行。未取得步驟結果時不推定通過。</p></section>
 <section class="panel"><h2>畫面與效能</h2><div class="row"><div>場景截圖／晴雪縮圖</div><span class="pending">待查看報告</span></div><div class="row"><div>FPS／記憶體紀錄</div><span class="pending">待查看報告</span></div><div class="row"><div>iPhone Safari 實機</div><span class="pending">待人工驗收</span></div><p>CI 數值不等同實機表現；截圖變化不等同美術驗收。</p><a id="artifacts" href="https://github.com/zhangtingwei04-dotcom/dungeon-adventure-playtest/actions">查看報告與截圖（Artifacts）</a></section>
-<section class="panel"><h2>發布管理</h2><div class="row"><div>自動測試品質判定</div><span id="gate" class="muted">未知</span></div><div class="row"><div>GitHub Pages 強制發布關卡</div><span class="pending">尚未啟用</span></div><div class="row"><div>正式美術基準庫</div><span class="pending">尚未建立</span></div><p>V1 僅提供驗收狀態，不自動發布、回退或修改遊戲存檔。</p><a href="https://github.com/zhangtingwei04-dotcom/dungeon-adventure-playtest/commits/main/">查看版本紀錄</a></section>
-<section class="panel"><h2>近期測試紀錄</h2><div id="runs"><p>尚未取得資料</p></div><p>此頁使用公開 GitHub API，不需要存入金鑰。若 API 限流，請使用 GitHub 工作台連結。</p></section></div>
+<section class="panel"><h2>發布管理</h2><div class="row"><div>自動測試品質判定</div><span id="gate" class="muted">未知</span></div><div class="row"><div>GitHub Pages 強制發布關卡</div><span class="pending">尚未啟用</span></div><div class="row"><div>正式美術基準庫</div><span id="artCount" class="muted">讀取中</span></div><p>V1 僅提供驗收狀態，不自動發布、回退或修改遊戲存檔。</p><a href="https://github.com/zhangtingwei04-dotcom/dungeon-adventure-playtest/commits/main/">查看版本紀錄</a></section>
+<section class="panel"><h2>正式美術基準庫</h2><div id="approvedArt"><p>讀取中</p></div><p>只展示核准清冊，並不代表所有正式素材已完成登錄。未核准及已淘汰試作不收錄；裝入遊戲不等同 iPhone 實機驗收。</p><details><summary>素材替換與刪除規則</summary><p>核准新素材 → 更新版本與指紋 → 執行回歸測試 → 檢查舊檔引用 → 人工確認 → 刪除確定無依賴的舊素材。不自動刪檔、不備份否決美術；Git 歷史不重寫。</p></details><p><a href="https://github.com/zhangtingwei04-dotcom/dungeon-adventure-playtest/blob/main/assets/approved-art-registry.json">查看正式素材清冊</a></p></section><section class="panel"><h2>近期測試紀錄</h2><div id="runs"><p>尚未取得資料</p></div><p>此頁使用公開 GitHub API，不需要存入金鑰。若 API 限流，請使用 GitHub 工作台連結。</p></section></div>
 </main><script>
 'use strict';
 const repo='zhangtingwei04-dotcom/dungeon-adventure-playtest',api='https://api.github.com/repos/'+repo;
@@ -41,5 +41,18 @@ async function refresh(){
  }catch(e){$('notice').textContent='查詢失敗：'+e.message+'。請開啟 GitHub 測試工作台確認。';render(null,null);}
  finally{$('refresh').disabled=false;}
 }
-$('refresh').addEventListener('click',refresh);refresh();
+async function loadArt(){
+ const host=$('approvedArt'),count=$('artCount');
+ try{
+  const response=await fetch('./assets/approved-art-registry.json',{cache:'no-store'});if(!response.ok)throw Error('HTTP '+response.status);
+  const data=await response.json();if(data.schema!==1||!Array.isArray(data.assets))throw Error('清冊格式錯誤');
+  const items=data.assets.filter(a=>a.state==='approved');
+  host.replaceChildren();for(const a of items){
+   const name=row(host,a.name+' '+a.version,'已核准','ok');
+   const sub=document.createElement('small');sub.textContent='來源指紋 '+a.blob.slice(0,12)+' · '+(a.visualAcceptance==='pending-device'?'實機待驗收':'依驗收紀錄');name.append(document.createElement('br'),sub);
+  }
+  if(!items.length)host.textContent='尚無核准素材';count.textContent=items.length+' 項（首批）';count.className='ok';
+ }catch(e){host.textContent='清冊讀取失敗：'+e.message;count.textContent='未取得';count.className='pending';}
+}
+$('refresh').addEventListener('click',()=>{refresh();loadArt();});refresh();loadArt();
 </script></body></html>
