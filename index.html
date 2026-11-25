@@ -4428,7 +4428,7 @@ html.stage-locked #app #topGameHud #hudPhase{font-size:clamp(10px,1.65vw,17px)}
 <script src="./assets/bird_motion_live_v1.js?v=2-hop-joints"></script>
 <script src="./assets/scene_environment_v1.js?v=16-water-ice"></script>
 <script src="./assets/winter_surfaces_v1.js?v=8-contour-snow"></script>
-<script src="./assets/weather_system_v1.js?v=18-water-ice"></script>
+<script src="./assets/weather_system_v1.js?v=19-winter-wildlife"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/scene_objects_v1.js?v=20261125-winter"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
@@ -4639,11 +4639,11 @@ function selectTimePreview(period){
  if(!PERIOD_NAMES[period])return;
  previewPeriod=period;
  $('menuVeil').classList.add('hidden');
- syncTimeAtmosphere();
+ syncTimeAtmosphere();renderHotspots();renderPlaceDrawer();renderSceneInfoBar();
 }
 function clearTimePreview(){
  if(previewPeriod===null)return;
- previewPeriod=null;syncTimeAtmosphere();
+ previewPeriod=null;syncTimeAtmosphere();renderHotspots();renderPlaceDrawer();renderSceneInfoBar();
 }
 function normalizeGameTime(){
  if(!Number.isFinite(s.worldMinutes)||s.worldMinutes<0){
@@ -8136,11 +8136,14 @@ function renderForestV4(el){
  const keep=new Set();
  const bindings=forestV4MaterialBindings();
  let live=window.DungeonForestV4Life?.layout(s,cfg,window.DUNGEON_FOREST_V4_SPAWNS||[],bindings,plantSpawnWeather())||cfg;
- const weather=window.DungeonWeatherV1;const weatherKind=previewWeather||weather?.at(s.seed,s.worldMinutes).kind;
- if(weather&&weatherKind)live=live.filter(o=>{const k=o.assetId.replace('forest4_','');return k==='rabbit'||!['bird','beetle','butterfly'].includes(k)||weather.activity(k,weatherKind);});
+ const weather=window.DungeonWeatherV1;const spawnWeather=plantSpawnWeather();
  if(new URLSearchParams(location.search).get('wildlife')==='golden-rabbit'&&DEV_PREVIEW_MODE){const rabbit=cfg.find(o=>o.assetId==='forest4_rabbit');if(rabbit)live=[...live.filter(o=>o.assetId!=='forest4_rabbit'),{...rabbit,name:'金紋兔',rabbitVariant:'golden',previewOnly:true,visible:true}];}
  if(new URLSearchParams(location.search).get('wildlife')==='bird'&&DEV_PREVIEW_MODE){const bird=cfg.find(o=>o.assetId==='forest4_bird');if(bird)live=[...live.filter(o=>o.assetId!=='forest4_bird'),{...bird,id:'preview-bird-flight',visible:true}];}
  if(new URLSearchParams(location.search).get('wildlife')==='beetle'&&DEV_PREVIEW_MODE){const beetle=cfg.find(o=>o.assetId==='forest4_beetle');if(beetle)live=[...live.filter(o=>o.assetId!=='forest4_beetle'),{...beetle,id:'preview-beetle-flight',x:60,y:70,width:3.5,z:18,visible:true}];}
+ // Apply after all spawn selection, including developer wildlife previews.
+ if(weather&&spawnWeather){const env={...spawnWeather,snowCover:Math.max(spawnWeather.snowCover||0,weather.environment().snowCover||0)};
+  live=live.filter(o=>{const k=o.assetId.replace('forest4_','');return !['rabbit','bird','beetle','butterfly'].includes(k)||weather.activity(k,env);});
+ }
  window.DungeonSceneEnvironmentV1?.setActionMap(live.filter(o=>o.visible&&assets[o.assetId]?.src));
  for(const o of live){
   const a=assets[o.assetId];if(!o.visible||!a?.src)continue;
