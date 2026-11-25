@@ -27,20 +27,36 @@ window.DungeonForestV4Integration=(function integration(){
    if(o.artVariant==='barrel-side')p={...p,shadowWidth:90,shadowHeight:30,shadowLeft:50,shadowBottom:7,shadowOpacity:.79};
    if(k==='wagon')p={...p,shadowWidth:96,shadowHeight:12,shadowOpacity:.96};
   }
+  // Forest floor integration: soft ambient contact, darker contact core and restrained ground fringe.
+  const groundBlend={
+   wagon:{brightness:.87,saturation:.78,contrast:.94,shadowWidth:94,shadowHeight:17,shadowOpacity:.98,shadowBottom:2,grassLeft:17,grassWidth:20,grassOpacity:.66},
+   crate_large:{brightness:.88,saturation:.80,contrast:.95,shadowWidth:99,shadowHeight:23,shadowOpacity:.94,shadowBottom:1,grassLeft:4,grassWidth:22,grassOpacity:.60},
+   crate_small:{brightness:.89,saturation:.81,contrast:.95,shadowWidth:96,shadowHeight:25,shadowOpacity:.86,shadowBottom:1},
+   crate_open:{brightness:.87,saturation:.80,contrast:.95,shadowWidth:97,shadowHeight:21,shadowOpacity:.88,shadowBottom:1},
+   wheel_flat:{brightness:.86,saturation:.77,contrast:.95,shadowWidth:99,shadowHeight:36,shadowOpacity:.91,shadowBottom:2,grassLeft:7,grassWidth:19,grassOpacity:.52},
+   plank:{brightness:.89,saturation:.78,contrast:.95,shadowWidth:97,shadowHeight:29,shadowOpacity:.77},
+   rock_small:{brightness:.90,saturation:.79,contrast:.94,shadowWidth:97,shadowHeight:23,shadowOpacity:.84,shadowBottom:2},
+   rock_group:{brightness:.91,saturation:.80,contrast:.95,shadowWidth:95,shadowHeight:22,shadowOpacity:.84,shadowBottom:1},
+   rabbit:{brightness:.84,saturation:.79,contrast:.95,shadowWidth:73,shadowHeight:19,shadowOpacity:.84,shadowBottom:1}
+  };
+  p={...p,...(groundBlend[k]||{})};
+  // Dirt paths should not acquire a large decorative grass tuft.
+  if(k==='wheel_flat'&&o.x>37)p={...p,grassWidth:0};
+  if(k==='crate_large'&&o.x>50)p={...p,grassWidth:0};
   if(o.contactGrass===true)p={...p,grassLeft:4,grassWidth:39,grassOpacity:.72};
   // Depth correction is intentionally restrained: only art appearance, never dimensions.
   const depth=Math.max(0,Math.min(1,(70-o.y)/45));
   return {...p,ground:!airborne,brightness:Math.max(.8,Math.min(1,p.brightness+depth*.025)),saturation:Math.max(.65,p.saturation-depth*.045),contrast:p.contrast-depth*.025,angle:k==='wheel_flat'||k==='plank'?o.rotation*.5:0};
  }
  function apply(node,o,assets){
-  const p=profile(o);node.dataset.ground=String(p.ground);
+  const p=profile(o);node.dataset.ground=String(p.ground);node.dataset.surfaceKind=o.assetId.replace(/^forest4_/,'');
   const vars={'shadow-left':(p.shadowLeft??50)+'%','shadow-bottom':(p.shadowBottom??-1)+'%','shadow-width':p.shadowWidth+'%','shadow-height':p.shadowHeight+'%','shadow-opacity':p.shadowOpacity,'ground-angle':p.angle+'deg','brightness':p.brightness.toFixed(3),'saturation':p.saturation.toFixed(3),'contrast':p.contrast.toFixed(3)};
   for(const [key,value] of Object.entries(vars))node.style.setProperty('--v4-'+key,String(value));
   // Small contact fringe, not a new collectible or authored object.
   // Reuse the existing approved transparent grass art only on selected near-ground props.
   if(p.grassWidth&&assets.forest4_grass_b?.src){
    const fringe=document.createElement('img');fringe.className='forest-v4-contact-grass';fringe.alt='';fringe.draggable=false;fringe.setAttribute('aria-hidden','true');fringe.src=assets.forest4_grass_b.src;
-   fringe.style.setProperty('--v4-grass-left',p.grassLeft+'%');fringe.style.setProperty('--v4-grass-width',p.grassWidth+'%');fringe.style.setProperty('--v4-grass-opacity',String(p.grassOpacity));node.appendChild(fringe);
+   fringe.style.setProperty('--v4-grass-left',p.grassLeft+'%');fringe.style.setProperty('--v4-grass-width',p.grassWidth+'%');fringe.style.setProperty('--v4-grass-opacity',String(p.grassOpacity));fringe.style.setProperty('--v4-grass-bottom',(o.assetId==='forest4_wagon'?'1%':'0%'));node.appendChild(fringe);
   }
  }
  return {profile,apply};
