@@ -122,3 +122,21 @@ html.stage-locked #app #placeDrawerPanel.is-location-tab #placePrimaryActions{po
  #sceneStage .forest-v4-object[data-beetle-rig="ready"] .forest-v4-art img{visibility:visible}
  #sceneStage .forest-v4-object[data-beetle-rig="ready"] .beetle-rig-canvas{display:none}
 }
+
+/* Scene-space projection, preserving authored coordinates as accessibility fallback. */
+#sceneStage .forest-v4-layer .forest-v4-object[data-spatial-motion="true"]{
+ left:var(--wild-world-x)!important;top:var(--wild-world-y)!important;
+ width:var(--wild-world-width)!important;z-index:var(--wild-world-z)!important;
+ translate:none;will-change:left,top,width;
+}
+#sceneStage .forest-v4-object[data-spatial-motion="true"][data-ground="true"]::before{
+ opacity:calc(var(--v4-shadow-strength,1) * var(--v4-shadow-opacity,.65) * var(--wild-shadow,1));
+}
+#sceneStage .forest-v4-object[data-beetle-rig="ready"] .beetle-rig-canvas{
+ transform:translateY(calc(var(--wild-lift,0%) * .847619)) scale(var(--wild-sx,1),var(--wild-sy,1));
+}
+@media(prefers-reduced-motion:reduce){
+ #sceneStage .forest-v4-layer .forest-v4-object[data-spatial-motion="true"]{
+  left:var(--wild-anchor-x)!important;top:var(--wild-anchor-y)!important;width:var(--wild-anchor-width)!important;will-change:auto;
+ }
+}
