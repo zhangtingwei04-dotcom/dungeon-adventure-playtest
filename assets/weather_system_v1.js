@@ -7,6 +7,7 @@ window.DungeonWeatherV1=(function(){
  rain:{name:'降雨',icon:'☂',shade:.25,fog:.095,rain:.82,wind:.65},
  storm:{name:'雷雨',icon:'ϟ',shade:.31,fog:.12,rain:1,wind:.95},
  snow:{name:'降雪',icon:'❄',shade:.12,fog:.17,rain:0,wind:.38,snow:.78},
+ blizzard:{name:'暴風雪',icon:'❄',shade:.29,fog:.49,rain:0,wind:1,snow:1},
  fog:{name:'薄霧',icon:'≋',shade:.06,fog:.31,rain:0,wind:.08},
  };
  const next={clear:[['clear',.50],['cloudy',.35],['fog',.15]],cloudy:[['clear',.23],['cloudy',.35],['drizzle',.27],['fog',.15]],drizzle:[['cloudy',.30],['drizzle',.40],['rain',.30]],rain:[['rain',.31],['drizzle',.43],['cloudy',.15],['storm',.11]],storm:[['rain',.65],['drizzle',.25],['storm',.10]],fog:[['fog',.24],['cloudy',.41],['clear',.35]]};
@@ -17,7 +18,7 @@ window.DungeonWeatherV1=(function(){
  function climate(seed,minutes,kind){
   const s=season(minutes),hour=(minutes%1440)/60;
   const cold=s.name==='冬季'?Math.max(0,(hash(seed,Math.floor(minutes/1440))-.55)*19):0;
-  const temp=Math.round(s.temp-cold+5*Math.cos((hour-14)*Math.PI/12)+(kind==='clear'?1:kind==='storm'?-4:kind==='rain'?-3:kind==='fog'?-2:0));
+  const temp=Math.round(s.temp-cold+5*Math.cos((hour-14)*Math.PI/12)+(kind==='clear'?1:kind==='storm'?-4:kind==='rain'?-3:kind==='fog'?-2:kind==='snow'?-3:kind==='blizzard'?-5:0));
   return {season:s.name,seasonDay:s.day,temperature:temp};
  }
  const histories=new Map();
@@ -33,22 +34,24 @@ window.DungeonWeatherV1=(function(){
    for(const [id,p] of options){q-=p;if(q<=0){kind=id;break;}}
    history.push(kind);
   }
-  const actual=j=>{const k=history[j];return kinds[k].rain>.05&&season(j*180).name==='冬季'&&climate(seed,j*180+90,k).temperature<=1?'snow':k;};
+  const actual=j=>{const k=history[j];return kinds[k].rain>.05&&season(j*180).name==='冬季'&&climate(seed,j*180+90,k).temperature<=1?(k==='storm'?'blizzard':'snow'):k;};
   const kind=actual(index);let wet=0,snowCover=0;
-  for(let j=Math.max(0,index-7);j<=index;j++){const k=actual(j);wet=clamp(wet*.68+kinds[k].rain*.48+(k==='snow'?.06:0),0,1);snowCover=clamp(snowCover*(k==='snow'?.95:.55)+(k==='snow'?.34:0),0,1);}
+  for(let j=Math.max(0,index-7);j<=index;j++){const k=actual(j),snowing=k==='snow'||k==='blizzard',temp=climate(seed,j*180+90,k).temperature,previous=snowCover;
+   snowCover=clamp(snowCover*(snowing?.96:temp<=0?.97:temp<=5?.80:.48)+(snowing?(k==='blizzard'?.48:.28):0),0,1);
+   wet=clamp(wet*.68+kinds[k].rain*.48+Math.max(0,previous-snowCover)*.8,0,1);}
   return {kind,...kinds[kind],snow:kinds[kind].snow||0,...climate(seed,minutes,kind),wet,snowCover,block};
  }
  let canvas=null,ctx=null,shown={shade:0,fog:0,rain:0,wind:0,wet:0,snow:0,snowCover:0,overcast:0},target=kinds.clear,last=0,hidden=true,reduced=false;
  const W=640,H=360,particles=Array.from({length:102},(_,i)=>({x:hash('x',i)*W,y:hash('y',i)*H,speed:150+hash('s',i)*190,len:7+hash('l',i)*11}));
  function bind(el){canvas=el;ctx=el?.getContext('2d');if(canvas){canvas.width=W;canvas.height=H;}}
- let scene='wreck',sound=false,audio=null,lastThunder=-1;
+ let scene='wreck',sound=false,audio=null,lastThunder=-1,sceneHost=null;
  function unlockAudio(){try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;if(!audio)audio=new AC();if(audio.state==='suspended')audio.resume().catch(()=>{});}catch{}}
  function thunder(){if(!sound||!audio||audio.state!=='running')return;try{const rate=audio.sampleRate,buf=audio.createBuffer(1,Math.floor(rate*2.7),rate),d=buf.getChannelData(0);let low=0;for(let i=0;i<d.length;i++){low=.94*low+.06*(Math.random()*2-1);d[i]=low;}const src=audio.createBufferSource(),f=audio.createBiquadFilter(),g=audio.createGain(),now=audio.currentTime;src.buffer=buf;f.type='lowpass';f.frequency.value=170;g.gain.setValueAtTime(.001,now);g.gain.linearRampToValueAtTime(.19,now+.24);g.gain.exponentialRampToValueAtTime(.001,now+2.6);src.connect(f);f.connect(g);g.connect(audio.destination);src.start(now);src.stop(now+2.7);}catch{}}
  function set(weather,indoor,reduce=false,options={}){
-  scene=options.scene||'wreck';sound=Boolean(options.sound);
+  scene=options.scene||'wreck';sound=Boolean(options.sound);sceneHost=options.sceneHost||sceneHost;
   hidden=Boolean(indoor);reduced=reduce;target=hidden?{...kinds.clear,wet:0,snow:0,snowCover:0}:{...weather,wet:weather.wet??weather.rain*.8,snow:weather.snow||0,snowCover:weather.snowCover||0};
   if(canvas)canvas.hidden=hidden;
-  if(hidden&&ctx)ctx.clearRect(0,0,W,H);
+  if(hidden&&ctx)ctx.clearRect(0,0,W,H);if(hidden&&sceneHost)sceneHost.style.setProperty('--snow-cover','0');
  }
  function draw(ms){
   if(!ctx||hidden)return;
@@ -60,7 +63,7 @@ window.DungeonWeatherV1=(function(){
   if(shown.fog>.003){const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'rgba(194,209,202,'+(shown.fog*.36)+')');g.addColorStop(.35,'rgba(190,207,201,'+(shown.fog*.82)+')');g.addColorStop(.68,'rgba(185,203,198,'+(shown.fog*.56)+')');g.addColorStop(1,'rgba(181,200,193,'+(shown.fog*.13)+')');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);}
   // Ground glints are deliberately restricted to the lower foreground, no opaque puddles.
   if(shown.wet>.12){ctx.fillStyle='rgba(112,143,151,'+(shown.wet*.055)+')';ctx.fillRect(0,H*.72,W,H*.28);}
-  if(shown.snowCover>.08){ctx.fillStyle='rgba(213,229,231,'+(shown.snowCover*.10)+')';ctx.fillRect(0,H*.76,W,H*.24);}
+  if(sceneHost)sceneHost.style.setProperty('--snow-cover',String(clamp(shown.snowCover,0,1)));
   if(shown.snow>.01&&!reduced){const t=ms/1000;ctx.fillStyle='rgba(235,244,246,'+(.42+shown.snow*.22)+')';ctx.beginPath();for(let i=0;i<Math.min(particles.length,Math.ceil(75*shown.snow));i++){const p=particles[i],x=(p.x+t*8*shown.wind+Math.sin(t*.9+i)*9+W*100)%W,y=(p.y+t*(13+i%12))%H,r=.65+(i%4)*.25;ctx.moveTo(x+r,y);ctx.arc(x,y,r,0,Math.PI*2);}ctx.fill();}
   if(target.rain>=.99){const clock=ms/1000,cycle=clock%17.7,flash=Math.max(0,1-Math.abs(cycle-5.1)/.24);
    if(flash>0&&!reduced){ctx.fillStyle='rgba(224,234,241,'+(flash*.12)+')';ctx.fillRect(0,0,W,H);}
@@ -88,7 +91,8 @@ window.DungeonWeatherV1=(function(){
  function puddleLevel(wet,rain){return clamp(Math.max((wet-.10)/.65,rain*.62),0,1);}
  function drawGround(g,t,width,height,enabled=true){
   if(hidden||scene!=='wreck'||!enabled||!g)return;
-  const amount=puddleLevel(shown.wet,shown.rain);if(amount<.035)return;
+  window.DungeonWinterV1?.ground(g,shown.snowCover,width,height);
+  const amount=puddleLevel(shown.wet,shown.rain)*(1-shown.snowCover*.7);if(amount<.035)return;
   g.save();g.scale(width/W,height/H);
   for(const p of pools){
    const {x,y,rx,ry,seed}=p;
@@ -126,12 +130,12 @@ window.DungeonWeatherV1=(function(){
   if(!old||!Number.isFinite(old.minute)||old.minute>now){s.weatherExposure={minute:now,wetness:0,comfort:100,indoor:Boolean(indoor)};return s.weatherExposure;}
   let value=clamp(Number(old.wetness)||0,0,100),comfort=clamp(Number.isFinite(old.comfort)?old.comfort:100,0,100),start=Math.max(old.minute,now-1440*2);
   while(start<now){const end=Math.min(now,(Math.floor(start/180)+1)*180),weather=at(s.seed,start),dt=end-start;
-   value=clamp(value+(old.indoor?-.65:weather.rain>.05?weather.rain*.72:weather.kind==='snow'?.16:-(.12+weather.wind*.18))*dt,0,100);
+   value=clamp(value+(old.indoor?-.65:weather.rain>.05?weather.rain*.72:(weather.kind==='snow'||weather.kind==='blizzard')?.16:-(.12+weather.wind*.18))*dt,0,100);
    const stress=old.indoor?0:Math.max(0,12-weather.temperature)*.035+Math.max(0,weather.temperature-30)*.025+value*.0014;
    comfort=clamp(comfort+(stress>0?-stress:.22)*dt,0,100);start=end;
   }
   return s.weatherExposure={minute:now,wetness:value,comfort,indoor:Boolean(indoor)};
  }
- function activity(kind,weather){if(weather==='storm'||weather==='snow')return false;if(weather==='rain')return kind==='beetle'||kind==='rabbit';if(weather==='drizzle')return kind!=='butterfly';return true;}
+ function activity(kind,weather){if(weather==='storm'||weather==='blizzard')return false;if(weather==='snow')return kind==='rabbit';if(weather==='rain')return kind==='beetle'||kind==='rabbit';if(weather==='drizzle')return kind!=='butterfly';return true;}
  return {kinds,at,bind,set,draw,drawGround,puddleLevel,season,climate,exposure,activity,unlockAudio};
 })();
