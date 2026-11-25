@@ -25,10 +25,15 @@ window.DungeonWeatherV1=(function(){
   const d=hash(seed,'direction:'+Math.floor(t/4)),next=hash(seed,'direction:'+(Math.floor(t/4)+1)),f=t/4-Math.floor(t/4),s=f*f*(3-2*f);
   return {wind:range[0]+(range[1]-range[0])*strength,windDir:clamp((d+(next-d)*s-.5)*3,-1,1)};
  }
+ // Strong wind uses a nonlinear visual response; calm and light breeze stay restrained.
+ function windVisual(w,dir=1){
+  w=clamp(w||0,0,1);const strength=Math.pow(w,1.55);
+  return {angle:(3*w+32*strength)*dir,duration:7.4-5.95*Math.pow(w,.9),strength,lean:strength*.22};
+ }
  function gustAt(base,t){
   base=clamp(base||0,0,1);if(base<.025)return 0;
   const pulse=Math.pow(Math.max(0,Math.sin(t*.57+Math.sin(t*.17))),4);
-  return clamp(base+(Math.sin(t*1.11)*.045+pulse*.20)*base,0,1);
+  return clamp(base+(Math.sin(t*1.11)*.045+pulse*.32)*base,0,1);
  }
  const seasons=[{name:'春季',temp:19,wet:1.2},{name:'夏季',temp:28,wet:1.3},{name:'秋季',temp:18,wet:.78},{name:'冬季',temp:9,wet:.7}];
  function season(minutes){const day=Math.floor(Math.max(0,Number(minutes)||0)/1440);return {...seasons[Math.floor(day/30)%4],day:day%30+1};}
@@ -81,6 +86,7 @@ window.DungeonWeatherV1=(function(){
  let canvas=null,ctx=null,shown={shade:0,fog:0,rain:0,wind:0,wet:0,snow:0,snowCover:0,overcast:0,snowSpeed:0,snowDrift:0,soil:0,plantWet:0,puddles:0,frost:0,windDir:1},target=kinds.clear,last=0,hidden=true,reduced=false;
  const W=640,H=360,particles=Array.from({length:102},(_,i)=>({x:hash('x',i)*W,y:hash('y',i)*H,speed:150+hash('s',i)*190,len:7+hash('l',i)*11}));
  const snowParticles=Array.from({length:170},(_,i)=>({x:hash('snow-x',i)*W,y:hash('snow-y',i)*H}));
+ const windDebris=Array.from({length:24},(_,i)=>({x:hash('wind-x',i)*W,y:H*(.36+hash('wind-y',i)*.59),size:1.4+hash('wind-size',i)*2.6,phase:hash('wind-phase',i)*6.28}));
  function snowVelocity(i,speed,drift){return {x:drift*(.8+(i%7)*.07),y:(13+i%12)*speed};}
  function bind(el){canvas=el;ctx=el?.getContext('2d');if(canvas){canvas.width=W;canvas.height=H;}}
  let scene='wreck',sound=false,audio=null,lastThunder=-1,sceneHost=null,snowPreview=false,weatherPreview=false,previewEnv=emptyEnvironment(),lastEnvironmentLabel=0,plantWindow=null,onPlantWindowChanged=null,windOverride=null,windDirectionOverride=null;
@@ -112,19 +118,36 @@ window.DungeonWeatherV1=(function(){
   if(sceneHost){
    const vars={'snow-cover':shown.snowCover,'plant-wet':shown.plantWet,'frost':shown.frost,'soil-wet':shown.soil,'puddle-level':shown.puddles};
    for(const [key,value] of Object.entries(vars))sceneHost.style.setProperty('--'+key,clamp(value,0,1).toFixed(3));
-   sceneHost.style.setProperty('--weather-wind-angle',((shown.wind*10)*shown.windDir).toFixed(2)+'deg');
-   sceneHost.style.setProperty('--weather-wind-duration',(7.4-shown.wind*4.2).toFixed(2)+'s');
+   const windMotion=windVisual(shown.wind,shown.windDir);
+   sceneHost.style.setProperty('--weather-wind-angle',windMotion.angle.toFixed(2)+'deg');
+   sceneHost.style.setProperty('--weather-wind-duration',windMotion.duration.toFixed(2)+'s');
+   sceneHost.style.setProperty('--weather-wind-lean',windMotion.lean.toFixed(3));
+   sceneHost.style.setProperty('--weather-wind',shown.wind.toFixed(3));
    if(ms-lastEnvironmentLabel>=350||ms<lastEnvironmentLabel){
     lastEnvironmentLabel=ms;
     const label=sceneHost.querySelector?.('.location-weather-info[data-weather-prefix]');
     if(label){const state=shown.snowCover>.85?'厚雪':shown.snowCover>.15?'薄雪':shown.puddles>.25?'積水':shown.soil>.15?'濕潤':shown.frost>.15?'覆霜':'偏乾';const next=label.dataset.weatherPrefix+state+' · '+windLabel(shown.wind,shown.windDir);if(label.textContent!==next)label.textContent=next;}
    }
   }
+  // A few moving leaves or drifting loose snow show wind even without falling rain/snow.
+  if(!reduced&&shown.wind>.30&&Math.abs(shown.windDir)>.08){
+   const t=ms/1000,strong=clamp((shown.wind-.30)/.70,0,1),count=Math.ceil(24*strong),pow=windVisual(shown.wind).strength;
+   const snowy=shown.snowCover>.18||shown.snow>.15;
+   ctx.save();ctx.lineCap='round';
+   for(let i=0;i<count;i++){
+    const p=windDebris[i],vx=(35+210*pow)*(0.65+(i%5)*.12)*shown.windDir;
+    p.x+=vx*dt;p.y+=Math.sin(t*2.4+p.phase)*dt*(3+pow*20);
+    const left=-12,right=W+12;if(p.x<left||p.x>right){p.x=p.x<left?right:left;p.y=H*(.36+hash('wind-reset:'+i,Math.floor(t*3))*.59);}
+    const q=Math.sin(t*(4+pow*3)+p.phase);
+    if(snowy){ctx.strokeStyle='rgba(230,241,244,'+(.13+strong*.24)+')';ctx.lineWidth=.7;ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p.x-shown.windDir*(3+pow*8),p.y+q*1.4);ctx.stroke();}
+    else if(shown.rain<.45){ctx.fillStyle=i%3===0?'rgba(148,151,92,'+(.26+strong*.3)+')':'rgba(100,116,68,'+(.26+strong*.3)+')';ctx.beginPath();ctx.ellipse(p.x,p.y,p.size*(.45+.55*Math.abs(q)),.75,q*1.8,0,Math.PI*2);ctx.fill();}
+   }ctx.restore();
+  }
   if(shown.snow>.01&&!reduced){
    const t=ms/1000,storm=clamp((shown.snowSpeed-1)/3.2,0,1);
    const amount=Math.min(snowParticles.length,Math.ceil((75+85*storm)*shown.snow));
    ctx.fillStyle='rgba(235,244,246,'+(.42+shown.snow*.22)+')';ctx.beginPath();
-   for(let i=0;i<amount;i++){const p=snowParticles[i],v=snowVelocity(i,shown.snowSpeed,shown.wind*145*shown.windDir);
+   for(let i=0;i<amount;i++){const p=snowParticles[i],v=snowVelocity(i,shown.snowSpeed,(40*shown.wind+235*Math.pow(shown.wind,1.5))*shown.windDir);
     p.x=((p.x+(v.x+Math.sin(t*1.4+i)*(2+18*shown.wind))*dt)%W+W)%W;p.y=(p.y+v.y*dt)%H;
     const r=.55+(i%4)*.24;if(shown.wind>.55&&i%3===0){const dx=shown.windDir*(2+shown.wind*4),dy=1+storm*1.8;ctx.moveTo(p.x-r,p.y-r);ctx.lineTo(p.x+dx,p.y+dy);ctx.lineTo(p.x+r,p.y+r);ctx.closePath();}else{ctx.moveTo(p.x+r,p.y);ctx.arc(p.x,p.y,r,0,Math.PI*2);}
    }ctx.fill();
@@ -136,7 +159,7 @@ window.DungeonWeatherV1=(function(){
   if(shown.rain>.008&&!reduced){
    const t=ms/1000,amount=Math.min(particles.length,Math.ceil(particles.length*shown.rain));
    ctx.lineCap='round';ctx.lineWidth=.75;ctx.strokeStyle='rgba(209,228,239,'+(.26+shown.rain*.16)+')';ctx.beginPath();
-   for(let i=0;i<amount;i++){const p=particles[i];p.x=((p.x+dt*35*shown.wind*shown.windDir)%(W+40)+W+40)%(W+40);p.y=(p.y+dt*p.speed)%(H+24);const x=p.x-20,y=p.y-12;ctx.moveTo(x,y);ctx.lineTo(x+(1+shown.wind*3)*shown.windDir,y+p.len);}
+   for(let i=0;i<amount;i++){const p=particles[i];p.x=((p.x+dt*(25*shown.wind+155*Math.pow(shown.wind,1.5))*shown.windDir)%(W+40)+W+40)%(W+40);p.y=(p.y+dt*p.speed)%(H+24);const x=p.x-20,y=p.y-12;ctx.moveTo(x,y);ctx.lineTo(x+(shown.wind*3+Math.pow(shown.wind,1.5)*11)*shown.windDir,y+p.len);}
    ctx.stroke();
    // Tiny ground-level splashes; never mask the stream or foreground objects.
    ctx.strokeStyle='rgba(200,220,224,'+(shown.rain*.20)+')';ctx.beginPath();
@@ -209,5 +232,5 @@ window.DungeonWeatherV1=(function(){
   return !winter||plant.winterHardy===true;
  }
  function activity(kind,weather){if(weather==='storm'||weather==='blizzard')return false;if(weather==='snow')return kind==='rabbit';if(weather==='rain')return kind==='beetle'||kind==='rabbit';if(weather==='drizzle')return kind!=='butterfly';return true;}
- return {kinds,at,bind,set,draw,drawGround,puddleLevel,season,climate,exposure,activity,unlockAudio,snowVelocity,snowStep,environmentStep,plantSpawnAllowed,windAt,windLevel,windLabel,gustAt,environment:()=>({...shown})};
+ return {kinds,at,bind,set,draw,drawGround,puddleLevel,season,climate,exposure,activity,unlockAudio,snowVelocity,snowStep,environmentStep,plantSpawnAllowed,windAt,windLevel,windLabel,gustAt,windVisual,environment:()=>({...shown})};
 })();
