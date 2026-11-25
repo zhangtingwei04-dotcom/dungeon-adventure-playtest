@@ -25,3 +25,19 @@
  filter:brightness(.83) saturate(.82) var(--scene-light)
 }
 #sceneStage .forest-v4-find-cue{z-index:2}
+
+/* Wagon shadow v2: normalized to the original 543 x 473 transparent sprite.
+   Layer order: wheel contact, support contacts, undercarriage, diffuse ambient.
+   The shadow follows the same bottom-center pivot as the artwork. */
+#sceneStage .forest-v4-object[data-shadow-profile="wagon-multi-contact"]::before{
+ left:-5%;right:-5%;top:0;bottom:-5%;width:auto;height:auto;border-radius:0;
+ transform-origin:50% 95.238%;
+ transform:scaleX(var(--v4-wagon-flip,1)) rotate(var(--v4-wagon-angle,0deg));
+ background:
+  radial-gradient(ellipse 10% 3.7% at 39% 94.4%,rgba(20,27,16,.83) 0%,rgba(25,32,17,.64) 28%,rgba(35,44,23,.26) 64%,transparent 100%),
+  radial-gradient(ellipse 6% 2.8% at 85% 90.5%,rgba(22,28,16,.70),rgba(33,40,22,.30) 55%,transparent 100%),
+  radial-gradient(ellipse 5% 2.5% at 18% 90.5%,rgba(23,30,17,.62),rgba(35,43,22,.24) 55%,transparent 100%),
+  radial-gradient(ellipse 40% 7% at 51% 88.8%,rgba(23,31,18,.67),rgba(33,42,22,.39) 55%,transparent 100%),
+  radial-gradient(ellipse 49% 10.8% at 50% 92%,rgba(35,45,24,.34),rgba(41,51,27,.17) 53%,transparent 100%);
+ opacity:var(--v4-shadow-strength,1);
+}
