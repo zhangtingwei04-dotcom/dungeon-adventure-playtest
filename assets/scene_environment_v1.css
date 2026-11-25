@@ -15,6 +15,16 @@
 #sceneStage .forest-v4-layer.env-v1 .forest-v4-object[data-env-kind="bird"] img{animation:env-bird 5.6s ease-in-out infinite;animation-delay:var(--env-delay,0s)}
 #sceneStage .forest-v4-layer.env-v1 .forest-v4-object[data-motion="animal"] .env-lit-art::after,
 #sceneStage .forest-v4-layer.env-v1 .forest-v4-object[data-motion="plant"] .env-lit-art::after{display:none}
-@keyframes env-butterfly{0%,100%{transform:translateY(0) scaleX(1)}25%{transform:translateY(-4%) scaleX(.75)}50%{transform:translateY(-7%) scaleX(1)}75%{transform:translateY(-3%) scaleX(.78)}}
+@keyframes env-butterfly{0%,100%{transform:translateY(0) scaleX(1)}25%{transform:translateY(-4%) scaleX(.91)}50%{transform:translateY(-4%) scaleX(1)}75%{transform:translateY(-3%) scaleX(.93)}}
 @keyframes env-bird{0%,77%,100%{transform:scale(1)}83%{transform:scale(1.025,.98)}90%{transform:scale(1)}}
 @media(prefers-reduced-motion:reduce){#sceneStage .forest-v4-layer.env-v1 .forest-v4-object img{animation:none!important}}
+
+/* V2: keep nodes in place, fade only entering/leaving objects. */
+#sceneStage .forest-v4-layer.env-v1 .env-entering{animation:env-arrival .30s .22s both ease-out}
+#sceneStage .forest-v4-layer.env-v1 .env-leaving{animation:env-departure .22s both ease-in;pointer-events:none!important}
+@keyframes env-arrival{from{opacity:0}to{opacity:1}}
+@keyframes env-departure{from{opacity:1}to{opacity:0}}
+#sceneStage .forest-v4-layer.env-v1 .forest-v4-find-cue.env-wagon-cue{bottom:19%;left:67%}
+#sceneStage .forest-v4-layer.env-v1 .forest-v4-find-cue{font-size:clamp(9px,1vw,11px)}
+html.stage-locked #app.env-repair-v2 #toast,#app.env-repair-v2 #toast{top:auto!important;bottom:8%!important;left:50%;max-width:48%!important;font-size:clamp(10px,1.1vw,13px)!important;line-height:1.35;padding:5px 9px}
+@media(prefers-reduced-motion:reduce){#sceneStage .forest-v4-layer.env-v1 .env-entering,#sceneStage .forest-v4-layer.env-v1 .env-leaving{animation:none!important}}
