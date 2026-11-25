@@ -5128,6 +5128,13 @@ function observeOpening(){
   if(routeKnown('trail','gate'))rescue();else followOpeningClue();
  }
 }
+function openingMonsterPending(actor){
+ return actor.scene==='wreck'&&!actor.flags?.rescued&&!actor.flags?.openingMonsterResolved&&!actor.flags?.inBattle&&!actor.visits?.trail;
+}
+function startOpeningMonster(){
+ if(!openingMonsterPending(s))return false;
+ battleStart({opening:true,ambush:true});return true;
+}
 function followOpeningClue(){
  if(!openingAdventure()||modal||sceneDialogueState.open||encounterPending)return;
  const from=s.scene,to=from==='wreck'?'trail':'gate';
@@ -5138,6 +5145,7 @@ function followOpeningClue(){
  if(!discoverRoute(from,to))return;
  addTravel('discovery',from==='wreck'?'循著車轍找到了林間小徑。':'道路前方有腳步聲，似乎有人經過。',from==='wreck'?'終於有離開的方向了。':'也許可以找到幫助。');
  save();render();
+ if(from==='wreck'&&startOpeningMonster())return;
  if(from==='wreck'&&openingDepartureCue())return;
  presentDiscoveredRoute(from,to);
 }
@@ -7748,6 +7756,7 @@ function change(scene,mode='walk'){
  clearRouteAttention();closeSceneDialogue();
  closePlaceDrawer();
  if((s.scene==='wreck'&&!travelRoute('wreck',scene))||(travelRoute(s.scene,scene)&&!routeKnown(s.scene,scene))){toast('尚未發現這條道路，請先探索周圍。');return;}
+ if(s.scene==='wreck'&&scene==='trail'&&startOpeningMonster())return;
  const duration=travelTimeFor(s.scene,scene,mode);
  if(duration===null){toast('此路線目前無法使用馬車，請選擇步行。');return;}
  const now=Date.now();if(now-lastMoveAt<300)return;lastMoveAt=now;
@@ -8084,6 +8093,7 @@ function resolveBattleTurn(previous,playerHp,action,ground={}){
  }
  if(slippery&&action==='dodge'&&hit)feedback+=' 地面有些濕滑。';
  state.braced=action==='guard'||action==='dodge';
+ if(state.source==='opening'&&!state.result&&state.turn>=5){state.result='retreat';state.distance=2;enemyAction='withdraw';feedback+=' 遠處傳來聲響，牠轉身逃進森林。';}
  const nextHp=Math.max(0,hp-hit);
  if(nextHp===0)state.result='defeat';
  state.intent=next;state.feedback=feedback+(damage?' 造成 '+damage+' 點傷害。':'')+(hit?' 受到 '+hit+' 點傷害。':'');
@@ -8100,11 +8110,11 @@ function normalizeBattle(){
 let lastBattleAction=0,battleAnimating=false;
 function battleStart(options={}){
  if(s.flags.inBattle)return;
- const ambush=options.ambush===true;
- const hit=ambush?Math.min(2,Math.max(0,s.hp)):0;
+ const opening=options.opening===true,ambush=options.ambush===true;
+ const hit=ambush?Math.min(opening?1:2,Math.max(0,s.hp-(opening?1:0))):0;
  s.hp=Math.max(0,s.hp-hit);
- s.flags.inBattle=true;s.flags.monsterHp=12;
- s.flags.battleV2={enemyHp:12,turn:0,intent:ambush?'watch':'pounce',distance:ambush?0:1,focused:false,braced:false,result:s.hp===0?'defeat':null,source:ambush?'exploration':'story',feedback:ambush?'草叢突然晃動，一隻陌生生物撲了過來！受到 '+hit+' 點傷害。':'牠警戒地盯著你。'};
+ s.flags.inBattle=true;s.flags.monsterHp=opening?8:12;
+ s.flags.battleV2={enemyHp:opening?8:12,maxEnemyHp:opening?8:12,turn:0,intent:opening?'pounce':ambush?'watch':'pounce',distance:ambush?0:1,focused:false,braced:false,result:s.hp===0?'defeat':null,source:opening?'opening':ambush?'exploration':'story',feedback:opening?'車架下傳來低吼，陌生生物猛然撲出！'+(hit?'受到 '+hit+' 點傷害。':'你及時退開。'):ambush?'草叢突然晃動，一隻陌生生物撲了過來！受到 '+hit+' 點傷害。':'牠警戒地盯著你。'};
  if(ambush){addTravel('combat','在'+names[s.scene][0]+'探索時遭到生物突襲。'+(s.hp===0?'你體力不支。':''),'事情發生得太突然了。');}
  lastBattleAction=0;save();render();
  if(ambush){$('battleSurface').dataset.distance='1';playBattleMotion('ambush',{damage:0,hit,enemyAction:'pounce'});}
@@ -8116,8 +8126,8 @@ function renderBattleSurface(){
  const state=normalizeBattle();
  host.classList.remove('hidden');host.dataset.intent=state.intent;host.dataset.distance=String(state.distance);host.dataset.result=String(!!state.result);
  host.replaceChildren();
- const head=document.createElement('div');head.className='battle-head';head.textContent='陌生林地生物 · '+(state.result?'遭遇結束':'第 '+(state.turn+1)+' 回合');
- const meter=document.createElement('div');meter.className='battle-meter';meter.setAttribute('aria-label','對手狀態');const fill=document.createElement('span');fill.style.width=state.enemyHp/12*100+'%';meter.appendChild(fill);head.appendChild(meter);const range=document.createElement('div');range.className='battle-range';range.textContent='距離：'+BATTLE_DISTANCES[state.distance];head.appendChild(range);
+ const head=document.createElement('div');head.className='battle-head';head.textContent=(state.source==='opening'?'馬車旁的陌生生物':'陌生林地生物')+' · '+(state.result?'遭遇結束':'第 '+(state.turn+1)+' 回合');
+ const meter=document.createElement('div');meter.className='battle-meter';meter.setAttribute('aria-label','對手狀態');const fill=document.createElement('span');fill.style.width=state.enemyHp/(state.maxEnemyHp||12)*100+'%';meter.appendChild(fill);head.appendChild(meter);const range=document.createElement('div');range.className='battle-range';range.textContent='距離：'+BATTLE_DISTANCES[state.distance];head.appendChild(range);
  const sprite=document.createElement('canvas');sprite.className='battle-creature';sprite.setAttribute('aria-hidden','true');window.DungeonSceneObjectsV1?.sprite(sprite,'creature');
  const controls=document.createElement('div');controls.className='battle-controls';
  const intent=document.createElement('p');intent.className='battle-intent';
@@ -8170,9 +8180,11 @@ function playBattleMotion(kind,result){
 function finishBattle(){
  if(!s.flags.inBattle)return;
  const state=normalizeBattle();if(!state.result)return;
- s.flags.inBattle=false;if(state.source!=='exploration')s.flags.creatureResolved=true;
- if(state.result==='defeat'){s.hp=Math.min(s.maxHp,5);advanceGameTime(20,'combat-recovery');}
+ s.flags.inBattle=false;if(state.source==='story'||!state.source)s.flags.creatureResolved=true;
+ if(state.source==='opening')s.flags.openingMonsterResolved=true;
+ if(state.result==='defeat'){s.hp=Math.min(s.maxHp,5);advanceGameTime(state.source==='opening'?3:20,'combat-recovery');}
  $('battleSurface').classList.add('hidden');syncDialogueInputLock();save();render();
+ if(state.source==='opening'&&s.scene==='wreck'){if(!openingDepartureCue())presentDiscoveredRoute('wreck','trail');}
 }
 
 function entries(){const a={
