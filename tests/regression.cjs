@@ -23,6 +23,15 @@ const server = http.createServer((req,res)=>{
     if(!target.startsWith(root+path.sep)){res.writeHead(403).end();return;}
     if(!fs.statSync(target).isFile()){res.writeHead(404).end();return;}
     res.writeHead(200,{'Content-Type':mime[path.extname(target)]||'application/octet-stream','Cache-Control':'no-store'});
+    if(target===path.join(root,'index.html')){
+      // Local test-only read/fixture seam; production HTML on disk stays unchanged.
+      const html=fs.readFileSync(target,'utf8');
+      const marker='requestAnimationFrame(frame);render();\n})();';
+      assert(html.includes(marker),'Game test seam boundary not found');
+      const hook="\nObject.defineProperties(window,{s:{get:()=>s},KEY:{get:()=>KEY},initial:{value:initial},names:{get:()=>names}});";
+      res.end(html.replace(marker,marker.replace('\n})();',hook+'\n})();')));
+      return;
+    }
     fs.createReadStream(target).pipe(res);
   } catch {res.writeHead(404).end();}
 });
@@ -135,6 +144,52 @@ async function run(){
       assert.equal(await page.locator('[data-info-tab="'+tab+'"]').getAttribute('aria-selected'),'true');
     }
     await page.screenshot({path:path.join(out,browserName+'-landscape.png')});
+  });
+  await check('Scene thumbnail sync, image load and visual evidence',async()=>{
+    await page.locator('[data-info-tab="locations"]').click();
+    const thumb=page.locator('.side-scene-preview[data-scene="wreck"] canvas');
+    await thumb.waitFor({state:'visible'});
+    await page.waitForFunction(()=>document.querySelector('.side-scene-preview[data-scene="wreck"] canvas')?.dataset.drawn==='wreck');
+    async function readThumbnail(){
+      return page.evaluate(()=>{
+        const c=document.querySelector('.side-scene-preview[data-scene="wreck"] canvas');
+        const g=c.getContext('2d'),a=g.getImageData(0,0,c.width,c.height).data;
+        let opaque=0,hash=2166136261;
+        for(let i=0;i<a.length;i+=4){if(a[i+3]>0)opaque++;hash=Math.imul(hash^a[i]^a[i+1]^a[i+2],16777619);}
+        return {opaque,total:a.length/4,hash:hash>>>0};
+      });
+    }
+    const weather=async kind=>{
+      await page.locator('#hudWeatherBtn').click();
+      await page.locator('[data-preview-weather="'+kind+'"]').click();
+      assert.equal(await page.locator('#app').getAttribute('data-weather'),kind);
+    };
+    await weather('clear');await page.waitForTimeout(1400);
+    const clear=await readThumbnail();assert(clear.opaque>clear.total*.8);
+    await page.screenshot({path:path.join(out,browserName+'-visual-clear.png')});
+    await weather('blizzard');await page.waitForTimeout(11000);
+    const snow=await readThumbnail();assert(snow.opaque>snow.total*.8);assert.notEqual(snow.hash,clear.hash,'Thumbnail did not change');
+    await page.screenshot({path:path.join(out,browserName+'-visual-snow.png')});
+    assert.equal(await page.locator('#sceneStage [data-wildlife]').count(),0);
+    await page.locator('#timePreviewTag').click();
+    report.visual={clear,snow,note:'Change detection only, not pixel-perfect visual approval'};
+  });
+  await check('Repeated panel switching and browser frame telemetry',async()=>{
+    const before=await page.evaluate(()=>({nodes:document.querySelectorAll('*').length,heap:performance.memory?.usedJSHeapSize??null}));
+    for(let i=0;i<5;i++)for(const tab of ['character','equipment','inventory','locations']){
+      await page.locator('[data-info-tab="'+tab+'"]').click();
+      assert.equal(await page.locator('[data-info-tab="'+tab+'"]').getAttribute('aria-selected'),'true');
+    }
+    const metrics=await page.evaluate(()=>new Promise(resolve=>{
+      const start=performance.now();let prev=start,frames=0,largest=0;const gaps=[];
+      function tick(now){const dt=now-prev;prev=now;frames++;gaps.push(dt);largest=Math.max(largest,dt);
+        if(now-start<5000)requestAnimationFrame(tick);
+        else{gaps.sort((a,b)=>a-b);resolve({fps:frames*1000/(now-start),p95FrameMs:gaps[Math.floor(gaps.length*.95)],maxFrameMs:largest,nodes:document.querySelectorAll('*').length,heap:performance.memory?.usedJSHeapSize??null});}}
+      requestAnimationFrame(tick);
+    }));
+    assert(Number.isFinite(metrics.fps)&&metrics.fps>0,'No frames');
+    report.performance={before,after:metrics,note:'CI host telemetry; not iPhone FPS or a memory leak proof'};
+    if(metrics.fps<20)console.warn('Low CI animation frame callback rate: '+metrics.fps);
   });
   await check('Reload resumes save, legacy migration, invalid save protection',async()=>{
     const before=await page.evaluate(()=>({scene:s.scene,minute:s.worldMinutes,hp:s.hp}));
