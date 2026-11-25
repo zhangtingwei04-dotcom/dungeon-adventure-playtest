@@ -4080,6 +4080,11 @@ html.stage-locked #app #topGameHud #hudPhase{font-size:clamp(10px,1.65vw,17px)}
 #sceneStage #encounterCue.opening-encounter{pointer-events:auto;z-index:9;padding:7px 10px;background:#132b24f2}
 #encounterCue.opening-encounter button{margin:5px 4px 0;padding:5px 10px;border:1px solid #c5ac78;border-radius:4px;background:#355242;color:#fff2d1;font:inherit}
 #app[data-opening-adventure="true"] #travelFeed,#app[data-opening-adventure="true"] #sceneFuturePanel{opacity:.68}
+/* Dialogue input lock: only the active event surface accepts input. */
+#app[data-dialogue-lock="true"] #placePrimaryActions,
+#app[data-dialogue-lock="true"] #actions,
+#app[data-dialogue-lock="true"] .location-preview-travel{opacity:.45;cursor:default}
+#app[data-dialogue-lock="true"] #hotspots{pointer-events:none!important}
 /* One attention target at a time. */
 #app #travelFeed,#app #placeDrawer{transition:opacity .22s ease}
 #app.scene-dialogue-active #travelFeed,#app.scene-dialogue-active #placeDrawer,#app:has(#dialogVeil:not(.hidden)) #travelFeed,#app:has(#dialogVeil:not(.hidden)) #placeDrawer{opacity:.52}
@@ -5085,7 +5090,7 @@ function openingDepartureCue(){
  return true;
 }
 function exploreArea(){
- if(encounterPending||modal||sceneDialogueState.open||!EXPLORATION_AREAS[s.scene])return;
+ if(activeDialogueSurface()||encounterPending||modal||sceneDialogueState.open||!EXPLORATION_AREAS[s.scene])return;
  if(openingAdventure()&&!routeKnown(s.scene,s.scene==='wreck'?'trail':'gate')){observeOpening();return;}
  clearRouteAttention();$('toast').classList.remove('active');
  const oldSummary=$('sceneStage').querySelector('.discovery-summary');if(oldSummary)oldSummary.hidden=true;
@@ -5204,6 +5209,7 @@ function setPlaceDrawer(open,expandId=null){
 }
 function closePlaceDrawer(){}
 function setActiveSideTab(tab){
+ if(activeDialogueSurface())return;
  if(!['locations','character','equipment','inventory'].includes(tab))return;
  clearRouteAttention();activeSideTab=tab;renderPlaceDrawer();$('placeDrawerList').scrollTop=0;
 }
@@ -6901,6 +6907,7 @@ function expandPlaceCard(id){
  renderPlaceDrawer();
 }
 function placeDrawerTravel(id){
+ if(activeDialogueSurface())return;
  const card=visiblePlaceCards().find(x=>x.id===id);
  if(!card||!card.reachable||card.current){toast('請先沿著相連的已發現道路前往此地。');return;}
  closePlaceDrawer();
@@ -6927,6 +6934,7 @@ function presentDiscoveredRoute(from,to){
  openSceneDialogue([{speaker:'旁白',text:from==='wreck'&&to==='trail'?'你順著泥地上的車轍望去，樹影間露出一條可以通行的小徑。':'你辨認出一條新的道路：'+routeCardTitle(from,to)+'。'}],'route-preview');
 }
 function moveLocationPreview(step){
+ if(activeDialogueSurface())return;
  clearRouteAttention();
  const cards=visiblePlaceCards();
  if(cards.length<2)return;
@@ -7579,7 +7587,7 @@ const sceneDialogueState={lines:[],index:0,open:false,purpose:null};
 function renderSceneDialogue(){
  const box=$('sceneDialogue');
  if(!sceneDialogueState.open||!sceneDialogueState.lines.length){
-  box.classList.add('hidden');$('app').classList.remove('scene-dialogue-active');return;
+  box.classList.add('hidden');$('app').classList.remove('scene-dialogue-active');syncDialogueInputLock();return;
  }
  const line=sceneDialogueState.lines[sceneDialogueState.index];
  const portraitCode=line.portrait||(line.speaker==='你'?'protagonist':null);
@@ -7597,7 +7605,7 @@ function renderSceneDialogue(){
  const last=sceneDialogueState.index===sceneDialogueState.lines.length-1;
  $('sceneDialogueNext').textContent=last?(sceneDialogueState.purpose==='opening-departure'?'沿車轍離開':sceneDialogueState.purpose==='route-preview'?'查看道路':'結束對話'):'點擊繼續';
  $('sceneDialogueNext').setAttribute('aria-label',last?(sceneDialogueState.purpose==='opening-departure'?'沿車轍前往林間小徑':sceneDialogueState.purpose==='route-preview'?'查看新道路':'結束場景對話'):'下一句');
- box.classList.remove('hidden');$('app').classList.add('scene-dialogue-active');
+ box.classList.remove('hidden');$('app').classList.add('scene-dialogue-active');syncDialogueInputLock();
 }
 function openSceneDialogue(lines,purpose=null){
  if(!Array.isArray(lines)||!lines.length)return;
@@ -7628,9 +7636,33 @@ function openWreckIntroduction(){
    {speaker:'你',text:'「得趁天黑前找到能離開的路。」'}
  ]);
 }
-function guardedAction(fn){const now=Date.now();if(now-lastActionAt<300)return;lastActionAt=now;fn?.();}
+// Shared interaction policy; applies equally to narration, choices, inspections and encounters.
+function activeDialogueSurface(){
+ for(const id of ['dialogVeil','sceneDialogue','sceneInspection','encounterCue']){
+  const el=$(id);
+  if(el&&!el.classList.contains('hidden'))return el;
+ }
+ return null;
+}
+function syncDialogueInputLock(){
+ const active=activeDialogueSurface();
+ $('app').dataset.dialogueLock=String(!!active);
+ for(const id of ['hotspots','placeDrawer','travelFeed','sceneFuturePanel','actions']){
+  const el=$(id);if(el)el.inert=!!active&&!el.contains(active);
+ }
+}
+function guardedAction(fn){if(activeDialogueSurface())return;const now=Date.now();if(now-lastActionAt<300)return;lastActionAt=now;fn?.();}
+// Capture phase protects every background control, including dynamically generated buttons.
+function blockBackgroundDialogueInput(e){
+ const active=activeDialogueSurface();
+ if(!active||active.contains(e.target))return;
+ if(e.cancelable)e.preventDefault();e.stopImmediatePropagation();
+}
+for(const type of ['click','dblclick','pointerdown','pointerup','touchstart','touchend','touchmove','wheel']){
+ document.addEventListener(type,blockBackgroundDialogueInput,{capture:true,passive:false});
+}
 function change(scene,mode='walk'){
- if(encounterPending||!names[scene]||scene===s.scene)return;
+ if(activeDialogueSurface()||encounterPending||!names[scene]||scene===s.scene)return;
  clearRouteAttention();closeSceneDialogue();
  closePlaceDrawer();
  if((s.scene==='wreck'&&!travelRoute('wreck',scene))||(travelRoute(s.scene,scene)&&!routeKnown(s.scene,scene))){toast('尚未發現這條道路，請先探索周圍。');return;}
@@ -7648,10 +7680,10 @@ function change(scene,mode='walk'){
  addTravel('scene',(revisited?'再次回到 ':'來到 ')+names[scene][0]+'（'+(mode==='carriage'?'馬車':'步行')+'約'+duration+'分鐘，'+gameTime(s.worldMinutes)+'）。'+(revisited?'（到訪 '+s.visits[scene]+' 次）':''),revisited?'這條路漸漸熟悉了。':moveThought[scene]||'接下來看看四周。');
  save();render();beep(350);
 }
-function dialog(title,text,choices,kicker='途中事件',locked=false,speaker=null,emotion='neutral'){closeSceneDialogue();closePlaceDrawer();hideSceneInspection();renderDialogueActor(speaker,emotion);if(/旅店的早晨|陌生人的善意|熟悉的四張面孔|留守的兩名夥伴|冒險者公會櫃台|普通的邀請|普通的生活|附近的道路|街上的日常/.test(title))addTravel('talk','交談：'+title,'也許能更了解這裡的人。');modal={title,text,choices,locked};$('dialogKicker').textContent=kicker;$('dialogTitle').textContent=title;$('dialogText').textContent=text;$('dialogChoices').replaceChildren();for(const c of choices){const b=document.createElement('button');b.className='choice';b.textContent=c.label;b.addEventListener('click',()=>{modal=null;$('dialogVeil').classList.add('hidden');c.fn?.();});$('dialogChoices').appendChild(b);} $('dialogClose').classList.toggle('hidden',locked);$('dialogVeil').classList.remove('hidden');beep(540);}
-function closeDialog(){if(modal?.locked)return;modal=null;$('dialogVeil').classList.add('hidden');renderDialogueActor(null);}
+function dialog(title,text,choices,kicker='途中事件',locked=false,speaker=null,emotion='neutral'){closeSceneDialogue();closePlaceDrawer();hideSceneInspection();renderDialogueActor(speaker,emotion);if(/旅店的早晨|陌生人的善意|熟悉的四張面孔|留守的兩名夥伴|冒險者公會櫃台|普通的邀請|普通的生活|附近的道路|街上的日常/.test(title))addTravel('talk','交談：'+title,'也許能更了解這裡的人。');modal={title,text,choices,locked};$('dialogKicker').textContent=kicker;$('dialogTitle').textContent=title;$('dialogText').textContent=text;$('dialogChoices').replaceChildren();for(const c of choices){const b=document.createElement('button');b.className='choice';b.textContent=c.label;b.addEventListener('click',()=>{if(!modal)return;modal=null;$('dialogVeil').classList.add('hidden');syncDialogueInputLock();c.fn?.();});$('dialogChoices').appendChild(b);} $('dialogClose').classList.toggle('hidden',locked);$('dialogVeil').classList.remove('hidden');syncDialogueInputLock();beep(540);}
+function closeDialog(){if(modal?.locked)return;modal=null;$('dialogVeil').classList.add('hidden');syncDialogueInputLock();renderDialogueActor(null);}
 function action(title,fn,primary=false,quick=false){return{title,fn,primary,quick};}
-function hideSceneInspection(){$('sceneInspection').classList.add('hidden');$('sceneInspection').classList.remove('route-discovery','exploration-results');}
+function hideSceneInspection(){$('sceneInspection').classList.add('hidden');$('sceneInspection').classList.remove('route-discovery','exploration-results');syncDialogueInputLock();}
 function hideSceneActors(){
  encounterToken++;
  if(encounterTimer!==null){clearTimeout(encounterTimer);encounterTimer=null;}
@@ -7659,7 +7691,7 @@ function hideSceneActors(){
  $('app').classList.remove('encounter-pending');
  $('sceneActors').classList.remove('active');
  $('sceneActors').replaceChildren();
- $('encounterCue').classList.add('hidden');
+ $('encounterCue').classList.add('hidden');syncDialogueInputLock();
 }
 function stageEncounterActors(four,token){
  const stage=$('sceneActors');stage.classList.remove('active');stage.replaceChildren();
@@ -7699,7 +7731,7 @@ function beginForestEncounter(){
  encounterPending=true;$('app').classList.add('encounter-pending');
  stageEncounterActors(four,token);
  const cue=$('encounterCue');cue.textContent='林間傳來腳步聲……四個身影在道路前停下。';
- cue.classList.remove('hidden');
+ cue.classList.remove('hidden');syncDialogueInputLock();
  if(!s.seen.includes('forestEncounterSteps')){
   addUnique(s.seen,'forestEncounterSteps');
   addTravel('scene','小徑深處傳來腳步聲，四名陌生冒險者逐漸靠近。','他們會不會注意到我？');
@@ -7712,7 +7744,7 @@ function beginForestEncounter(){
  approach.onclick=()=>{
   if(token!==encounterToken||s.scene!=='trail')return;
   encounterTimer=null;encounterPending=false;
-  $('app').classList.remove('encounter-pending');cue.classList.add('hidden');cue.classList.remove('opening-encounter');
+  $('app').classList.remove('encounter-pending');cue.classList.add('hidden');cue.classList.remove('opening-encounter');syncDialogueInputLock();
   focusEncounterActor(four[0].id,'alert');
   const who=four.map(p=>p.name).join('、');
   dialog('有人接近了','林間傳來腳步聲。四名冒險者看見你從馬車殘骸的方向走來，停下了腳步。\n\n這次出勤的是：'+who+'。',[
@@ -7735,7 +7767,7 @@ function openSceneInspection(title,description,actions){
   button.onclick=()=>{hideSceneInspection();a.fn?.();};
   container.appendChild(button);
  }
- box.classList.remove('hidden');
+ box.classList.remove('hidden');syncDialogueInputLock();
 }
 $('sceneInspectionClose').onclick=hideSceneInspection;
 function inspectTrailMarker(){
@@ -8382,7 +8414,7 @@ function renderRouteMap(out){
  footnote.textContent='開場那輛馬車已經損毀、不能搭乘。驛站馬車只在城鎮街道與近郊間提供短程接送；其餘路線先以步行計算。';
  out.appendChild(footnote);
 }
-function journal(tab='discoveries'){tickBeetleCare();closePlaceDrawer();$('journalVeil').classList.remove('hidden');journalTab=tab;$('journalTabs').replaceChildren();const tabs=[['journey','旅途'],['discoveries','發現'],['map','地點'],['party','相遇者'],['items','物品與材料'],['bestiary','怪物圖鑑'],['terrarium','生態箱']];for(const [key,label] of tabs){const b=document.createElement('button');b.className='journal-tab'+(tab===key?' selected':'');b.textContent=label;b.onclick=()=>journal(key);$('journalTabs').appendChild(b);}const out=$('journalContent');out.replaceChildren();if(tab==='map'){renderRouteMap(out);return;}if(tab==='items'){renderWalletPanel(out);renderRecoveredItems(out);return;}if(tab==='bestiary'){renderCreatureBestiary(out);return;}if(tab==='terrarium'){renderRustTerrarium(out);return;}if(tab==='journey'){const logs=(Array.isArray(s.travelLog)?s.travelLog:[]).filter(e=>e&&typeof e.message==='string').slice().reverse();for(const e of logs){const row=document.createElement('div');row.className='journey-entry';const meta=document.createElement('div');meta.className='entry-meta';meta.textContent=(Number.isFinite(e.time)?new Date(e.time).toLocaleString('zh-TW'):'旅途')+' · '+(names[e.scene]?.[0]||'旅途');const main=document.createElement('div');main.className='entry-main';main.textContent=e.message;row.append(meta,main);if(e.thought){const thought=document.createElement('div');thought.className='entry-thought';thought.textContent='「'+e.thought+'」';row.appendChild(thought);}out.appendChild(row);}if(!logs.length)out.textContent='尚未留下旅途紀錄；新的事件會自動保存。';return;}let list=[];if(tab==='discoveries')list=s.notes.length?s.notes:['目前尚無額外發現。直接往前走也能繼續冒險。'];if(tab==='party')list=s.flags.rescued?s.party.map(i=>roster[i].name+'｜'+roster[i].speech):['尚未與冒險者正式相遇。'];const ul=document.createElement('ul');ul.className='journal-list';for(const item of list){const li=document.createElement('li');li.textContent=item;ul.appendChild(li);}out.appendChild(ul);}
+function journal(tab='discoveries'){if(activeDialogueSurface())return;tickBeetleCare();closePlaceDrawer();$('journalVeil').classList.remove('hidden');journalTab=tab;$('journalTabs').replaceChildren();const tabs=[['journey','旅途'],['discoveries','發現'],['map','地點'],['party','相遇者'],['items','物品與材料'],['bestiary','怪物圖鑑'],['terrarium','生態箱']];for(const [key,label] of tabs){const b=document.createElement('button');b.className='journal-tab'+(tab===key?' selected':'');b.textContent=label;b.onclick=()=>journal(key);$('journalTabs').appendChild(b);}const out=$('journalContent');out.replaceChildren();if(tab==='map'){renderRouteMap(out);return;}if(tab==='items'){renderWalletPanel(out);renderRecoveredItems(out);return;}if(tab==='bestiary'){renderCreatureBestiary(out);return;}if(tab==='terrarium'){renderRustTerrarium(out);return;}if(tab==='journey'){const logs=(Array.isArray(s.travelLog)?s.travelLog:[]).filter(e=>e&&typeof e.message==='string').slice().reverse();for(const e of logs){const row=document.createElement('div');row.className='journey-entry';const meta=document.createElement('div');meta.className='entry-meta';meta.textContent=(Number.isFinite(e.time)?new Date(e.time).toLocaleString('zh-TW'):'旅途')+' · '+(names[e.scene]?.[0]||'旅途');const main=document.createElement('div');main.className='entry-main';main.textContent=e.message;row.append(meta,main);if(e.thought){const thought=document.createElement('div');thought.className='entry-thought';thought.textContent='「'+e.thought+'」';row.appendChild(thought);}out.appendChild(row);}if(!logs.length)out.textContent='尚未留下旅途紀錄；新的事件會自動保存。';return;}let list=[];if(tab==='discoveries')list=s.notes.length?s.notes:['目前尚無額外發現。直接往前走也能繼續冒險。'];if(tab==='party')list=s.flags.rescued?s.party.map(i=>roster[i].name+'｜'+roster[i].speech):['尚未與冒險者正式相遇。'];const ul=document.createElement('ul');ul.className='journal-list';for(const item of list){const li=document.createElement('li');li.textContent=item;ul.appendChild(li);}out.appendChild(ul);}
 function setTravelHud(mode){if(!['compact','expanded'].includes(mode))return;s.travelHudMode=mode;save();renderFeed();}
 $('playerStatusButton').onclick=showPlayerStatus;
 $('hudCharacterBtn').onclick=()=>setActiveSideTab('character');
@@ -8446,9 +8478,21 @@ $('fileInput').onchange=async e=>{
 $('startBtn').onclick=()=>{if(window.DungeonSaveV1.diagnostics().writeProtected&&!confirm('原始存檔無法讀取。確定開始新遊戲並覆寫？'))return;closeSceneDialogue();window.DungeonSaveV1.allowReplacement();s=initial();paperDollTryOn=false;equipmentSelected='bag';previewPeriod=null;refreshSceneFraming();hasSave=true;$('startVeil').classList.add('hidden');render();openWreckIntroduction();};if(hasSave){$('continueBtn').classList.remove('hidden');$('continueBtn').onclick=()=>{$('startVeil').classList.add('hidden');render();if(s.flags.inBattle)battleDialog('繼續尚未結束的遭遇戰。');else openWreckIntroduction();};}
 window.addEventListener('keydown',e=>{
 if(e.metaKey||e.ctrlKey||e.altKey||e.target.matches('input,textarea,select,[contenteditable="true"]'))return;
-if(sceneDialogueState.open){
-  if(e.key==='Enter'||e.key===' '||e.key==='ArrowRight'){e.preventDefault();nextSceneDialogue();return;}
-  if(e.key==='Escape'){e.preventDefault();if(sceneDialogueState.purpose!=='opening-departure')closeSceneDialogue();return;}
+const active=activeDialogueSurface();
+ if(active){
+  if(e.key==='Tab'){
+   const controls=[...active.querySelectorAll('button:not([disabled]):not(.hidden),[href],input,select,textarea,[tabindex="0"]')].filter(el=>el.getClientRects().length);
+   e.preventDefault();if(controls.length){const i=controls.indexOf(document.activeElement);controls[(i<0?(e.shiftKey?controls.length-1:0):(i+(e.shiftKey?controls.length-1:1))%controls.length)].focus();}return;
+  }
+  if(active.id==='sceneDialogue'){
+   if(e.key==='Enter'||e.key===' '||e.key==='ArrowRight'){e.preventDefault();nextSceneDialogue();}
+   else if(e.key==='Escape'){e.preventDefault();if(sceneDialogueState.purpose!=='opening-departure')closeSceneDialogue();}
+   return;
+  }
+  if(e.key==='Escape'){e.preventDefault();if(active.id==='dialogVeil')closeDialog();else if(active.id==='sceneInspection')hideSceneInspection();return;}
+  if(active.id==='dialogVeil'&&/^[123]$/.test(e.key)){e.preventDefault();$('dialogChoices').querySelectorAll('button')[Number(e.key)-1]?.click();return;}
+  if(!active.contains(e.target)||!['Enter',' ','ArrowUp','ArrowDown','PageUp','PageDown'].includes(e.key))e.preventDefault();
+  return;
  }
  if(e.key==='Escape'){e.preventDefault();if(placeDrawerOpen){setPlaceDrawer(false);return;}if(!$('sceneInspection').classList.contains('hidden')){hideSceneInspection();return;}if(!$('journalVeil').classList.contains('hidden'))$('journalVeil').classList.add('hidden');
 else if(!$('menuVeil').classList.contains('hidden'))$('menuVeil').classList.add('hidden');
