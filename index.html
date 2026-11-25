@@ -4303,6 +4303,7 @@ html.stage-locked #app #topGameHud #hudPhase{font-size:clamp(10px,1.65vw,17px)}
 <script src="./assets/forest_v4_assets_3.js?v=1"></script>
 <script src="./assets/forest_v4_assets_4.js?v=1"></script>
 <script src="./assets/wreck_current_layout_v1.js?v=1"></script>
+<script src="./assets/render_resources_v1.js?v=1"></script>
 <script>
 // Current scene is the sole base. D remains an explicit research preview.
 window.DUNGEON_FOREST_V4_LAYOUT=window.DUNGEON_WRECK_CURRENT_LAYOUT;
@@ -8272,9 +8273,10 @@ trailForest.onload=()=>{
  trailForestReady=trailForest.naturalWidth>0;
  if(s.scene==='trail'){refreshSceneFraming();renderHotspots();sceneDraw(t);}
 };
-trailForest.onerror=()=>{trailForestReady=false;console.warn('Forest trail artwork unavailable; using fallback.');};
+trailForest.onerror=()=>{trailForestReady=false;trailArtFailed=true;console.warn('Forest trail artwork unavailable; using fallback.');};
 trailForest.decoding='async';
-if(window.TRAIL_FOREST_DATA_URL)trailForest.src=window.TRAIL_FOREST_DATA_URL;
+let trailArtFailed=!window.TRAIL_FOREST_DATA_URL;
+const requestTrailArt=window.DungeonRenderResourcesV1.onceLoad(()=>{if(window.TRAIL_FOREST_DATA_URL)trailForest.src=window.TRAIL_FOREST_DATA_URL;});
 let wreckBlurBackdrop=null;
 function prepareWreckBackdrop(){
  const canvas=document.createElement('canvas');
@@ -8292,7 +8294,12 @@ wreckPanorama.onload=()=>{wreckPanoramaReady=wreckPanorama.naturalWidth>0;
  if(s.scene==='wreck'||s.scene==='trail'){refreshSceneFraming();renderHotspots();sceneDraw(t);}
 };
 wreckPanorama.onerror=()=>{wreckPanoramaReady=false;console.warn('Wreck panorama unavailable; using original procedural drawing.');};
-wreckPanorama.decoding='async';wreckPanorama.src='./assets/wreck_panorama_v1.webp';
+wreckPanorama.decoding='async';
+const requestWreckPanorama=window.DungeonRenderResourcesV1.onceLoad(()=>{wreckPanorama.src='./assets/wreck_panorama_v1.webp';});
+function ensureSceneArt(sceneId){
+ if(sceneId==='trail'){requestTrailArt();if(trailArtFailed)requestWreckPanorama();}
+ else if(sceneId==='wreck'&&!emptyForestReady&&!approvedWreckReady&&emptyForest.complete&&approvedWreck.complete)requestWreckPanorama();
+}
 function rng(seed){let z=seed>>>0;return()=>{z=(Math.imul(1664525,z)+1013904223)>>>0;return z/4294967296;};}
 function grad(x,y,x2,y2,a,b){const g=ctx.createLinearGradient(x,y,x2,y2);g.addColorStop(0,a);g.addColorStop(1,b);return g;}
 function ellipse(x,y,rx,ry,c,alpha=1){ctx.globalAlpha=alpha;ctx.fillStyle=c;ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;}
@@ -8321,6 +8328,7 @@ function outskirts(){background('trail');poly([[312,540],[421,377],[468,332],[50
 function home(){rect(0,0,W,H,grad(0,0,0,H,'#756650','#2f2c28'));wallPlanks();rect(0,400,960,140,grad(0,400,0,H,'#81684e','#30291f'));poly([[0,0],[155,100],[155,390],[0,433]],'#5c4b3e');poly([[960,0],[786,90],[788,398],[960,439]],'#665542');rect(115,164,230,216,'#332d27');rect(126,177,208,187,'#7e6a51');for(let i=0;i<4;i++){rect(137+i*48,197,32,124,['#73513b','#b2916b','#7c8662','#8b6b4b'][i]);}rect(640,119,173,251,'#514233');for(let i=0;i<5;i++){line([643,168+i*42],[810,168+i*42],5,'#a4835c');rect(663,141+i*42,19,25,'#927455');rect(692,141+i*42,30,25,'#5b5541');}lantern(468,111);ellipse(467,436,278,46,'#111a17',.38);poly([[250,388],[688,388],[729,431],[214,431]],'#aa8459');poly([[279,370],[658,370],[692,394],[247,394]],'#d0a474');for(let x of [282,652])rect(x,428,17,100,'#69503a');ellipse(404,371,31,11,'#e2c99d');ellipse(520,370,26,14,'#9c8b70');rect(526,280,80,59,'#4b392e');ellipse(569,279,49,20,'#6b5843');}
 function mote(time){const r=rng(939);for(let i=0;i<29;i++){const x=(r()*960+Math.sin(time*.29+i)*19),y=(r()*540+time*(3+i%4))%540;ellipse(x,y,1+(i%3)*.65,1+(i%2),i%2?'#f0d99d':'#c4dec8',.28+(i%5)*.045);}}
 function sceneDraw(time,sceneId=s.scene,thumbnail=false){
+ ensureSceneArt(sceneId);
  ctx.clearRect(0,0,W,H);
  const isTrailArt=sceneId==='trail'&&trailForestReady;
  if(sceneId==='wreck'&&emptyForestReady){
@@ -8355,11 +8363,8 @@ function sceneDraw(time,sceneId=s.scene,thumbnail=false){
  rect(0,0,W,H,v);
 }
 // Small preview uses the same scene renderer; offscreen rendering never changes s.scene.
-const locationThumbAssets=new Map();let lastLocationThumb=0;
-function locationThumbImage(src){
- if(!src)return null;if(!locationThumbAssets.has(src)){const img=new Image();img.src=src;locationThumbAssets.set(src,img);}
- const img=locationThumbAssets.get(src);return img.complete&&img.naturalWidth?img:null;
-}
+const locationThumbAssets=window.DungeonRenderResourcesV1.imageCache(24);let lastLocationThumb=0;
+function locationThumbImage(src){return locationThumbAssets.get(src);}
 function drawLocationThumbnail(ms){
  const figure=$('placeDrawerList')?.querySelector('.side-scene-preview[data-scene]'),cv=figure?.querySelector('canvas');
  if(!cv)return;const id=figure.dataset.scene;
@@ -8404,7 +8409,7 @@ function drawLocationThumbnail(ms){
  cv.dataset.drawn=id;
 }
 
-function size(){const d=Math.min(devicePixelRatio||1,1.5);can.width=Math.floor(W*d);can.height=Math.floor(H*d);ctx.setTransform(d,0,0,d,0,0);}size();window.addEventListener('resize',()=>{size();refreshSceneFraming();renderHotspots();});refreshSceneFraming();const wildlifeMotionQuery=window.matchMedia('(prefers-reduced-motion: reduce)');function frame(ms){window.DungeonSceneEnvironmentV1?.tickWildlife(ms,s.scene==='wreck'&&!document.hidden&&!wildlifeMotionQuery.matches,previewWeather||currentWeather?.kind||'clear');requestAnimationFrame(frame);if(ms-last>68){t=ms/1000;try{sceneDraw(t);}finally{window.DungeonWeatherV1?.draw(ms);try{drawLocationThumbnail(ms);}catch(err){/* Thumbnail never interrupts gameplay. */}last=ms;}}}requestAnimationFrame(frame);render();
+function size(){const d=Math.min(devicePixelRatio||1,1.5);can.width=Math.floor(W*d);can.height=Math.floor(H*d);ctx.setTransform(d,0,0,d,0,0);}size();window.addEventListener('resize',()=>{size();refreshSceneFraming();renderHotspots();});refreshSceneFraming();const wildlifeMotionQuery=window.matchMedia('(prefers-reduced-motion: reduce)');function frame(ms){requestAnimationFrame(frame);if(document.hidden){window.DungeonSceneEnvironmentV1?.tickWildlife(ms,false);return;}window.DungeonSceneEnvironmentV1?.tickWildlife(ms,s.scene==='wreck'&&!wildlifeMotionQuery.matches,previewWeather||currentWeather?.kind||'clear');if(ms-last>68){t=ms/1000;try{sceneDraw(t);}finally{window.DungeonWeatherV1?.draw(ms);try{drawLocationThumbnail(ms);}catch(err){/* Thumbnail never interrupts gameplay. */}last=ms;}}}requestAnimationFrame(frame);render();
 })();
 </script>
 </body>
