@@ -6,8 +6,8 @@ window.DungeonWeatherV1=(function(){
  drizzle:{name:'細雨',icon:'☂',shade:.16,fog:.055,rain:.32,wind:.35},
  rain:{name:'降雨',icon:'☂',shade:.25,fog:.095,rain:.82,wind:.65},
  storm:{name:'雷雨',icon:'ϟ',shade:.31,fog:.12,rain:1,wind:.95},
- snow:{name:'降雪',icon:'❄',shade:.12,fog:.17,rain:0,wind:.38,snow:.78},
- blizzard:{name:'暴風雪',icon:'❄',shade:.29,fog:.49,rain:0,wind:1,snow:1},
+ snow:{name:'降雪',icon:'❄',shade:.12,fog:.17,rain:0,wind:.38,snow:.78,snowSpeed:1,snowDrift:12},
+ blizzard:{name:'暴風雪',icon:'❄',shade:.29,fog:.49,rain:0,wind:1,snow:1,snowSpeed:3.6,snowDrift:112},
  fog:{name:'薄霧',icon:'≋',shade:.06,fog:.31,rain:0,wind:.08},
  };
  const next={clear:[['clear',.50],['cloudy',.35],['fog',.15]],cloudy:[['clear',.23],['cloudy',.35],['drizzle',.27],['fog',.15]],drizzle:[['cloudy',.30],['drizzle',.40],['rain',.30]],rain:[['rain',.31],['drizzle',.43],['cloudy',.15],['storm',.11]],storm:[['rain',.65],['drizzle',.25],['storm',.10]],fog:[['fog',.24],['cloudy',.41],['clear',.35]]};
@@ -41,8 +41,10 @@ window.DungeonWeatherV1=(function(){
    wet=clamp(wet*.68+kinds[k].rain*.48+Math.max(0,previous-snowCover)*.8,0,1);}
   return {kind,...kinds[kind],snow:kinds[kind].snow||0,...climate(seed,minutes,kind),wet,snowCover,block};
  }
- let canvas=null,ctx=null,shown={shade:0,fog:0,rain:0,wind:0,wet:0,snow:0,snowCover:0,overcast:0},target=kinds.clear,last=0,hidden=true,reduced=false;
+ let canvas=null,ctx=null,shown={shade:0,fog:0,rain:0,wind:0,wet:0,snow:0,snowCover:0,overcast:0,snowSpeed:0,snowDrift:0},target=kinds.clear,last=0,hidden=true,reduced=false;
  const W=640,H=360,particles=Array.from({length:102},(_,i)=>({x:hash('x',i)*W,y:hash('y',i)*H,speed:150+hash('s',i)*190,len:7+hash('l',i)*11}));
+ const snowParticles=particles.map(p=>({x:p.x,y:p.y}));
+ function snowVelocity(i,speed,drift){return {x:drift*(.8+(i%7)*.07),y:(13+i%12)*speed};}
  function bind(el){canvas=el;ctx=el?.getContext('2d');if(canvas){canvas.width=W;canvas.height=H;}}
  let scene='wreck',sound=false,audio=null,lastThunder=-1,sceneHost=null;
  function unlockAudio(){try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;if(!audio)audio=new AC();if(audio.state==='suspended')audio.resume().catch(()=>{});}catch{}}
@@ -64,7 +66,15 @@ window.DungeonWeatherV1=(function(){
   // Ground glints are deliberately restricted to the lower foreground, no opaque puddles.
   if(shown.wet>.12){ctx.fillStyle='rgba(112,143,151,'+(shown.wet*.055)+')';ctx.fillRect(0,H*.72,W,H*.28);}
   if(sceneHost)sceneHost.style.setProperty('--snow-cover',String(clamp(shown.snowCover,0,1)));
-  if(shown.snow>.01&&!reduced){const t=ms/1000;ctx.fillStyle='rgba(235,244,246,'+(.42+shown.snow*.22)+')';ctx.beginPath();for(let i=0;i<Math.min(particles.length,Math.ceil(75*shown.snow));i++){const p=particles[i],x=(p.x+t*8*shown.wind+Math.sin(t*.9+i)*9+W*100)%W,y=(p.y+t*(13+i%12))%H,r=.65+(i%4)*.25;ctx.moveTo(x+r,y);ctx.arc(x,y,r,0,Math.PI*2);}ctx.fill();}
+  if(shown.snow>.01&&!reduced){
+   const t=ms/1000,storm=clamp((shown.snowSpeed-1)/2.6,0,1);
+   const amount=Math.min(snowParticles.length,Math.ceil((75+27*storm)*shown.snow));
+   ctx.fillStyle='rgba(235,244,246,'+(.42+shown.snow*.22)+')';ctx.beginPath();
+   for(let i=0;i<amount;i++){const p=snowParticles[i],v=snowVelocity(i,shown.snowSpeed,shown.snowDrift);
+    p.x=((p.x+(v.x+Math.sin(t*1.4+i)*(5+13*storm))*dt)%W+W)%W;p.y=(p.y+v.y*dt)%H;
+    const r=.65+(i%4)*.25;ctx.moveTo(p.x+r,p.y);ctx.arc(p.x,p.y,r,0,Math.PI*2);
+   }ctx.fill();
+  }
   if(target.rain>=.99){const clock=ms/1000,cycle=clock%17.7,flash=Math.max(0,1-Math.abs(cycle-5.1)/.24);
    if(flash>0&&!reduced){ctx.fillStyle='rgba(224,234,241,'+(flash*.12)+')';ctx.fillRect(0,0,W,H);}
    const id=Math.floor(clock/17.7);if(cycle>=6.2&&cycle<7.2&&id!==lastThunder){lastThunder=id;thunder();}
@@ -137,5 +147,5 @@ window.DungeonWeatherV1=(function(){
   return s.weatherExposure={minute:now,wetness:value,comfort,indoor:Boolean(indoor)};
  }
  function activity(kind,weather){if(weather==='storm'||weather==='blizzard')return false;if(weather==='snow')return kind==='rabbit';if(weather==='rain')return kind==='beetle'||kind==='rabbit';if(weather==='drizzle')return kind!=='butterfly';return true;}
- return {kinds,at,bind,set,draw,drawGround,puddleLevel,season,climate,exposure,activity,unlockAudio};
+ return {kinds,at,bind,set,draw,drawGround,puddleLevel,season,climate,exposure,activity,unlockAudio,snowVelocity};
 })();
