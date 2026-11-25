@@ -4326,7 +4326,7 @@ html.stage-locked #app #topGameHud #hudPhase{font-size:clamp(10px,1.65vw,17px)}
 <script src="./assets/bird_motion_live_v1.js?v=2-hop-joints"></script>
 <script src="./assets/scene_environment_v1.js?v=11-bird"></script>
 <script src="./assets/winter_surfaces_v1.js?v=3-plant-burial"></script>
-<script src="./assets/weather_system_v1.js?v=9-snow-time"></script>
+<script src="./assets/weather_system_v1.js?v=10-preview-thaw"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/scene_objects_v1.js?v=20261124-2"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
@@ -4510,7 +4510,7 @@ function syncWeather(){
  $('hudPhase').title='當前天氣：'+label+' · '+currentWeather.season+'第'+currentWeather.seasonDay+'日 · '+currentWeather.temperature+'°C';
  $('hudWeatherBtn').title=$('hudPhase').title+' · 點擊切換天氣';$('hudPhaseIcon').textContent=currentWeather.kind==='clear'?(previewPeriod==='night'||(!previewPeriod&&periodForMinutes(s.worldMinutes)==='night')?'☾':'☀'):currentWeather.icon;
  if(!indoor&&currentWeather.kind!=='clear')$('subplace').textContent=({cloudy:'雲層遮住天光',fog:'薄霧在四周緩緩瀰漫',drizzle:'細雨落在周圍',rain:'雨水打濕了周遭景物',storm:'風雨加劇，遠處偶有雷光',snow:'雪花緩緩飄落，空氣寒冷',blizzard:'風雪交加，遠方景物逐漸模糊'})[currentWeather.kind]||label;
- engine.set(currentWeather,indoor,window.matchMedia('(prefers-reduced-motion: reduce)').matches,{scene:s.scene,sound:s.sound,sceneHost:app,snowPreview:previewWeather==='snow'||previewWeather==='blizzard'});
+ engine.set(currentWeather,indoor,window.matchMedia('(prefers-reduced-motion: reduce)').matches,{scene:s.scene,sound:s.sound,sceneHost:app,weatherPreview:Boolean(previewWeather),snowPreview:previewWeather==='snow'||previewWeather==='blizzard'});
 }
 function selectWeatherPreview(kind){const engine=window.DungeonWeatherV1;if(!engine){toast('天氣模組尚未載入，請重新整理遊戲。');return;}if(kind!=='auto'&&!engine.kinds[kind])return;if(s.sound)engine.unlockAudio();previewWeather=kind==='auto'?null:kind;$('menuVeil').classList.add('hidden');syncTimeAtmosphere();engine.draw(performance.now());toast(kind==='auto'?'已恢復自然天氣':'天氣預覽：'+engine.kinds[kind].name+(INDOOR_SCENES.has(s.scene)?'（室內不顯示雨霧）':''));renderHotspots();renderPlaceDrawer();}
 
