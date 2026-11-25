@@ -2,7 +2,7 @@
 window.DungeonWeatherV1=(function(){
  const kinds={
  clear:{name:'晴朗',icon:'☀',shade:0,fog:0,rain:0,wind:.15},
- cloudy:{name:'陰天',icon:'☁',shade:.15,fog:.025,rain:0,wind:.35},
+ cloudy:{name:'陰天',icon:'☁',shade:.20,fog:.035,rain:0,wind:.35,overcast:1},
  drizzle:{name:'細雨',icon:'☂',shade:.16,fog:.055,rain:.32,wind:.35},
  rain:{name:'降雨',icon:'☂',shade:.25,fog:.095,rain:.82,wind:.65},
  storm:{name:'雷雨',icon:'ϟ',shade:.31,fog:.12,rain:1,wind:.95},
@@ -38,7 +38,7 @@ window.DungeonWeatherV1=(function(){
   for(let j=Math.max(0,index-7);j<=index;j++){const k=actual(j);wet=clamp(wet*.68+kinds[k].rain*.48+(k==='snow'?.06:0),0,1);snowCover=clamp(snowCover*(k==='snow'?.95:.55)+(k==='snow'?.34:0),0,1);}
   return {kind,...kinds[kind],snow:kinds[kind].snow||0,...climate(seed,minutes,kind),wet,snowCover,block};
  }
- let canvas=null,ctx=null,shown={shade:0,fog:0,rain:0,wind:0,wet:0,snow:0,snowCover:0},target=kinds.clear,last=0,hidden=true,reduced=false;
+ let canvas=null,ctx=null,shown={shade:0,fog:0,rain:0,wind:0,wet:0,snow:0,snowCover:0,overcast:0},target=kinds.clear,last=0,hidden=true,reduced=false;
  const W=640,H=360,particles=Array.from({length:102},(_,i)=>({x:hash('x',i)*W,y:hash('y',i)*H,speed:150+hash('s',i)*190,len:7+hash('l',i)*11}));
  function bind(el){canvas=el;ctx=el?.getContext('2d');if(canvas){canvas.width=W;canvas.height=H;}}
  let scene='wreck',sound=false,audio=null,lastThunder=-1;
@@ -56,6 +56,7 @@ window.DungeonWeatherV1=(function(){
   for(const k of Object.keys(shown))shown[k]+=((target[k]||0)-shown[k])*(1-Math.exp(-dt*3.0));
   ctx.clearRect(0,0,W,H);
   if(shown.shade>.003){ctx.fillStyle='rgba(38,55,62,'+shown.shade.toFixed(3)+')';ctx.fillRect(0,0,W,H);}
+  if(shown.overcast>.003){const a=shown.overcast,g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'rgba(130,150,158,'+(a*.15)+')');g.addColorStop(.6,'rgba(107,130,137,'+(a*.075)+')');g.addColorStop(1,'rgba(94,112,115,'+(a*.025)+')');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);}
   if(shown.fog>.003){const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'rgba(194,209,202,'+(shown.fog*.36)+')');g.addColorStop(.35,'rgba(190,207,201,'+(shown.fog*.82)+')');g.addColorStop(.68,'rgba(185,203,198,'+(shown.fog*.56)+')');g.addColorStop(1,'rgba(181,200,193,'+(shown.fog*.13)+')');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);}
   // Ground glints are deliberately restricted to the lower foreground, no opaque puddles.
   if(shown.wet>.12){ctx.fillStyle='rgba(112,143,151,'+(shown.wet*.055)+')';ctx.fillRect(0,H*.72,W,H*.28);}
