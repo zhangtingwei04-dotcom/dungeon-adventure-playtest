@@ -113,3 +113,36 @@ assert(!JSON.stringify(isolator.snapshot()).includes('private-data'));
 for(let i=0;i<100;i++){isolator.fail('weather',Error('test'));isolator.recover('weather');}
 assert.equal(isolator.snapshot().events.length,40);
 console.log('PASS: runtime isolation, cooldown, recovery, bounded diagnostics and redaction');
+
+
+const saveWindow={};
+for(const file of ['engine_foundation_v1','engine_events_save_v1'])new vm.Script(read('assets/'+file+'.js').toString()).runInNewContext({window:saveWindow});
+const secureSave=saveWindow.DungeonSaveV1,saveScenes={wreck:[],trail:[]};
+const saveActor={v:1,scene:'wreck',hp:16,maxHp:16,party:[0,1,2,3],seen:[],notes:[],items:[],flags:{},visits:{wreck:1},worldMinutes:960};
+const saveMap=new Map(),saveStorage={getItem:k=>saveMap.get(k)??null,setItem:(k,v)=>saveMap.set(k,v)};
+assert(secureSave.write(saveStorage,'game',saveActor,saveScenes));
+const firstSave=saveMap.get('game');
+assert(secureSave.write(saveStorage,'game',saveActor,saveScenes));
+assert.equal(saveMap.get('game'),firstSave);
+assert(!saveMap.has(secureSave.backupKey('game')));
+saveActor.worldMinutes=990;
+assert(secureSave.write(saveStorage,'game',saveActor,saveScenes));
+assert.equal(secureSave.previous(saveStorage,'game',saveScenes).worldMinutes,960);
+const tampered=JSON.parse(saveMap.get('game'));tampered.hp=2;
+saveMap.set('game',JSON.stringify(tampered));
+const damaged=saveMap.get('game');
+assert.equal(secureSave.read(saveStorage,'game',saveScenes),null);
+assert(secureSave.diagnostics().writeProtected);
+assert(!secureSave.write(saveStorage,'game',saveActor,saveScenes));
+assert.equal(saveMap.get('game'),damaged);
+secureSave.allowReplacement();
+assert(secureSave.write(saveStorage,'game',secureSave.previous(saveStorage,'game',saveScenes),saveScenes));
+assert.equal(secureSave.read(saveStorage,'game',saveScenes).worldMinutes,960);
+assert.equal(secureSave.parse(JSON.stringify(saveActor),saveScenes).worldMinutes,990);
+assert(secureSave.write(saveStorage,'test',saveActor,saveScenes));
+assert.equal(secureSave.previous(saveStorage,'test',saveScenes),null);
+const beforeQuota=saveMap.get('game');saveActor.worldMinutes=1200;
+const quotaStorage={getItem:k=>saveMap.get(k)??null,setItem:(k,v)=>{if(k==='game.previous-v1')throw Error('quota');saveMap.set(k,v);}};
+assert(!secureSave.write(quotaStorage,'game',saveActor,saveScenes));
+assert.equal(saveMap.get('game'),beforeQuota);
+console.log('PASS: verified writes, integrity checks, previous recovery, legacy compatibility, separate slots and quota safety');
