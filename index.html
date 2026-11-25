@@ -4323,7 +4323,7 @@ window.DUNGEON_FOREST_V4_LAYOUT=window.DUNGEON_WRECK_CURRENT_LAYOUT;
 <script src="./assets/scene_environment_v1.js?v=17-species-wind"></script>
 <script src="./assets/winter_surfaces_v1.js?v=8-contour-snow"></script>
 <script src="./assets/engine_foundation_v1.js?v=1"></script>
-<script src="./assets/engine_events_save_v1.js?v=1.2-integrity"></script>
+<script src="./assets/engine_events_save_v1.js?v=1.3-domains"></script>
 <script src="./assets/character_environment_v1.js?v=1.1"></script>
 <script src="./assets/weather_system_v1.js?v=24-adaptive-visual"></script>
 <script src="./assets/trail_forest_v1.js"></script>
@@ -4686,33 +4686,7 @@ const FOREST_RARE=Object.freeze({
  beetle:{name:'鏽殼甲蟲',site:'trail',chance:.02,minutes:8},
  rabbit:{name:'月紋兔',site:'ruin',chance:.015,minutes:8}
 });
-function normalizeForestRare(){
- if(!s.forestRare||typeof s.forestRare!=='object')s.forestRare={};
- const r=s.forestRare;
- for(const key of ['checkedDays','sighted','hints','ingredients'])
-  if(!r[key]||typeof r[key]!=='object'||Array.isArray(r[key]))r[key]={};
- // Migrate the old metal-collector slot without deleting old discoveries.
- if(r.checkedDays.beetle===undefined&&Number.isFinite(r.checkedDays.goblin))
-  r.checkedDays.beetle=r.checkedDays.goblin;
- if(r.sighted.beetle===undefined&&r.sighted.goblin)r.sighted.beetle=true;
- if(r.hints.beetle===undefined&&r.hints.goblin)r.hints.beetle=true;
- r.beetleGearTaken=!!(r.beetleGearTaken||r.goblinGearTaken);
- r.rabbitHerbTaken=!!r.rabbitHerbTaken;
- if(!r.rustBeetleMigrated){
-  // Keep historical entries, but retire the former creature name.
-  const rename=x=>typeof x==='string'?x.replaceAll('拾鐵小妖','鏽殼甲蟲'):x;
-  if(Array.isArray(s.notes))s.notes=s.notes.map(rename);
-  if(Array.isArray(s.travelLog))for(const event of s.travelLog){
-   if(event&&typeof event==='object'){
-    event.message=rename(event.message);
-    event.thought=rename(event.thought);
-   }
-  }
-  if(Array.isArray(s.seen)&&s.seen.includes('rareGoblin')&&!s.seen.includes('rareBeetle'))
-   s.seen.push('rareBeetle');
-  r.rustBeetleMigrated=true;
- }
-}
+function normalizeForestRare(){window.DungeonDataSchemaV1.normalize(s,'forestRare');}
 function normalizeBeetleCare(){
  if(!s.beetle||typeof s.beetle!=='object'||Array.isArray(s.beetle))s.beetle={};
  const b=s.beetle;
@@ -4973,13 +4947,7 @@ const EXPLORATION_AREAS=Object.freeze({
  home:{materials:[],events:['公共空間擺著生活用品，你沒有碰其他人的私人物品。','房內有尚未整理完的日常清單，沒有新的冒險線索。']}
 });
 function normalizeExploration(){
- if(!s.exploration||typeof s.exploration!=='object')s.exploration={};
- const e=s.exploration;
- if(!e.counts||typeof e.counts!=='object'||Array.isArray(e.counts))e.counts={};
- if(!e.routeProgress||typeof e.routeProgress!=='object'||Array.isArray(e.routeProgress))e.routeProgress={};
- if(!e.pending||typeof e.pending!=='object'||Array.isArray(e.pending))e.pending={};
- if(!e.daily||typeof e.daily!=='object'||Array.isArray(e.daily))e.daily={};
- if(!e.last||typeof e.last!=='object'||Array.isArray(e.last))e.last={};
+ const e=window.DungeonDataSchemaV1.normalize(s,'exploration');
  for(const site of Object.keys(e.pending)){
   if(!EXPLORATION_AREAS[site]||!Array.isArray(e.pending[site])){delete e.pending[site];continue;}
   e.pending[site]=e.pending[site].filter(x=>x&&typeof x.id==='string'&&typeof x.material==='string'&&EXPLORATION_AREAS[site].materials.includes(x.material)).slice(0,3);
@@ -5173,14 +5141,7 @@ const LOCATION_CUE_ICONS=Object.freeze([
 ]);
 
 /* One wallet in the save; keep money separate from inventory categories. */
-function normalizeWallet(){
- if(!s.wallet||typeof s.wallet!=='object'||Array.isArray(s.wallet))
-  s.wallet={silver:1,copper:12};
- for(const name of ['silver','copper']){
-  const n=s.wallet[name];
-  s.wallet[name]=Number.isSafeInteger(n)&&n>=0?n:0;
- }
-}
+function normalizeWallet(){window.DungeonDataSchemaV1.normalize(s,'wallet');}
 function renderWalletPanel(out){
  normalizeWallet();
  const panel=document.createElement('section');panel.className='wallet-panel';
