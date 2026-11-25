@@ -3933,6 +3933,7 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 </style>
 <link rel="stylesheet" href="./assets/scene_light_v1.css?v=20261124-1">
 <link rel="stylesheet" href="./assets/forest_v4_integration.css?v=2">
+<link rel="stylesheet" href="./assets/scene_environment_v1.css?v=1">
 </head>
 <body>
 <div id="app"><div id="worldFrame" aria-hidden="true">
@@ -4266,6 +4267,7 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 </script>
 <script src="./assets/forest_v4_spawns.js?v=1"></script>
 <script src="./assets/forest_v4_integration.js?v=4"></script>
+<script src="./assets/scene_environment_v1.js?v=1"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/scene_objects_v1.js?v=20261124-2"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
@@ -7918,10 +7920,11 @@ function forestV4Action(o){
  const descriptions={barrel:'木桶經過風吹雨淋，木板已經有些變色。',sack:'一個沾有泥土的舊布袋。',plank:'散落的木板看起來是事故留下的。',plank_lean:'一塊靠在殘骸旁的木板。',bird:'小鳥在枝葉間停留，偶爾轉動頭部。',rabbit:'長耳生物安靜地停留在草地上。',beetle:'一隻甲蟲停留在附近。',butterfly:'蝴蝶在林間輕輕拍動翅膀。'};
  dialog(o.name,descriptions[k]||'你留意到這個物件。',[{label:'繼續觀察周圍',fn:()=>{}}],'場景觀察');
 }
+function forestEnvironmentActive(){return DEV_PREVIEW_MODE&&window.DUNGEON_FOREST_V4_LAYOUT?.revision==='accident-d-preview'&&new URLSearchParams(location.search).get('env')!=='off';}
 function renderForestV4(el){
  const cfg=window.DUNGEON_FOREST_V4_LAYOUT?.scenes?.wreck,assets=window.DUNGEON_FOREST_V4_ASSETS;
  if(!cfg||!assets)return;
- const layer=document.createElement('div');layer.className='forest-v4-layer';
+ const layer=document.createElement('div');layer.className='forest-v4-layer';if(forestEnvironmentActive())layer.classList.add('env-v1');
  const bindings=forestV4MaterialBindings();
  const live=window.DungeonForestV4Life?.layout(s,cfg,window.DUNGEON_FOREST_V4_SPAWNS||[],bindings)||cfg;
  for(const o of live){
@@ -7934,7 +7937,7 @@ function renderForestV4(el){
   const node=document.createElement(interactive?'button':'div');if(interactive){node.type='button';node.setAttribute('aria-label',o.name+(finds.length?'：可收集'+finds.map(f=>f.material).join('、'):''));node.title=o.name+(finds.length?' · 可收集':'');node.onclick=()=>guardedAction(()=>forestV4Action(o));}else node.setAttribute('aria-hidden','true');
   node.className='forest-v4-object';node.dataset.objectId=o.id;node.dataset.motion=animal?'animal':plant?'plant':'fixed';node.style.left=o.x+'%';node.style.top=o.y+'%';node.style.width=o.width+'%';node.style.zIndex=10+o.z;
   const art=document.createElement('span');art.className='forest-v4-art';art.style.transform='scaleX('+(o.flip?-1:1)+') rotate('+o.rotation+'deg)';
-  const im=document.createElement('img');im.src=o.artVariant==='barrel-side'?'./assets/forest_v4_barrel_side.svg?v=1':a.src;if(o.artVariant==='barrel-side')im.onerror=()=>{im.onerror=null;im.src=a.src;art.style.transform='rotate(72deg)';};im.alt='';im.draggable=false;art.appendChild(im);node.appendChild(art);window.DungeonForestV4Integration?.apply(node,o,assets);if(finds.length){const cue=document.createElement('span');cue.className='forest-v4-find-cue';cue.textContent='可收集';cue.setAttribute('aria-hidden','true');node.appendChild(cue);}layer.appendChild(node);
+  const im=document.createElement('img');im.src=o.artVariant==='barrel-side'?'./assets/forest_v4_barrel_side.svg?v=1':a.src;if(o.artVariant==='barrel-side')im.onerror=()=>{im.onerror=null;im.src=a.src;art.style.transform='rotate(72deg)';};im.alt='';im.draggable=false;art.appendChild(im);node.appendChild(art);window.DungeonForestV4Integration?.apply(node,o,assets);if(forestEnvironmentActive())window.DungeonSceneEnvironmentV1?.apply(node,art,im,o);if(finds.length){const cue=document.createElement('span');cue.className='forest-v4-find-cue';cue.textContent='可收集';cue.setAttribute('aria-hidden','true');node.appendChild(cue);}layer.appendChild(node);
  }
  el.appendChild(layer);
 }
@@ -8154,7 +8157,7 @@ function sceneDraw(time){
  if(s.scene==='wreck'&&emptyForestReady){
   ctx.save();ctx.imageSmoothingEnabled=true;
   const w=emptyForest.naturalWidth,h=emptyForest.naturalHeight,fit=Math.max(W/w,H/h);
-  ctx.drawImage(emptyForest,(W-w*fit)/2,(H-h*fit)/2,w*fit,h*fit);ctx.restore();return;
+  ctx.drawImage(emptyForest,(W-w*fit)/2,(H-h*fit)/2,w*fit,h*fit);ctx.restore();if(forestV4Active()&&forestEnvironmentActive()&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches)window.DungeonSceneEnvironmentV1?.draw(ctx,'forestV4',time,W,H);return;
  }
  if(s.scene==='wreck'&&approvedWreckReady){
   ctx.save();ctx.imageSmoothingEnabled=false;
