@@ -3941,6 +3941,24 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 #app #sceneStage .forest-v4-object[data-rabbit-variant="golden"] .forest-v4-art img{filter:sepia(.62) saturate(1.45) var(--scene-light,brightness(1))}
 #sceneStage .forest-v4-art:has(.winter-snow-cap){position:relative}
 #sceneStage .winter-snow-cap{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:calc(var(--snow-cover,0) * var(--snow-hold,1));filter:var(--scene-light,brightness(1));image-rendering:auto;display:block}
+/* Winter vegetation: snow banks rise over the existing plant art, retaining original anchors. */
+#sceneStage .forest-v4-object[data-winter-plant="true"] .forest-v4-art>img,
+#sceneStage .forest-v4-object[data-winter-plant="true"] .winter-snow-cap{
+ clip-path:inset(0 0 calc(var(--winter-padding,0%) + var(--winter-depth,0%) * var(--snow-cover,0)) 0);
+}
+#sceneStage .forest-v4-object[data-winter-plant="true"] .forest-v4-art::before{
+ content:"";position:absolute;pointer-events:none;z-index:2;left:var(--winter-left,0%);right:var(--winter-right,0%);
+ bottom:var(--winter-padding,0%);height:calc(var(--winter-depth,0%) * var(--snow-cover,0));
+ opacity:clamp(0,calc(var(--snow-cover,0) * 3),.98);
+ background:linear-gradient(180deg,#e3edf0 0%,#c5d9dd 38%,#b6cdd2 75%,#b6cdd200 100%);
+ clip-path:polygon(0 24%,9% 10%,19% 15%,30% 0,43% 9%,56% 3%,70% 14%,81% 5%,92% 17%,100% 30%,100% 100%,0 100%);
+ filter:var(--scene-light,brightness(1));
+}
+#sceneStage .forest-v4-object[data-motion="plant"] .winter-snow-cap{transform-origin:50% 100%;animation:living-sway 5.2s ease-in-out infinite}
+#sceneStage .forest-v4-layer.env-v1 .forest-v4-object[data-motion="plant"] .winter-snow-cap{animation-delay:var(--env-delay,0s);animation-duration:6.2s}
+#app[data-weather] #sceneStage .forest-v4-layer.env-motion-v2 .forest-v4-object[data-motion="plant"]:not([data-live-kind="vine"]) .winter-snow-cap{animation:weather-plant-wind var(--weather-wind-duration,7.4s) ease-in-out infinite;animation-delay:var(--env-motion-delay,0s)}
+#sceneStage .forest-v4-object[data-live-kind="vine"] .winter-snow-cap{animation:none}
+@media(prefers-reduced-motion:reduce){#sceneStage .forest-v4-object .winter-snow-cap{animation:none!important}}
 #app[data-indoor="false"][data-weather="snow"][data-period="day"]{--scene-light:brightness(.88) saturate(.72) contrast(.91)}
 #app[data-indoor="false"][data-weather="blizzard"][data-period="day"]{--scene-light:brightness(.75) saturate(.55) contrast(.86)}
 #app[data-indoor="false"][data-weather="snow"][data-period="dusk"],#app[data-indoor="false"][data-weather="blizzard"][data-period="dusk"]{--scene-light:brightness(.67) saturate(.61) contrast(.88)}
@@ -4307,7 +4325,7 @@ html.stage-locked #app #topGameHud #hudPhase{font-size:clamp(10px,1.65vw,17px)}
 <script src="./assets/scene_spatial_motion_v1.js?v=2-flight-test"></script>
 <script src="./assets/bird_motion_live_v1.js?v=2-hop-joints"></script>
 <script src="./assets/scene_environment_v1.js?v=11-bird"></script>
-<script src="./assets/winter_surfaces_v1.js?v=2-full-cover"></script>
+<script src="./assets/winter_surfaces_v1.js?v=3-plant-burial"></script>
 <script src="./assets/weather_system_v1.js?v=9-snow-time"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/scene_objects_v1.js?v=20261124-2"></script>
