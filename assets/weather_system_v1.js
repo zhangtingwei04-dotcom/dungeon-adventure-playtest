@@ -21,12 +21,26 @@ window.DungeonWeatherV1=(function(){
   const temp=Math.round(s.temp-cold+5*Math.cos((hour-14)*Math.PI/12)+(kind==='clear'?1:kind==='storm'?-4:kind==='rain'?-3:kind==='fog'?-2:kind==='snow'?-3:kind==='blizzard'?-5:0));
   return {season:s.name,seasonDay:s.day,temperature:temp};
  }
- const histories=new Map(),snowHistory=new WeakMap();
+ const histories=new Map(),environmentHistory=new WeakMap();
  function snowStep(cover,kind,temp,minutes){
   const hours=Math.max(0,minutes)/60;
   const delta=kind==='blizzard'?hours/3:kind==='snow'?hours/6:-hours*(temp<=0?0:temp<=5?.045:temp<=12?.105:.19);
   return clamp(cover+delta,0,1);
  }
+ // Independent surface states; all transitions use elapsed game time.
+ function environmentStep(previous,kind,temp,minutes){
+  const h=Math.max(0,minutes)/60,k=kinds[kind]||kinds.clear;
+  const snowCover=snowStep(previous.snowCover||0,kind,temp,minutes);
+  const melt=Math.max(0,(previous.snowCover||0)-snowCover);
+  const rain=k.rain||0, dry=kind==='clear'?.19:kind==='cloudy'?.065:kind==='fog'?.025:.045;
+  const warmth=clamp((temp+5)/20,.18,1.5),evap=dry*warmth*(.8+k.wind*.45);
+  const soil=clamp((previous.soil||0)+h*(rain*.32-evap*.38)+melt*.68,0,1);
+  const plantWet=clamp((previous.plantWet||0)+h*(rain*.56+(kind==='fog'?.075:0)-evap*.84)+melt*.32,0,1);
+  const puddles=clamp((previous.puddles||0)+h*(rain*.30*(.35+.65*soil)-evap*.72-.025)+melt*.63,0,1);
+  const frost=clamp((previous.frost||0)+h*(temp<=0?.14*(.35+.65*plantWet)+(k.snow||0)*.08:-(.055+temp*.018)),0,1);
+  return {snowCover,soil,plantWet,puddles,frost,wet:clamp(soil*.7+puddles*.3,0,1)};
+ }
+ const emptyEnvironment=()=>({snowCover:0,soil:0,plantWet:0,puddles:0,frost:0,wet:0});
  function at(seed,minutes){
   const block=Math.floor(Math.max(0,Number(minutes)||0)/180);
   const key=String(seed??'world');let history=histories.get(key);
@@ -40,48 +54,51 @@ window.DungeonWeatherV1=(function(){
    history.push(kind);
   }
   const actual=j=>{const k=history[j];return kinds[k].rain>.05&&season(j*180).name==='冬季'&&climate(seed,j*180+90,k).temperature<=1?(k==='storm'?'blizzard':'snow'):k;};
-  const kind=actual(index);let wet=0;
-  let covers=snowHistory.get(history);if(!covers){covers=[0];snowHistory.set(history,covers);}
-  for(let j=covers.length-1;j<index;j++){const k=actual(j),temp=climate(seed,j*180+90,k).temperature;covers.push(snowStep(covers[j],k,temp,180));}
+  const kind=actual(index);
+  let states=environmentHistory.get(history);if(!states){states=[emptyEnvironment()];environmentHistory.set(history,states);}
+  for(let j=states.length-1;j<index;j++){const k=actual(j);states.push(environmentStep(states[j],k,climate(seed,j*180+90,k).temperature,180));}
   const elapsed=clamp((Number(minutes)||0)-index*180,0,180);
-  const snowCover=snowStep(covers[index],kind,climate(seed,index*180+90,kind).temperature,elapsed);
-  for(let j=Math.max(0,index-7);j<=index;j++){const k=actual(j),end=j===index?snowCover:covers[j+1];
-   wet=clamp(wet*.68+kinds[k].rain*.48+Math.max(0,covers[j]-end)*.8,0,1);}
-
-  return {kind,...kinds[kind],snow:kinds[kind].snow||0,...climate(seed,minutes,kind),wet,snowCover,block};
+  const env=environmentStep(states[index],kind,climate(seed,index*180+90,kind).temperature,elapsed);
+  const windDir=hash(key,Math.floor(index/2)+':wind')<.5?-1:1;
+  return {kind,...kinds[kind],snow:kinds[kind].snow||0,...climate(seed,minutes,kind),...env,windDir,block};
  }
- let canvas=null,ctx=null,shown={shade:0,fog:0,rain:0,wind:0,wet:0,snow:0,snowCover:0,overcast:0,snowSpeed:0,snowDrift:0},target=kinds.clear,last=0,hidden=true,reduced=false;
+ let canvas=null,ctx=null,shown={shade:0,fog:0,rain:0,wind:0,wet:0,snow:0,snowCover:0,overcast:0,snowSpeed:0,snowDrift:0,soil:0,plantWet:0,puddles:0,frost:0,windDir:1},target=kinds.clear,last=0,hidden=true,reduced=false;
  const W=640,H=360,particles=Array.from({length:102},(_,i)=>({x:hash('x',i)*W,y:hash('y',i)*H,speed:150+hash('s',i)*190,len:7+hash('l',i)*11}));
  const snowParticles=particles.map(p=>({x:p.x,y:p.y}));
  function snowVelocity(i,speed,drift){return {x:drift*(.8+(i%7)*.07),y:(13+i%12)*speed};}
  function bind(el){canvas=el;ctx=el?.getContext('2d');if(canvas){canvas.width=W;canvas.height=H;}}
- let scene='wreck',sound=false,audio=null,lastThunder=-1,sceneHost=null,snowPreview=false,weatherPreview=false,previewCover=0,previewMeltWet=0;
+ let scene='wreck',sound=false,audio=null,lastThunder=-1,sceneHost=null,snowPreview=false,weatherPreview=false,previewEnv=emptyEnvironment();
  function unlockAudio(){try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;if(!audio)audio=new AC();if(audio.state==='suspended')audio.resume().catch(()=>{});}catch{}}
  function thunder(){if(!sound||!audio||audio.state!=='running')return;try{const rate=audio.sampleRate,buf=audio.createBuffer(1,Math.floor(rate*2.7),rate),d=buf.getChannelData(0);let low=0;for(let i=0;i<d.length;i++){low=.94*low+.06*(Math.random()*2-1);d[i]=low;}const src=audio.createBufferSource(),f=audio.createBiquadFilter(),g=audio.createGain(),now=audio.currentTime;src.buffer=buf;f.type='lowpass';f.frequency.value=170;g.gain.setValueAtTime(.001,now);g.gain.linearRampToValueAtTime(.19,now+.24);g.gain.exponentialRampToValueAtTime(.001,now+2.6);src.connect(f);f.connect(g);g.connect(audio.destination);src.start(now);src.stop(now+2.7);}catch{}}
  function set(weather,indoor,reduce=false,options={}){
   scene=options.scene||'wreck';sound=Boolean(options.sound);sceneHost=options.sceneHost||sceneHost;
-  const nextPreview=Boolean(options.snowPreview),nextWeatherPreview=Boolean(options.weatherPreview)||nextPreview;if(nextWeatherPreview&&!weatherPreview){previewCover=nextPreview?(options.previewStart??.04):0;previewMeltWet=0;}if(!nextWeatherPreview){previewCover=0;previewMeltWet=0;}snowPreview=nextPreview;weatherPreview=nextWeatherPreview;
-  hidden=Boolean(indoor);reduced=reduce;target=hidden?{...kinds.clear,wet:0,snow:0,snowCover:0}:{...weather,wet:weather.wet??weather.rain*.8,snow:weather.snow||0,snowCover:weather.snowCover||0};
+  const nextPreview=Boolean(options.snowPreview),nextWeatherPreview=Boolean(options.weatherPreview)||nextPreview;if(nextWeatherPreview&&!weatherPreview){previewEnv=emptyEnvironment();for(const key of Object.keys(previewEnv))previewEnv[key]=clamp(shown[key]||0,0,1);if(nextPreview)previewEnv.snowCover=Math.max(previewEnv.snowCover,options.previewStart??.04);}if(!nextWeatherPreview)previewEnv=emptyEnvironment();snowPreview=nextPreview;weatherPreview=nextWeatherPreview;
+  hidden=Boolean(indoor);reduced=reduce;target=hidden?{...kinds.clear,wet:0,snow:0,snowCover:0}:{...weather,wet:weather.wet??weather.rain*.8,snow:weather.snow||0,snowCover:weather.snowCover||0,windDir:weather.windDir??(weatherPreview?-1:1)};
   if(canvas)canvas.hidden=hidden;
-  if(hidden&&ctx)ctx.clearRect(0,0,W,H);if(hidden&&sceneHost)sceneHost.style.setProperty('--snow-cover','0');
+  if(hidden&&ctx)ctx.clearRect(0,0,W,H);if(hidden&&sceneHost){for(const key of ['snow-cover','plant-wet','frost','soil-wet','puddle-level'])sceneHost.style.setProperty('--'+key,'0');}
  }
  function draw(ms){
   if(!ctx||hidden)return;
   const dt=last?clamp((ms-last)/1000,0,.1):.05;last=ms;
-  if(weatherPreview){const previous=previewCover;previewCover=clamp(previewCover+dt*(snowPreview?(target.kind==='blizzard'?.10:.05):-(target.kind==='rain'||target.kind==='storm'?.07:.035)),0,1);previewMeltWet=clamp(previewMeltWet+Math.max(0,previous-previewCover)*.95-dt*.018,0,.85);target.snowCover=previewCover;target.wet=Math.max(target.rain*.85,previewMeltWet);}
+  if(weatherPreview){previewEnv=environmentStep(previewEnv,target.kind,target.temperature??(snowPreview?-3:12),dt*18);Object.assign(target,previewEnv);}
   for(const k of Object.keys(shown))shown[k]+=((target[k]||0)-shown[k])*(1-Math.exp(-dt*3.0));
   ctx.clearRect(0,0,W,H);
   if(shown.shade>.003){ctx.fillStyle='rgba(38,55,62,'+shown.shade.toFixed(3)+')';ctx.fillRect(0,0,W,H);}
   if(shown.overcast>.003){const a=shown.overcast,g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'rgba(130,150,158,'+(a*.15)+')');g.addColorStop(.6,'rgba(107,130,137,'+(a*.075)+')');g.addColorStop(1,'rgba(94,112,115,'+(a*.025)+')');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);}
   if(shown.fog>.003){const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'rgba(194,209,202,'+(shown.fog*.36)+')');g.addColorStop(.35,'rgba(190,207,201,'+(shown.fog*.82)+')');g.addColorStop(.68,'rgba(185,203,198,'+(shown.fog*.56)+')');g.addColorStop(1,'rgba(181,200,193,'+(shown.fog*.13)+')');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);}
   // Ground glints are deliberately restricted to the lower foreground, no opaque puddles.
-  if(shown.wet>.12){ctx.fillStyle='rgba(112,143,151,'+(shown.wet*.055)+')';ctx.fillRect(0,H*.72,W,H*.28);}
-  if(sceneHost)sceneHost.style.setProperty('--snow-cover',String(clamp(shown.snowCover,0,1)));
+  if(shown.soil>.12){ctx.fillStyle='rgba(68,83,83,'+(shown.soil*.075)+')';ctx.fillRect(0,H*.72,W,H*.28);}
+  if(sceneHost){
+   const vars={'snow-cover':shown.snowCover,'plant-wet':shown.plantWet,'frost':shown.frost,'soil-wet':shown.soil,'puddle-level':shown.puddles};
+   for(const [key,value] of Object.entries(vars))sceneHost.style.setProperty('--'+key,clamp(value,0,1).toFixed(3));
+   sceneHost.style.setProperty('--weather-wind-angle',((1+shown.wind*7)*shown.windDir).toFixed(2)+'deg');
+   sceneHost.style.setProperty('--weather-wind-duration',(7.4-shown.wind*4.2).toFixed(2)+'s');
+  }
   if(shown.snow>.01&&!reduced){
    const t=ms/1000,storm=clamp((shown.snowSpeed-1)/2.6,0,1);
    const amount=Math.min(snowParticles.length,Math.ceil((75+27*storm)*shown.snow));
    ctx.fillStyle='rgba(235,244,246,'+(.42+shown.snow*.22)+')';ctx.beginPath();
-   for(let i=0;i<amount;i++){const p=snowParticles[i],v=snowVelocity(i,shown.snowSpeed,shown.snowDrift);
+   for(let i=0;i<amount;i++){const p=snowParticles[i],v=snowVelocity(i,shown.snowSpeed,shown.snowDrift*shown.windDir);
     p.x=((p.x+(v.x+Math.sin(t*1.4+i)*(5+13*storm))*dt)%W+W)%W;p.y=(p.y+v.y*dt)%H;
     const r=.65+(i%4)*.25;ctx.moveTo(p.x+r,p.y);ctx.arc(p.x,p.y,r,0,Math.PI*2);
    }ctx.fill();
@@ -93,7 +110,7 @@ window.DungeonWeatherV1=(function(){
   if(shown.rain>.008&&!reduced){
    const t=ms/1000,amount=Math.min(particles.length,Math.ceil(particles.length*shown.rain));
    ctx.lineCap='round';ctx.lineWidth=.75;ctx.strokeStyle='rgba(209,228,239,'+(.26+shown.rain*.16)+')';ctx.beginPath();
-   for(let i=0;i<amount;i++){const p=particles[i],y=(p.y+t*p.speed)% (H+24)-12,x=((p.x+t*35*shown.wind)% (W+40))-20;ctx.moveTo(x,y);ctx.lineTo(x+1+shown.wind*3,y+p.len);}
+   for(let i=0;i<amount;i++){const p=particles[i];p.x=((p.x+dt*35*shown.wind*shown.windDir)%(W+40)+W+40)%(W+40);p.y=(p.y+dt*p.speed)%(H+24);const x=p.x-20,y=p.y-12;ctx.moveTo(x,y);ctx.lineTo(x+(1+shown.wind*3)*shown.windDir,y+p.len);}
    ctx.stroke();
    // Tiny ground-level splashes; never mask the stream or foreground objects.
    ctx.strokeStyle='rgba(200,220,224,'+(shown.rain*.20)+')';ctx.beginPath();
@@ -113,7 +130,7 @@ window.DungeonWeatherV1=(function(){
  function drawGround(g,t,width,height,enabled=true,source=null){
   if(hidden||scene!=='wreck'||!enabled||!g)return;
   window.DungeonWinterV1?.ground(g,shown.snowCover,width,height,source);
-  const amount=puddleLevel(shown.wet,shown.rain)*(1-shown.snowCover*.7);if(amount<.035)return;
+  const amount=shown.puddles*(1-shown.snowCover*.85);if(amount<.035)return;
   g.save();g.scale(width/W,height/H);
   for(const p of pools){
    const {x,y,rx,ry,seed}=p;
@@ -158,5 +175,5 @@ window.DungeonWeatherV1=(function(){
   return s.weatherExposure={minute:now,wetness:value,comfort,indoor:Boolean(indoor)};
  }
  function activity(kind,weather){if(weather==='storm'||weather==='blizzard')return false;if(weather==='snow')return kind==='rabbit';if(weather==='rain')return kind==='beetle'||kind==='rabbit';if(weather==='drizzle')return kind!=='butterfly';return true;}
- return {kinds,at,bind,set,draw,drawGround,puddleLevel,season,climate,exposure,activity,unlockAudio,snowVelocity,snowStep};
+ return {kinds,at,bind,set,draw,drawGround,puddleLevel,season,climate,exposure,activity,unlockAudio,snowVelocity,snowStep,environmentStep,environment:()=>({...shown})};
 })();
