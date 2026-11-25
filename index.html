@@ -3028,8 +3028,9 @@ html.stage-locked #app #placeDrawerPanel.is-location-tab .location-hero .side-sc
  padding:3px!important;background:#123b2d!important;
  border:1.5px solid #c6a468!important;border-radius:9px!important;overflow:hidden!important;
 }
+html.stage-locked #app #placeDrawerPanel.is-location-tab .location-hero .side-scene-preview canvas,
 html.stage-locked #app #placeDrawerPanel.is-location-tab .location-hero .side-scene-preview img{
- width:100%!important;height:100%!important;object-fit:cover!important;
+ width:100%!important;height:100%!important;object-fit:contain!important;
  border-radius:5px!important;image-rendering:auto!important;
 }
 html.stage-locked #app #placeDrawerPanel.is-location-tab .location-hero .side-scene-preview figcaption{
@@ -6988,31 +6989,20 @@ function renderPlaceDrawer(){
  const summary=document.createElement('section');summary.className='side-current-summary location-reference-card';
  summary.setAttribute('aria-label','已發現地點預覽：'+previewTitle);
  const hero=document.createElement('div');hero.className='location-hero';
- // Existing approved assets only. A placeholder is used when a discovered
- // location does not have its own illustration; do not borrow incorrect art.
- const previewSrc=previewId==='wreck'&&typeof window.TRAIL_FOREST_DATA_URL==='string'
-  ?window.TRAIL_FOREST_DATA_URL:
-  previewId==='wreck'&&typeof window.DUNGEON_APPROVED_WAGON==='string'
-  ?window.DUNGEON_APPROVED_WAGON:
-  previewId==='trail'&&typeof window.TRAIL_FOREST_DATA_URL==='string'
-  ?window.TRAIL_FOREST_DATA_URL:null;
- if(previewSrc){
+ // Reuse the actual scene renderer, never substitute another location's art.
+ if(!special&&names[previewId]){
   summary.classList.add('has-image');
   const preview=retainedPreview?.dataset.scene===previewId?retainedPreview:document.createElement('figure');
-  if(!preview.classList.contains('side-scene-preview')||!preview.querySelector('img')){
+  if(!preview.querySelector('canvas')){
    preview.replaceChildren();preview.className='side-scene-preview';preview.dataset.scene=previewId;
-   const picture=document.createElement('img');picture.loading='lazy';picture.decoding='async';
-   picture.alt=previewTitle+'附近的場景預覽';picture.src=previewSrc;
-   const caption=document.createElement('figcaption');caption.textContent='場景預覽';
-   preview.append(picture,caption);
+   const picture=document.createElement('canvas');picture.width=240;picture.height=135;
+   picture.setAttribute('role','img');picture.setAttribute('aria-label',previewTitle+'的場景預覽');
+   const caption=document.createElement('figcaption');caption.textContent='場景預覽';preview.append(picture,caption);
   }
   hero.appendChild(preview);
  }else{
-  // Keep text aligned across pages when a new location lacks artwork.
   const placeholder=document.createElement('div');placeholder.className='location-scene-placeholder';
-  placeholder.textContent=special?'▧':PLACE_SIGNS[previewId]||'◇';
-  placeholder.setAttribute('role','img');placeholder.setAttribute('aria-label','此地點尚無專屬縮圖');
-  hero.appendChild(placeholder);
+  placeholder.textContent='▧';placeholder.setAttribute('role','img');placeholder.setAttribute('aria-label','此調查點尚無獨立場景圖');hero.appendChild(placeholder);
  }
  const intro=document.createElement('div');intro.className='side-current-place';
  const titleRow=document.createElement('div');titleRow.className='location-preview-title-row';
@@ -7051,7 +7041,19 @@ function renderPlaceDrawer(){
  hero.appendChild(intro);summary.appendChild(hero);
  const description=document.createElement('p');description.className='location-summary-description';
  description.textContent=locationMeta.description;summary.appendChild(description);
- if(currentWeather&&previewCard.current){const weatherInfo=document.createElement('p');weatherInfo.className='location-weather-info';weatherInfo.dataset.weatherPrefix=currentWeather.season+' · '+currentWeather.temperature+'°C · '+(INDOOR_SCENES.has(s.scene)?'室外':'')+currentWeather.name+(previewWeather?'（預覽）':'')+' · 地表';weatherInfo.textContent=weatherInfo.dataset.weatherPrefix+(currentWeather.snowCover>.85?'厚雪':currentWeather.snowCover>.15?'薄雪':currentWeather.puddles>.25?'積水':currentWeather.wet>.15?'濕潤':'偏乾')+' · '+window.DungeonWeatherV1.windLabel(currentWeather.wind,currentWeather.windDir);summary.appendChild(weatherInfo);}
+ if(currentWeather){
+  const engine=window.DungeonWeatherV1,indoor=INDOOR_SCENES.has(previewId);
+  const sameRegionWeather=previewCard.current||!INDOOR_SCENES.has(s.scene);
+  const env=sameRegionWeather?currentWeather:engine.at(s.seed,s.worldMinutes);
+  const weatherInfo=document.createElement('p');weatherInfo.className='location-weather-info';
+  const prefix=env.season+' · '+env.temperature+'°C · '+(indoor?'室外':'')+env.name+(previewWeather?'（預覽）':'');
+  const state=env.snowCover>.85?'厚雪':env.snowCover>.15?'薄雪':env.puddles>.25?'積水':env.wet>.15?'濕潤':'偏乾';
+  const wind=engine.windLabel(env.wind,env.windDir);
+  if(!indoor&&!INDOOR_SCENES.has(s.scene)){weatherInfo.dataset.weatherPrefix=prefix+' · 地表';weatherInfo.textContent=weatherInfo.dataset.weatherPrefix+state+' · '+wind;}
+  else weatherInfo.textContent=prefix+' · '+(indoor?'室內 · ':'地表'+state+' · ')+wind;
+  if(!previewCard.current)weatherInfo.title='同一區域的天氣預覽，實際地表狀況以到達後為準。';
+  summary.appendChild(weatherInfo);
+ }
  bindLocationPreviewSwipe(summary);
  out.appendChild(summary);
  const resourceSection=document.createElement('section');resourceSection.className='location-resource-section';
@@ -8268,7 +8270,7 @@ if(e.key.toLowerCase()==='j'||e.key.toLowerCase()==='l'){e.preventDefault();if($
 if(e.key.toLowerCase()==='m'){e.preventDefault();journal('map');}
 });
 // Original procedural 2D environments, drawn locally with Canvas; no external assets or network requests.
-setupPlaceDrawer();const can=$('view'),ctx=can.getContext('2d'),W=960,H=540;
+setupPlaceDrawer();const can=$('view'),W=960,H=540;let ctx=can.getContext('2d');
 window.DungeonWeatherV1?.bind($('weatherOverlay'));
 // Fixed 16:9 canvas coordinate system shared by backdrop, hotspots and actors.
 let t=0,last=0;
@@ -8345,15 +8347,15 @@ function guild(){rect(0,0,W,H,grad(0,0,0,H,'#444e4a','#242c2b'));poly([[0,0],[96
 function outskirts(){background('trail');poly([[312,540],[421,377],[468,332],[503,358],[621,540]],grad(460,350,480,540,'#b0a084','#655d46'));rect(0,308,200,115,'#667467');for(let i=0;i<4;i++)rect(i*53,293,34,29,'#8a9786');rect(780,292,180,125,'#697768');for(let i=0;i<4;i++)rect(790+i*49,278,34,25,'#8d9c88');line([761,331],[746,428],8,'#655743');rect(705,301,147,17,'#a6906a');rect(716,327,114,14,'#ac9774');line([797,283],[795,459],10,'#64523c');poly([[770,451],[823,451],[845,490],[747,490]],'#756043');glow(514,259,180,'rgba(215,220,172,.15)');leafTree(130,450,1,1);leafTree(915,454,.82,1);}
 function home(){rect(0,0,W,H,grad(0,0,0,H,'#756650','#2f2c28'));wallPlanks();rect(0,400,960,140,grad(0,400,0,H,'#81684e','#30291f'));poly([[0,0],[155,100],[155,390],[0,433]],'#5c4b3e');poly([[960,0],[786,90],[788,398],[960,439]],'#665542');rect(115,164,230,216,'#332d27');rect(126,177,208,187,'#7e6a51');for(let i=0;i<4;i++){rect(137+i*48,197,32,124,['#73513b','#b2916b','#7c8662','#8b6b4b'][i]);}rect(640,119,173,251,'#514233');for(let i=0;i<5;i++){line([643,168+i*42],[810,168+i*42],5,'#a4835c');rect(663,141+i*42,19,25,'#927455');rect(692,141+i*42,30,25,'#5b5541');}lantern(468,111);ellipse(467,436,278,46,'#111a17',.38);poly([[250,388],[688,388],[729,431],[214,431]],'#aa8459');poly([[279,370],[658,370],[692,394],[247,394]],'#d0a474');for(let x of [282,652])rect(x,428,17,100,'#69503a');ellipse(404,371,31,11,'#e2c99d');ellipse(520,370,26,14,'#9c8b70');rect(526,280,80,59,'#4b392e');ellipse(569,279,49,20,'#6b5843');}
 function mote(time){const r=rng(939);for(let i=0;i<29;i++){const x=(r()*960+Math.sin(time*.29+i)*19),y=(r()*540+time*(3+i%4))%540;ellipse(x,y,1+(i%3)*.65,1+(i%2),i%2?'#f0d99d':'#c4dec8',.28+(i%5)*.045);}}
-function sceneDraw(time){
+function sceneDraw(time,sceneId=s.scene,thumbnail=false){
  ctx.clearRect(0,0,W,H);
- const isTrailArt=s.scene==='trail'&&trailForestReady;
- if(s.scene==='wreck'&&emptyForestReady){
+ const isTrailArt=sceneId==='trail'&&trailForestReady;
+ if(sceneId==='wreck'&&emptyForestReady){
   ctx.save();ctx.imageSmoothingEnabled=true;
   const w=emptyForest.naturalWidth,h=emptyForest.naturalHeight,fit=Math.max(W/w,H/h);
-  ctx.drawImage(emptyForest,(W-w*fit)/2,(H-h*fit)/2,w*fit,h*fit);ctx.restore();if(forestV4Active()&&new URLSearchParams(location.search).get('env')!=='off'&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches)window.DungeonSceneEnvironmentV1?.draw(ctx,neutralForestSelected?'forestV5':'forestV4',time,W,H,previewPeriod||periodForMinutes(s.worldMinutes),emptyForest);window.DungeonWeatherV1?.drawGround(ctx,time,W,H,forestV4Active()&&neutralForestSelected,emptyForest);return;
+  ctx.drawImage(emptyForest,(W-w*fit)/2,(H-h*fit)/2,w*fit,h*fit);ctx.restore();if(!thumbnail&&forestV4Active()&&new URLSearchParams(location.search).get('env')!=='off'&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches)window.DungeonSceneEnvironmentV1?.draw(ctx,neutralForestSelected?'forestV5':'forestV4',time,W,H,previewPeriod||periodForMinutes(s.worldMinutes),emptyForest);if(!thumbnail)window.DungeonWeatherV1?.drawGround(ctx,time,W,H,forestV4Active()&&neutralForestSelected,emptyForest);else if(neutralForestSelected){const weather=window.DungeonWeatherV1?.environment();window.DungeonWinterV1?.ground(ctx,weather?.snowCover||0,W,H,emptyForest,weather?.frost||0);}return;
  }
- if(s.scene==='wreck'&&approvedWreckReady){
+ if(sceneId==='wreck'&&approvedWreckReady){
   ctx.save();ctx.imageSmoothingEnabled=false;
   // Preserve the entire approved 676×390 composition without stretching or
   // cropping it inside the existing 16:9 interaction canvas.
@@ -8365,21 +8367,69 @@ function sceneDraw(time){
   ctx.restore();
   return;
  }
- const crop=s.scene==='wreck'?wreckPanoramaCrop():s.scene==='trail'?(isTrailArt?trailIllustrationCrop():trailPanoramaCrop()):null;
+ const crop=sceneId==='wreck'?wreckPanoramaCrop():sceneId==='trail'?(isTrailArt?trailIllustrationCrop():trailPanoramaCrop()):null;
  if(crop){
-  if(s.scene==='wreck'&&wreckBlurBackdrop)ctx.drawImage(wreckBlurBackdrop,0,0,W,H);
+  if(sceneId==='wreck'&&wreckBlurBackdrop)ctx.drawImage(wreckBlurBackdrop,0,0,W,H);
   else{ctx.fillStyle='#111e22';ctx.fillRect(0,0,W,H);}
   const image=isTrailArt?trailForest:wreckPanorama;
   ctx.drawImage(image,crop.sourceX,crop.sourceY,crop.cropWidth,crop.cropHeight,0,crop.destY,W,crop.destHeight);
   return;
  }
- const f={wreck,trail,clearing,ruin,gate,inn,lobby,street,guild,outskirts,home}[s.scene]||wreck;
+ const f={wreck,trail,clearing,ruin,gate,inn,lobby,street,guild,outskirts,home}[sceneId]||wreck;
  f();mote(time);
  const v=ctx.createRadialGradient(480,260,150,480,260,600);
  v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(3,14,13,.68)');
  rect(0,0,W,H,v);
 }
-function size(){const d=Math.min(devicePixelRatio||1,1.5);can.width=Math.floor(W*d);can.height=Math.floor(H*d);ctx.setTransform(d,0,0,d,0,0);}size();window.addEventListener('resize',()=>{size();refreshSceneFraming();renderHotspots();});refreshSceneFraming();const wildlifeMotionQuery=window.matchMedia('(prefers-reduced-motion: reduce)');function frame(ms){window.DungeonSceneEnvironmentV1?.tickWildlife(ms,s.scene==='wreck'&&!document.hidden&&!wildlifeMotionQuery.matches,previewWeather||currentWeather?.kind||'clear');requestAnimationFrame(frame);if(ms-last>68){t=ms/1000;try{sceneDraw(t);}finally{window.DungeonWeatherV1?.draw(ms);last=ms;}}}requestAnimationFrame(frame);render();
+// Small preview uses the same scene renderer; offscreen rendering never changes s.scene.
+const locationThumbAssets=new Map();let lastLocationThumb=0;
+function locationThumbImage(src){
+ if(!src)return null;if(!locationThumbAssets.has(src)){const img=new Image();img.src=src;locationThumbAssets.set(src,img);}
+ const img=locationThumbAssets.get(src);return img.complete&&img.naturalWidth?img:null;
+}
+function drawLocationThumbnail(ms){
+ const figure=$('placeDrawerList')?.querySelector('.side-scene-preview[data-scene]'),cv=figure?.querySelector('canvas');
+ if(!cv)return;const id=figure.dataset.scene;
+ if(ms-lastLocationThumb<850&&cv.dataset.drawn===id)return;
+ lastLocationThumb=ms;
+ const g=cv.getContext('2d');if(!g)return;
+ g.setTransform(cv.width/W,0,0,cv.height/H,0,0);g.clearRect(0,0,W,H);
+ if(id===s.scene){
+  // Copy the current canvas, then composite visible scene-object layers in depth order.
+  g.drawImage(can,0,0,W,H);
+  const bounds=can.getBoundingClientRect();
+  if(bounds.width&&bounds.height){
+   const nodes=[...$('hotspots').querySelectorAll('.forest-v4-object')].sort((a,b)=>(Number(getComputedStyle(a).zIndex)||0)-(Number(getComputedStyle(b).zIndex)||0));
+   for(const node of nodes){
+    const opacity=Number(getComputedStyle(node).opacity);if(opacity<.02)continue;
+    const art=node.querySelector('.forest-v4-art');if(!art)continue;
+    for(const img of art.querySelectorAll('img,canvas')){
+     if(img.tagName==='IMG'&&(!img.complete||!img.naturalWidth))continue;
+     const css=getComputedStyle(img),r=img.getBoundingClientRect();
+     if(css.visibility==='hidden'||css.display==='none'||Number(css.opacity)<.02||!r.width||!r.height)continue;
+     g.save();g.globalAlpha=opacity*Number(css.opacity);
+     try{if('filter' in g&&css.filter!=='none')g.filter=css.filter;}catch{}
+     g.drawImage(img,(r.left-bounds.left)*W/bounds.width,(r.top-bounds.top)*H/bounds.height,r.width*W/bounds.width,r.height*H/bounds.height);g.restore();
+    }
+   }
+  }
+  const weatherCanvas=$('weatherOverlay');if(weatherCanvas&&!weatherCanvas.hidden)g.drawImage(weatherCanvas,0,0,W,H);
+ }else{
+  const original=ctx;try{ctx=g;sceneDraw(0,id,true);}finally{ctx=original;}
+  if(id==='wreck'&&emptyForestReady&&forestV4Selected){
+   const layout=window.DUNGEON_FOREST_V4_LAYOUT?.scenes?.wreck||[];
+   for(const o of [...layout].sort((a,b)=>a.z-b.z)){
+    if(!o.visible||/forest4_(rabbit|bird|butterfly|beetle)$/.test(o.assetId))continue;
+    const img=locationThumbImage(window.DUNGEON_FOREST_V4_ASSETS?.[o.assetId]?.src);if(!img)continue;
+    const width=o.width*W/100,height=width*img.naturalHeight/img.naturalWidth;
+    g.save();g.translate(o.x*W/100,o.y*H/100);g.rotate((o.rotation||0)*Math.PI/180);g.scale(o.flip?-1:1,1);g.drawImage(img,-width/2,-height,width,height);g.restore();
+   }
+  }
+ }
+ cv.dataset.drawn=id;
+}
+
+function size(){const d=Math.min(devicePixelRatio||1,1.5);can.width=Math.floor(W*d);can.height=Math.floor(H*d);ctx.setTransform(d,0,0,d,0,0);}size();window.addEventListener('resize',()=>{size();refreshSceneFraming();renderHotspots();});refreshSceneFraming();const wildlifeMotionQuery=window.matchMedia('(prefers-reduced-motion: reduce)');function frame(ms){window.DungeonSceneEnvironmentV1?.tickWildlife(ms,s.scene==='wreck'&&!document.hidden&&!wildlifeMotionQuery.matches,previewWeather||currentWeather?.kind||'clear');requestAnimationFrame(frame);if(ms-last>68){t=ms/1000;try{sceneDraw(t);}finally{window.DungeonWeatherV1?.draw(ms);try{drawLocationThumbnail(ms);}catch(err){/* Thumbnail never interrupts gameplay. */}last=ms;}}}requestAnimationFrame(frame);render();
 })();
 </script>
 </body>
