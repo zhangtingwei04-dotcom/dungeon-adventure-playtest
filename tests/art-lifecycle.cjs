@@ -200,3 +200,18 @@ assert.equal(loadedWorld.engineSave.domains.objectWorld,1);
 assert(!lifeCore.visible(loadedWorld,'wreck',wagonObject)&&lifeCore.visible(loadedWorld,'wreck',liveFlower));
 assert(!lifeCore.applyWorldEvent(loadedWorld,cleanupEvent,forestObjects));
 console.log('PASS: object world state, event replay safety, scene scope and save roundtrip');
+
+
+const openingWindow={};new vm.Script(read('assets/opening_progression_v1.js').toString()).runInNewContext({window:openingWindow});
+const opening=openingWindow.DungeonOpeningProgressionV1;
+const openingActor={scene:'wreck',flags:{},worldMinutes:960,exploration:{counts:{wreck:0}}};
+for(let i=0;i<1000;i++){
+ if(opening.view(openingActor).canExplore){openingActor.worldMinutes+=10;openingActor.exploration.counts.wreck++;}
+}
+assert.equal(openingActor.worldMinutes,990);assert.equal(openingActor.exploration.counts.wreck,3);
+assert(opening.markCue(openingActor));assert(!opening.markCue(openingActor));
+openingActor.scene='trail';assert(opening.view(openingActor).canExplore);
+openingActor.scene='wreck';assert(!opening.view(openingActor).canExplore);
+openingActor.flags.rescued=true;assert(opening.view(openingActor).canExplore);
+assert(opening.view({scene:'wreck',flags:{}}).canExplore);
+console.log('PASS: opening investigation exhausts without time drift; cue once; post-rescue exploration remains available');
