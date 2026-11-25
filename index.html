@@ -3952,10 +3952,11 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 #sceneStage .forest-v4-object[data-winter-plant="true"] .winter-snow-cap,
 #sceneStage .forest-v4-object[data-winter-plant="true"] .surface-wet-glints{
  clip-path:none;
- -webkit-mask-image:linear-gradient(to top,transparent calc(var(--snow-cover,0) * var(--winter-depth,0%) + var(--winter-padding,0%) - 5%),#000 calc(var(--snow-cover,0) * var(--winter-depth,0%) + var(--winter-padding,0%) + 5%));
- mask-image:linear-gradient(to top,transparent calc(var(--snow-cover,0) * var(--winter-depth,0%) + var(--winter-padding,0%) - 5%),#000 calc(var(--snow-cover,0) * var(--winter-depth,0%) + var(--winter-padding,0%) + 5%));
+ -webkit-mask-image:linear-gradient(to top,transparent calc(var(--snow-cover,0) * (var(--winter-depth,0%) + var(--winter-padding,0%) - 5%)),#000 calc(var(--snow-cover,0) * (var(--winter-depth,0%) + var(--winter-padding,0%) + 5%)));
+ mask-image:linear-gradient(to top,transparent calc(var(--snow-cover,0) * (var(--winter-depth,0%) + var(--winter-padding,0%) - 5%)),#000 calc(var(--snow-cover,0) * (var(--winter-depth,0%) + var(--winter-padding,0%) + 5%)));
 }
-#app[data-weather="blizzard"] #sceneStage .forest-v4-object[data-wild-behavior="hunker"]{opacity:0;transition:opacity 1.7s ease;pointer-events:none!important}
+#sceneStage .forest-v4-object[data-wildlife="rabbit"]{transition:opacity 1.7s ease}
+#app[data-weather="blizzard"] #sceneStage .forest-v4-object[data-wild-behavior="hunker"]{opacity:0;pointer-events:none!important}
 
 #sceneStage .forest-v4-object[data-motion="plant"] .winter-snow-cap{transform-origin:50% 100%;animation:living-sway 5.2s ease-in-out infinite}
 #sceneStage .forest-v4-layer.env-v1 .forest-v4-object[data-motion="plant"] .winter-snow-cap{animation-delay:var(--env-delay,0s);animation-duration:6.2s}
