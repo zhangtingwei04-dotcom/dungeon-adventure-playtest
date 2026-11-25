@@ -4,6 +4,7 @@
   "scope": "五個核心頁面的直接 JS/CSS 素材引用，不涵蓋執行時動態路徑或其他獨立預覽頁。",
   "pages": {
     "index.html": [
+      "assets/adaptive_quality_v1.js",
       "assets/approved_wagon_art_v1.js",
       "assets/arm_visibility_live_v1.js",
       "assets/arm_visibility_policy_v1.js",
