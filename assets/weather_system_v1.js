@@ -67,7 +67,7 @@ window.DungeonWeatherV1=(function(){
  const snowParticles=particles.map(p=>({x:p.x,y:p.y}));
  function snowVelocity(i,speed,drift){return {x:drift*(.8+(i%7)*.07),y:(13+i%12)*speed};}
  function bind(el){canvas=el;ctx=el?.getContext('2d');if(canvas){canvas.width=W;canvas.height=H;}}
- let scene='wreck',sound=false,audio=null,lastThunder=-1,sceneHost=null,snowPreview=false,weatherPreview=false,previewEnv=emptyEnvironment();
+ let scene='wreck',sound=false,audio=null,lastThunder=-1,sceneHost=null,snowPreview=false,weatherPreview=false,previewEnv=emptyEnvironment(),lastEnvironmentLabel=0;
  function unlockAudio(){try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;if(!audio)audio=new AC();if(audio.state==='suspended')audio.resume().catch(()=>{});}catch{}}
  function thunder(){if(!sound||!audio||audio.state!=='running')return;try{const rate=audio.sampleRate,buf=audio.createBuffer(1,Math.floor(rate*2.7),rate),d=buf.getChannelData(0);let low=0;for(let i=0;i<d.length;i++){low=.94*low+.06*(Math.random()*2-1);d[i]=low;}const src=audio.createBufferSource(),f=audio.createBiquadFilter(),g=audio.createGain(),now=audio.currentTime;src.buffer=buf;f.type='lowpass';f.frequency.value=170;g.gain.setValueAtTime(.001,now);g.gain.linearRampToValueAtTime(.19,now+.24);g.gain.exponentialRampToValueAtTime(.001,now+2.6);src.connect(f);f.connect(g);g.connect(audio.destination);src.start(now);src.stop(now+2.7);}catch{}}
  function set(weather,indoor,reduce=false,options={}){
@@ -93,6 +93,11 @@ window.DungeonWeatherV1=(function(){
    for(const [key,value] of Object.entries(vars))sceneHost.style.setProperty('--'+key,clamp(value,0,1).toFixed(3));
    sceneHost.style.setProperty('--weather-wind-angle',((1+shown.wind*7)*shown.windDir).toFixed(2)+'deg');
    sceneHost.style.setProperty('--weather-wind-duration',(7.4-shown.wind*4.2).toFixed(2)+'s');
+   if(ms-lastEnvironmentLabel>=350||ms<lastEnvironmentLabel){
+    lastEnvironmentLabel=ms;
+    const label=sceneHost.querySelector?.('.location-weather-info[data-weather-prefix]');
+    if(label){const state=shown.snowCover>.85?'厚雪':shown.snowCover>.15?'薄雪':shown.puddles>.25?'積水':shown.soil>.15?'濕潤':shown.frost>.15?'覆霜':'偏乾';const next=label.dataset.weatherPrefix+state;if(label.textContent!==next)label.textContent=next;}
+   }
   }
   if(shown.snow>.01&&!reduced){
    const t=ms/1000,storm=clamp((shown.snowSpeed-1)/2.6,0,1);
