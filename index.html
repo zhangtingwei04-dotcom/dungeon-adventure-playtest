@@ -4384,9 +4384,9 @@ html.stage-locked #app #topGameHud #hudPhase{font-size:clamp(10px,1.65vw,17px)}
 <script src="./assets/beetle_articulation_live_v1.js?v=2-flight"></script>
 <script src="./assets/scene_spatial_motion_v1.js?v=3-action-map"></script>
 <script src="./assets/bird_motion_live_v1.js?v=2-hop-joints"></script>
-<script src="./assets/scene_environment_v1.js?v=15-action-points"></script>
+<script src="./assets/scene_environment_v1.js?v=16-water-ice"></script>
 <script src="./assets/winter_surfaces_v1.js?v=8-contour-snow"></script>
-<script src="./assets/weather_system_v1.js?v=17-strong-wind"></script>
+<script src="./assets/weather_system_v1.js?v=18-water-ice"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/scene_objects_v1.js?v=20261125-winter"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
@@ -4561,7 +4561,7 @@ let previewPeriod=null,previewWeather=null,previewWind=null,previewWindDir=null;
 let currentWeather=null;
 function syncWeather(){
  const engine=window.DungeonWeatherV1;if(!engine)return;
- currentWeather=previewWeather?{kind:previewWeather,...engine.kinds[previewWeather],...engine.climate(s.seed,s.worldMinutes,previewWeather),...Object.fromEntries(['snowCover','soil','plantWet','puddles','frost','wet'].map(key=>[key,engine.environment()[key]]))}:engine.at(s.seed,s.worldMinutes);
+ currentWeather=previewWeather?{kind:previewWeather,...engine.kinds[previewWeather],...engine.climate(s.seed,s.worldMinutes,previewWeather),...Object.fromEntries(['snowCover','soil','plantWet','puddles','frost','wet','poolIce','edgeIce','flowIce','iceSnow'].map(key=>[key,engine.environment()[key]]))}:engine.at(s.seed,s.worldMinutes);
  if(previewWeather){const k=engine.kinds[previewWeather],climate=engine.climate(s.seed,s.worldMinutes,previewWeather);Object.assign(currentWeather,k,climate,{kind:previewWeather,temperature:previewWeather==='blizzard'?-6:previewWeather==='snow'?-2:Math.max(6,climate.temperature),windDir:-1});}
  if(previewWind!==null)currentWeather.wind=previewWind/5;if(previewWindDir!==null)currentWeather.windDir=previewWindDir;
  const indoor=INDOOR_SCENES.has(s.scene);const app=$('app');app.dataset.weather=currentWeather.kind;
@@ -7045,12 +7045,13 @@ function renderPlaceDrawer(){
   const engine=window.DungeonWeatherV1,indoor=INDOOR_SCENES.has(previewId);
   const sameRegionWeather=previewCard.current||!INDOOR_SCENES.has(s.scene);
   const env=sameRegionWeather?currentWeather:engine.at(s.seed,s.worldMinutes);
-  const weatherInfo=document.createElement('p');weatherInfo.className='location-weather-info';
+  const weatherInfo=document.createElement('p');weatherInfo.className='location-weather-info';weatherInfo.dataset.waterStatus=String(previewId==='wreck');
   const prefix=env.season+' · '+env.temperature+'°C · '+(indoor?'室外':'')+env.name+(previewWeather?'（預覽）':'');
   const state=env.snowCover>.85?'厚雪':env.snowCover>.15?'薄雪':env.puddles>.25?'積水':env.wet>.15?'濕潤':'偏乾';
   const wind=engine.windLabel(env.wind,env.windDir);
   if(!indoor&&!INDOOR_SCENES.has(s.scene)){weatherInfo.dataset.weatherPrefix=prefix+' · 地表';weatherInfo.textContent=weatherInfo.dataset.weatherPrefix+state+' · '+wind;}
   else weatherInfo.textContent=prefix+' · '+(indoor?'室內 · ':'地表'+state+' · ')+wind;
+  if(previewId==='wreck')weatherInfo.textContent+=' · 水域'+engine.waterIceLabel(env);
   if(!previewCard.current)weatherInfo.title='同一區域的天氣預覽，實際地表狀況以到達後為準。';
   summary.appendChild(weatherInfo);
  }
