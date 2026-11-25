@@ -4344,7 +4344,7 @@ html.stage-locked #app #topGameHud #hudPhase{font-size:clamp(10px,1.65vw,17px)}
 
 (function(){if(!/(?:^|[?&])layout=d(?:&|$)/.test(location.search))return;const b=window.DUNGEON_FOREST_V4_ORIGINAL_LAYOUT;if(!b?.scenes?.wreck)return;const patch={"v4-wagon0":{"x":31,"y":69.5,"width":32,"z":5,"rotation":8},"v4-crate_large1":{"x":54,"y":78,"width":7.5,"z":21,"rotation":-9},"v4-crate_small2":{"x":14.7,"y":73.6,"width":3.5,"z":17,"rotation":-5,"contactGrass":true},"v4-crate_open5":{"x":43.1,"y":73,"width":7.6,"z":12,"rotation":-10},"v4-sack6":{"x":49.5,"y":70,"width":4.2,"z":13,"rotation":12},"v4-wheel_flat7":{"x":30,"y":82,"width":10.6,"z":24,"rotation":10},"v4-plank8":{"x":39.9,"y":83,"width":6.8,"z":11,"rotation":-18},"v4-plank_lean9":{"x":39.6,"y":71.5,"width":4.5,"z":4,"rotation":-14},"v4-grass_a10":{"x":22.8,"y":69,"width":8,"z":8,"rotation":0},"v4-grass_b11":{"x":32,"y":70.5,"width":7.4,"z":8,"rotation":0},"v4-rabbit16":{"x":84.8,"y":68.2,"width":3.8,"z":7,"rotation":0},"v4-purple_flower13":{"x":84.6,"y":81.2,"width":3.8,"z":10,"rotation":-3},"v4-white_flower14":{"x":25.4,"y":82.2,"width":4.3,"z":10,"rotation":0},"v4-barrel4":{"visible":false}};const extra={"id":"v4-d-chassis-support","assetId":"forest4_chassis","name":"斷裂底盤","x":40,"y":72.2,"width":13,"z":3,"visible":true,"flip":false,"rotation":6};window.DUNGEON_FOREST_V4_LAYOUT={...b,layoutVariant:'accident-b',revision:'accident-d-preview',scenes:{...b.scenes,wreck:[...b.scenes.wreck.map(o=>({...o,...(patch[o.id]||{})})),extra]}};})();
 </script>
-<script src="./assets/forest_v4_spawns.js?v=3-golden"></script>
+<script src="./assets/forest_v4_spawns.js?v=4-winter-plants"></script>
 <script src="./assets/forest_v4_integration.js?v=8-grass"></script>
 <script src="./assets/rabbit_articulation_live_v1.js?v=2-golden"></script>
 <script src="./assets/beetle_articulation_live_v1.js?v=2-flight"></script>
@@ -4352,9 +4352,9 @@ html.stage-locked #app #topGameHud #hudPhase{font-size:clamp(10px,1.65vw,17px)}
 <script src="./assets/bird_motion_live_v1.js?v=2-hop-joints"></script>
 <script src="./assets/scene_environment_v1.js?v=13-water-continuity"></script>
 <script src="./assets/winter_surfaces_v1.js?v=4-wet-materials"></script>
-<script src="./assets/weather_system_v1.js?v=12-environment-state"></script>
+<script src="./assets/weather_system_v1.js?v=13-winter-plants"></script>
 <script src="./assets/trail_forest_v1.js"></script>
-<script src="./assets/scene_objects_v1.js?v=20261124-2"></script>
+<script src="./assets/scene_objects_v1.js?v=20261125-winter"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
 <script src="./assets/expression_motion.js?v=2.20"></script>
 <script src="./assets/male_v9_unconscious_icon_v2.js?v=1"></script>
@@ -4537,7 +4537,7 @@ function syncWeather(){
  $('hudPhase').title='當前天氣：'+label+' · '+currentWeather.season+'第'+currentWeather.seasonDay+'日 · '+currentWeather.temperature+'°C';
  $('hudWeatherBtn').title=$('hudPhase').title+' · 點擊切換天氣';$('hudPhaseIcon').textContent=currentWeather.kind==='clear'?(previewPeriod==='night'||(!previewPeriod&&periodForMinutes(s.worldMinutes)==='night')?'☾':'☀'):currentWeather.icon;
  if(!indoor&&currentWeather.kind!=='clear')$('subplace').textContent=({cloudy:'雲層遮住天光',fog:'薄霧在四周緩緩瀰漫',drizzle:'細雨落在周圍',rain:'雨水打濕了周遭景物',storm:'風雨加劇，遠處偶有雷光',snow:'雪花緩緩飄落，空氣寒冷',blizzard:'風雪交加，遠方景物逐漸模糊'})[currentWeather.kind]||label;
- engine.set(currentWeather,indoor,window.matchMedia('(prefers-reduced-motion: reduce)').matches,{scene:s.scene,sound:s.sound,sceneHost:app,weatherPreview:Boolean(previewWeather),snowPreview:previewWeather==='snow'||previewWeather==='blizzard'});
+ engine.set(currentWeather,indoor,window.matchMedia('(prefers-reduced-motion: reduce)').matches,{scene:s.scene,sound:s.sound,sceneHost:app,onPlantWindowChanged:()=>renderHotspots(),weatherPreview:Boolean(previewWeather),snowPreview:previewWeather==='snow'||previewWeather==='blizzard'});
 }
 function selectWeatherPreview(kind){const engine=window.DungeonWeatherV1;if(!engine){toast('天氣模組尚未載入，請重新整理遊戲。');return;}if(kind!=='auto'&&!engine.kinds[kind])return;if(s.sound)engine.unlockAudio();previewWeather=kind==='auto'?null:kind;$('menuVeil').classList.add('hidden');syncTimeAtmosphere();engine.draw(performance.now());toast(kind==='auto'?'已恢復自然天氣':'天氣預覽：'+engine.kinds[kind].name+(INDOOR_SCENES.has(s.scene)?'（室內不顯示雨霧）':''));renderHotspots();renderPlaceDrawer();}
 
@@ -8040,6 +8040,10 @@ function forestV4Action(o){
  dialog(o.name,descriptions[k]||'你留意到這個物件。',[{label:'繼續觀察周圍',fn:()=>{}}],'場景觀察');
 }
 function forestEnvironmentActive(){return DEV_PREVIEW_MODE&&window.DUNGEON_FOREST_V4_LAYOUT?.revision==='accident-d-preview'&&new URLSearchParams(location.search).get('env')!=='off';}
+function plantSpawnWeather(){
+ const engine=window.DungeonWeatherV1;if(!engine)return null;
+ return previewWeather?{kind:previewWeather,snowCover:engine.environment().snowCover}:engine.at(s.seed,s.worldMinutes);
+}
 function renderForestV4(el){
  const cfg=window.DUNGEON_FOREST_V4_LAYOUT?.scenes?.wreck,assets=window.DUNGEON_FOREST_V4_ASSETS;
  if(!cfg||!assets)return;
@@ -8050,7 +8054,7 @@ function renderForestV4(el){
  const previous=new Map(Array.from(layer.children).filter(n=>n.dataset.objectId).map(n=>[n.dataset.objectId,n]));
  const keep=new Set();
  const bindings=forestV4MaterialBindings();
- let live=window.DungeonForestV4Life?.layout(s,cfg,window.DUNGEON_FOREST_V4_SPAWNS||[],bindings)||cfg;
+ let live=window.DungeonForestV4Life?.layout(s,cfg,window.DUNGEON_FOREST_V4_SPAWNS||[],bindings,plantSpawnWeather())||cfg;
  const weather=window.DungeonWeatherV1;const weatherKind=previewWeather||weather?.at(s.seed,s.worldMinutes).kind;
  if(weather&&weatherKind)live=live.filter(o=>{const k=o.assetId.replace('forest4_','');return !['bird','rabbit','beetle','butterfly'].includes(k)||weather.activity(k,weatherKind);});
  if(new URLSearchParams(location.search).get('wildlife')==='golden-rabbit'&&DEV_PREVIEW_MODE){const rabbit=cfg.find(o=>o.assetId==='forest4_rabbit');if(rabbit)live=[...live.filter(o=>o.assetId!=='forest4_rabbit'),{...rabbit,name:'金紋兔',rabbitVariant:'golden',previewOnly:true,visible:true}];}
@@ -8088,7 +8092,7 @@ function updateForestFindCue(node,finds,k){
 }
 function renderWorldObjects(el){
  const engine=window.DungeonSceneObjectsV1;if(!engine||encounterPending)return;
- for(const obj of engine.objects(s)){
+ for(const obj of engine.objects(s,plantSpawnWeather())){
   if(forestV4Active()&&obj.material)continue;
   if(obj.decorative){
    if(forestV4Active())continue;
