@@ -121,7 +121,8 @@ window.DungeonWeatherV1=(function(){
    shown[k]+=(value-shown[k])*(1-Math.exp(-dt*(k==='windDir'?1.25:3)));
   }
   const spawnWeather={kind:target.kind,snowCover:weatherPreview?shown.snowCover:target.snowCover};
-  const allowed=String(plantSpawnAllowed(spawnWeather))+':'+String(activity('rabbit',{kind:target.kind,snowCover:Math.max(shown.snowCover,spawnWeather.snowCover||0)}));
+  const wildlifeWeather={kind:target.kind,snowCover:Math.max(shown.snowCover,spawnWeather.snowCover||0),wind:windOverride??target.wind??0};
+  const allowed=[plantSpawnAllowed(spawnWeather),...['rabbit','bird','beetle','butterfly'].map(k=>activity(k,wildlifeWeather))].join(':');
   if(plantWindow!==allowed){const before=plantWindow;plantWindow=allowed;if(before!==null)onPlantWindowChanged?.();}
   ctx.clearRect(0,0,W,H);
   if(shown.shade>.003){ctx.fillStyle='rgba(38,55,62,'+shown.shade.toFixed(3)+')';ctx.fillRect(0,0,W,H);}
@@ -245,12 +246,23 @@ window.DungeonWeatherV1=(function(){
   if(Array.isArray(plant.allowedWeather)&&!plant.allowedWeather.includes(kind))return false;
   return !winter||plant.winterHardy===true;
  }
+ // Gameplay thresholds use sustained wind, never momentary visual gusts.
+ function wildlifeWindMode(kind,wind=0){
+  const level=windLevel(wind);
+  if(kind==='rabbit')return level>=5?'hide':level>=4?'shelter':level>=3?'alert':'normal';
+  if(kind==='bird')return level>=4?'hide':level>=3?'perch':'normal';
+  if(kind==='beetle')return level>=5?'hide':level>=3?'ground':'normal';
+  if(kind==='butterfly')return level>=3?'hide':level>=2?'shelter':'normal';
+  return 'normal';
+ }
  function activity(kind,weather){
   const type=typeof weather==='string'?weather:weather?.kind,cover=typeof weather==='object'?(weather?.snowCover||0):0;
+  const wind=typeof weather==='object'?(weather?.wind||0):0;
   if(kind==='rabbit'&&(type==='snow'||type==='blizzard'||cover>=.15))return false;
   if(type==='storm'||type==='blizzard'||type==='snow')return false;
+  if(wildlifeWindMode(kind,wind)==='hide')return false;
   if(type==='rain')return kind==='beetle'||kind==='rabbit';
   if(type==='drizzle')return kind!=='butterfly';return true;
  }
- return {kinds,at,bind,set,draw,drawGround,puddleLevel,season,climate,exposure,activity,unlockAudio,snowVelocity,snowStep,environmentStep,plantSpawnAllowed,windAt,windLevel,windLabel,gustAt,windVisual,waterFreezeStep,waterIceLabel,environment:()=>({...shown})};
+ return {kinds,at,bind,set,draw,drawGround,puddleLevel,season,climate,exposure,activity,wildlifeWindMode,unlockAudio,snowVelocity,snowStep,environmentStep,plantSpawnAllowed,windAt,windLevel,windLabel,gustAt,windVisual,waterFreezeStep,waterIceLabel,environment:()=>({...shown,behaviorWind:windOverride??target.wind??0})};
 })();
