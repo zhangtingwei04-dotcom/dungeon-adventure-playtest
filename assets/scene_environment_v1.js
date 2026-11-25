@@ -18,8 +18,9 @@ window.DungeonSceneEnvironmentV1=(function(){
  function waterProfile(env={}){
   const soil=clamp(env.soil||0,0,1),rain=clamp(env.rain||0,0,1),puddles=clamp(env.puddles||0,0,1),frost=clamp(env.frost||0,0,1);
   const volume=clamp(.85+soil*.38+puddles*.22+rain*.13,.85,1.55);
-  const ice=clamp((frost-.20)/.80,0,1)*.68;
-  return {volume,ice,speed:volume*(1-ice*.55)};
+  const poolIce=clamp(env.poolIce||0,0,1),edgeIce=clamp(env.edgeIce||0,0,1),flowIce=clamp(env.flowIce||0,0,1);
+  const ice=Math.max(edgeIce*.65,flowIce*.85,frost*.10);
+  return {volume,ice,poolIce,edgeIce,flowIce,iceSnow:clamp(env.iceSnow||0,0,poolIce),speed:volume*(1-flowIce*.76-edgeIce*.12)};
  }
  const waterClocks=new Map();
  function waterTime(id,t,speed){
@@ -66,18 +67,44 @@ window.DungeonSceneEnvironmentV1=(function(){
   ctx.restore();
   // Separate small stream zones avoid painted foreground rocks.
   for(let j=0;j<p.pools.length;j++){ctx.save();path(ctx,p.pools[j]);const poly=p.pools[j],minX=Math.min(...poly.map(v=>v[0])),maxX=Math.max(...poly.map(v=>v[0])),minY=Math.min(...poly.map(v=>v[1])),maxY=Math.max(...poly.map(v=>v[1]));for(let i=0;i<8;i++){const q=frac(flowTime*(.30+i*.025)+i*.31+j*.12),x=minX+q*(maxX-minX),y=minY+((i*.37)%1)*(maxY-minY);const alpha=.38*Math.sin(Math.PI*q)*(1-water.ice*.65);ctx.strokeStyle='rgba(205,240,250,'+alpha+')';ctx.lineWidth=1.15;ctx.beginPath();ctx.moveTo(x,y);ctx.quadraticCurveTo(x+4,y-.8,x+13+i%3*4,y);ctx.stroke();}ctx.restore();}
-  // Cold buildup is restricted to the real water margins. The central cascade keeps flowing.
-  if(water.ice>.02){
+  // Freeze from banks inward, keeping the water polygon as the only paintable area.
+  if(water.poolIce>.015){
+   for(let j=0;j<p.pools.length;j++){
+    const poly=p.pools[j],cx=poly.reduce((s,v)=>s+v[0],0)/poly.length,cy=poly.reduce((s,v)=>s+v[1],0)/poly.length;
+    const coverage=clamp(water.poolIce*(j===1?.78:1),0,.94);
+    ctx.save();path(ctx,poly);
+    for(let i=0;i<poly.length;i++){
+     const A=poly[i],B=poly[(i+1)%poly.length],q=clamp(coverage*(.84+.16*Math.sin(i*2.4+j)),0,.94);
+     const a=[A[0]+(cx-A[0])*q,A[1]+(cy-A[1])*q],b=[B[0]+(cx-B[0])*q,B[1]+(cy-B[1])*q];
+     ctx.beginPath();ctx.moveTo(...A);ctx.lineTo(...B);ctx.lineTo(...b);ctx.lineTo(...a);ctx.closePath();
+     ctx.fillStyle='rgba(153,196,207,'+(.35+.56*water.poolIce)+')';ctx.fill();
+     ctx.strokeStyle='rgba(222,244,247,'+(.22+.42*water.poolIce)+')';ctx.lineWidth=.7;ctx.beginPath();ctx.moveTo(...a);ctx.lineTo(...b);ctx.stroke();
+     if(water.iceSnow>.08){
+      ctx.beginPath();ctx.moveTo(...A);ctx.lineTo(...B);ctx.lineTo(B[0]+(b[0]-B[0])*.7,B[1]+(b[1]-B[1])*.7);ctx.lineTo(A[0]+(a[0]-A[0])*.65,A[1]+(a[1]-A[1])*.65);ctx.closePath();
+      ctx.fillStyle='rgba(222,235,239,'+(water.iceSnow*.83)+')';ctx.fill();
+     }
+    }
+    ctx.restore();
+   }
+  }
+  // Solid irregular ice columns on the waterfall margins, not a white fog overlay.
+  if(water.edgeIce>.015||water.flowIce>.015){
    ctx.save();path(ctx,p.waterfall);
    const [dx,dy,dw,dh]=p.cascade||[826,140,66,96];
+   const width=3+water.edgeIce*10+water.flowIce*15;
    for(const side of [-1,1]){
-    const x=side<0?dx+3:dx+dw-3;
-    const g=ctx.createLinearGradient(x,0,x-side*15,0);
-    g.addColorStop(0,'rgba(207,235,242,'+(water.ice*.85)+')');g.addColorStop(1,'rgba(207,235,242,0)');
-    ctx.fillStyle=g;ctx.fillRect(side<0?x:x-15,dy,15,dh);
-    ctx.fillStyle='rgba(184,219,232,'+(water.ice*.8)+')';
-    for(let i=0;i<5;i++){const xx=x-side*i*2,yy=dy+4+i%3*5;ctx.beginPath();ctx.moveTo(xx-1.2,yy);ctx.lineTo(xx+1.4,yy);ctx.lineTo(xx,yy+(7+i%3*5)*water.ice);ctx.closePath();ctx.fill();}
-   }ctx.restore();
+    const x=side<0?dx+2:dx+dw-2,sign=-side;
+    ctx.beginPath();ctx.moveTo(x,dy);ctx.lineTo(x+sign*width,dy);
+    for(let k=0;k<=10;k++){const y=dy+dh*k/10,off=width*(.72+.16*Math.sin(k*2.2+side)+.11*Math.cos(k*1.4));ctx.lineTo(x+sign*off,y);}
+    ctx.lineTo(x,dy+dh);ctx.closePath();
+    const g=ctx.createLinearGradient(x,0,x+sign*width,0);g.addColorStop(0,'rgba(224,241,244,'+(.88*water.edgeIce)+')');g.addColorStop(.58,'rgba(159,202,218,'+(.92*water.edgeIce)+')');g.addColorStop(1,'rgba(191,224,235,'+(.92*water.edgeIce)+')');ctx.fillStyle=g;ctx.fill();
+    for(let i=0;i<7;i++){
+     const xx=x+sign*(2+i*width/8),yy=dy+4+(i%3)*12,len=(13+(i*17)%38)*water.edgeIce+water.flowIce*32;
+     ctx.beginPath();ctx.moveTo(xx-1.5,yy);ctx.lineTo(xx+2,yy);ctx.lineTo(xx+sign*.5,yy+len);ctx.closePath();ctx.fillStyle='rgba(209,235,243,'+(.35+water.edgeIce*.56)+')';ctx.fill();
+     ctx.strokeStyle='rgba(117,168,190,'+(water.edgeIce*.5)+')';ctx.lineWidth=.65;ctx.beginPath();ctx.moveTo(xx+1.5,yy);ctx.lineTo(xx+sign*.5,yy+len);ctx.stroke();
+    }
+   }
+   ctx.restore();
   }
   ctx.restore();
  }
