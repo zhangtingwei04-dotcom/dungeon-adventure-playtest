@@ -179,3 +179,24 @@ assert.equal(investigation.describe(wagonObject,[{id:'sample'}]).visualState,'re
 assert.equal(investigation.describe(wagonObject,[]).visualState,'normal');
 assert.equal(investigation.describe(wagonObject,[]).type,'container');
 console.log('PASS: investigation coverage and resource-state separation');
+
+
+const lifeCore=objectWindow.DungeonObjectInvestigationV1,lifeActor=JSON.parse(JSON.stringify(legacyActor));
+const liveFlower=forestObjects.find(o=>o.assetId==='forest4_white_flower'),liveRock=forestObjects.find(o=>o.assetId==='forest4_rock_group');
+assert(lifeCore.inspect(lifeActor,'wreck',wagonObject));
+assert(!lifeCore.inspect(lifeActor,'wreck',wagonObject));
+assert(lifeCore.collect(lifeActor,'wreck',wagonObject)&&lifeCore.visible(lifeActor,'wreck',wagonObject));
+const cleanupEvent={id:'cleanup-1',scene:'wreck',kind:'cleanup',targets:[wagonObject.id]};
+assert(lifeCore.applyWorldEvent(lifeActor,cleanupEvent,forestObjects));
+assert(!lifeCore.visible(lifeActor,'wreck',wagonObject)&&lifeCore.visible(lifeActor,'trail',wagonObject));
+const decayEvent={id:'decay-1',scene:'wreck',kind:'decay',targets:[liveFlower.id]};
+const growthEvent={id:'grow-1',scene:'wreck',kind:'regrowth',targets:[liveFlower.id]};
+assert(lifeCore.applyWorldEvent(lifeActor,decayEvent,forestObjects)&&!lifeCore.visible(lifeActor,'wreck',liveFlower));
+assert(lifeCore.applyWorldEvent(lifeActor,growthEvent,forestObjects)&&lifeCore.visible(lifeActor,'wreck',liveFlower));
+assert(!lifeCore.applyWorldEvent(lifeActor,decayEvent,forestObjects));
+assert(!lifeCore.applyWorldEvent(lifeActor,{id:'bad',scene:'wreck',kind:'cleanup',targets:[liveRock.id]},forestObjects));
+const loadedWorld=secureSave.parse(secureSave.exportText(lifeActor,saveScenes),saveScenes);
+assert.equal(loadedWorld.engineSave.domains.objectWorld,1);
+assert(!lifeCore.visible(loadedWorld,'wreck',wagonObject)&&lifeCore.visible(loadedWorld,'wreck',liveFlower));
+assert(!lifeCore.applyWorldEvent(loadedWorld,cleanupEvent,forestObjects));
+console.log('PASS: object world state, event replay safety, scene scope and save roundtrip');
