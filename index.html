@@ -3959,6 +3959,23 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 #app[data-weather] #sceneStage .forest-v4-layer.env-motion-v2 .forest-v4-object[data-motion="plant"]:not([data-live-kind="vine"]) .winter-snow-cap{animation:weather-plant-wind var(--weather-wind-duration,7.4s) ease-in-out infinite;animation-delay:var(--env-motion-delay,0s)}
 #sceneStage .forest-v4-object[data-live-kind="vine"] .winter-snow-cap{animation:none}
 @media(prefers-reduced-motion:reduce){#sceneStage .forest-v4-object .winter-snow-cap{animation:none!important}}
+/* Weathered material response: retain the original artwork and ground anchors. */
+#app[data-indoor="false"] #sceneStage .forest-v4-object[data-surface-wet="material"] .forest-v4-art>img{
+ filter:var(--scene-light,brightness(1)) brightness(calc(1 - var(--plant-wet,0) * var(--surface-wet-weight,.6) * .19)) saturate(calc(1 + var(--plant-wet,0) * .08));
+}
+#sceneStage .surface-wet-glints{
+ position:absolute;inset:0;width:100%;height:100%;pointer-events:none;display:block;
+ opacity:calc(var(--plant-wet,0) * var(--surface-wet-weight,.6) * (1 - var(--snow-cover,0)) * .65);
+ filter:var(--scene-light,brightness(1));transform-origin:50% 100%;
+}
+#sceneStage .forest-v4-object[data-winter-plant="true"] .surface-wet-glints{
+ clip-path:inset(0 0 calc(var(--winter-padding,0%) + var(--winter-depth,0%) * var(--snow-cover,0)) 0);
+}
+#sceneStage .forest-v4-object[data-motion="plant"] .surface-wet-glints{animation:living-sway 5.2s ease-in-out infinite}
+#sceneStage .forest-v4-layer.env-v1 .forest-v4-object[data-motion="plant"] .surface-wet-glints{animation-delay:var(--env-delay,0s);animation-duration:6.2s}
+#app[data-weather] #sceneStage .forest-v4-layer.env-motion-v2 .forest-v4-object[data-motion="plant"]:not([data-live-kind="vine"]) .surface-wet-glints{animation:weather-plant-wind var(--weather-wind-duration,7.4s) ease-in-out infinite;animation-delay:var(--env-motion-delay,0s)}
+#sceneStage .forest-v4-object[data-live-kind="vine"] .surface-wet-glints{animation:none}
+@media(prefers-reduced-motion:reduce){#sceneStage .surface-wet-glints{animation:none!important}}
 /* Wet leaves and frost retain their appearance after the weather changes. */
 #app[data-indoor="false"] #sceneStage .forest-v4-object[data-motion="plant"] .forest-v4-art>img,
 #app[data-indoor="false"] #sceneStage .forest-v4-object[data-winter-plant="true"] .forest-v4-art>img{
@@ -4333,8 +4350,8 @@ html.stage-locked #app #topGameHud #hudPhase{font-size:clamp(10px,1.65vw,17px)}
 <script src="./assets/beetle_articulation_live_v1.js?v=2-flight"></script>
 <script src="./assets/scene_spatial_motion_v1.js?v=2-flight-test"></script>
 <script src="./assets/bird_motion_live_v1.js?v=2-hop-joints"></script>
-<script src="./assets/scene_environment_v1.js?v=11-bird"></script>
-<script src="./assets/winter_surfaces_v1.js?v=3-plant-burial"></script>
+<script src="./assets/scene_environment_v1.js?v=12-water-climate"></script>
+<script src="./assets/winter_surfaces_v1.js?v=4-wet-materials"></script>
 <script src="./assets/weather_system_v1.js?v=12-environment-state"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/scene_objects_v1.js?v=20261124-2"></script>
