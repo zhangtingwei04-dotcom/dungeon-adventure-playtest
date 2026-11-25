@@ -45,12 +45,15 @@ window.DungeonForestV4Integration=(function integration(){
   if(o.contactGrass===true)p={...p,grassLeft:4,grassWidth:39,grassOpacity:.72};
   // Fallen wheels rest on the existing terrain; never attach a floating grass sprite.
   if(k==='wheel_flat')p={...p,grassWidth:0,grassOpacity:0};
+  // Multi-contact shadows for the original wagon sprite; the terrain itself supplies grass.
+  if(k==='wagon')p={...p,grassWidth:0,grassOpacity:0,shadowProfile:'wagon-multi-contact'};
   // Depth correction is intentionally restrained: only art appearance, never dimensions.
   const depth=Math.max(0,Math.min(1,(70-o.y)/45));
   return {...p,ground:!airborne,brightness:Math.max(.8,Math.min(1,p.brightness+depth*.025)),saturation:Math.max(.65,p.saturation-depth*.045),contrast:p.contrast-depth*.025,angle:k==='wheel_flat'||k==='plank'?o.rotation*.5:0};
  }
  function apply(node,o,assets){
-  const p=profile(o);node.dataset.ground=String(p.ground);node.dataset.surfaceKind=o.assetId.replace(/^forest4_/,'');
+  const p=profile(o);node.dataset.ground=String(p.ground);node.dataset.surfaceKind=o.assetId.replace(/^forest4_/,'');node.dataset.shadowProfile=p.shadowProfile||'standard';
+  if(p.shadowProfile==='wagon-multi-contact'){node.style.setProperty('--v4-wagon-angle',(Number(o.rotation)||0)+'deg');node.style.setProperty('--v4-wagon-flip',o.flip?'-1':'1');}
   const vars={'shadow-left':(p.shadowLeft??50)+'%','shadow-bottom':(p.shadowBottom??-1)+'%','shadow-width':p.shadowWidth+'%','shadow-height':p.shadowHeight+'%','shadow-opacity':p.shadowOpacity,'ground-angle':p.angle+'deg','brightness':p.brightness.toFixed(3),'saturation':p.saturation.toFixed(3),'contrast':p.contrast.toFixed(3)};
   for(const [key,value] of Object.entries(vars))node.style.setProperty('--v4-'+key,String(value));
   // Small contact fringe, not a new collectible or authored object.
