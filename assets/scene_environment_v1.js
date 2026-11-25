@@ -1,0 +1,53 @@
+/* Reusable scene environment renderer: authored zones, fixed anchors, low-cost motion. */
+window.DungeonSceneEnvironmentV1=(function(){
+ const profiles={
+  forestV4:{
+   waterfall:[[837,146],[890,140],[885,162],[883,188],[881,212],[889,229],[876,236],[826,233],[833,216],[831,189]],
+   pools:[[[798,240],[828,237],[849,239],[851,245],[827,250],[805,248]],[[878,239],[898,240],[910,247],[932,249],[960,251],[960,262],[927,259],[901,251],[878,248]],[[823,258],[850,257],[878,261],[899,265],[917,272],[899,276],[865,267],[834,266]],[[932,266],[960,265],[960,277],[945,278]]],
+   light:{x:52,y:9,spread:63}
+  }
+ };
+ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+ const frac=v=>v-Math.floor(v);
+ function path(ctx,poly){ctx.beginPath();poly.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.closePath();ctx.clip();}
+ function draw(ctx,id,t,w=960,h=540){
+  const p=profiles[id];if(!p||!Number.isFinite(t))return;
+  ctx.save();ctx.scale(w/960,h/540);
+  ctx.save();path(ctx,p.waterfall);
+  // Moving highlights are clipped to the actual cascade, not surrounding rocks.
+  ctx.lineCap='round';
+  for(let i=0;i<19;i++){
+   const x=834+(i*17%54),y=142+frac(t*(.42+(i%4)*.065)+i*.173)*95;
+   const len=8+i%4*4;
+   const g=ctx.createLinearGradient(x,y,x-1,y+len);
+   g.addColorStop(0,'rgba(224,248,255,0)');g.addColorStop(.45,'rgba(220,246,255,.28)');g.addColorStop(1,'rgba(220,246,255,0)');
+   ctx.strokeStyle=g;ctx.lineWidth=.55+(i%3)*.45;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-1.6,y+len);ctx.stroke();
+  }
+  ctx.restore();
+  // Subtle spray in the waterfall basin; no opaque white overlay.
+  ctx.save();path(ctx,p.waterfall);
+  for(let i=0;i<5;i++){const q=frac(t*.45+i*.2),x=846+i*7+Math.sin(t*.8+i)*3,y=232-q*10,r=3+q*9;const g=ctx.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,'rgba(213,238,249,'+(.115*(1-q))+')');g.addColorStop(1,'rgba(213,238,249,0)');ctx.fillStyle=g;ctx.fillRect(x-r,y-r,r*2,r*2);}
+  ctx.restore();
+  // Separate small stream zones avoid painted foreground rocks.
+  for(let j=0;j<p.pools.length;j++){ctx.save();path(ctx,p.pools[j]);const poly=p.pools[j],minX=Math.min(...poly.map(v=>v[0])),maxX=Math.max(...poly.map(v=>v[0])),minY=Math.min(...poly.map(v=>v[1])),maxY=Math.max(...poly.map(v=>v[1]));for(let i=0;i<5;i++){const q=frac(t*(.16+i*.02)+i*.31+j*.12),x=minX+q*(maxX-minX),y=minY+((i*.37)%1)*(maxY-minY);const alpha=.19*Math.sin(Math.PI*q);ctx.strokeStyle='rgba(205,240,250,'+alpha+')';ctx.lineWidth=.65;ctx.beginPath();ctx.moveTo(x,y);ctx.quadraticCurveTo(x+4,y-.8,x+8+i%3*2,y);ctx.stroke();}ctx.restore();}
+  ctx.restore();
+ }
+ function objectProfile(o,id='forestV4'){
+  const p=profiles[id];if(!p)return null;
+  const k=String(o.assetId||'').replace(/^forest4_/,'');
+  const weathered=/^(crate_|wheel_flat$|chassis$|wagon$|plank)/.test(k);
+  const phase=((o.id||'').split('').reduce((a,c)=>a+c.charCodeAt(0),0)%31)/10;
+  const distance=Math.hypot((o.x-p.light.x)*.85,(o.y-p.light.y)*.6);
+  return {kind:k,weathered,phase,light:clamp(1-distance/p.light.spread,.12,.83),shade:k==='wagon'?.17:weathered?.13:.075};
+ }
+ function apply(node,art,img,o,id='forestV4'){
+  const p=objectProfile(o,id);if(!p)return;
+  node.dataset.envKind=p.kind;node.dataset.envWeathered=String(p.weathered);
+  node.style.setProperty('--env-delay',(-p.phase)+'s');node.style.setProperty('--env-light',p.light.toFixed(3));node.style.setProperty('--env-shade',p.shade);
+  // Alpha-masked gradients affect only visible artwork, never its transparent bounding box.
+  const src=img.getAttribute('src');if(src&&/^data:image\/webp;base64,[A-Za-z0-9+/=]+$/.test(src)){
+   art.style.setProperty('--env-art-mask','url("'+src+'")');art.classList.add('env-lit-art');
+  }
+ }
+ return {profiles,draw,objectProfile,apply};
+})();
