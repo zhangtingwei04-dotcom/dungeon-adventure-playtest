@@ -4111,6 +4111,31 @@ html.stage-locked #app #travelFeed #travelRecent .diary-thought{font-size:14px}
 .recollection-details{font-size:12px;color:#aebba8;margin-top:5px}
 .recollection-details summary{cursor:pointer;min-height:26px}
 .recollection-details p{color:#c8c6b6}
+/* Scene-first tactical combat, using the same pixel creature and background. */
+#sceneStage #battleSurface{position:absolute;inset:0;z-index:9;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:3% 4%;pointer-events:auto;background:linear-gradient(180deg,#0d201a60,transparent 34%,transparent 55%,#0c1a16c0)}
+#sceneStage #battleSurface.hidden{display:none!important}
+#battleSurface .battle-head{width:min(86%,360px);text-align:center;color:#eee5ce;text-shadow:0 1px 3px #000;font-size:clamp(12px,1.6vw,18px)}
+#battleSurface .battle-meter{height:5px;border-radius:4px;background:#15241f;border:1px solid #a49a73;overflow:hidden;margin:4px auto;width:56%}
+#battleSurface .battle-meter span{display:block;height:100%;background:#b07861;transition:width .2s}
+#battleSurface .battle-creature{position:absolute;left:50%;top:46%;width:28%;height:34%;object-fit:contain;transform:translate(-50%,-50%);image-rendering:pixelated;filter:drop-shadow(0 6px 4px #0b1615bb);pointer-events:none;transition:transform .22s}
+#battleSurface[data-intent="pounce"] .battle-creature{transform:translate(-50%,-44%) scaleY(.82) scaleX(1.08)}
+#battleSurface[data-intent="heavy"] .battle-creature{transform:translate(-50%,-55%) scale(1.1)}
+#battleSurface[data-intent="exposed"] .battle-creature{transform:translate(-50%,-46%) rotate(-9deg)}
+#battleSurface[data-intent="watch"] .battle-creature{transform:translate(-50%,-50%) scale(.92)}
+#battleSurface[data-result="true"] .battle-creature{opacity:.3;transform:translate(-20%,-65%) scale(.65)}
+#battleSurface .battle-controls{position:relative;width:100%;padding:8px 10px;background:#132821ed;border:1px solid #b6a07577;border-radius:5px;box-shadow:0 3px 9px #06130f88}
+#battleSurface .battle-intent{color:#f0e1bb;font-size:clamp(11px,1.5vw,16px);line-height:1.35;margin:0 0 4px}
+#battleSurface .battle-feedback{font-size:clamp(10px,1.3vw,14px);line-height:1.3;color:#b5c4b1;min-height:1.3em;margin:0 0 6px}
+#battleSurface .battle-actions{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
+#battleSurface .battle-actions button{color:#eee4cd;background:#2e4539;border:1px solid #8f8861;border-radius:3px;min-width:0;min-height:32px;font-size:clamp(11px,1.5vw,16px);padding:4px 1px;white-space:nowrap}
+#battleSurface .battle-actions button:active{background:#51654b}
+#battleSurface[data-result="true"] .battle-actions{grid-template-columns:1fr}
+#app:has(#battleSurface:not(.hidden)) #travelFeed{opacity:.65}
+html.stage-locked #app #battleSurface .battle-head{font-size:19px}
+html.stage-locked #app #battleSurface .battle-intent{font-size:17px}
+html.stage-locked #app #battleSurface .battle-feedback{font-size:15px}
+html.stage-locked #app #battleSurface .battle-actions button{font-size:17px;min-height:38px}
+@media(prefers-reduced-motion:reduce){#battleSurface .battle-creature,#battleSurface .battle-meter span{transition:none}}
 /* One attention target at a time. */
 #app #travelFeed,#app #placeDrawer{transition:opacity .22s ease}
 #app.scene-dialogue-active #travelFeed,#app.scene-dialogue-active #placeDrawer,#app:has(#dialogVeil:not(.hidden)) #travelFeed,#app:has(#dialogVeil:not(.hidden)) #placeDrawer{opacity:.52}
@@ -4225,7 +4250,7 @@ html.stage-locked #app #travelFeed #travelRecent .diary-thought{font-size:14px}
  <path d="M8 45C15 32 30 35 30 21S41 8 51 14C56 17 53 24 48 23C45 22 46 19 49 19" fill="none" stroke="#b99359" stroke-width="2" stroke-linecap="round"/>
  <path d="M17 33Q8 31 8 23Q19 23 20 31M26 26Q31 12 41 15Q37 25 26 26M14 46Q23 37 31 43Q24 49 14 46" fill="#5a8558" stroke="#b5b079" stroke-width="1.1"/>
  <circle cx="31" cy="20" r="1.5" fill="#f2d99e"/>
- </svg><canvas id="view" aria-label="第一人稱冒險場景"></canvas><div id="dayTint" aria-hidden="true"></div><div id="shade"></div><canvas id="weatherOverlay" aria-hidden="true" hidden></canvas><div id="hotspots"></div><div id="sceneActors" aria-hidden="true"></div><div id="encounterCue" class="hidden" role="status" aria-live="polite"></div><div id="sceneDialogue" class="hidden" role="group" aria-label="場景對話，點擊繼續" tabindex="0"><div id="sceneDialoguePortrait" hidden aria-hidden="true"><img id="sceneDialoguePortraitImage" alt="" loading="eager" decoding="async"></div><div id="sceneDialogueName">旁白</div><p id="sceneDialogueText" aria-live="polite"></p><button id="sceneDialogueNext" type="button" aria-label="下一句">點擊繼續 ▸</button></div></section>
+ </svg><canvas id="view" aria-label="第一人稱冒險場景"></canvas><div id="dayTint" aria-hidden="true"></div><div id="shade"></div><canvas id="weatherOverlay" aria-hidden="true" hidden></canvas><div id="hotspots"></div><div id="sceneActors" aria-hidden="true"></div><section id="battleSurface" class="hidden" role="group" aria-label="遭遇戰"></section><div id="encounterCue" class="hidden" role="status" aria-live="polite"></div><div id="sceneDialogue" class="hidden" role="group" aria-label="場景對話，點擊繼續" tabindex="0"><div id="sceneDialoguePortrait" hidden aria-hidden="true"><img id="sceneDialoguePortraitImage" alt="" loading="eager" decoding="async"></div><div id="sceneDialogueName">旁白</div><p id="sceneDialogueText" aria-live="polite"></p><button id="sceneDialogueNext" type="button" aria-label="下一句">點擊繼續 ▸</button></div></section>
 <section id="sceneFuturePanel" aria-label="場景觀察、同行夥伴及探索紀錄">
  <div class="scene-info-column" aria-label="場景觀察">
   <div class="scene-info-heading">
@@ -7645,7 +7670,7 @@ function openWreckIntroduction(){
 }
 // Shared interaction policy; applies equally to narration, choices, inspections and encounters.
 function activeDialogueSurface(){
- for(const id of ['dialogVeil','sceneDialogue','sceneInspection','encounterCue']){
+ for(const id of ['dialogVeil','sceneDialogue','sceneInspection','encounterCue','battleSurface']){
   const el=$(id);
   if(el&&!el.classList.contains('hidden'))return el;
  }
@@ -7684,7 +7709,7 @@ for(const type of ['click','dblclick','pointerdown','pointerup','touchstart','to
  document.addEventListener(type,blockBackgroundDialogueInput,{capture:true,passive:false});
 }
 function change(scene,mode='walk'){
- if(activeDialogueSurface()||encounterPending||!names[scene]||scene===s.scene)return;
+ if(s.flags.inBattle||activeDialogueSurface()||encounterPending||!names[scene]||scene===s.scene)return;
  clearRouteAttention();closeSceneDialogue();
  closePlaceDrawer();
  if((s.scene==='wreck'&&!travelRoute('wreck',scene))||(travelRoute(s.scene,scene)&&!routeKnown(s.scene,scene))){toast('尚未發現這條道路，請先探索周圍。');return;}
@@ -7818,7 +7843,7 @@ function marks(){
  ],'現場觀察');
 }
 function light(){s.flags.lightSeen=true;note('light','空地的樹根旁有微光');dialog('樹根間的微光','你發現一件形狀奇怪的東西。它沒有立即展現任何用途，也無法確定是否安全。',[{label:'記下位置',fn:()=>note('lightMark','已在日誌記下微光所在位置')},{label:'收起碎片',fn:()=>{addUnique(s.items,'不明的微光碎片（測試物品）');s.flags.lightTaken=true;note('lightTake','取得一件來源不明的微光碎片');render();}},{label:'先不碰它',fn:()=>{}}],'未知發現');}
-function soundInForest(){if(!s.flags.creatureResolved&&(s.exploration?.counts?.clearing||0)>0&&window.DungeonSceneObjectsV1&&!window.DungeonSceneObjectsV1.creatureVisible(s)){dialog('林間暫時安靜','剛才的生物已離開這一帶。繼續探索，也許還會遇見牠。',[{label:'繼續觀察',fn:()=>{}}],'森林觀察');return;}if(s.flags.creatureResolved){dialog('寂靜再次降臨','那陣聲響沒有再出現。遠處的森林仍有許多你不認識的生物。',[{label:'離開',fn:()=>{}}]);return;}note('sound','林間傳來陌生生物的動靜');dialog('樹叢正在晃動','一隻陌生的林地生物從草葉後露出身影。它沒有立刻攻擊，只是警戒地注視著你。',[{label:'保持距離',fn:()=>{s.flags.creatureResolved=true;note('avoid','你選擇避開陌生生物');render();}},{label:'嘗試繞過',fn:()=>{s.flags.creatureResolved=true;note('avoid','你沒有和陌生生物發生衝突');render();}},{label:'進入戰鬥測試',fn:()=>battleStart()}],'未知遭遇');}
+function soundInForest(){if(!s.flags.creatureResolved&&(s.exploration?.counts?.clearing||0)>0&&window.DungeonSceneObjectsV1&&!window.DungeonSceneObjectsV1.creatureVisible(s)){dialog('林間暫時安靜','剛才的生物已離開這一帶。繼續探索，也許還會遇見牠。',[{label:'繼續觀察',fn:()=>{}}],'森林觀察');return;}if(s.flags.creatureResolved){dialog('寂靜再次降臨','那陣聲響沒有再出現。遠處的森林仍有許多你不認識的生物。',[{label:'離開',fn:()=>{}}]);return;}note('sound','林間傳來陌生生物的動靜');dialog('樹叢正在晃動','一隻陌生的林地生物從草葉後露出身影。它沒有立刻攻擊，只是警戒地注視著你。',[{label:'保持距離',fn:()=>{s.flags.creatureResolved=true;note('avoid','你選擇避開陌生生物');render();}},{label:'嘗試繞過',fn:()=>{s.flags.creatureResolved=true;note('avoid','你沒有和陌生生物發生衝突');render();}},{label:'迎戰',fn:()=>battleStart()}],'未知遭遇');}
 function ruinLook(){note('ruin','森林裡有一座被苔蘚覆蓋的舊石門');dialog('石門的另一面','古老的門框已失去原本的功能。遠處仍可看到朦朧的空間，但暫時沒有可以安全通行的路。',[{label:'記下這座遺構',fn:()=>note('ruinMark','已記錄無名石門的位置')},{label:'返回小徑',fn:()=>change('trail')}],'特殊探索');}
 function rescue(){beginForestEncounter();}
 function rescueTalk(four,tone){
@@ -7979,9 +8004,104 @@ function guildBoard(){const offers='公告板上有幾張委託：搬運市場�
 function roadsideSign(){if(!s.flags.roadSignSeen){s.flags.roadSignSeen=true;note('roadSign','發現近郊路口的舊路標');}dialog('霧中的舊路標','斑駁的木製路標仍站在岔路旁，箭頭有些鬆動，但路面本身可以通行。\n\n你可以記住它的狀況，也可以什麼都不做、繼續欣賞遠方的山林。',[{label:'記下這條路',fn:()=>note('roadMark','已記錄城外近郊路線')},{label:'返回城鎮',fn:()=>change('street')},{label:'再待一會兒',fn:()=>render()}],'近郊探索');}
 function countryside(){dialog('遠處的森林','視線越過路口，遠方樹影隨風起伏。你聽見不知名的小動物穿過草叢，卻沒有看清牠的模樣。\n\n這一帶暫時沒有必須完成的事件。更深的野外冒險將在後續版本開放。',[{label:'記住這片景色',fn:()=>note('landscape','在近郊眺望尚未探索的森林')},{label:'安靜離開',fn:()=>{}}],'未知的邊界');}
 function rest(){s.hp=s.maxHp;advanceGameTime(20,'rest');clearTimePreview();addTravel('daily','短暫休息約20分鐘，體力恢復了（'+gameTime(s.worldMinutes)+'）。','現在感覺好多了。');save();toast('短暫休息後，體力恢復了。');render();}
-function battleStart(){s.flags.inBattle=true;s.flags.monsterHp=12;s.flags.guarding=false;save();battleDialog('陌生生物擺出警戒姿勢。這是一場可選的回合制操作測試。');}
-function battleDialog(text){const m=s.flags.monsterHp||0;const choices=[];if(m>0&&s.hp>0){choices.push({label:'攻擊',fn:()=>battleTurn('attack')},{label:'防禦',fn:()=>battleTurn('guard')},{label:'撤退',fn:()=>battleTurn('retreat')});}else{choices.push({label:'返回探索',fn:()=>{s.flags.inBattle=false;s.flags.creatureResolved=true;render();}});}dialog('遭遇戰 · 林地生物',`你的體力 ${s.hp}/${s.maxHp}　|　對手狀態 ${Math.max(0,m)}/12\n\n${text}`,choices,'戰鬥測試',true);}
-function battleTurn(kind){if(kind==='retreat'){s.flags.inBattle=false;s.flags.creatureResolved=true;note('retreat','你選擇脫離戰鬥');render();return;}let text='';let damage=0;if(kind==='attack'){damage=4+(s.seed+s.hp+s.flags.monsterHp)%3;s.flags.monsterHp=Math.max(0,s.flags.monsterHp-damage);text=`你擊中對方，造成 ${damage} 點傷害。`; }else{text='你穩住腳步，準備防禦。';}addTravel('combat',text,'下一步得保持警覺。');if(s.flags.monsterHp<=0){s.flags.creatureResolved=true;s.flags.inBattle=false;note('victory','你完成一次陌生生物遭遇戰');s.flags.battles=(s.flags.battles||0)+1;dialog('戰鬥結束',text+'\n\n生物後退，消失在草叢深處。你留下了少量關於牠行動方式的記憶。',[{label:'繼續探索',fn:()=>render()}],'戰鬥結果',true);save();return;}const hit=kind==='guard'?1:3;s.hp=Math.max(0,s.hp-hit);text+=`\n對方反擊，你受到 ${hit} 點傷害。`;addTravel('combat',`對方反擊，你受到 ${hit} 點傷害。`,'不能大意。');if(s.hp===0){s.flags.inBattle=false;s.flags.creatureResolved=true;s.hp=5;note('defeat','你在林間體力不支，稍後重新站起');dialog('暫時失去意識','你在林間倒下。過了一段時間才再次醒來，身體虛弱。\n\n這是原型的安全失敗處理，並不代表主角的「活遺物」能力已經覺醒。',[{label:'返回小徑',fn:()=>change('trail')}],'測試規則',true);}else{battleDialog(text);}renderPlayerStatus();save();}
+// Pure turn resolution shared by the scene UI and future combatants.
+const BATTLE_INTENTS=Object.freeze({
+ pounce:'牠壓低身體，後腿微微繃緊。',
+ heavy:'牠抬起前肢，身體向後蓄力。',
+ watch:'牠停下腳步，盯著你的動作。',
+ exposed:'牠失去平衡，露出了側腹。'
+});
+function resolveBattleTurn(previous,playerHp,action,ground={}){
+ const state={...previous},intent=BATTLE_INTENTS[state.intent]?state.intent:'watch';
+ const hp=Math.max(0,Number(playerHp)||0),slippery=!!ground.slippery;
+ if(state.result||!['attack','guard','dodge','observe','retreat'].includes(action))return {state,hp,damage:0,hit:0};
+ state.turn++;let damage=0,hit=0,feedback='',next='watch';
+ if(action==='retreat'){
+  hit=intent==='pounce'?(state.braced?0:2):intent==='heavy'?(state.braced?0:1):0;
+  state.result=hp<=hit?'defeat':'retreat';feedback=hit?'你趁機拉開距離，但被擦傷。':'你慢慢退開，牠沒有追上來。';
+ }else if(action==='attack'){
+  damage=(intent==='exposed'?6:3)+(state.focused?2:0);
+  hit=intent==='pounce'?4:intent==='heavy'?5:intent==='watch'?1:0;
+  next=intent==='exposed'?'watch':intent==='watch'?'heavy':'watch';
+  feedback=intent==='exposed'?'你抓住破綻，擊中牠的側腹。':'你上前攻擊。';
+  state.focused=false;
+ }else if(action==='guard'){
+  hit=intent==='heavy'?1:intent==='pounce'?2:0;next=intent==='heavy'?'exposed':intent==='watch'?'pounce':'heavy';
+  feedback=intent==='heavy'?'你擋下重擊，牠失去平衡。':'你穩住腳步，護住身體。';
+ }else if(action==='dodge'){
+  hit=intent==='pounce'?(slippery?1:0):intent==='heavy'?(slippery?3:2):0;
+  next=intent==='pounce'?'exposed':intent==='watch'?'heavy':'watch';
+  feedback=intent==='pounce'?'你側身避開撲擊，牠撲空了。':intent==='heavy'?'牠的攻擊範圍比預期更廣。':'你拉開了身位。';
+  if(slippery&&hit)feedback+='地面有些濕滑。';
+ }else{
+  hit=intent==='pounce'?3:intent==='heavy'?4:0;state.focused=true;
+  next=intent==='watch'?'pounce':intent==='exposed'?'watch':'heavy';
+  feedback=intent==='watch'?'你看清牠的重心，下一次攻擊更容易命中。':'你留意牠的動作，找出了薄弱位置。';
+ }
+ state.braced=action==='guard'||action==='dodge';
+ state.enemyHp=Math.max(0,state.enemyHp-damage);
+ if(!state.result&&state.enemyHp<=3){state.result='victory';hit=0;feedback+=' 牠退縮了，不再想繼續戰鬥。';}
+ const nextHp=Math.max(0,hp-hit);
+ if(nextHp===0)state.result='defeat';
+ state.intent=next;state.feedback=feedback+(damage?' 造成 '+damage+' 點傷害。':'')+(hit?' 受到 '+hit+' 點傷害。':'');
+ return {state,hp:nextHp,damage,hit};
+}
+function normalizeBattle(){
+ const old=s.flags.battleV2;
+ if(!old||!Number.isFinite(old.enemyHp)||!Number.isInteger(old.turn)||!BATTLE_INTENTS[old.intent]){
+  s.flags.battleV2={enemyHp:Math.min(12,Math.max(0,Number(s.flags.monsterHp??12))),turn:0,intent:'pounce',focused:false,braced:false,result:null,feedback:'牠警戒地盯著你。'};
+ }
+ return s.flags.battleV2;
+}
+let lastBattleAction=0;
+function battleStart(){
+ if(s.flags.inBattle)return;
+ s.flags.inBattle=true;s.flags.monsterHp=12;s.flags.battleV2={enemyHp:12,turn:0,intent:'pounce',focused:false,braced:false,result:null,feedback:'牠警戒地盯著你。'};
+ lastBattleAction=0;save();render();battleDialog();
+}
+function renderBattleSurface(){
+ const host=$('battleSurface');
+ if(!s.flags.inBattle||!$('startVeil').classList.contains('hidden')){host.classList.add('hidden');syncDialogueInputLock();return;}
+ const state=normalizeBattle();
+ host.classList.remove('hidden');host.dataset.intent=state.intent;host.dataset.result=String(!!state.result);
+ host.replaceChildren();
+ const head=document.createElement('div');head.className='battle-head';head.textContent='陌生林地生物 · '+(state.result?'遭遇結束':'第 '+(state.turn+1)+' 回合');
+ const meter=document.createElement('div');meter.className='battle-meter';meter.setAttribute('aria-label','對手狀態');const fill=document.createElement('span');fill.style.width=state.enemyHp/12*100+'%';meter.appendChild(fill);head.appendChild(meter);
+ const sprite=document.createElement('canvas');sprite.className='battle-creature';sprite.setAttribute('aria-hidden','true');window.DungeonSceneObjectsV1?.sprite(sprite,'creature');
+ const controls=document.createElement('div');controls.className='battle-controls';
+ const intent=document.createElement('p');intent.className='battle-intent';
+ intent.textContent=state.result?({victory:'牠退回了林中。',retreat:'你已脫離遭遇。',defeat:'你體力不支，倒了下來。'}[state.result]):BATTLE_INTENTS[state.intent];
+ const feedback=document.createElement('p');feedback.className='battle-feedback';feedback.setAttribute('aria-live','polite');feedback.textContent=state.feedback||'';
+ const choices=document.createElement('div');choices.className='battle-actions';
+ const buttons=state.result?[['finish',state.result==='defeat'?'稍後醒來':'繼續探索']]:[['attack','攻擊'],['guard','防禦'],['dodge','閃避'],['observe','觀察'],['retreat','撤離']];
+ for(const [id,label] of buttons){const button=document.createElement('button');button.type='button';button.textContent=label;button.onclick=()=>id==='finish'?finishBattle():battleTurn(id);choices.appendChild(button);}
+ controls.append(intent,feedback,choices);host.append(head,sprite,controls);syncDialogueInputLock();
+}
+function battleDialog(){renderBattleSurface();}
+function battleTurn(kind){
+ if(!s.flags.inBattle)return;
+ const now=Date.now();if(now-lastBattleAction<300)return;lastBattleAction=now;
+ const current=normalizeBattle();if(current.result)return;
+ const weather=window.DungeonWeatherV1?.at(s.seed,s.worldMinutes,s.scene)||{};
+ const result=resolveBattleTurn(current,s.hp,kind,{slippery:weather.puddles>.35||weather.snowCover>.4||weather.frost>.45});
+ s.flags.battleV2=result.state;s.flags.monsterHp=result.state.enemyHp;s.hp=result.hp;
+ advanceGameTime(1,'combat');syncTimeAtmosphere();
+ if(result.state.result){
+  const outcome=result.state.result;
+  const text=outcome==='victory'?'擊退陌生林地生物。':outcome==='retreat'?'從陌生林地生物身旁撤離。':'與陌生林地生物遭遇時體力不支。';
+  addTravel('combat',text,outcome==='victory'?'牠的行動有跡可循。':'往後得更小心。');
+  if(outcome==='victory')s.flags.battles=(s.flags.battles||0)+1;
+ }
+ save();renderPlayerStatus();renderFeed();renderPlaceDrawer();renderBattleSurface();
+}
+function finishBattle(){
+ if(!s.flags.inBattle)return;
+ const state=normalizeBattle();if(!state.result)return;
+ s.flags.inBattle=false;s.flags.creatureResolved=true;
+ if(state.result==='defeat'){s.hp=Math.min(s.maxHp,5);advanceGameTime(20,'combat-recovery');}
+ $('battleSurface').classList.add('hidden');syncDialogueInputLock();save();render();
+}
+
 function entries(){const a={
  wreck:[routeAction(openingView().exhausted?'循著車轍前往小徑':'沿著道路離開','trail',()=>change('trail'),true),action('查看倒塌貨箱',glance),action('查看車輪痕跡',marks)],
  trail:[routeAction(s.flags.rescued?'前往城鎮':'沿道路繼續前進','gate',rescue,true),action(s.recovery.found?'調查舊馬車殘骸':'搜索林邊 · 12分鐘',searchForest,false,true),...(s.recovery.found?[action('留意甲蟲活動痕跡 · 8分鐘',()=>forestRareCheck('beetle'))]:[]),...(s.recovery.found&&s.beetle.questAccepted&&!s.beetle.captured?[action('設置甲蟲誘捕盒 · 10分鐘',captureRustBeetle)]:[]),routeAction('進入林間空地','clearing',()=>change('clearing')),routeAction('走近舊石門','ruin',()=>change('ruin')),action('查看路旁舊石碑',inspectTrailMarker),routeAction('返回馬車','wreck',()=>change('wreck'))],
@@ -8137,7 +8257,7 @@ function render(){if(!names[s.scene])s.scene='wreck';normalizeGameTime();tickBee
 };$('narrative').textContent=texts[s.scene];$('actions').replaceChildren();const available=entries();const primary=available.find(a=>a.primary)||available[0];
 if(primary){const b=document.createElement('button');b.className='action primary';setActionVisual(b,/探索|觀察/.test(primary.title)?'explore':'route',primary.title);b.title='主要行動；點擊執行';b.onclick=()=>guardedAction(primary.fn);$('actions').appendChild(b);}
 const quick=available.find(a=>a.quick&&a!==primary);if(quick){const b=document.createElement('button');b.className='action explore';setActionVisual(b,'explore',quick.title);b.onclick=()=>guardedAction(quick.fn);$('actions').appendChild(b);}
-/* Secondary interactions are now grouped under the right-side place drawer. */renderHotspots();renderFeed();renderPlaceDrawer();renderSceneInfoBar();renderOpeningObjective();save();}
+/* Secondary interactions are now grouped under the right-side place drawer. */renderHotspots();renderFeed();renderPlaceDrawer();renderSceneInfoBar();renderOpeningObjective();renderBattleSurface();save();}
 function interactSceneObject(id){
  const engine=window.DungeonSceneObjectsV1;
  if(!engine||encounterPending||modal||s.flags.inBattle||$('app').classList.contains('scene-dialogue-active'))return;
@@ -8545,6 +8665,7 @@ const active=activeDialogueSurface();
    return;
   }
   if(e.key==='Escape'){e.preventDefault();if(active.id==='dialogVeil')closeDialog();else if(active.id==='sceneInspection')hideSceneInspection();return;}
+  if(active.id==='battleSurface'&&/^[1-5]$/.test(e.key)){e.preventDefault();active.querySelectorAll('.battle-actions button')[Number(e.key)-1]?.click();return;}
   if(active.id==='dialogVeil'&&/^[123]$/.test(e.key)){e.preventDefault();$('dialogChoices').querySelectorAll('button')[Number(e.key)-1]?.click();return;}
   if(!active.contains(e.target)||!['Enter',' ','ArrowUp','ArrowDown','PageUp','PageDown'].includes(e.key))e.preventDefault();
   return;
