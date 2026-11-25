@@ -4249,6 +4249,7 @@ html.stage-locked #app #topGameHud #hudPhase{font-size:clamp(10px,1.65vw,17px)}
  <p id="sceneInspectionText"></p><div class="inspection-actions" id="sceneInspectionActions"></div>
 </section>
 <div id="toast" role="status"></div>
+<div id="saveFaultNotice" role="alert" hidden style="position:fixed;left:50%;bottom:8px;transform:translateX(-50%);z-index:9999;max-width:90vw;padding:6px 12px;border:1px solid #e0b67b;background:#492e20;color:#fff2d5;font-size:12px;border-radius:6px;pointer-events:none">存檔尚未成功，請勿關閉遊戲，先確認存檔或匯出資料。</div>
 <section id="travelFeed" class="travel-feed" aria-label="生活與冒險紀錄"><div class="travel-head"><svg class="travel-book" aria-hidden="true" viewBox="0 0 28 25" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 5C10 2.6 5.1 2.3 2 3.3v16.5c4.3-1.4 8.5-.5 12 2.1V5Zm0 0c4-2.4 8.9-2.7 12-1.7v16.5c-4.3-1.4-8.5-.5-12 2.1V5Z" fill="#c5a472" stroke="#f1d39b" stroke-width="1.2"/><path d="M14 6.1v14.1M5.4 7.3c2.2-.2 4 .2 5.6 1M5.4 11c2.2-.2 4 .2 5.6 1m11.6-4.7c-2.2-.2-4 .2-5.6 1m5.6 2.7c-2.2-.2-4 .2-5.6 1" stroke="#6b5435" stroke-width="1.1" stroke-linecap="round"/></svg><strong>旅途紀錄</strong><button id="travelToggle" type="button" aria-expanded="true">收合</button></div><div class="travel-inner"><div class="travel-log-scroll" id="travelLogScroll" role="log" aria-label="旅途訊息" aria-live="polite" aria-relevant="additions"><div id="travelRecent"></div></div><div class="travel-footer"><div class="travel-target-label">目前可前往／互動</div><div class="travel-targets" id="travelTargets"></div><button class="travel-journal-link" id="travelOpenJournal" type="button">全部旅途紀錄</button></div></div><svg class="travel-feather" aria-hidden="true" viewBox="0 0 42 73" xmlns="http://www.w3.org/2000/svg">
 <path d="M7 70 Q18 55 19 40 Q11 26 20 14 Q27 3 38 2 Q43 21 34 36 Q31 44 22 48 Q18 62 7 70Z" fill="#8e6944" stroke="#4b3b28" stroke-width="1.4"/>
 <path d="M19 46 Q23 25 38 2 M11 62 Q23 43 35 25" fill="none" stroke="#d5ad70" stroke-width="1.1"/>
@@ -4306,6 +4307,8 @@ html.stage-locked #app #topGameHud #hudPhase{font-size:clamp(10px,1.65vw,17px)}
 <script src="./assets/render_resources_v1.js?v=1"></script>
 <script src="./assets/performance_monitor_v1.js?v=1"></script>
 <script src="./assets/adaptive_quality_v1.js?v=1"></script>
+<script src="./assets/fault_isolation_v1.js?v=1"></script>
+<script>window.DungeonRuntimeFaultsV1=window.DungeonFaultIsolationV1.create();</script>
 <script>
 // Current scene is the sole base. D remains an explicit research preview.
 window.DUNGEON_FOREST_V4_LAYOUT=window.DUNGEON_WRECK_CURRENT_LAYOUT;
@@ -7417,7 +7420,14 @@ function renderFeed(){
  }
 }
 const addUnique=(arr,value)=>{if(!arr.includes(value))arr.push(value);};
-function save(){window.DungeonWeatherV1?.exposure(s,INDOOR_SCENES.has(s.scene));try{return window.DungeonSaveV1.write(localStorage,KEY,s,names);}catch{return false;}};
+function save(){
+ const faults=window.DungeonRuntimeFaultsV1,notice=$('saveFaultNotice');
+ let ok=false;
+ try{window.DungeonWeatherV1?.exposure(s,INDOOR_SCENES.has(s.scene));ok=window.DungeonSaveV1.write(localStorage,KEY,s,names)===true;}
+ catch(error){faults.fail('core.save',error);if(notice)notice.hidden=false;throw error;}
+ if(ok)faults.recover('core.save');else faults.fail('core.save',Error('Save not committed'));
+ if(notice)notice.hidden=ok;return ok;
+};
 function toast(msg){$('toast').textContent=msg;$('toast').classList.add('active');clearTimeout(toastHandle);toastHandle=setTimeout(()=>$('toast').classList.remove('active'),2400);}
 function beep(f=440){if(!s.sound)return;try{const AC=window.AudioContext||window.webkitAudioContext;const ctx=new AC(),osc=ctx.createOscillator(),gain=ctx.createGain();osc.type='sine';osc.frequency.value=f;gain.gain.setValueAtTime(.035,ctx.currentTime);gain.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.16);osc.connect(gain).connect(ctx.destination);osc.start();osc.stop(ctx.currentTime+.18);setTimeout(()=>ctx.close(),400);}catch{}}
 function note(id,msg){window.DungeonEventsV1.discovery(s,id,msg,discoveryThought[id]||'我先把這件事記下來。');save();toast('已記錄：'+msg);beep(680);}
@@ -8252,14 +8262,16 @@ window.DungeonWeatherV1?.bind($('weatherOverlay'));
 let t=0,last=0;
 const renderPerf=window.DungeonPerformanceV1.create({enabled:DEV_PREVIEW_MODE&&new URLSearchParams(location.search).get('perf')==='1'});
 const perfMeasure=(name,fn)=>renderPerf?renderPerf.measure(name,fn):fn();
+const runtimeFaults=window.DungeonRuntimeFaultsV1;
+const runVisual=(name,fn,options)=>runtimeFaults.run(name,()=>perfMeasure(name,fn),options);
 const qualityParam=DEV_PREVIEW_MODE?new URLSearchParams(location.search).get('quality'):null;
 const fixedQuality=({full:0,balanced:1,light:2})[qualityParam]??null;
 const adaptiveQuality=window.DungeonAdaptiveQualityV1.create({fixed:fixedQuality});
 document.addEventListener('visibilitychange',()=>{if(document.hidden){renderPerf?.pause();adaptiveQuality.pause();}});
 const emptyForest=new Image();let emptyForestReady=false;
 emptyForest.decoding='async';
-emptyForest.onload=()=>{renderPerf?.finish('forest',true);emptyForestReady=emptyForest.naturalWidth>0;if(s.scene==='wreck'){refreshSceneFraming();renderHotspots();sceneDraw(t);}};
-emptyForest.onerror=()=>{renderPerf?.finish('forest',false);emptyForestReady=false;console.warn('Empty forest preview unavailable; preserving original wagon art.');};
+emptyForest.onload=()=>{runtimeFaults.recover('image.forest');renderPerf?.finish('forest',true);emptyForestReady=emptyForest.naturalWidth>0;if(s.scene==='wreck'){refreshSceneFraming();renderHotspots();sceneDraw(t);}};
+ emptyForest.onerror=()=>{runtimeFaults.fail('image.forest',Error('Image load failed'));renderPerf?.finish('forest',false);emptyForestReady=false;console.warn('Empty forest preview unavailable; preserving original wagon art.');};
 let editorForestSrc=null;
 if(DEV_PREVIEW_MODE&&new URLSearchParams(location.search).get('forest')==='editor'){try{const b=JSON.parse(localStorage.getItem('dungeon_scene_editor_v1_backgrounds'));if(typeof b?.wreck?.src==='string'&&/^data:image\/(png|webp|jpeg);base64,/.test(b.wreck.src))editorForestSrc=b.wreck.src;}catch{}}
 const forestMode=new URLSearchParams(location.search).get('forest');
@@ -8268,22 +8280,22 @@ const forestV4Selected=forestMode!=='original'&&forestMode!=='old'&&forestMode!=
 const neutralForestSelected=forestV4Selected&&!!window.DUNGEON_FOREST_V5_BACKGROUND?.src;
 if(forestMode!=='original'&&(editorForestSrc||forestV4Selected||window.DUNGEON_WRECK_EMPTY_FOREST)){renderPerf?.start('forest');emptyForest.src=editorForestSrc||(forestV4Selected?(neutralForestSelected?window.DUNGEON_FOREST_V5_BACKGROUND.src:window.DUNGEON_FOREST_V4_BACKGROUND.src):window.DUNGEON_WRECK_EMPTY_FOREST);}
 const approvedWreck=new Image();let approvedWreckReady=false;
-approvedWreck.onload=()=>{
+approvedWreck.onload=()=>{runtimeFaults.recover('image.wagon');
  renderPerf?.finish('wagon',true);
  approvedWreckReady=approvedWreck.naturalWidth>0;
  if(s.scene==='wreck'){refreshSceneFraming();renderHotspots();sceneDraw(t);}
 };
-approvedWreck.onerror=()=>{renderPerf?.finish('wagon',false);approvedWreckReady=false;console.warn('Approved first scene art failed to load.');};
+ approvedWreck.onerror=()=>{runtimeFaults.fail('image.wagon',Error('Image load failed'));renderPerf?.finish('wagon',false);approvedWreckReady=false;console.warn('Approved first scene art failed to load.');};
 approvedWreck.decoding='async';
 if(window.DUNGEON_APPROVED_WAGON){renderPerf?.start('wagon');approvedWreck.src=window.DUNGEON_APPROVED_WAGON;}
 const wreckPanorama=new Image();let wreckPanoramaReady=false;
 const trailForest=new Image();let trailForestReady=false;
-trailForest.onload=()=>{
+trailForest.onload=()=>{runtimeFaults.recover('image.trail');
  renderPerf?.finish('trail',true);
  trailForestReady=trailForest.naturalWidth>0;
  if(s.scene==='trail'){refreshSceneFraming();renderHotspots();sceneDraw(t);}
 };
-trailForest.onerror=()=>{renderPerf?.finish('trail',false);trailForestReady=false;trailArtFailed=true;console.warn('Forest trail artwork unavailable; using fallback.');};
+ trailForest.onerror=()=>{runtimeFaults.fail('image.trail',Error('Image load failed'));renderPerf?.finish('trail',false);trailForestReady=false;trailArtFailed=true;console.warn('Forest trail artwork unavailable; using fallback.');};
 trailForest.decoding='async';
 let trailArtFailed=!window.TRAIL_FOREST_DATA_URL;
 const requestTrailArt=window.DungeonRenderResourcesV1.onceLoad(()=>{if(window.TRAIL_FOREST_DATA_URL){renderPerf?.start('trail');trailForest.src=window.TRAIL_FOREST_DATA_URL;}});
@@ -8299,11 +8311,11 @@ function prepareWreckBackdrop(){
  bctx.drawImage(wreckPanorama,sourceX,0,sourceWidth,h,-16,-16,W+32,H+32);
  bctx.restore();return canvas;
 }
-wreckPanorama.onload=()=>{renderPerf?.finish('panorama',true);wreckPanoramaReady=wreckPanorama.naturalWidth>0;
+wreckPanorama.onload=()=>{runtimeFaults.recover('image.panorama');renderPerf?.finish('panorama',true);wreckPanoramaReady=wreckPanorama.naturalWidth>0;
  wreckBlurBackdrop=wreckPanoramaReady?prepareWreckBackdrop():null;
  if(s.scene==='wreck'||s.scene==='trail'){refreshSceneFraming();renderHotspots();sceneDraw(t);}
 };
-wreckPanorama.onerror=()=>{renderPerf?.finish('panorama',false);wreckPanoramaReady=false;console.warn('Wreck panorama unavailable; using original procedural drawing.');};
+ wreckPanorama.onerror=()=>{runtimeFaults.fail('image.panorama',Error('Image load failed'));renderPerf?.finish('panorama',false);wreckPanoramaReady=false;console.warn('Wreck panorama unavailable; using original procedural drawing.');};
 wreckPanorama.decoding='async';
 const requestWreckPanorama=window.DungeonRenderResourcesV1.onceLoad(()=>{renderPerf?.start('panorama');wreckPanorama.src='./assets/wreck_panorama_v1.webp';});
 function ensureSceneArt(sceneId){
@@ -8419,13 +8431,19 @@ function drawLocationThumbnail(ms){
  cv.dataset.drawn=id;
 }
 
-function size(){const d=Math.min(devicePixelRatio||1,1.5);can.width=Math.floor(W*d);can.height=Math.floor(H*d);ctx.setTransform(d,0,0,d,0,0);}size();window.addEventListener('resize',()=>{size();refreshSceneFraming();renderHotspots();});refreshSceneFraming();const wildlifeMotionQuery=window.matchMedia('(prefers-reduced-motion: reduce)');if(renderPerf)Object.defineProperty(window,'DungeonPerformanceSnapshotV1',{value:()=>renderPerf.snapshot({scene:s.scene,thumbnailCache:locationThumbAssets.size(),thumbnailCacheLimit:24,domNodes:document.getElementsByTagName('*').length,heapBytes:performance.memory?.usedJSHeapSize??null,hidden:document.hidden,adaptiveQuality:adaptiveQuality.snapshot()})});
+function size(){const d=Math.min(devicePixelRatio||1,1.5);can.width=Math.floor(W*d);can.height=Math.floor(H*d);ctx.setTransform(d,0,0,d,0,0);}size();window.addEventListener('resize',()=>{size();refreshSceneFraming();renderHotspots();});refreshSceneFraming();const wildlifeMotionQuery=window.matchMedia('(prefers-reduced-motion: reduce)');if(renderPerf)Object.defineProperty(window,'DungeonPerformanceSnapshotV1',{value:()=>renderPerf.snapshot({scene:s.scene,thumbnailCache:locationThumbAssets.size(),thumbnailCacheLimit:24,domNodes:document.getElementsByTagName('*').length,heapBytes:performance.memory?.usedJSHeapSize??null,hidden:document.hidden,adaptiveQuality:adaptiveQuality.snapshot(),runtimeFaults:runtimeFaults.snapshot(),saveState:window.DungeonSaveV1.diagnostics().state})});
 function frame(ms){
  requestAnimationFrame(frame);
- if(document.hidden){window.DungeonSceneEnvironmentV1?.tickWildlife(ms,false);return;}
+ if(document.hidden){runVisual('wildlife',()=>window.DungeonSceneEnvironmentV1?.tickWildlife(ms,false));return;}
  adaptiveQuality.sample(ms);renderPerf?.frame(ms);
- perfMeasure('wildlife',()=>window.DungeonSceneEnvironmentV1?.tickWildlife(ms,s.scene==='wreck'&&!wildlifeMotionQuery.matches,previewWeather||currentWeather?.kind||'clear'));
- if(ms-last>68){t=ms/1000;renderPerf?.draw(ms);try{perfMeasure('scene',()=>sceneDraw(t));}finally{perfMeasure('weather',()=>window.DungeonWeatherV1?.draw(ms,adaptiveQuality.profile().particleScale));try{perfMeasure('thumbnail',()=>drawLocationThumbnail(ms));}catch(err){/* Thumbnail never interrupts gameplay. */}last=ms;}}
+ runVisual('wildlife',()=>window.DungeonSceneEnvironmentV1?.tickWildlife(ms,s.scene==='wreck'&&!wildlifeMotionQuery.matches,previewWeather||currentWeather?.kind||'clear'));
+ if(ms-last>68){
+  t=ms/1000;renderPerf?.draw(ms);
+  runVisual('scene',()=>sceneDraw(t));
+  runVisual('weather',()=>window.DungeonWeatherV1?.draw(ms,adaptiveQuality.profile().particleScale));
+  runVisual('thumbnail',()=>drawLocationThumbnail(ms),{cooldown:3000,threshold:3});
+  last=ms;
+ }
 }requestAnimationFrame(frame);render();
 })();
 </script>
