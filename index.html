@@ -4289,7 +4289,7 @@ html.stage-locked #app #topGameHud #hudPhase{font-size:clamp(10px,1.65vw,17px)}
 <div class="bottom"><div><div class="actions" id="actions"></div></div><div class="sidebar"><div class="chips"><span class="chip" id="chapterChip">第一章</span><span class="chip" id="partyChip">獨自一人</span><span class="chip level" id="hpChip">體力 16/16</span></div><button id="mapBtn">◇ 探索紀錄</button></div></div>
 <div class="veil hidden" id="dialogVeil"><section class="panel" role="dialog" aria-modal="true" aria-labelledby="dialogTitle"><div class="panel-head"><div><div class="kicker" id="dialogKicker">發現</div><h2 id="dialogTitle"></h2></div><div id="dialogCharacter" aria-label="目前發言人物"><canvas id="dialogCharacterCanvas" width="48" height="64" aria-hidden="true"></canvas><span id="dialogCharacterName"></span></div><button class="close" id="dialogClose" aria-label="關閉">×</button></div><p id="dialogText"></p><div class="choices" id="dialogChoices"></div></section></div>
 <div class="veil hidden" id="journalVeil"><section class="panel journal" role="dialog" aria-modal="true"><div class="panel-head"><div><div class="kicker">FIELD NOTES</div><h2>旅程日誌</h2></div><button class="close" id="journalClose">×</button></div><div class="journal-tabs" id="journalTabs"></div><div id="journalContent"></div><div class="line"></div><p class="meta">本版本使用瀏覽器本機儲存，並未連接《鱗片與種子》的雲端存檔。可在設定中匯出備份。</p></section></div>
-<div class="veil hidden" id="menuVeil"><section class="panel" role="dialog" aria-modal="true"><div class="panel-head"><div><div class="kicker">OPTIONS</div><h2>探索設定</h2></div><button class="close" id="menuClose">×</button></div><p id="menuStatus">遊戲會自動在本機儲存。</p><div class="choices"><button class="choice" id="soundBtn">音效：關閉</button><button class="choice" id="exportBtn">匯出存檔</button><button class="choice" id="importBtn">匯入存檔</button><button class="choice" id="restartBtn">重新開始</button></div><div class="line"></div><div class="phase-preview-heading">光線預覽 · 不修改遊戲時間</div><p class="phase-preview-explain">只預覽場景光線，不會跳過事件或改動存檔。畫面右上角可結束預覽。</p><div class="choices phase-preview-options"><button class="choice" type="button" data-preview-period="dawn">清晨</button><button class="choice" type="button" data-preview-period="day">白天</button><button class="choice" type="button" data-preview-period="dusk">黃昏</button><button class="choice" type="button" data-preview-period="night">夜晚</button></div><div class="line"></div><div class="phase-preview-heading" id="weatherSettingsHeading">天氣預覽 · 不修改存檔</div><p class="phase-preview-explain">可隨時查看場景的天氣效果。降雪預覽約20秒、暴風雪約10秒累積至全雪地；返回自然天氣後依遊戲時間變化。</p><div class="choices phase-preview-options"><button class="choice" type="button" data-preview-weather="clear">晴朗</button><button class="choice" type="button" data-preview-weather="cloudy">陰天</button><button class="choice" type="button" data-preview-weather="fog">薄霧</button><button class="choice" type="button" data-preview-weather="drizzle">細雨</button><button class="choice" type="button" data-preview-weather="rain">降雨</button><button class="choice" type="button" data-preview-weather="storm">雷雨</button><button class="choice" type="button" data-preview-weather="snow">降雪</button><button class="choice" type="button" data-preview-weather="blizzard">暴風雪</button><button class="choice" type="button" data-preview-weather="auto">自然天氣</button></div><div class="line"></div><div class="phase-preview-heading">風力預覽 · 不修改存檔</div><p class="phase-preview-explain">獨立調整風力及畫面風向；不影響降雨、降雪量或正式遊戲時間。</p><div class="choices phase-preview-options"><button class="choice" type="button" data-preview-wind="0">0級 無風</button><button class="choice" type="button" data-preview-wind="1">1級 微風</button><button class="choice" type="button" data-preview-wind="2">2級 輕風</button><button class="choice" type="button" data-preview-wind="3">3級 強風</button><button class="choice" type="button" data-preview-wind="4">4級 烈風</button><button class="choice" type="button" data-preview-wind="5">5級 暴風</button><button class="choice" type="button" data-preview-wind="auto">自然風力</button></div><div class="choices phase-preview-options"><button class="choice" type="button" data-preview-wind-dir="-1">向左吹 ←</button><button class="choice" type="button" data-preview-wind-dir="1">向右吹 →</button><button class="choice" type="button" data-preview-wind-dir="auto">自然風向</button></div><input id="fileInput" type="file" accept="application/json" class="hidden"><div class="line"></div><div class="note">V0.5.1 測試版本：第二章的公會、委託與人物對話是可修改的玩法草案。人物稱呼仍為佔位，主角身體來歷、復活原因及正式戰鬥方式都尚未定案。</div></section></div>
+<div class="veil hidden" id="menuVeil"><section class="panel" role="dialog" aria-modal="true"><div class="panel-head"><div><div class="kicker">OPTIONS</div><h2>探索設定</h2></div><button class="close" id="menuClose">×</button></div><p id="menuStatus">遊戲會自動在本機儲存。</p><div class="choices"><button class="choice" id="soundBtn">音效：關閉</button><button class="choice" id="exportBtn">匯出存檔</button><button class="choice" id="importBtn">匯入存檔</button><button class="choice" id="restartBtn">重新開始</button></div><button class="choice" type="button" id="engineDiagnosticsBtn">共用核心診斷</button><div class="line"></div><div class="phase-preview-heading">光線預覽 · 不修改遊戲時間</div><p class="phase-preview-explain">只預覽場景光線，不會跳過事件或改動存檔。畫面右上角可結束預覽。</p><div class="choices phase-preview-options"><button class="choice" type="button" data-preview-period="dawn">清晨</button><button class="choice" type="button" data-preview-period="day">白天</button><button class="choice" type="button" data-preview-period="dusk">黃昏</button><button class="choice" type="button" data-preview-period="night">夜晚</button></div><div class="line"></div><div class="phase-preview-heading" id="weatherSettingsHeading">天氣預覽 · 不修改存檔</div><p class="phase-preview-explain">可隨時查看場景的天氣效果。降雪預覽約20秒、暴風雪約10秒累積至全雪地；返回自然天氣後依遊戲時間變化。</p><div class="choices phase-preview-options"><button class="choice" type="button" data-preview-weather="clear">晴朗</button><button class="choice" type="button" data-preview-weather="cloudy">陰天</button><button class="choice" type="button" data-preview-weather="fog">薄霧</button><button class="choice" type="button" data-preview-weather="drizzle">細雨</button><button class="choice" type="button" data-preview-weather="rain">降雨</button><button class="choice" type="button" data-preview-weather="storm">雷雨</button><button class="choice" type="button" data-preview-weather="snow">降雪</button><button class="choice" type="button" data-preview-weather="blizzard">暴風雪</button><button class="choice" type="button" data-preview-weather="auto">自然天氣</button></div><div class="line"></div><div class="phase-preview-heading">風力預覽 · 不修改存檔</div><p class="phase-preview-explain">獨立調整風力及畫面風向；不影響降雨、降雪量或正式遊戲時間。</p><div class="choices phase-preview-options"><button class="choice" type="button" data-preview-wind="0">0級 無風</button><button class="choice" type="button" data-preview-wind="1">1級 微風</button><button class="choice" type="button" data-preview-wind="2">2級 輕風</button><button class="choice" type="button" data-preview-wind="3">3級 強風</button><button class="choice" type="button" data-preview-wind="4">4級 烈風</button><button class="choice" type="button" data-preview-wind="5">5級 暴風</button><button class="choice" type="button" data-preview-wind="auto">自然風力</button></div><div class="choices phase-preview-options"><button class="choice" type="button" data-preview-wind-dir="-1">向左吹 ←</button><button class="choice" type="button" data-preview-wind-dir="1">向右吹 →</button><button class="choice" type="button" data-preview-wind-dir="auto">自然風向</button></div><input id="fileInput" type="file" accept="application/json" class="hidden"><div class="line"></div><div class="note">V0.5.1 測試版本：第二章的公會、委託與人物對話是可修改的玩法草案。人物稱呼仍為佔位，主角身體來歷、復活原因及正式戰鬥方式都尚未定案。</div></section></div>
 <div class="veil" id="startVeil"><section class="panel start"><div class="stamp">A STORY OF THE UNKNOWN</div><h1 class="screen-title">殘車之後</h1><p>你在一輛被毀壞的貨運馬車裡醒來。森林靜得出奇，而你不記得自己為何來到這裡。</p><button class="choice" id="startBtn">開始新的旅程</button><button class="choice hidden" id="continueBtn">繼續旅程</button><div class="note">V0.5.1 可玩原型 · 橫式手機／電腦　｜　探索優先、調查可選　｜　不需登入及付費</div></section></div>
 <div class="orientation"><div><strong>請將手機轉為橫向</strong><p>第一章與城鎮探索以橫式畫面呈現。</p>↻</div></div>
 </div>
@@ -4428,6 +4428,7 @@ html.stage-locked #app #topGameHud #hudPhase{font-size:clamp(10px,1.65vw,17px)}
 <script src="./assets/bird_motion_live_v1.js?v=2-hop-joints"></script>
 <script src="./assets/scene_environment_v1.js?v=17-species-wind"></script>
 <script src="./assets/winter_surfaces_v1.js?v=8-contour-snow"></script>
+<script src="./assets/engine_foundation_v1.js?v=1"></script>
 <script src="./assets/character_environment_v1.js?v=1.1"></script>
 <script src="./assets/weather_system_v1.js?v=23-character-core"></script>
 <script src="./assets/trail_forest_v1.js"></script>
@@ -4571,19 +4572,10 @@ const ROUTE_TIMES=[
  {a:'street',b:'outskirts',walk:25,carriage:9},
  {a:'street',b:'home',walk:8}
 ];
-function gameTime(minutes){
- const time=Math.max(0,Math.floor(Number(minutes)||0));
- const day=Math.floor(time/1440)+1;
- const clock=time%1440;
- return '第'+day+'日 '+String(Math.floor(clock/60)).padStart(2,'0')+':'+String(clock%60).padStart(2,'0');
-}
-// Four fictional daylight phases; visual only, not an NPC timetable.
+function gameTime(minutes){return window.DungeonGameTimeV1.format(minutes);}
 const PERIOD_NAMES=Object.freeze({dawn:'清晨',day:'白天',dusk:'黃昏',night:'夜晚'});
 const INDOOR_SCENES=new Set(['inn','lobby','guild','home']);
-function periodForMinutes(minutes){
- const h=((Math.floor(Number(minutes)||0)%1440)+1440)%1440/60;
- return h>=5&&h<8?'dawn':h>=8&&h<17?'day':h>=17&&h<20?'dusk':'night';
-}
+function periodForMinutes(minutes){return window.DungeonGameTimeV1.parts(minutes).period;}
 function atmosphereSubtitle(scene,period){
  const alt={
   wreck:{dawn:'晨霧籠罩傾倒的車廂',dusk:'落日映著破裂的車輪',night:'殘骸沉入幽暗的林夜'},
@@ -4631,7 +4623,7 @@ function syncTimeAtmosphere(){
  const app=$('app');app.dataset.period=period;
  app.dataset.indoor=INDOOR_SCENES.has(s.scene)?'true':'false';
  $('worldClock').textContent=gameTime(s.worldMinutes)+' · '+(previewPeriod?PERIOD_NAMES[period]+'預覽':PERIOD_NAMES[period]);
- const day=Math.floor(s.worldMinutes/1440)+1,minute=s.worldMinutes%1440;
+ const clock=window.DungeonGameTimeV1.parts(s.worldMinutes),day=clock.day,minute=clock.minute%1440;
  $('hudDay').textContent='第 '+day+' 日';
  $('hudClock').textContent=String(Math.floor(minute/60)).padStart(2,'0')+':'+String(minute%60).padStart(2,'0');
  $('hudPhase').textContent=PERIOD_NAMES[period]+(previewPeriod?'預覽':'');
@@ -4652,11 +4644,15 @@ function clearTimePreview(){
  if(previewPeriod===null)return;
  previewPeriod=null;syncTimeAtmosphere();renderHotspots();renderPlaceDrawer();renderSceneInfoBar();
 }
-function normalizeGameTime(){
- if(!Number.isFinite(s.worldMinutes)||s.worldMinutes<0){
-  s.worldMinutes=s.flags?.morning?1440+480:960;
- }
- s.worldMinutes=Math.floor(s.worldMinutes);
+function normalizeGameTime(){return window.DungeonGameTimeV1.normalize(s);}
+function advanceGameTime(minutes,reason='action',toScene=s.scene){
+ // Initialize the previous exposure context before advancing; keep preview state separate.
+ window.DungeonWeatherV1?.exposure(s,INDOOR_SCENES.has(s.scene));
+ return window.DungeonGameTimeV1.advance(s,minutes,{reason,fromScene:s.scene,toScene});
+}
+function advanceToNextMorning(){
+ window.DungeonWeatherV1?.exposure(s,INDOOR_SCENES.has(s.scene));
+ return window.DungeonGameTimeV1.nextMorning(s,{fromScene:s.scene,toScene:s.scene});
 }
 function travelRoute(a,b){return ROUTE_TIMES.find(r=>(r.a===a&&r.b===b)||(r.a===b&&r.b===a))||null;}
 function horseCarriageAvailable(a,b){
@@ -4693,7 +4689,7 @@ function normalizeRecovery(){
  z.items=z.items.filter(i=>i&&RECOVERABLE[i.id]&&typeof i.known==='boolean');
  if(!z.parts||typeof z.parts!=='object'||Array.isArray(z.parts))z.parts={};
 }
-function recoveryTime(min){normalizeGameTime();s.worldMinutes+=min;clearTimePreview();syncTimeAtmosphere();}
+function recoveryTime(min){advanceGameTime(min,'explore-or-interact');clearTimePreview();syncTimeAtmosphere();}
 function searchForest(){
  if(s.scene!=='trail')return;
  normalizeRecovery();
@@ -4834,7 +4830,7 @@ function normalizeBeetleCare(){
  if(b.questCompleted)b.questAccepted=true;
  if(b.terrarium)b.questCompleted=true;
 }
-function tickBeetleCare(){
+function tickBeetleCare(persist=true){
  normalizeBeetleCare();
  const b=s.beetle,day=Math.floor(Math.max(0,s.worldMinutes||0)/1440);
  const elapsed=Math.min(7,Math.max(0,day-b.lastDay));
@@ -4846,7 +4842,7 @@ function tickBeetleCare(){
   b.clean=Math.max(0,b.clean-8*elapsed);
   b.comfort=Math.max(0,b.comfort-6*elapsed);
  }
- save();
+ if(persist)save();
 }
 function rareEligible(id){
  const phase=periodForMinutes(s.worldMinutes);
@@ -7422,6 +7418,24 @@ let backpackView='all',equipmentSelected='bag';
 normalizeWallet();normalizeEquipmentV1();normalizeAppearanceV1();
 if(!Array.isArray(s.travelLog))s.travelLog=[];
 normalizeGameTime();normalizeRecovery();normalizeForestRare();normalizeBeetleCare();normalizeForestEcology();normalizeRouteDiscovery();normalizeExploration();normalizePlaceCards();
+// Registry is initialized once, independently of save imports or new games.
+(function registerLiveModules(){
+ const engine=window.DungeonEngineV1;
+ const definitions=[
+ ['character.environment','1.1',['engine.time'],'DungeonCharacterEnvironmentV1'],
+ ['world.weather','23',['engine.time','character.environment'],'DungeonWeatherV1'],
+ ['world.spatial','3',['engine.registry'],'DungeonSpatialMotion'],
+ ['world.scene-environment','17',['world.spatial','world.weather'],'DungeonSceneEnvironmentV1'],
+ ['world.winter-surfaces','8',['world.weather'],'DungeonWinterV1'],
+ ['world.objects','20261125',['engine.time','world.weather'],'DungeonSceneObjectsV1'],
+ ['world.forest-life','4',['world.weather'],'DungeonForestV4Life'],
+ ['character.expression','2.20',['engine.registry'],'DungeonExpressionMotion'],
+ ['world.beetle-care','1',['engine.time'],null]
+ ];
+ for(const [id,version,requires,key] of definitions)engine.register({id,version,requires,available:()=>key?!!window[key]:true});
+ engine.onTime('world.weather',(actor,event)=>window.DungeonWeatherV1.exposure(actor,INDOOR_SCENES.has(event.fromScene)));
+ engine.onTime('world.beetle-care',(actor,event)=>{if(actor===s&&event.daysCrossed>0)tickBeetleCare(false);});
+})();
 if(typeof s.feedCollapsed!=='boolean')s.feedCollapsed=false;if(!['compact','expanded'].includes(s.travelHudMode))s.travelHudMode='compact';
 const moveThought={wreck:'一切似乎從這片殘骸開始。',trail:'沿著道路走，也許能遇見其他人。',clearing:'這裡比想像中安靜。',ruin:'這座古老建築還藏著多少故事？',gate:'終於看到有人生活的地方了。',inn:'至少現在能稍微休息。',lobby:'普通的早晨，也讓我感到安心。',street:'這個世界的人們也在過自己的日子。',guild:'或許能在這裡找到一些方向。',outskirts:'前方還有很多我不知道的地方。',home:'這裡承載著六個人一起生活的痕跡。'};
 const discoveryThought={wagon:'馬車在我醒來前就毀了。',scratches:'這些刻痕究竟是誰留下的？',light:'那道微光似乎有些奇怪。',sound:'先觀察牠會怎麼行動。',rescue:'原來這裡還有人願意幫助陌生人。',sigil:'背上的紋印……究竟代表什麼？',innkeeper:'也許能在這裡慢慢熟悉城鎮。',secondMeet:'沒想到會再見到他們。',leftbehind:'六個人都有自己的生活。',guildClerk:'公會看起來不只有打怪的工作。',roadSign:'原來這條路有人經常使用。'};
@@ -7643,7 +7657,7 @@ function change(scene,mode='walk'){
  const now=Date.now();if(now-lastMoveAt<300)return;lastMoveAt=now;
  hideSceneInspection();hideSceneActors();
  previewPeriod=null;
- s.worldMinutes+=duration;
+ advanceGameTime(duration,'travel:'+mode,scene);
  s.scene=scene;refreshSceneFraming();
  s.visits[scene]=(s.visits[scene]||0)+1;addUnique(s.seen,'area:'+scene);
  const revisited=s.visits[scene]>1;
@@ -7773,7 +7787,7 @@ function rescueTalk(four,tone){
  ],'第一章 · 救援',true,first,firstEmotion);
 }
 function innMark(){if(!s.flags.sigilSeen){s.flags.sigilSeen=true;note('sigil','背部有一道無法解釋的紋印');}dialog('鏡中的陌生人','你在客房裡整理衣物，才注意到背後有一道奇異的紋印。\n\n你想不起它從何而來，也無法確認自己為什麼出現在馬車上。至少今晚，你暫時安全了。',[{label:'記下這個疑問',fn:()=>{s.flags.chapterDone=true;note('chapter','第一章試玩片段已完成');render();}}],'第一章 · 伏筆');}
-function morning(){if(!s.flags.rescued){toast('先前往城鎮休息。');return;}const first=!s.flags.morning;s.flags.chapterDone=true;s.flags.morning=true;if(first){normalizeGameTime();s.worldMinutes=(Math.floor(s.worldMinutes/1440)+1)*1440+480;note('morning','在旅店迎來異世界的第一個早晨');discoverRoute('inn','lobby');discoverRoute('lobby','street');}clearTimePreview();syncTimeAtmosphere();save();dialog('陌生的早晨','街上傳來推車經過石板路的聲音。你在旅店醒來，窗外已有行人在忙碌。\n\n店員敲了敲門：「昨天帶你回來的那幾位冒險者，有人早上來問過你的情況。不用急著決定今天做什麼，先吃點東西吧。」',[{label:'去旅店大廳',fn:()=>change('lobby')},{label:'先到街上看看',fn:()=>change('street')},{label:'再整理一下客房',fn:()=>{render();}}],'第二章 · 清晨',true);}
+function morning(){if(!s.flags.rescued){toast('先前往城鎮休息。');return;}const first=!s.flags.morning;s.flags.chapterDone=true;s.flags.morning=true;if(first){advanceToNextMorning();note('morning','在旅店迎來異世界的第一個早晨');discoverRoute('inn','lobby');discoverRoute('lobby','street');}clearTimePreview();syncTimeAtmosphere();save();dialog('陌生的早晨','街上傳來推車經過石板路的聲音。你在旅店醒來，窗外已有行人在忙碌。\n\n店員敲了敲門：「昨天帶你回來的那幾位冒險者，有人早上來問過你的情況。不用急著決定今天做什麼，先吃點東西吧。」',[{label:'去旅店大廳',fn:()=>change('lobby')},{label:'先到街上看看',fn:()=>change('street')},{label:'再整理一下客房',fn:()=>{render();}}],'第二章 · 清晨',true);}
 function talkInnkeeper(){const first=!s.flags.innkeeperMet;s.flags.innkeeperMet=true;if(first)note('innkeeper','認識旅店工作人員');dialog('旅店的早晨','「昨晚休息得好嗎？」店員把杯子收進托盤，指向門外。\n\n「沿街走就是市集，再往前能看見公會。想先待在這裡也可以，我們不會趕你出門。」',[{label:'詢問城鎮',fn:()=>dialog('街上的日常','這裡不是每個人都會去地下城。市場、工坊、貨運和旅館同樣忙碌。公會只是其中一個工作的地方。',[{label:'知道了',fn:()=>{}}],'城鎮介紹')},{label:'謝謝，先看看四周',fn:()=>{}}],'第二章 · 旅店');}
 function meetRescuers(){if(!s.flags.rescued){toast('你還沒遇見他們。');return;}const namesFour=s.party.map(i=>roster[i].name),who=namesFour.join('、');const old=s.flags.rescueTone;const memory=old==='quiet'?'「昨天你一句話都不說，我們還擔心你是不是太不舒服。」':old==='where'?'「昨天你最先問這是哪裡。現在至少知道城鎮的方向了吧。」':'「昨天你主動向我們求助。能看到你安全走出旅店就好。」';s.flags.rescuersMetAgain=true;note('secondMeet','在城鎮再次遇見昨天的救援者');dialog('熟悉的四張面孔','街口有人向你招手。是昨天出勤的四人：'+who+'。\n\n'+namesFour[0]+'：'+memory+'\n\n他們並沒有要求你加入隊伍，只是問你接下來有什麼打算。',[{label:'詢問附近可以去哪裡',fn:()=>dialog('附近的道路','「公會有路況紀錄，城外近郊也能散步。沒準備好前不用往深處走。」',[{label:'記下建議',fn:()=>note('roadTip','得知城外近郊有較安全的道路')}],'冒險者的建議')},{label:'有機會可以去拜訪嗎？',fn:()=>{s.flags.houseInvite=true;note('houseInvite','獲得拜訪小隊公共起居室的邀請');dialog('普通的邀請','「可以，但我們住處不大。大家都在時來坐坐就好，不必客氣。」\n\n你已能從城鎮街道前往他們的公共起居室。',[{label:'知道了',fn:()=>render()}],'日常對話');}},{label:'道謝後先離開',fn:()=>{}}],'第二章 · 再會');}
 function meetHome(){const left=[0,1,2,3,4,5].filter(i=>!s.party.includes(i)).map(i=>roster[i].name);if(!s.flags.homeMet){s.flags.homeMet=true;note('leftbehind','認識昨天留守的兩名小隊成員');}dialog('留守的兩名夥伴','公共起居室裡有修補過的桌椅、堆放整齊的裝備，以及一張寫滿採買事項的紙。\n\n昨天留守的兩人是：'+left.join('、')+'。\n\n「我們聽說昨天救回一個人。原來就是你啊。」\n\n他們仍有自己的事情要做，沒有把你當成必須立刻加入的隊員。',[{label:'聊聊他們的日常',fn:()=>dialog('普通的生活','「房租不是小事，所以我們一起分攤住處。有人外出工作，也要有人整理物資。至於誰比較會煮飯，那可是另一回事。」',[{label:'原來如此',fn:()=>{}}],'日常對話')},{label:'不打擾他們',fn:()=>{}}],'第二章 · 初次見面');}
@@ -7910,7 +7924,7 @@ function guildClerk(){if(!s.flags.guildClerkMet){s.flags.guildClerkMet=true;note
 function guildBoard(){const offers='公告板上有幾張委託：搬運市場物資、替工坊確認送貨時間，以及「確認近郊路標的狀況」。這些都是普通人的工作，不是所有任務都要討伐怪物。';const choices=[];if(!s.flags.roadJobAccepted&&!s.flags.roadJobDone){choices.push({label:'接下確認近郊路標的委託',fn:()=>{s.flags.roadJobAccepted=true;note('roadQuest','接受確認城外近郊路標的委託');render();}});}if(s.flags.roadJobAccepted&&!s.flags.roadSignSeen)choices.push({label:'檢查自己的委託進度',fn:()=>dialog('目前委託','前往近郊路口，確認路標有沒有損壞。這只是可選的小型委託。',[{label:'了解',fn:()=>{}}],'委託紀錄')});if(s.flags.roadJobAccepted&&s.flags.roadSignSeen&&!s.flags.roadJobDone)choices.push({label:'回報近郊路標狀況',fn:()=>{s.flags.roadJobDone=true;note('roadJobDone','向公會完成一次近郊路況回報');dialog('工作完成','櫃台記下你的回報，點了點頭。\n\n「辛苦了。這些日常路況對其他旅人很有幫助。」\n\n你完成了第一個自願承接的小委託。報酬與貨幣系統尚未在原型實作。',[{label:'繼續冒險',fn:()=>render()}],'委託完成',true);}});if(s.flags.roadJobDone)choices.push({label:'查看已完成的委託',fn:()=>toast('已完成：近郊路標狀況確認')});choices.push({label:'先不接工作',fn:()=>{}});dialog('今日的委託',offers,choices,'公會公告板');}
 function roadsideSign(){if(!s.flags.roadSignSeen){s.flags.roadSignSeen=true;note('roadSign','發現近郊路口的舊路標');}dialog('霧中的舊路標','斑駁的木製路標仍站在岔路旁，箭頭有些鬆動，但路面本身可以通行。\n\n你可以記住它的狀況，也可以什麼都不做、繼續欣賞遠方的山林。',[{label:'記下這條路',fn:()=>note('roadMark','已記錄城外近郊路線')},{label:'返回城鎮',fn:()=>change('street')},{label:'再待一會兒',fn:()=>render()}],'近郊探索');}
 function countryside(){dialog('遠處的森林','視線越過路口，遠方樹影隨風起伏。你聽見不知名的小動物穿過草叢，卻沒有看清牠的模樣。\n\n這一帶暫時沒有必須完成的事件。更深的野外冒險將在後續版本開放。',[{label:'記住這片景色',fn:()=>note('landscape','在近郊眺望尚未探索的森林')},{label:'安靜離開',fn:()=>{}}],'未知的邊界');}
-function rest(){s.hp=s.maxHp;s.worldMinutes+=20;clearTimePreview();addTravel('daily','短暫休息約20分鐘，體力恢復了（'+gameTime(s.worldMinutes)+'）。','現在感覺好多了。');save();toast('短暫休息後，體力恢復了。');render();}
+function rest(){s.hp=s.maxHp;advanceGameTime(20,'rest');clearTimePreview();addTravel('daily','短暫休息約20分鐘，體力恢復了（'+gameTime(s.worldMinutes)+'）。','現在感覺好多了。');save();toast('短暫休息後，體力恢復了。');render();}
 function battleStart(){s.flags.inBattle=true;s.flags.monsterHp=12;s.flags.guarding=false;save();battleDialog('陌生生物擺出警戒姿勢。這是一場可選的回合制操作測試。');}
 function battleDialog(text){const m=s.flags.monsterHp||0;const choices=[];if(m>0&&s.hp>0){choices.push({label:'攻擊',fn:()=>battleTurn('attack')},{label:'防禦',fn:()=>battleTurn('guard')},{label:'撤退',fn:()=>battleTurn('retreat')});}else{choices.push({label:'返回探索',fn:()=>{s.flags.inBattle=false;s.flags.creatureResolved=true;render();}});}dialog('遭遇戰 · 林地生物',`你的體力 ${s.hp}/${s.maxHp}　|　對手狀態 ${Math.max(0,m)}/12\n\n${text}`,choices,'戰鬥測試',true);}
 function battleTurn(kind){if(kind==='retreat'){s.flags.inBattle=false;s.flags.creatureResolved=true;note('retreat','你選擇脫離戰鬥');render();return;}let text='';let damage=0;if(kind==='attack'){damage=4+(s.seed+s.hp+s.flags.monsterHp)%3;s.flags.monsterHp=Math.max(0,s.flags.monsterHp-damage);text=`你擊中對方，造成 ${damage} 點傷害。`; }else{text='你穩住腳步，準備防禦。';}addTravel('combat',text,'下一步得保持警覺。');if(s.flags.monsterHp<=0){s.flags.creatureResolved=true;s.flags.inBattle=false;note('victory','你完成一次陌生生物遭遇戰');s.flags.battles=(s.flags.battles||0)+1;dialog('戰鬥結束',text+'\n\n生物後退，消失在草叢深處。你留下了少量關於牠行動方式的記憶。',[{label:'繼續探索',fn:()=>render()}],'戰鬥結果',true);save();return;}const hit=kind==='guard'?1:3;s.hp=Math.max(0,s.hp-hit);text+=`\n對方反擊，你受到 ${hit} 點傷害。`;addTravel('combat',`對方反擊，你受到 ${hit} 點傷害。`,'不能大意。');if(s.hp===0){s.flags.inBattle=false;s.flags.creatureResolved=true;s.hp=5;note('defeat','你在林間體力不支，稍後重新站起');dialog('暫時失去意識','你在林間倒下。過了一段時間才再次醒來，身體虛弱。\n\n這是原型的安全失敗處理，並不代表主角的「活遺物」能力已經覺醒。',[{label:'返回小徑',fn:()=>change('trail')}],'測試規則',true);}else{battleDialog(text);}renderPlayerStatus();save();}
@@ -8312,6 +8326,7 @@ $('sceneDialogueNext').onclick=e=>{e.stopPropagation();nextSceneDialogue();};
 $('sceneDialogue').onclick=e=>{if(e.target.closest('button'))return;nextSceneDialogue();};
 $('soundBtn').onclick=()=>{s.sound=!s.sound;if(s.sound)window.DungeonWeatherV1?.unlockAudio();$('soundBtn').textContent='音效：'+(s.sound?'開啟':'關閉');syncTimeAtmosphere();save();beep(520);};
  document.addEventListener('pointerdown',()=>{if(s.sound)window.DungeonWeatherV1?.unlockAudio();},{passive:true});
+$('engineDiagnosticsBtn').onclick=()=>{const d=window.DungeonEngineV1.diagnostics();$('menuVeil').classList.add('hidden');dialog('共用核心診斷',d.modules.map(m=>m.id+' v'+m.version+' · '+({ready:'正常',missing:'缺少模組',blocked:'相依未就緒',error:'錯誤'}[m.state]||m.state)).join('\n')+'\n\n時間更新接入：'+d.timeListeners.join('、')+'\n近期錯誤：'+(d.faults.length?d.faults.map(f=>f.id+'：'+f.message).join('\n'):'無'),[{label:'返回',fn:()=>{}}],'開發診斷');};
 $('restartBtn').onclick=()=>{if(!confirm('確定重新開始？目前本機存檔將被覆蓋。'))return;closeSceneDialogue();s=initial();paperDollTryOn=false;equipmentSelected='bag';previewPeriod=null;hideSceneActors();hideSceneInspection();refreshSceneFraming();$('menuVeil').classList.add('hidden');render();openWreckIntroduction();toast('已開始新的旅程');};
 $('exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify(s,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='dungeon-adventure-save-v02.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};$('importBtn').onclick=()=>$('fileInput').click();$('fileInput').onchange=async e=>{try{const text=await e.target.files[0].text(),j=JSON.parse(text);if(!validSave(j))throw Error('格式不相容');s=j;previewPeriod=null;normalizeGameTime();normalizeRecovery();normalizeForestRare();normalizeBeetleCare();normalizeForestEcology();normalizeRouteDiscovery();normalizeExploration();normalizePlaceCards();closePlaceDrawer();hideSceneActors();hideSceneInspection();refreshSceneFraming();if(!Array.isArray(s.travelLog))s.travelLog=[];if(typeof s.feedCollapsed!=='boolean')s.feedCollapsed=false;if(!['compact','expanded'].includes(s.travelHudMode))s.travelHudMode='compact';save();render();$('menuVeil').classList.add('hidden');toast('已匯入存檔');}catch{alert('無法讀取這份存檔。');}e.target.value='';};
 $('startBtn').onclick=()=>{closeSceneDialogue();s=initial();paperDollTryOn=false;equipmentSelected='bag';previewPeriod=null;refreshSceneFraming();hasSave=true;$('startVeil').classList.add('hidden');render();openWreckIntroduction();};if(hasSave){$('continueBtn').classList.remove('hidden');$('continueBtn').onclick=()=>{$('startVeil').classList.add('hidden');render();if(s.flags.inBattle)battleDialog('繼續尚未結束的遭遇戰。');else openWreckIntroduction();};}
