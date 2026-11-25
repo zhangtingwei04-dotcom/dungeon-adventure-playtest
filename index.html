@@ -4268,7 +4268,7 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 </script>
 <script src="./assets/forest_v4_spawns.js?v=1"></script>
 <script src="./assets/forest_v4_integration.js?v=4"></script>
-<script src="./assets/scene_environment_v1.js?v=3"></script>
+<script src="./assets/scene_environment_v1.js?v=4-waterflow"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/scene_objects_v1.js?v=20261124-2"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
@@ -8193,7 +8193,7 @@ function sceneDraw(time){
  if(s.scene==='wreck'&&emptyForestReady){
   ctx.save();ctx.imageSmoothingEnabled=true;
   const w=emptyForest.naturalWidth,h=emptyForest.naturalHeight,fit=Math.max(W/w,H/h);
-  ctx.drawImage(emptyForest,(W-w*fit)/2,(H-h*fit)/2,w*fit,h*fit);ctx.restore();if(forestV4Active()&&forestEnvironmentActive()&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches)window.DungeonSceneEnvironmentV1?.draw(ctx,neutralForestSelected?'forestV5':'forestV4',time,W,H,previewPeriod||periodForMinutes(s.worldMinutes),emptyForest);return;
+  ctx.drawImage(emptyForest,(W-w*fit)/2,(H-h*fit)/2,w*fit,h*fit);ctx.restore();if(forestV4Active()&&new URLSearchParams(location.search).get('env')!=='off'&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches)window.DungeonSceneEnvironmentV1?.draw(ctx,neutralForestSelected?'forestV5':'forestV4',time,W,H,previewPeriod||periodForMinutes(s.worldMinutes),emptyForest);return;
  }
  if(s.scene==='wreck'&&approvedWreckReady){
   ctx.save();ctx.imageSmoothingEnabled=false;
