@@ -15,7 +15,6 @@
 <script src="./assets/forest_v4_assets_2.js?v=1"></script>
 <script src="./assets/forest_v4_assets_3.js?v=1"></script>
 <script src="./assets/forest_v4_assets_4.js?v=1"></script>
-<script src="./assets/forest_v4_layout.js?v=1"></script>
 <script src="./assets/wreck_current_layout_v1.js?v=1"></script>
 <script src="./assets/forest_v4_spawns.js?v=1"></script><script src="./assets/trail_forest_v1.js"></script><script src="./assets/scene_objects_v1.js?v=20261124-2"></script>
 <script>
@@ -58,7 +57,7 @@ $('name').onchange=()=>{const o=find(selected);if(o){o.name=$('name').value.trim
 $('duplicate').onclick=()=>{const o=find(selected);if(o){const n={...o,id:unique(),x:clamp(o.x+5,0,100),name:o.name+'（副本）'};objects().push(n);selected=n.id;save();render()}};
 for(const [id,d] of [['up',1],['down',-1]])$(id).onclick=()=>{const o=find(selected);if(o){o.z=clamp(o.z+d,-9,100);save();render()}};
 $('remove').onclick=()=>{const i=objects().findIndex(o=>o.id===selected);if(i>=0){objects().splice(i,1);selected=null;save();render()}};
-function exportData(){return {format:'dungeon-scene-object-layout-v1',...(SPAWNS?{layoutPurpose:'forest-v4-spawn-anchors',baseLayout:'forest_v4_layout',note:'僅候選生成點，不覆蓋正式場景配置'}:{}),project:'迷宮盡頭的燈火',canvas:{width:960,height:540},coordinateUnit:'percent',anchor:'bottom-center',lightingProfile:'scene_light_v1',backgrounds:Object.fromEntries(Object.entries({...backgrounds,wreck:effectiveBg('wreck')}).filter(([,b])=>b).map(([site,b])=>[site,$('embed').checked?b:{name:b.name,width:b.width,height:b.height}])),previewPeriod:$('lightPeriod').value,gameSaveMode:'independent-dev-preview',scene:state.scene,assets:all().filter(a=>a.custom).map(a=>$('embed').checked?a:{id:a.id,name:a.name,width:a.width,custom:true}),scenes:state.scenes}}
+function exportData(){return {format:'dungeon-scene-object-layout-v1',...(SPAWNS?{layoutPurpose:'forest-v4-spawn-anchors',baseLayout:'wreck_current_layout_v1',note:'僅候選生成點，不覆蓋正式場景配置'}:{}),project:'迷宮盡頭的燈火',canvas:{width:960,height:540},coordinateUnit:'percent',anchor:'bottom-center',lightingProfile:'scene_light_v1',backgrounds:Object.fromEntries(Object.entries({...backgrounds,wreck:effectiveBg('wreck')}).filter(([,b])=>b).map(([site,b])=>[site,$('embed').checked?b:{name:b.name,width:b.width,height:b.height}])),previewPeriod:$('lightPeriod').value,gameSaveMode:'independent-dev-preview',scene:state.scene,assets:all().filter(a=>a.custom).map(a=>$('embed').checked?a:{id:a.id,name:a.name,width:a.width,custom:true}),scenes:state.scenes}}
 function makeJson(){const j=JSON.stringify(exportData(),null,2);$('json').value=j;return j}
 $('export').onclick=()=>{makeJson();status('已產生場景配置數據。')};$('copy').onclick=async()=>{const j=makeJson();try{await navigator.clipboard.writeText(j);status('已複製，可貼回 ChatGPT。')}catch{$('json').focus();$('json').select();status('請長按選取文字並複製。')}};
 $('download').onclick=()=>{const url=URL.createObjectURL(new Blob([makeJson()],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='dungeon-scene-layout.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
