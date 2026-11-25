@@ -67,11 +67,11 @@ window.DungeonWeatherV1=(function(){
  const snowParticles=particles.map(p=>({x:p.x,y:p.y}));
  function snowVelocity(i,speed,drift){return {x:drift*(.8+(i%7)*.07),y:(13+i%12)*speed};}
  function bind(el){canvas=el;ctx=el?.getContext('2d');if(canvas){canvas.width=W;canvas.height=H;}}
- let scene='wreck',sound=false,audio=null,lastThunder=-1,sceneHost=null,snowPreview=false,weatherPreview=false,previewEnv=emptyEnvironment(),lastEnvironmentLabel=0;
+ let scene='wreck',sound=false,audio=null,lastThunder=-1,sceneHost=null,snowPreview=false,weatherPreview=false,previewEnv=emptyEnvironment(),lastEnvironmentLabel=0,plantWindow=null,onPlantWindowChanged=null;
  function unlockAudio(){try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;if(!audio)audio=new AC();if(audio.state==='suspended')audio.resume().catch(()=>{});}catch{}}
  function thunder(){if(!sound||!audio||audio.state!=='running')return;try{const rate=audio.sampleRate,buf=audio.createBuffer(1,Math.floor(rate*2.7),rate),d=buf.getChannelData(0);let low=0;for(let i=0;i<d.length;i++){low=.94*low+.06*(Math.random()*2-1);d[i]=low;}const src=audio.createBufferSource(),f=audio.createBiquadFilter(),g=audio.createGain(),now=audio.currentTime;src.buffer=buf;f.type='lowpass';f.frequency.value=170;g.gain.setValueAtTime(.001,now);g.gain.linearRampToValueAtTime(.19,now+.24);g.gain.exponentialRampToValueAtTime(.001,now+2.6);src.connect(f);f.connect(g);g.connect(audio.destination);src.start(now);src.stop(now+2.7);}catch{}}
  function set(weather,indoor,reduce=false,options={}){
-  scene=options.scene||'wreck';sound=Boolean(options.sound);sceneHost=options.sceneHost||sceneHost;
+  scene=options.scene||'wreck';sound=Boolean(options.sound);sceneHost=options.sceneHost||sceneHost;onPlantWindowChanged=options.onPlantWindowChanged||null;
   const nextPreview=Boolean(options.snowPreview),nextWeatherPreview=Boolean(options.weatherPreview)||nextPreview;if(nextWeatherPreview&&!weatherPreview){previewEnv=emptyEnvironment();for(const key of Object.keys(previewEnv))previewEnv[key]=clamp(shown[key]||0,0,1);if(nextPreview)previewEnv.snowCover=Math.max(previewEnv.snowCover,options.previewStart??.04);}if(!nextWeatherPreview)previewEnv=emptyEnvironment();snowPreview=nextPreview;weatherPreview=nextWeatherPreview;
   hidden=Boolean(indoor);reduced=reduce;target=hidden?{...kinds.clear,wet:0,snow:0,snowCover:0}:{...weather,wet:weather.wet??weather.rain*.8,snow:weather.snow||0,snowCover:weather.snowCover||0,windDir:weather.windDir??(weatherPreview?-1:1)};
   if(canvas)canvas.hidden=hidden;
@@ -82,6 +82,8 @@ window.DungeonWeatherV1=(function(){
   const dt=last?clamp((ms-last)/1000,0,.1):.05;last=ms;
   if(weatherPreview){previewEnv=environmentStep(previewEnv,target.kind,target.temperature??(snowPreview?-3:12),dt*18);Object.assign(target,previewEnv);}
   for(const k of Object.keys(shown))shown[k]+=((target[k]||0)-shown[k])*(1-Math.exp(-dt*3.0));
+  const allowed=plantSpawnAllowed({kind:target.kind,snowCover:weatherPreview?previewEnv.snowCover:target.snowCover});
+  if(plantWindow!==allowed){const before=plantWindow;plantWindow=allowed;if(before!==null)onPlantWindowChanged?.();}
   ctx.clearRect(0,0,W,H);
   if(shown.shade>.003){ctx.fillStyle='rgba(38,55,62,'+shown.shade.toFixed(3)+')';ctx.fillRect(0,0,W,H);}
   if(shown.overcast>.003){const a=shown.overcast,g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'rgba(130,150,158,'+(a*.15)+')');g.addColorStop(.6,'rgba(107,130,137,'+(a*.075)+')');g.addColorStop(1,'rgba(94,112,115,'+(a*.025)+')');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);}
@@ -179,6 +181,14 @@ window.DungeonWeatherV1=(function(){
   }
   return s.weatherExposure={minute:now,wetness:value,comfort,indoor:Boolean(indoor)};
  }
+ // Existing fixed scenery is not subject to spawning rules. Future species may opt into snow.
+ function plantSpawnAllowed(weather,plant={}){
+  const kind=typeof weather==='string'?weather:weather?.kind;
+  const cover=typeof weather==='object'?(weather?.snowCover||0):0;
+  const winter=kind==='snow'||kind==='blizzard'||cover>=.15;
+  if(Array.isArray(plant.allowedWeather)&&!plant.allowedWeather.includes(kind))return false;
+  return !winter||plant.winterHardy===true;
+ }
  function activity(kind,weather){if(weather==='storm'||weather==='blizzard')return false;if(weather==='snow')return kind==='rabbit';if(weather==='rain')return kind==='beetle'||kind==='rabbit';if(weather==='drizzle')return kind!=='butterfly';return true;}
- return {kinds,at,bind,set,draw,drawGround,puddleLevel,season,climate,exposure,activity,unlockAudio,snowVelocity,snowStep,environmentStep,environment:()=>({...shown})};
+ return {kinds,at,bind,set,draw,drawGround,puddleLevel,season,climate,exposure,activity,unlockAudio,snowVelocity,snowStep,environmentStep,plantSpawnAllowed,environment:()=>({...shown})};
 })();
