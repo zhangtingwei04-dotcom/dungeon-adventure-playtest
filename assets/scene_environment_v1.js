@@ -129,7 +129,7 @@ window.DungeonSceneEnvironmentV1=(function(){
  // The node follows the ground; only the art rises during a hop.
  const wildlife=new Map();
  const ease=q=>q*q*(3-2*q);
- function wildlifeSample(kind,t,dir=-1){
+ function wildlifeSample(kind,t,dir=-1,groundOnly=false){
   const rabbit=kind==='rabbit',period=rabbit?13.7:10.9;
   const u=((t%period)+period)%period;
   let x=0,lift=0,sx=1,sy=1,face=dir,mode='rest';
@@ -154,7 +154,7 @@ window.DungeonSceneEnvironmentV1=(function(){
    else if(u<11.3){face=-dir;sy=1-.012*(.5+.5*Math.sin(u*3));}
    else{sy=1-.01*(.5+.5*Math.sin(u*3));}
   }else{
-   const flightCycle=Math.floor(t/10.9)%2===1;
+   const flightCycle=!groundOnly&&Math.floor(t/10.9)%2===1;
    let wingOpen=0;
    if(u<1.2){mode='rest';}
    else if(u<4.2){x=30*ease((u-1.2)/3);mode='crawl';}
@@ -177,11 +177,11 @@ window.DungeonSceneEnvironmentV1=(function(){
  }
  function rabbitDecision(b,env={}){
   const kind=env.kind||'clear',rain=env.rain||0,snow=env.snowCover||0;
-  const dangerous=kind==='storm'||kind==='blizzard',wet=dangerous||kind==='rain'||rain>.65;
+  const wind=window.DungeonWeatherV1?.wildlifeWindMode('rabbit',env.behaviorWind??env.wind??0),dangerous=kind==='storm'||kind==='blizzard'||wind==='shelter'||wind==='hide',wet=dangerous||kind==='rain'||rain>.65;
   if(wet)return b.q<.98?{mode:'shelter-hop',to:1}:{mode:'shelter',duration:3.8};
   if(b.mode==='shelter'&&b.q>.02)return {mode:'hop',to:0};
   if(b.energy<.35)return {mode:'rest',duration:4.5};
-  if(b.alert>.6)return {mode:'alert',duration:2.1};
+  if(b.alert>.6||wind==='alert')return {mode:'alert',duration:2.1};
   if(b.hunger>.52&&snow<.15&&kind!=='snow')return {mode:'graze',duration:3.1};
   b.serial=(Math.imul(b.serial,1664525)+1013904223)>>>0;const roll=b.serial/4294967296;
   if(roll<.37)return {mode:'hop',to:b.q>.5?0:1};
@@ -190,7 +190,7 @@ window.DungeonSceneEnvironmentV1=(function(){
   return {mode:'rest',duration:2.4+(b.golden?.8:0)};
  }
  function rabbitTick(b,dt,env={}){
-  dt=clamp(dt,0,.12);const bad=env.kind==='storm'||env.kind==='blizzard'||env.kind==='rain';
+  dt=clamp(dt,0,.12);const wind=window.DungeonWeatherV1?.wildlifeWindMode('rabbit',env.behaviorWind??env.wind??0),bad=env.kind==='storm'||env.kind==='blizzard'||env.kind==='rain'||wind==='shelter'||wind==='hide';
   b.hunger=clamp(b.hunger+dt*(b.mode==='graze'?-.11:.014),0,1);
   b.energy=clamp(b.energy+dt*(b.mode==='rest'||b.mode==='shelter'?.09:b.mode.includes('hop')?-.045:-.008),0,1);
   b.alert=clamp(b.alert+dt*(bad?.16:-.12),0,1);
@@ -219,7 +219,7 @@ window.DungeonSceneEnvironmentV1=(function(){
  function rabbitPointTick(b,dt,env,anchor,map){
   const nav=window.DungeonSpatialMotion;dt=clamp(dt,0,.12);
   if(!b.position){b.position={x:anchor.x,y:anchor.y,z:anchor.z};b.age=b.duration;}
-  const bad=['rain','storm','blizzard'].includes(env.kind)||(env.rain||0)>.65;
+  const wind=window.DungeonWeatherV1?.wildlifeWindMode('rabbit',env.behaviorWind??env.wind??0),bad=['rain','storm','blizzard'].includes(env.kind)||(env.rain||0)>.65||wind==='shelter'||wind==='hide';
   const foodAvailable=b.point?.type==='food'&&map.food.some(o=>o.id===b.point.sourceId)&&(env.snowCover||0)<.15&&env.kind!=='snow'&&!bad;
   b.hunger=clamp(b.hunger+dt*(b.mode==='graze'&&foodAvailable?-.11:.014),0,1);
   b.energy=clamp(b.energy+dt*(['rest','shelter','hunker'].includes(b.mode)?.09:b.mode==='point-hop'?-.045:-.008),0,1);
@@ -237,7 +237,7 @@ window.DungeonSceneEnvironmentV1=(function(){
    let point=null,mode='sniff',duration=1.8;
    if(bad){point=near('shelter');mode=point?'shelter':'hunker';duration=3.6;}
    else if(b.energy<.35){point=near('rest');mode='rest';duration=4.5;}
-   else if(b.alert>.6){mode='alert';duration=2.1;}
+   else if(b.alert>.6||wind==='alert'){mode='alert';duration=2.1;}
    else if(b.hunger>.52&&near('food')){point=near('food');mode='graze';duration=3.1;}
    else{
     const q=roll();
@@ -295,9 +295,15 @@ window.DungeonSceneEnvironmentV1=(function(){
    if(!node.isConnected){wildlife.delete(node);continue;}
    if(a.start===null)a.start=ms;
    const elapsed=(ms-a.start)/1000+a.phase;
+   const environment=window.DungeonWeatherV1?.environment?.()||{},windMode=window.DungeonWeatherV1?.wildlifeWindMode(a.kind,environment.behaviorWind??environment.wind??0)||'normal';
+   const dt=a.lastTick==null?0:clamp((ms-a.lastTick)/1000,0,.12);a.lastTick=ms;
    if(a.kind==='bird'){
-    const v=window.DungeonBirdMotion.sample(a.anchor,elapsed);
-    try{window.DungeonBirdMotion.render(node,v,elapsed,ms);}catch(err){node.removeAttribute('data-bird-rig');}
+    // Let an airborne bird finish its current route before holding at its perch.
+    if(a.birdTime==null)a.birdTime=a.phase;
+    const prior=window.DungeonBirdMotion.sample(a.anchor,a.birdTime);
+    if(windMode!=='perch'||prior.mode!=='perch')a.birdTime+=dt;
+    const v=window.DungeonBirdMotion.sample(a.anchor,a.birdTime);
+    try{window.DungeonBirdMotion.render(node,v,a.birdTime,ms);}catch(err){node.removeAttribute('data-bird-rig');}
     node.style.setProperty('--bird-x',v.x.toFixed(3)+'%');
     node.style.setProperty('--bird-y',v.visibleY.toFixed(3)+'%');
     node.style.setProperty('--bird-width',v.width.toFixed(3)+'%');
@@ -308,9 +314,12 @@ window.DungeonSceneEnvironmentV1=(function(){
     node.dataset.birdState=v.mode;
     continue;
    }
-   const dt=a.lastTick===null?0:(ms-a.lastTick)/1000;a.lastTick=ms;
-   const env=a.brain?{...window.DungeonWeatherV1?.environment?.(),kind:weatherKind}:null;
-   const v=a.brain?(actionMap&&window.DungeonSpatialMotion?rabbitPointTick(a.brain,dt,env,a.anchor,actionMap):rabbitTick(a.brain,dt,env)):wildlifeSample(a.kind,elapsed,a.dir);
+   const env=a.brain?{...environment,kind:weatherKind}:null;
+   // Existing beetle flights finish; future flight cycles become ground crawling.
+   const airborne=a.kind==='beetle'&&['fly','unfold','fold'].includes(a.previousMode);
+   const groundOnly=a.kind==='beetle'&&windMode==='ground'&&!airborne;
+   const v=a.brain?(actionMap&&window.DungeonSpatialMotion?rabbitPointTick(a.brain,dt,env,a.anchor,actionMap):rabbitTick(a.brain,dt,env)):wildlifeSample(a.kind,elapsed,a.dir,groundOnly);
+   a.previousMode=v.mode;
    if(a.brain){node.dataset.wildBehavior=v.behavior;node.dataset.wildPoint=v.pointId||'';}
    try{
     if(a.kind==='rabbit')window.DungeonRabbitArticulation?.render(node,v,elapsed,ms);
