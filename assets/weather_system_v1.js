@@ -260,7 +260,7 @@ window.DungeonWeatherV1=(function(){
   const wind=typeof weather==='object'?(weather?.wind||0):0;
   if(kind==='rabbit'&&(type==='snow'||type==='blizzard'||cover>=.15))return false;
   if(type==='storm'||type==='blizzard'||type==='snow')return false;
-  if(wildlifeWindMode(kind,wind)==='hide')return false;
+  const mode=wildlifeWindMode(kind,wind);if(mode==='hide'||(kind==='butterfly'&&mode==='shelter'))return false;
   if(type==='rain')return kind==='beetle'||kind==='rabbit';
   if(type==='drizzle')return kind!=='butterfly';return true;
  }
