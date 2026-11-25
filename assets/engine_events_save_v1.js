@@ -19,7 +19,7 @@ window.DungeonEventsV1=(function(){
   if(!Array.isArray(actor.travelLog))actor.travelLog=[];
   const last=actor.travelLog.at(-1);
   if(last&&last.message===message&&last.scene===actor.scene)return false;
-  const entry={type,message,thought,scene:actor.scene,time:stamp};
+  const entry={type,message,thought,scene:actor.scene,time:stamp,worldMinute:Number.isFinite(actor.worldMinutes)?actor.worldMinutes:null};
   actor.travelLog.push(entry);if(actor.travelLog.length>120)actor.travelLog.splice(0,actor.travelLog.length-120);
   emit('travel.recorded',actor,{type,message,thought});return true;
  }
