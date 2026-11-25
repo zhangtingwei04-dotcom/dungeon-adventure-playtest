@@ -3934,6 +3934,14 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <link rel="stylesheet" href="./assets/scene_light_v1.css?v=20261124-1">
 <link rel="stylesheet" href="./assets/forest_v4_integration.css?v=4-shadow">
 <link rel="stylesheet" href="./assets/scene_environment_v1.css?v=9-bird">
+
+<style id="weather-v1-style">
+#sceneStage #weatherOverlay{position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none;object-fit:fill;display:block}
+#sceneStage #weatherOverlay[hidden]{display:none!important}
+#app[data-weather] #hudPhase{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+html.stage-locked #app #topGameHud .top-hud-phase{min-width:0}
+html.stage-locked #app #topGameHud #hudPhase{font-size:clamp(10px,1.65vw,17px)}
+</style>
 </head>
 <body>
 <div id="app"><div id="worldFrame" aria-hidden="true">
@@ -4038,7 +4046,7 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
  <path d="M8 45C15 32 30 35 30 21S41 8 51 14C56 17 53 24 48 23C45 22 46 19 49 19" fill="none" stroke="#b99359" stroke-width="2" stroke-linecap="round"/>
  <path d="M17 33Q8 31 8 23Q19 23 20 31M26 26Q31 12 41 15Q37 25 26 26M14 46Q23 37 31 43Q24 49 14 46" fill="#5a8558" stroke="#b5b079" stroke-width="1.1"/>
  <circle cx="31" cy="20" r="1.5" fill="#f2d99e"/>
- </svg><canvas id="view" aria-label="第一人稱冒險場景"></canvas><div id="dayTint" aria-hidden="true"></div><div id="shade"></div><div id="hotspots"></div><div id="sceneActors" aria-hidden="true"></div><div id="encounterCue" class="hidden" role="status" aria-live="polite"></div><div id="sceneDialogue" class="hidden" role="group" aria-label="場景對話，點擊繼續" tabindex="0"><div id="sceneDialoguePortrait" hidden aria-hidden="true"><img id="sceneDialoguePortraitImage" alt="" loading="eager" decoding="async"></div><div id="sceneDialogueName">旁白</div><p id="sceneDialogueText" aria-live="polite"></p><button id="sceneDialogueNext" type="button" aria-label="下一句">點擊繼續 ▸</button></div></section>
+ </svg><canvas id="view" aria-label="第一人稱冒險場景"></canvas><div id="dayTint" aria-hidden="true"></div><div id="shade"></div><canvas id="weatherOverlay" aria-hidden="true" hidden></canvas><div id="hotspots"></div><div id="sceneActors" aria-hidden="true"></div><div id="encounterCue" class="hidden" role="status" aria-live="polite"></div><div id="sceneDialogue" class="hidden" role="group" aria-label="場景對話，點擊繼續" tabindex="0"><div id="sceneDialoguePortrait" hidden aria-hidden="true"><img id="sceneDialoguePortraitImage" alt="" loading="eager" decoding="async"></div><div id="sceneDialogueName">旁白</div><p id="sceneDialogueText" aria-live="polite"></p><button id="sceneDialogueNext" type="button" aria-label="下一句">點擊繼續 ▸</button></div></section>
 <section id="sceneFuturePanel" aria-label="場景觀察、同行夥伴及探索紀錄">
  <div class="scene-info-column" aria-label="場景觀察">
   <div class="scene-info-heading">
@@ -4173,7 +4181,7 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <div class="bottom"><div><div class="actions" id="actions"></div></div><div class="sidebar"><div class="chips"><span class="chip" id="chapterChip">第一章</span><span class="chip" id="partyChip">獨自一人</span><span class="chip level" id="hpChip">體力 16/16</span></div><button id="mapBtn">◇ 探索紀錄</button></div></div>
 <div class="veil hidden" id="dialogVeil"><section class="panel" role="dialog" aria-modal="true" aria-labelledby="dialogTitle"><div class="panel-head"><div><div class="kicker" id="dialogKicker">發現</div><h2 id="dialogTitle"></h2></div><div id="dialogCharacter" aria-label="目前發言人物"><canvas id="dialogCharacterCanvas" width="48" height="64" aria-hidden="true"></canvas><span id="dialogCharacterName"></span></div><button class="close" id="dialogClose" aria-label="關閉">×</button></div><p id="dialogText"></p><div class="choices" id="dialogChoices"></div></section></div>
 <div class="veil hidden" id="journalVeil"><section class="panel journal" role="dialog" aria-modal="true"><div class="panel-head"><div><div class="kicker">FIELD NOTES</div><h2>旅程日誌</h2></div><button class="close" id="journalClose">×</button></div><div class="journal-tabs" id="journalTabs"></div><div id="journalContent"></div><div class="line"></div><p class="meta">本版本使用瀏覽器本機儲存，並未連接《鱗片與種子》的雲端存檔。可在設定中匯出備份。</p></section></div>
-<div class="veil hidden" id="menuVeil"><section class="panel" role="dialog" aria-modal="true"><div class="panel-head"><div><div class="kicker">OPTIONS</div><h2>探索設定</h2></div><button class="close" id="menuClose">×</button></div><p id="menuStatus">遊戲會自動在本機儲存。</p><div class="choices"><button class="choice" id="soundBtn">音效：關閉</button><button class="choice" id="exportBtn">匯出存檔</button><button class="choice" id="importBtn">匯入存檔</button><button class="choice" id="restartBtn">重新開始</button></div><div class="line"></div><div class="phase-preview-heading">光線預覽 · 不修改遊戲時間</div><p class="phase-preview-explain">只預覽場景光線，不會跳過事件或改動存檔。畫面右上角可結束預覽。</p><div class="choices phase-preview-options"><button class="choice" type="button" data-preview-period="dawn">清晨</button><button class="choice" type="button" data-preview-period="day">白天</button><button class="choice" type="button" data-preview-period="dusk">黃昏</button><button class="choice" type="button" data-preview-period="night">夜晚</button></div><input id="fileInput" type="file" accept="application/json" class="hidden"><div class="line"></div><div class="note">V0.5.1 測試版本：第二章的公會、委託與人物對話是可修改的玩法草案。人物稱呼仍為佔位，主角身體來歷、復活原因及正式戰鬥方式都尚未定案。</div></section></div>
+<div class="veil hidden" id="menuVeil"><section class="panel" role="dialog" aria-modal="true"><div class="panel-head"><div><div class="kicker">OPTIONS</div><h2>探索設定</h2></div><button class="close" id="menuClose">×</button></div><p id="menuStatus">遊戲會自動在本機儲存。</p><div class="choices"><button class="choice" id="soundBtn">音效：關閉</button><button class="choice" id="exportBtn">匯出存檔</button><button class="choice" id="importBtn">匯入存檔</button><button class="choice" id="restartBtn">重新開始</button></div><div class="line"></div><div class="phase-preview-heading">光線預覽 · 不修改遊戲時間</div><p class="phase-preview-explain">只預覽場景光線，不會跳過事件或改動存檔。畫面右上角可結束預覽。</p><div class="choices phase-preview-options"><button class="choice" type="button" data-preview-period="dawn">清晨</button><button class="choice" type="button" data-preview-period="day">白天</button><button class="choice" type="button" data-preview-period="dusk">黃昏</button><button class="choice" type="button" data-preview-period="night">夜晚</button></div><div class="line"></div><div class="phase-preview-heading">天氣預覽 · 不修改存檔</div><p class="phase-preview-explain">可隨時查看場景的天氣效果。返回自然天氣後，依遊戲時間變化。</p><div class="choices phase-preview-options"><button class="choice" type="button" data-preview-weather="clear">晴朗</button><button class="choice" type="button" data-preview-weather="cloudy">陰天</button><button class="choice" type="button" data-preview-weather="fog">薄霧</button><button class="choice" type="button" data-preview-weather="drizzle">細雨</button><button class="choice" type="button" data-preview-weather="rain">降雨</button><button class="choice" type="button" data-preview-weather="auto">自然天氣</button></div><input id="fileInput" type="file" accept="application/json" class="hidden"><div class="line"></div><div class="note">V0.5.1 測試版本：第二章的公會、委託與人物對話是可修改的玩法草案。人物稱呼仍為佔位，主角身體來歷、復活原因及正式戰鬥方式都尚未定案。</div></section></div>
 <div class="veil" id="startVeil"><section class="panel start"><div class="stamp">A STORY OF THE UNKNOWN</div><h1 class="screen-title">殘車之後</h1><p>你在一輛被毀壞的貨運馬車裡醒來。森林靜得出奇，而你不記得自己為何來到這裡。</p><button class="choice" id="startBtn">開始新的旅程</button><button class="choice hidden" id="continueBtn">繼續旅程</button><div class="note">V0.5.1 可玩原型 · 橫式手機／電腦　｜　探索優先、調查可選　｜　不需登入及付費</div></section></div>
 <div class="orientation"><div><strong>請將手機轉為橫向</strong><p>第一章與城鎮探索以橫式畫面呈現。</p>↻</div></div>
 </div>
@@ -4277,6 +4285,7 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <script src="./assets/scene_spatial_motion_v1.js?v=2-flight-test"></script>
 <script src="./assets/bird_motion_live_v1.js?v=2-hop-joints"></script>
 <script src="./assets/scene_environment_v1.js?v=11-bird"></script>
+<script src="./assets/weather_system_v1.js?v=1"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/scene_objects_v1.js?v=20261124-2"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
@@ -4447,7 +4456,21 @@ function atmosphereSubtitle(scene,period){
  };
  return alt[scene]?.[period]||names[scene]?.[1]||'';
 }
-let previewPeriod=null;
+let previewPeriod=null,previewWeather=null;
+let currentWeather=null;
+function syncWeather(){
+ const engine=window.DungeonWeatherV1;if(!engine)return;
+ currentWeather=previewWeather?{kind:previewWeather,...engine.kinds[previewWeather]}:engine.at(s.seed,s.worldMinutes);
+ const indoor=INDOOR_SCENES.has(s.scene);const app=$('app');app.dataset.weather=currentWeather.kind;
+ const label=indoor?'室內 · 外面'+currentWeather.name:currentWeather.name;
+ $('hudPhase').textContent+=(' · '+label+(previewWeather?'（預覽）':''));
+ $('worldClock').textContent+=' · '+label;
+ $('hudPhase').title='當前天氣：'+label;
+ if(!indoor&&currentWeather.kind!=='clear')$('subplace').textContent=label+' · '+atmosphereSubtitle(s.scene,previewPeriod||periodForMinutes(s.worldMinutes));
+ engine.set(currentWeather,indoor,window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+}
+function selectWeatherPreview(kind){if(kind!=='auto'&&!window.DungeonWeatherV1?.kinds[kind])return;previewWeather=kind==='auto'?null:kind;$('menuVeil').classList.add('hidden');syncTimeAtmosphere();}
+
 function syncTimeAtmosphere(){
  normalizeGameTime();
  const period=previewPeriod||periodForMinutes(s.worldMinutes);
@@ -4461,8 +4484,9 @@ function syncTimeAtmosphere(){
  $('hudPhaseIcon').textContent=period==='night'?'☾':period==='day'?'☀':period==='dawn'?'◐':'◒';
  $('subplace').textContent=atmosphereSubtitle(s.scene,period);
  const tag=$('timePreviewTag');
- tag.classList.toggle('hidden',!previewPeriod);
- tag.textContent=previewPeriod?'結束'+PERIOD_NAMES[period]+'預覽 · 恢復實際時段':'';
+ syncWeather();
+ tag.classList.toggle('hidden',!previewPeriod&&!previewWeather);
+ tag.textContent=previewPeriod||previewWeather?'結束'+(previewPeriod?'光線':'')+(previewPeriod&&previewWeather?'及':'')+(previewWeather?'天氣':'')+'預覽':'';
 }
 function selectTimePreview(period){
  if(!PERIOD_NAMES[period])return;
@@ -8095,7 +8119,8 @@ $('travelToggle').onclick=()=>setTravelHud(s.travelHudMode==='expanded'?'compact
 $('travelOpenJournal').onclick=()=>journal('journey');
 $('regionMapBtn').onclick=()=>journal('map');$('journalBtn').onclick=()=>journal('journey');$('mapBtn').onclick=()=>journal('map');$('journalClose').onclick=()=>$('journalVeil').classList.add('hidden');$('hintBtn').onclick=()=>{showHints=!showHints;renderHotspots();toast(showHints?'僅顯示附近可互動位置，不影響主線':'已隱藏互動提示');};$('menuBtn').onclick=()=>{$('menuVeil').classList.remove('hidden');$('soundBtn').textContent='音效：'+(s.sound?'開啟':'關閉');};$('menuClose').onclick=()=>$('menuVeil').classList.add('hidden');$('dialogClose').onclick=closeDialog;
 for(const btn of document.querySelectorAll('[data-preview-period]'))btn.onclick=()=>selectTimePreview(btn.dataset.previewPeriod);
-$('timePreviewTag').onclick=clearTimePreview;
+for(const btn of document.querySelectorAll('[data-preview-weather]'))btn.onclick=()=>selectWeatherPreview(btn.dataset.previewWeather);
+$('timePreviewTag').onclick=()=>{previewPeriod=null;previewWeather=null;syncTimeAtmosphere();};
 $('sceneDialogueNext').onclick=e=>{e.stopPropagation();nextSceneDialogue();};
 $('sceneDialogue').onclick=e=>{if(e.target.closest('button'))return;nextSceneDialogue();};
 $('soundBtn').onclick=()=>{s.sound=!s.sound;$('soundBtn').textContent='音效：'+(s.sound?'開啟':'關閉');save();beep(520);};
@@ -8123,6 +8148,7 @@ if(e.key.toLowerCase()==='m'){e.preventDefault();journal('map');}
 });
 // Original procedural 2D environments, drawn locally with Canvas; no external assets or network requests.
 setupPlaceDrawer();const can=$('view'),ctx=can.getContext('2d'),W=960,H=540;
+window.DungeonWeatherV1?.bind($('weatherOverlay'));
 // Fixed 16:9 canvas coordinate system shared by backdrop, hotspots and actors.
 let t=0,last=0;
 const emptyForest=new Image();let emptyForestReady=false;
@@ -8232,7 +8258,7 @@ function sceneDraw(time){
  v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(3,14,13,.68)');
  rect(0,0,W,H,v);
 }
-function size(){const d=Math.min(devicePixelRatio||1,1.5);can.width=Math.floor(W*d);can.height=Math.floor(H*d);ctx.setTransform(d,0,0,d,0,0);}size();window.addEventListener('resize',()=>{size();refreshSceneFraming();renderHotspots();});refreshSceneFraming();const wildlifeMotionQuery=window.matchMedia('(prefers-reduced-motion: reduce)');function frame(ms){window.DungeonSceneEnvironmentV1?.tickWildlife(ms,s.scene==='wreck'&&!document.hidden&&!wildlifeMotionQuery.matches);if(ms-last>68){t=ms/1000;sceneDraw(t);last=ms;}requestAnimationFrame(frame);}requestAnimationFrame(frame);render();
+function size(){const d=Math.min(devicePixelRatio||1,1.5);can.width=Math.floor(W*d);can.height=Math.floor(H*d);ctx.setTransform(d,0,0,d,0,0);}size();window.addEventListener('resize',()=>{size();refreshSceneFraming();renderHotspots();});refreshSceneFraming();const wildlifeMotionQuery=window.matchMedia('(prefers-reduced-motion: reduce)');function frame(ms){window.DungeonSceneEnvironmentV1?.tickWildlife(ms,s.scene==='wreck'&&!document.hidden&&!wildlifeMotionQuery.matches);if(ms-last>68){t=ms/1000;sceneDraw(t);window.DungeonWeatherV1?.draw(ms);last=ms;}requestAnimationFrame(frame);}requestAnimationFrame(frame);render();
 })();
 </script>
 </body>
