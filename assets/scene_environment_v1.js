@@ -118,6 +118,14 @@ window.DungeonSceneEnvironmentV1=(function(){
  }
  function attachWildlife(node,o){
   const kind=String(o.assetId||'').replace(/^forest4_/,'');
+  if(kind==='bird'){
+   if(!window.DungeonBirdMotion)return;
+   const anchor={id:o.id,x:o.x,y:o.y,width:o.width,z:o.z};
+   node.dataset.birdMotion='true';
+   wildlife.set(node,{kind,anchor,phase:1.8,start:null});
+   window.DungeonBirdMotion.attach(node);
+   return;
+  }
   if(kind!=='rabbit'&&kind!=='beetle')return;
   const dir=kind==='rabbit'?-1:(o.x>75?-1:1);
   const hash=Array.from(String(o.id||kind)).reduce((n,ch)=>(n*31+ch.charCodeAt(0))%997,0);
@@ -137,6 +145,19 @@ window.DungeonSceneEnvironmentV1=(function(){
    if(!node.isConnected){wildlife.delete(node);continue;}
    if(a.start===null)a.start=ms;
    const elapsed=(ms-a.start)/1000+a.phase;
+   if(a.kind==='bird'){
+    const v=window.DungeonBirdMotion.sample(a.anchor,elapsed);
+    try{window.DungeonBirdMotion.render(node,v,elapsed,ms);}catch(err){node.removeAttribute('data-bird-rig');}
+    node.style.setProperty('--bird-x',v.x.toFixed(3)+'%');
+    node.style.setProperty('--bird-y',v.visibleY.toFixed(3)+'%');
+    node.style.setProperty('--bird-width',v.width.toFixed(3)+'%');
+    node.style.setProperty('--bird-z',String(10+v.z));
+    node.style.setProperty('--bird-face',String(v.face));
+    node.style.setProperty('--bird-shadow',v.shadow.toFixed(3));
+    node.style.setProperty('--bird-shadow-offset',(100*v.h/(v.width*(16/9)/(119/95))).toFixed(2)+'%');
+    node.dataset.birdState=v.mode;
+    continue;
+   }
    const v=wildlifeSample(a.kind,elapsed,a.dir);
    try{
     if(a.kind==='rabbit')window.DungeonRabbitArticulation?.render(node,v,elapsed,ms);
