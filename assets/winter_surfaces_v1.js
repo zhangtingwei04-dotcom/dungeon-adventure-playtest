@@ -16,18 +16,29 @@ window.DungeonWinterV1=(function(){
  // The large right foreground boulder and grass are painted into the background,
  // not the independent rock sprite. Add a source-textured, feathered winter layer.
  const smooth=q=>{q=clamp(q,0,1);return q*q*(3-2*q);};
- function snowIsland(x,y,cx,cy,rx,ry){
-  const px=(x-cx)/rx,py=(y-cy)/ry;
-  const edge=1+.065*Math.sin(x*.24+y*.31)+.04*Math.cos(x*.45-y*.21);
-  return smooth((edge-Math.hypot(px,py))/.34);
+ // Contours traced from the V5 1280x720 background, in 640x360 space.
+ // Softness is limited to the actual snow edge, not the entire patch.
+ const rockSnow=[[500,279],[504,271],[511,264],[520,259],[532,255],[544,254],[555,255],[568,257],[579,260],[591,265],[600,271],[606,278],[600,280],[594,277],[588,281],[580,278],[572,282],[565,279],[556,283],[550,279],[542,282],[535,278],[526,280],[520,275],[511,278],[507,282]];
+ const rootBanks=[
+ [[482,289],[494,287],[502,290],[510,291],[519,288],[526,293],[538,295],[550,294],[563,297],[570,302],[558,306],[545,305],[534,308],[519,303],[503,304],[490,300],[478,298]],
+ [[451,310],[467,305],[482,306],[493,309],[505,308],[515,314],[528,314],[538,320],[530,326],[515,326],[502,323],[488,326],[474,322],[462,321],[450,318]],
+ [[534,308],[546,306],[557,309],[571,308],[582,306],[591,312],[587,320],[577,324],[563,322],[552,327],[539,324],[529,318]],
+ [[469,333],[481,330],[495,332],[507,330],[520,337],[514,343],[503,346],[486,343],[473,345],[459,340]]
+ ];
+ function contour(x,y,points,feather=1.6){
+  let inside=false,min=Infinity;
+  for(let i=0,j=points.length-1;i<points.length;j=i++){
+   const [ax,ay]=points[j],[bx,by]=points[i],dx=bx-ax,dy=by-ay;
+   if((ay>y)!==(by>y)&&x<(bx-ax)*(y-ay)/(by-ay)+ax)inside=!inside;
+   const q=clamp(((x-ax)*dx+(y-ay)*dy)/(dx*dx+dy*dy||1),0,1);
+   min=Math.min(min,Math.hypot(x-ax-q*dx,y-ay-q*dy));
+  }
+  const rag=.65*Math.sin(x*.64+y*.82)+.38*Math.cos(x*1.41-y*.45);
+  return smooth(.5+((inside?min:-min)+rag)/(2*feather));
  }
  function rightSnowProfile(x,y){
-  // Upper boulder face, flower bed and rooted grass. Keep the lower rock face dark.
-  const cap=Math.max(snowIsland(x,y,548,264,49,17),snowIsland(x,y,566,269,31,13));
-  const flowers=snowIsland(x,y,557,279,32,12)*.86;
-  const base=Math.max(snowIsland(x,y,525,294,29,9),snowIsland(x,y,570,302,40,13),snowIsland(x,y,603,313,29,12));
-  const grass=Math.max(snowIsland(x,y,568,319,39,26),snowIsland(x,y,608,332,31,27),snowIsland(x,y,629,347,27,19));
-  return {cap,flowers,base,grass};
+  if(x<445||x>609||y<250||y>349)return {cap:0,base:0};
+  return {cap:contour(x,y,rockSnow,1.25),base:Math.max(...rootBanks.map(p=>contour(x,y,p,1.7)))};
  }
  let surface=null;
  function makeSurface(img){
@@ -53,17 +64,19 @@ window.DungeonWinterV1=(function(){
    }fc.putImageData(ff,0,0);
    const rightWinter=document.createElement('canvas');rightWinter.width=w;rightWinter.height=h;
    const rc=rightWinter.getContext('2d'),rf=rc.createImageData(w,h),rd=rf.data;
-   for(let y=240;y<h;y++)for(let x=480;x<w;x++){
-    const i=(y*w+x)*4,{cap,flowers,base,grass}=rightSnowProfile(x,y);
+   for(let y=250;y<350;y++)for(let x=445;x<610;x++){
+    const i=(y*w+x)*4,{cap,base}=rightSnowProfile(x,y);
+    if(Math.max(cap,base)<.01)continue;
     const r=pixels[i],g=pixels[i+1],bl=pixels[i+2],l=.25*r+.55*g+.20*bl;
     const n0=Math.sin(x*12.9898+y*78.233)*43758.5453,n=n0-Math.floor(n0)-.5;
-    const leaf=clamp((g-Math.min(r,bl)+6)/38,0,1);
-    const grain=.82+.18*Math.sin(x*.29+y*.58)*Math.cos(x*.67-y*.21);
-    const q=Math.max(cap*.97,flowers*.97,base*.94,grass*(.60+.32*leaf))*grain;
-    if(q<.01)continue;
-    // Snow shading keeps the source relief, flecks and contact texture.
-    const texture=(l-85)*.59+n*15+5*Math.sin(x*.11+y*.36);
-    rd[i]=clamp(207+texture,125,250);rd[i+1]=clamp(221+texture*.90,142,253);rd[i+2]=clamp(230+texture*.85,153,255);rd[i+3]=Math.round(clamp(q,0,1)*255);
+    // Keep dark foreground leaves in front of the ground layer, not under a translucent veil.
+    const foregroundLeaf=y>300?smooth((72-l)/28)*smooth((g-bl+4)/18):0;
+    const ground=base*(1-foregroundLeaf*.99);
+    const q=Math.max(cap,ground);
+    const texture=n*8+5*Math.sin(x*.16+y*.31)+3*Math.cos(x*.43-y*.13);
+    const relief=cap>ground?clamp((l-88)*.17,-12,12)-smooth((y-270)/13)*17:clamp((l-94)*.14,-10,10)-7*smooth((y-309)/37);
+    rd[i]=clamp(212+texture+relief,0,255);rd[i+1]=clamp(224+texture+relief,0,255);rd[i+2]=clamp(231+texture+relief,0,255);
+    rd[i+3]=Math.round(q*253);
    }rc.putImageData(rf,0,0);
    for(let y=0,j=0;y<h;y++)for(let x=0;x<w;x++,j++){const i=j*4;if(!area[i+3])continue;const r=pixels[i],g=pixels[i+1],bl=pixels[i+2],l=.25*r+.55*g+.20*bl;
     const grain=Math.sin(x*12.9898+y*78.233)*43758.5453,noise=grain-Math.floor(grain)-.5;
@@ -82,7 +95,7 @@ window.DungeonWinterV1=(function(){
  function paintSurface(ctx,cover,w,h,source,frost=0){
   const a=makeSurface(source);if(!a)return false;const level=Math.round(clamp(cover,0,1)*48)/48;
   if(a.last!==level){const d=a.frame.data;for(let j=0;j<a.threshold.length;j++){const i=j*4,mask=a.area[i+3];if(!mask){d[i+3]=0;continue;}const v=level<=0?0:clamp((level-a.threshold[j]+.11)/.22,0,1);const edge=v*v*(3-2*v);const complete=clamp((level-.88)/.12,0,1);d[i+3]=Math.round(mask*Math.max(edge*.91,complete*.87));}a.o.putImageData(a.frame,0,0);a.last=level;}
-  ctx.drawImage(a.out,0,0,w,h);ctx.save();ctx.globalAlpha=clamp(Math.max(cover*.83,frost*.68),0,1);ctx.drawImage(a.foliage,0,0,w,h);ctx.globalAlpha=smooth((cover-.08)/.84);ctx.drawImage(a.rightWinter,0,0,w,h);ctx.restore();return true;
+  ctx.drawImage(a.out,0,0,w,h);ctx.save();ctx.globalAlpha=clamp(Math.max(cover*.83,frost*.68),0,1);ctx.drawImage(a.foliage,0,0,w,h);ctx.globalAlpha=smooth((cover-.12)/.77);ctx.drawImage(a.rightWinter,0,0,w,h);ctx.restore();return true;
  }
  function ground(ctx,cover,w,h,source=null,frost=0){if(Math.max(cover,frost)<.025)return;if(source&&paintSurface(ctx,cover,w,h,source,frost))return;if(cover<.025)return;ctx.save();ctx.scale(w/640,h/360);
   patches.forEach(([x,y,rx,ry,threshold],i)=>{const q=clamp(cover*1.5-(1-threshold),0,1);if(q<.04)return;
