@@ -3933,7 +3933,7 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 </style>
 <link rel="stylesheet" href="./assets/scene_light_v1.css?v=20261124-1">
 <link rel="stylesheet" href="./assets/forest_v4_integration.css?v=4-shadow">
-<link rel="stylesheet" href="./assets/scene_environment_v1.css?v=2">
+<link rel="stylesheet" href="./assets/scene_environment_v1.css?v=3-live-motion">
 </head>
 <body>
 <div id="app"><div id="worldFrame" aria-hidden="true">
@@ -7939,9 +7939,10 @@ function forestEnvironmentActive(){return DEV_PREVIEW_MODE&&window.DUNGEON_FORES
 function renderForestV4(el){
  const cfg=window.DUNGEON_FOREST_V4_LAYOUT?.scenes?.wreck,assets=window.DUNGEON_FOREST_V4_ASSETS;
  if(!cfg||!assets)return;
- const smooth=forestEnvironmentActive();
+ const liveMotion=new URLSearchParams(location.search).get('env')!=='off';
+ const smooth=liveMotion;
  const existing=smooth?el.querySelector('.forest-v4-layer'):null;
- const layer=existing||document.createElement('div');layer.className='forest-v4-layer';if(smooth)layer.classList.add('env-v1');
+ const layer=existing||document.createElement('div');layer.className='forest-v4-layer';if(forestEnvironmentActive())layer.classList.add('env-v1');else if(liveMotion)layer.classList.add('env-motion-v2');
  const previous=new Map(Array.from(layer.children).filter(n=>n.dataset.objectId).map(n=>[n.dataset.objectId,n]));
  const keep=new Set();
  const bindings=forestV4MaterialBindings();
@@ -7962,7 +7963,7 @@ function renderForestV4(el){
   }
   if(old){clearTimeout(old._exitTimer);old.remove();}
   const node=document.createElement(interactive?'button':'div');node.dataset.renderSignature=signature;if(interactive){node.type='button';node.setAttribute('aria-label',o.name+(finds.length?'：可收集'+finds.map(f=>f.material).join('、'):''));node.title=o.name+(finds.length?' · 可收集':'');node.onclick=()=>guardedAction(()=>forestV4Action(o));}else node.setAttribute('aria-hidden','true');
-  node.className='forest-v4-object';node.dataset.objectId=o.id;node.dataset.motion=animal?'animal':plant?'plant':'fixed';node.style.left=o.x+'%';node.style.top=o.y+'%';node.style.width=o.width+'%';node.style.zIndex=10+o.z;
+  node.className='forest-v4-object';node.dataset.objectId=o.id;node.dataset.motion=animal?'animal':plant?'plant':'fixed';node.dataset.liveKind=k;node.style.setProperty('--env-motion-delay',(-([...o.id].reduce((n,ch)=>(n*31+ch.charCodeAt(0))%89,0)/10))+'s');node.style.left=o.x+'%';node.style.top=o.y+'%';node.style.width=o.width+'%';node.style.zIndex=10+o.z;
   const art=document.createElement('span');art.className='forest-v4-art';art.style.transform='scaleX('+(o.flip?-1:1)+') rotate('+o.rotation+'deg)';
   const im=document.createElement('img');im.src=o.artVariant==='barrel-side'?'./assets/forest_v4_barrel_side.svg?v=1':a.src;if(o.artVariant==='barrel-side')im.onerror=()=>{im.onerror=null;im.src=a.src;art.style.transform='rotate(72deg)';};im.alt='';im.draggable=false;art.appendChild(im);node.appendChild(art);window.DungeonForestV4Integration?.apply(node,o,assets);if(forestEnvironmentActive())window.DungeonSceneEnvironmentV1?.apply(node,art,im,o);updateForestFindCue(node,finds,k);keep.add(node);if(smooth&&existing&&!old)node.classList.add('env-entering');layer.appendChild(node);
  }
@@ -7992,8 +7993,8 @@ function renderWorldObjects(el){
  }
 }
 function renderHotspots(){
- const el=$('hotspots');const stable=forestV4Active()&&forestEnvironmentActive();
- $('app').classList.toggle('env-repair-v2',stable);
+ const el=$('hotspots');const stable=forestV4Active()&&new URLSearchParams(location.search).get('env')!=='off';
+ $('app').classList.toggle('env-repair-v2',stable&&forestEnvironmentActive());
  if(stable){for(const child of Array.from(el.children))if(!child.classList.contains('forest-v4-layer'))child.remove();}
  else el.replaceChildren();
  if(forestV4Active()){renderForestV4(el);renderWorldObjects(el);}else if(!(DEV_PREVIEW_MODE&&s.scene==='wreck'&&editorForestSrc)){renderOpeningWagonTrial(el);renderWorldObjects(el);}
