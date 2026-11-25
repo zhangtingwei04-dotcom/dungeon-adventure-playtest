@@ -4080,7 +4080,13 @@ html.stage-locked #app #topGameHud #hudPhase{font-size:clamp(10px,1.65vw,17px)}
 #sceneStage #encounterCue.opening-encounter{pointer-events:auto;z-index:9;padding:7px 10px;background:#132b24f2}
 #encounterCue.opening-encounter button{margin:5px 4px 0;padding:5px 10px;border:1px solid #c5ac78;border-radius:4px;background:#355242;color:#fff2d1;font:inherit}
 #app[data-opening-adventure="true"] #travelFeed,#app[data-opening-adventure="true"] #sceneFuturePanel{opacity:.68}
-/* Dialogue input lock: only the active event surface accepts input. */
+/* Dialogue input lock: permit read-only information panels without advancing events. */
+#app[data-dialogue-lock="true"] #dialogVeil{pointer-events:none;background:transparent;backdrop-filter:none}
+#app[data-dialogue-lock="true"] #dialogVeil .panel{pointer-events:auto}
+#app[data-dialogue-lock="true"] #journalVeil{z-index:999!important}
+#app[data-dialogue-lock="true"] #placeDrawer{opacity:1!important}
+#app[data-dialogue-lock="true"] #placeDrawerList :is(.owned-gear-action,#equipEquipmentAction,.side-info-aux){opacity:.4;pointer-events:none}
+#app[data-dialogue-lock="true"] #placeDrawerList :is(.location-preview-travel,.side-main-action){pointer-events:none}
 #app[data-dialogue-lock="true"] #placePrimaryActions,
 #app[data-dialogue-lock="true"] #actions,
 #app[data-dialogue-lock="true"] .location-preview-travel{opacity:.45;cursor:default}
@@ -5209,9 +5215,8 @@ function setPlaceDrawer(open,expandId=null){
 }
 function closePlaceDrawer(){}
 function setActiveSideTab(tab){
- if(activeDialogueSurface())return;
  if(!['locations','character','equipment','inventory'].includes(tab))return;
- clearRouteAttention();activeSideTab=tab;renderPlaceDrawer();$('placeDrawerList').scrollTop=0;
+ if(!activeDialogueSurface())clearRouteAttention();activeSideTab=tab;renderPlaceDrawer();$('placeDrawerList').scrollTop=0;
 }
 function sideInfoText(out,text,cls='side-info-line'){
  const el=document.createElement('p');el.className=cls;el.textContent=text;out.appendChild(el);
@@ -6586,6 +6591,7 @@ function equipmentGuideHTML(sceneMode='equipment'){
   (paperDollTryOn?'<span class="paperdoll-preview-label">試穿</span>':'')+'</div>';
 }
 function setOwnedEquipmentEquipped(slotId,equip){
+ if(activeDialogueSurface())return;
  normalizeEquipmentV1();
  const item=EQUIPMENT_VISUAL_CATALOG[slotId];
  if(!item||!s.equipmentV1.owned.includes(item.id))return;
@@ -6934,8 +6940,7 @@ function presentDiscoveredRoute(from,to){
  openSceneDialogue([{speaker:'旁白',text:from==='wreck'&&to==='trail'?'你順著泥地上的車轍望去，樹影間露出一條可以通行的小徑。':'你辨認出一條新的道路：'+routeCardTitle(from,to)+'。'}],'route-preview');
 }
 function moveLocationPreview(step){
- if(activeDialogueSurface())return;
- clearRouteAttention();
+ if(!activeDialogueSurface())clearRouteAttention();
  const cards=visiblePlaceCards();
  if(cards.length<2)return;
  const index=Math.max(0,cards.findIndex(card=>card.id===(locationPreviewId||s.scene)));
@@ -7647,15 +7652,30 @@ function activeDialogueSurface(){
 function syncDialogueInputLock(){
  const active=activeDialogueSurface();
  $('app').dataset.dialogueLock=String(!!active);
- for(const id of ['hotspots','placeDrawer','travelFeed','sceneFuturePanel','actions']){
+ for(const id of ['hotspots','placePrimaryActions','travelFeed','sceneFuturePanel','actions']){
   const el=$(id);if(el)el.inert=!!active&&!el.contains(active);
  }
 }
 function guardedAction(fn){if(activeDialogueSurface())return;const now=Date.now();if(now-lastActionAt<300)return;lastActionAt=now;fn?.();}
 // Capture phase protects every background control, including dynamically generated buttons.
+function dialogueInfoAllowed(target){
+ if(!target?.closest)return false;
+ if(target.closest('#regionMapBtn,#mapBtn,#hudCharacterBtn,#playerStatusButton,#sideInfoTabs,.location-preview-arrow,.equip-slot,.equip-bag-button,.bag-filter,.protagonist-portrait'))return true;
+ if(target.closest('#placeDrawerList')){
+  const control=target.closest('button,input,select,textarea,a,[role="button"]');
+  if(!control)return true;
+  return control.textContent.trim()==='區域地圖';
+ }
+ return false;
+}
 function blockBackgroundDialogueInput(e){
  const active=activeDialogueSurface();
- if(!active||active.contains(e.target))return;
+ if(!active)return;
+ const map=$('journalVeil');
+ const mapOpen=!map.classList.contains('hidden')&&journalTab==='map';
+ if(mapOpen){
+  if(map.contains(e.target)&&!e.target.closest('.journal-tab:not(.selected)'))return;
+ }else if(active.contains(e.target)||dialogueInfoAllowed(e.target))return;
  if(e.cancelable)e.preventDefault();e.stopImmediatePropagation();
 }
 for(const type of ['click','dblclick','pointerdown','pointerup','touchstart','touchend','touchmove','wheel']){
@@ -8013,6 +8033,7 @@ function renderPlayerStatus(){
  meter.setAttribute('aria-valuenow',String(hp));
 }
 function showPlayerStatus(){
+ if(activeDialogueSurface()){setActiveSideTab('character');return;}
  const env=characterEnvironmentView(),core=window.DungeonCharacterEnvironmentV1;
  const environmentText=env&&core?'\n\n'+core.rows(env).map(([k,v])=>k+'：'+v).join('\n'):'';
  dialog('玩家狀態',
@@ -8414,7 +8435,7 @@ function renderRouteMap(out){
  footnote.textContent='開場那輛馬車已經損毀、不能搭乘。驛站馬車只在城鎮街道與近郊間提供短程接送；其餘路線先以步行計算。';
  out.appendChild(footnote);
 }
-function journal(tab='discoveries'){if(activeDialogueSurface())return;tickBeetleCare();closePlaceDrawer();$('journalVeil').classList.remove('hidden');journalTab=tab;$('journalTabs').replaceChildren();const tabs=[['journey','旅途'],['discoveries','發現'],['map','地點'],['party','相遇者'],['items','物品與材料'],['bestiary','怪物圖鑑'],['terrarium','生態箱']];for(const [key,label] of tabs){const b=document.createElement('button');b.className='journal-tab'+(tab===key?' selected':'');b.textContent=label;b.onclick=()=>journal(key);$('journalTabs').appendChild(b);}const out=$('journalContent');out.replaceChildren();if(tab==='map'){renderRouteMap(out);return;}if(tab==='items'){renderWalletPanel(out);renderRecoveredItems(out);return;}if(tab==='bestiary'){renderCreatureBestiary(out);return;}if(tab==='terrarium'){renderRustTerrarium(out);return;}if(tab==='journey'){const logs=(Array.isArray(s.travelLog)?s.travelLog:[]).filter(e=>e&&typeof e.message==='string').slice().reverse();for(const e of logs){const row=document.createElement('div');row.className='journey-entry';const meta=document.createElement('div');meta.className='entry-meta';meta.textContent=(Number.isFinite(e.time)?new Date(e.time).toLocaleString('zh-TW'):'旅途')+' · '+(names[e.scene]?.[0]||'旅途');const main=document.createElement('div');main.className='entry-main';main.textContent=e.message;row.append(meta,main);if(e.thought){const thought=document.createElement('div');thought.className='entry-thought';thought.textContent='「'+e.thought+'」';row.appendChild(thought);}out.appendChild(row);}if(!logs.length)out.textContent='尚未留下旅途紀錄；新的事件會自動保存。';return;}let list=[];if(tab==='discoveries')list=s.notes.length?s.notes:['目前尚無額外發現。直接往前走也能繼續冒險。'];if(tab==='party')list=s.flags.rescued?s.party.map(i=>roster[i].name+'｜'+roster[i].speech):['尚未與冒險者正式相遇。'];const ul=document.createElement('ul');ul.className='journal-list';for(const item of list){const li=document.createElement('li');li.textContent=item;ul.appendChild(li);}out.appendChild(ul);}
+function journal(tab='discoveries'){if(activeDialogueSurface()&&tab!=='map')return;tickBeetleCare();closePlaceDrawer();$('journalVeil').classList.remove('hidden');journalTab=tab;$('journalTabs').replaceChildren();const tabs=[['journey','旅途'],['discoveries','發現'],['map','地點'],['party','相遇者'],['items','物品與材料'],['bestiary','怪物圖鑑'],['terrarium','生態箱']];for(const [key,label] of tabs){const b=document.createElement('button');b.className='journal-tab'+(tab===key?' selected':'');b.textContent=label;b.onclick=()=>journal(key);$('journalTabs').appendChild(b);}const out=$('journalContent');out.replaceChildren();if(tab==='map'){renderRouteMap(out);return;}if(tab==='items'){renderWalletPanel(out);renderRecoveredItems(out);return;}if(tab==='bestiary'){renderCreatureBestiary(out);return;}if(tab==='terrarium'){renderRustTerrarium(out);return;}if(tab==='journey'){const logs=(Array.isArray(s.travelLog)?s.travelLog:[]).filter(e=>e&&typeof e.message==='string').slice().reverse();for(const e of logs){const row=document.createElement('div');row.className='journey-entry';const meta=document.createElement('div');meta.className='entry-meta';meta.textContent=(Number.isFinite(e.time)?new Date(e.time).toLocaleString('zh-TW'):'旅途')+' · '+(names[e.scene]?.[0]||'旅途');const main=document.createElement('div');main.className='entry-main';main.textContent=e.message;row.append(meta,main);if(e.thought){const thought=document.createElement('div');thought.className='entry-thought';thought.textContent='「'+e.thought+'」';row.appendChild(thought);}out.appendChild(row);}if(!logs.length)out.textContent='尚未留下旅途紀錄；新的事件會自動保存。';return;}let list=[];if(tab==='discoveries')list=s.notes.length?s.notes:['目前尚無額外發現。直接往前走也能繼續冒險。'];if(tab==='party')list=s.flags.rescued?s.party.map(i=>roster[i].name+'｜'+roster[i].speech):['尚未與冒險者正式相遇。'];const ul=document.createElement('ul');ul.className='journal-list';for(const item of list){const li=document.createElement('li');li.textContent=item;ul.appendChild(li);}out.appendChild(ul);}
 function setTravelHud(mode){if(!['compact','expanded'].includes(mode))return;s.travelHudMode=mode;save();renderFeed();}
 $('playerStatusButton').onclick=showPlayerStatus;
 $('hudCharacterBtn').onclick=()=>setActiveSideTab('character');
@@ -8480,8 +8501,15 @@ window.addEventListener('keydown',e=>{
 if(e.metaKey||e.ctrlKey||e.altKey||e.target.matches('input,textarea,select,[contenteditable="true"]'))return;
 const active=activeDialogueSurface();
  if(active){
+  if(!$('journalVeil').classList.contains('hidden')&&journalTab==='map'){
+   if(e.key==='Escape'){e.preventDefault();$('journalVeil').classList.add('hidden');}
+   else if(!$('journalVeil').contains(e.target)||e.target.closest('.journal-tab:not(.selected)'))e.preventDefault();
+   return;
+  }
+  if(e.key.toLowerCase()==='m'){e.preventDefault();journal('map');return;}
+  if(dialogueInfoAllowed(e.target)&&['Enter',' ','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','PageUp','PageDown'].includes(e.key))return;
   if(e.key==='Tab'){
-   const controls=[...active.querySelectorAll('button:not([disabled]):not(.hidden),[href],input,select,textarea,[tabindex="0"]')].filter(el=>el.getClientRects().length);
+   const controls=[...active.querySelectorAll('button:not([disabled]):not(.hidden),[href],input,select,textarea,[tabindex="0"]'),...document.querySelectorAll('#sideInfoTabs button,#regionMapBtn,#hudCharacterBtn,#placeDrawerList button')].filter(el=>el.getClientRects().length&&(active.contains(el)||dialogueInfoAllowed(el)));
    e.preventDefault();if(controls.length){const i=controls.indexOf(document.activeElement);controls[(i<0?(e.shiftKey?controls.length-1:0):(i+(e.shiftKey?controls.length-1:1))%controls.length)].focus();}return;
   }
   if(active.id==='sceneDialogue'){
