@@ -1,7 +1,7 @@
 /* Rust-shell beetle: localized leg and antenna articulation on original sprite.
    Six virtual leg phases; visible legs are deformed, occluded legs are not invented. */
 window.DungeonBeetleArticulation=(function(){
- const W=145,H=89,P=8,CW=W+2*P,CH=H+2*P;
+ const W=145,H=89,P=24,CW=W+2*P,CH=H+2*P;
  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
  const ramp=(v,a,b)=>{const q=clamp((v-a)/(b-a),0,1);return q*q*(3-2*q);};
  // Rear, middle, front on near and far sides, then two antenna roots.
@@ -29,6 +29,35 @@ window.DungeonBeetleArticulation=(function(){
   const phase=t*2*Math.PI*3.1, a=.13*env*Math.sin(phase), b=-a;
   return [a,b,a,b,a,b,.09*Math.sin(t*4.1)+(turn?.08:0),.075*Math.sin(t*3.2+1.2)-(turn?.07:0)];
  }
+ // The closed-shell reference contains no flight pose. Draw provisional wing artwork
+ // only during flight; use the original shell texture for lifted covers.
+ function paintFlight(ctx,img,v,t){
+  const q=clamp(v.wingOpen||0,0,1);if(q<.005)return;
+  const flap=v.mode==='fly'?Math.sin(t*Math.PI*2*8):0;
+  ctx.save();ctx.translate(P,P);
+  ctx.globalCompositeOperation='destination-over';
+  function wing(pivot,angle,far){
+   ctx.save();ctx.translate(...pivot);ctx.rotate(angle);ctx.scale(1,Math.max(.16,.72+.26*flap*(far?-1:1)));
+   const g=ctx.createLinearGradient(0,0,-66,-20);g.addColorStop(0,'rgba(177,143,86,.82)');g.addColorStop(.55,'rgba(223,211,165,.65)');g.addColorStop(1,'rgba(216,232,219,.28)');
+   ctx.fillStyle=g;ctx.strokeStyle='rgba(106,91,59,.7)';ctx.lineWidth=1.15;
+   ctx.beginPath();ctx.moveTo(0,0);ctx.bezierCurveTo(-18,-15,-54,-24,-70,-12);ctx.bezierCurveTo(-71,3,-32,14,0,0);ctx.fill();ctx.stroke();
+   ctx.strokeStyle='rgba(124,105,65,.48)';ctx.lineWidth=.8;
+   for(const [x,y] of [[-60,-13],[-50,-2],[-35,7]]){ctx.beginPath();ctx.moveTo(0,0);ctx.quadraticCurveTo(-25,-5,x,y);ctx.stroke();}
+   ctx.restore();
+  }
+  wing([85,31],q*.62,true);wing([79,43],-q*.6,false);
+  ctx.globalCompositeOperation='source-over';
+  // Dark abdomen exposed under the opened elytra; keep the head and legs intact.
+  ctx.globalAlpha=q*.92;ctx.fillStyle='#54341e';ctx.beginPath();ctx.ellipse(61,35,29,13,-.20,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#98643a';ctx.lineWidth=1.3;
+  for(let x=42;x<82;x+=8){ctx.beginPath();ctx.moveTo(x,28);ctx.quadraticCurveTo(x+4,35,x+2,43);ctx.stroke();}
+  ctx.globalAlpha=1;
+  function cover(angle,dy,sy){
+   ctx.save();ctx.translate(88,29+dy);ctx.rotate(angle);ctx.scale(1,sy);ctx.translate(-88,-29);
+   ctx.beginPath();ctx.moveTo(88,30);ctx.bezierCurveTo(91,8,62,6,43,14);ctx.bezierCurveTo(24,21,18,37,24,46);ctx.bezierCurveTo(50,51,78,43,88,30);ctx.closePath();ctx.clip();ctx.drawImage(img,0,0,W,H);ctx.restore();
+  }
+  ctx.globalAlpha=q;cover(q*.53,-3,.72);cover(-q*.38,4,.78);ctx.restore();
+ }
  const rigs=new WeakMap();
  function attach(node){
   const img=node.querySelector('.forest-v4-art img');if(!img)return;
@@ -41,14 +70,14 @@ window.DungeonBeetleArticulation=(function(){
     ctx.clearRect(0,0,CW,CH);ctx.drawImage(img,P,P,W,H);
     const source=ctx.getImageData(0,0,CW,CH).data;
     const out=ctx.createImageData(CW,CH);
-    art.appendChild(can);rigs.set(node,{ctx,source,out,last:-Infinity,dx:new Float32Array(n),dy:new Float32Array(n)});
+    art.appendChild(can);rigs.set(node,{ctx,img,source,out,last:-Infinity,dx:new Float32Array(n),dy:new Float32Array(n)});
     node.dataset.beetleRig='ready';
    }catch(e){/* Original image remains visible if canvas is unavailable. */}
   };
   if(img.complete&&img.naturalWidth)queueMicrotask(init);else img.addEventListener('load',init,{once:true});
  }
  function render(node,v,t,ms){
-  const r=rigs.get(node);if(!r||ms-r.last<50)return;r.last=ms;
+  const r=rigs.get(node);if(!r||ms-r.last<(v.mode==='fly'?32:50))return;r.last=ms;
   const a=angles(v,t),{dx,dy,source,out,ctx}=r,d=out.data;
   for(let i=0;i<n;i++){let x=0,y=0;for(let j=0;j<8;j++){x+=coeff[j][0][i]*a[j];y+=coeff[j][1][i]*a[j];}dx[i]=x;dy[i]=y;}
   for(let y=0,i=0;y<CH;y++)for(let x=0;x<CW;x++,i++){
@@ -63,6 +92,7 @@ window.DungeonBeetleArticulation=(function(){
    if(alpha>.01){for(let k=0;k<3;k++)d[o+k]=(source[q+k]*w0+source[q1+k]*w1+source[q2+k]*w2+source[q3+k]*w3)/alpha;}else d[o]=d[o+1]=d[o+2]=0;
   }
   ctx.putImageData(out,0,0);
+  paintFlight(ctx,r.img,v,t);
  }
  return {attach,render,angles,weights};
 })();
