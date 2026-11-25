@@ -28,3 +28,49 @@
 #sceneStage .forest-v4-layer.env-v1 .forest-v4-find-cue{font-size:clamp(9px,1vw,11px)}
 html.stage-locked #app.env-repair-v2 #toast,#app.env-repair-v2 #toast{top:auto!important;bottom:8%!important;left:50%;max-width:48%!important;font-size:clamp(10px,1.1vw,13px)!important;line-height:1.35;padding:5px 9px}
 @media(prefers-reduced-motion:reduce){#sceneStage .forest-v4-layer.env-v1 .env-entering,#sceneStage .forest-v4-layer.env-v1 .env-leaving{animation:none!important}}
+
+/* Live forest motion: individual rhythms, fixed ground anchors, no changes to water. */
+#sceneStage .forest-v4-layer.env-motion-v2 .forest-v4-object[data-motion="plant"] .forest-v4-art img{
+ animation:forest-wind-v2 7.4s ease-in-out infinite;animation-delay:var(--env-motion-delay,0s);
+}
+#sceneStage .forest-v4-layer.env-motion-v2 .forest-v4-object[data-live-kind="vine"] .forest-v4-art img{animation:none}
+#sceneStage .forest-v4-layer.env-motion-v2 .forest-v4-object[data-live-kind="rabbit"] .forest-v4-art img{
+ animation:forest-rabbit-idle-v2 8.8s ease-in-out infinite;animation-delay:var(--env-motion-delay,0s);
+}
+#sceneStage .forest-v4-layer.env-motion-v2 .forest-v4-object[data-live-kind="bird"] .forest-v4-art img{
+ animation:forest-bird-idle-v2 9.7s ease-in-out infinite;animation-delay:var(--env-motion-delay,0s);
+}
+#sceneStage .forest-v4-layer.env-motion-v2 .forest-v4-object[data-live-kind="butterfly"] .forest-v4-art{
+ animation:forest-butterfly-drift-v2 8.6s ease-in-out infinite;animation-delay:var(--env-motion-delay,0s);
+}
+#sceneStage .forest-v4-layer.env-motion-v2 .forest-v4-object[data-live-kind="butterfly"] .forest-v4-art img{
+ animation:forest-wing-v2 .72s ease-in-out infinite;transform-origin:center;
+}
+#sceneStage .forest-v4-layer.env-motion-v2 .forest-v4-object[data-live-kind="beetle"] .forest-v4-art img{
+ animation:forest-beetle-idle-v2 10.5s ease-in-out infinite;animation-delay:var(--env-motion-delay,0s);
+}
+@keyframes forest-wind-v2{0%,100%{transform:skewX(0)}22%{transform:skewX(.8deg)}43%{transform:skewX(-1.4deg)}69%{transform:skewX(2deg)}85%{transform:skewX(.5deg)}}
+@keyframes forest-rabbit-idle-v2{0%,25%,48%,100%{transform:scale(1)}13%,37%{transform:scale(1.009,.989)}63%{transform:scale(1.018,.972) skewX(-1.5deg)}76%{transform:scale(1.012,.982) skewX(-1deg)}87%{transform:scale(1)}}
+@keyframes forest-bird-idle-v2{0%,53%,74%,100%{transform:scale(1)}57%{transform:rotate(-2deg) scale(1.018,.98)}63%{transform:rotate(2deg) scale(.99,1.01)}68%{transform:rotate(0)}}
+@keyframes forest-butterfly-drift-v2{0%,100%{translate:0 0}18%{translate:25% -28%}39%{translate:65% 5%}58%{translate:30% -45%}76%{translate:-27% -17%}91%{translate:-12% 12%}}
+@keyframes forest-wing-v2{0%,100%{transform:scaleX(1)}30%{transform:scaleX(.68)}60%{transform:scaleX(.95)}80%{transform:scaleX(.76)}}
+@keyframes forest-beetle-idle-v2{0%,66%,100%{transform:rotate(0)}72%{transform:rotate(-2deg)}79%{transform:rotate(1deg)}}
+#sceneStage .forest-v4-layer.env-motion-v2 .env-entering{animation:env-arrival .30s .22s both ease-out}
+#sceneStage .forest-v4-layer.env-motion-v2 .env-leaving{animation:env-departure .22s both ease-in;pointer-events:none!important}
+@media(prefers-reduced-motion:reduce){
+ #sceneStage .forest-v4-layer.env-motion-v2 .forest-v4-art,
+ #sceneStage .forest-v4-layer.env-motion-v2 .forest-v4-art img,
+ #sceneStage .forest-v4-layer.env-motion-v2 .env-entering,
+ #sceneStage .forest-v4-layer.env-motion-v2 .env-leaving{animation:none!important}
+}
+/* Compact location information; actions stay outside the scrollable content. */
+html.stage-locked #app #placeDrawerPanel.is-location-tab #placeDrawerList{
+ padding:4px 10px 8px!important;overscroll-behavior-y:contain;scroll-padding-bottom:8px;
+}
+html.stage-locked #app #placeDrawerPanel.is-location-tab .location-hero .side-scene-preview,
+html.stage-locked #app #placeDrawerPanel.is-location-tab .location-hero .location-scene-placeholder{height:66px!important}
+html.stage-locked #app #placeDrawerPanel.is-location-tab .location-summary-description{margin:3px 0!important;line-height:1.29!important}
+html.stage-locked #app #placeDrawerPanel.is-location-tab .location-resource-heading{margin:2px 0 3px!important;line-height:1.15}
+html.stage-locked #app #placeDrawerPanel.is-location-tab .location-resource-tile{height:32px!important;box-sizing:border-box}
+html.stage-locked #app #placeDrawerPanel.is-location-tab .location-resource-icon{font-size:22px!important}
+html.stage-locked #app #placeDrawerPanel.is-location-tab #placePrimaryActions{position:relative;flex-shrink:0!important}
