@@ -1,0 +1,42 @@
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>月紋兔｜獨立部位動態試驗 V1</title><style>
+*{box-sizing:border-box}body{margin:0;background:#102c25;color:#f2e5c8;font:15px system-ui,sans-serif}main{max-width:960px;margin:auto;padding:12px 16px}h1{font-size:20px;margin:0 0 6px}p{font-size:13px;color:#c6cfb5;margin:5px 0 10px}canvas{display:block;width:100%;height:auto;max-height:58vh;background:#233d2b;border:1px solid #b49c64;border-radius:8px;object-fit:contain}nav{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}button{background:#234c3b;color:#efe1ba;border:1px solid #b49c64;border-radius:6px;padding:7px 12px;font:inherit;touch-action:manipulation}button[aria-pressed=true]{background:#e0c28a;color:#20352a}label{display:inline-flex;align-items:center;gap:6px;margin-top:8px}output{font-variant-numeric:tabular-nums;color:#bfcda8}a{color:#e3c58a}
+</style></head><body><main><h1>月紋兔 · 獨立部位動態 V1</h1><p>左側原始素材，右側關節分層試驗。此頁不修改正式遊戲及存檔。</p><canvas id="c" width="800" height="330" aria-label="月紋兔原始素材與動態對照"></canvas><nav id="modes"><button data-mode="auto" aria-pressed="true">自然循環</button><button data-mode="idle">休息</button><button data-mode="alert">警戒</button><button data-mode="graze">低頭</button><button data-mode="hop">跳躍</button><button id="pause">暫停</button></nav><label><input id="rig" type="checkbox">顯示關節</label>　<label>速度 <input id="speed" type="range" min=".35" max="1.5" step=".05" value="1"></label>　<output id="status"></output><p>目前為原圖遮罩拆分原型，四肢重疊及背面被遮蔽部位尚無專用重繪素材。</p><a href="./">返回遊戲</a></main><script src="./assets/forest_v4_assets_3.js?v=1"></script><script>
+'use strict';
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d'),src=new Image();
+const W=114,H=121;
+// Coordinates are measured in the original transparent sprite, not scene pixels.
+const parts={
+ earBack:{pivot:[49,35],poly:[[19,39],[23,22],[37,7],[62,0],[69,2],[60,15],[47,30],[49,42]]},
+ earFront:{pivot:[48,36],poly:[[34,39],[43,25],[58,13],[79,7],[90,11],[87,18],[75,32],[58,43],[46,45]]},
+ head:{pivot:[42,62],poly:[[0,40],[18,29],[36,29],[47,33],[54,47],[51,63],[44,70],[31,76],[13,75],[0,64]]},
+ torso:{pivot:[62,82],poly:[[36,58],[51,53],[75,54],[94,65],[107,78],[109,96],[99,108],[82,109],[65,103],[54,102],[42,109],[26,103],[26,82]]},
+ fore:{pivot:[38,82],poly:[[27,74],[46,76],[50,94],[44,107],[35,119],[16,120],[14,113],[24,99],[25,85]]},
+ hind:{pivot:[77,88],poly:[[61,76],[90,78],[102,90],[101,107],[87,118],[62,120],[52,115],[55,106],[66,101]]},
+ tail:{pivot:[103,94],poly:[[96,82],[113,81],[114,104],[103,113],[96,105]]}
+};
+const tiles={};
+function cut(part){const c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');g.beginPath();part.poly.forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));g.closePath();g.clip();g.drawImage(src,0,0,W,H);return c;}
+const smooth=q=>q*q*(3-2*q),clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function pose(mode,t){
+ let type=mode,u=t;
+ if(mode==='auto'){const p=t%16;if(p<3.5){type='idle';u=p}else if(p<6){type='alert';u=p-3.5}else if(p<10){type='graze';u=p-6}else if(p<13){type='hop';u=p-10}else{type='idle';u=p-13}}
+ const a={type,head:0,earBack:0,earFront:0,fore:0,hind:0,tail:0,lift:0,x:0,bodyY:0};
+ if(type==='idle'){a.head=Math.sin(u*2)*.015;a.earFront=Math.sin(u*1.5)*.035;a.earBack=Math.sin(u*1.7+1)*.04;a.bodyY=Math.sin(u*2)*.6;}
+ if(type==='alert'){const q=Math.sin(Math.PI*clamp((u%2.5)/2.5,0,1));a.head=.07*q;a.earBack=-.18*q;a.earFront=.15*Math.sin(u*5)*q;}
+ if(type==='graze'){const q=Math.sin(Math.PI*((u%4)/4));a.head=-.22*q+.035*Math.sin(u*9)*q;a.earBack=.16*q;a.earFront=.13*q;a.fore=-.05*q;}
+ if(type==='hop'){const cycle=u%3,step=cycle<1.5?0:1,q=(cycle%1.5);const k=clamp((q-.27)/.52,0,1);const arc=Math.sin(Math.PI*k);a.lift=arc*17;a.x=(step===0?-1:1)*25*smooth(k)+(step===1?-25:0);a.fore=.36*arc;a.hind=-.30*arc;a.head=.09*arc;a.earBack=.14*arc;a.earFront=.17*arc;a.tail=.12*arc;if(q<.27||q>.79&&q<.98)a.bodyY=2*Math.sin(Math.PI*clamp((q<.27?q/.27:(q-.79)/.19),0,1));}
+ return a;
+}
+function part(name,angle){const p=parts[name].pivot;ctx.save();ctx.translate(...p);ctx.rotate(angle);ctx.translate(-p[0],-p[1]);ctx.drawImage(tiles[name],0,0);ctx.restore();}
+function drawRabbit(x,ground,scale,p,showRig){ctx.save();ctx.translate(x+p.x*scale,ground);ctx.scale(scale,scale);ctx.fillStyle='rgba(9,17,9,.4)';ctx.beginPath();ctx.ellipse(56,-1,39-p.lift*.55,5,0,0,Math.PI*2);ctx.fill();ctx.translate(0,-H-p.lift+p.bodyY);
+ // Draw the underlying torso and overlapping limb roots separately.
+ part('tail',p.tail);part('hind',p.hind);part('torso',0);part('fore',p.fore);
+ ctx.save();ctx.translate(42,62);ctx.rotate(p.head);ctx.translate(-42,-62);part('earBack',p.earBack);part('earFront',p.earFront);part('head',0);ctx.restore();
+ if(showRig){ctx.strokeStyle='#79e9b1';ctx.lineWidth=.8;ctx.beginPath();for(const [a,b] of [['head','earBack'],['head','earFront'],['head','torso'],['torso','fore'],['torso','hind'],['hind','tail']]){ctx.moveTo(...parts[a].pivot);ctx.lineTo(...parts[b].pivot)}ctx.stroke();for(const v of Object.values(parts)){ctx.fillStyle='#ffe29a';ctx.beginPath();ctx.arc(...v.pivot,1.8,0,Math.PI*2);ctx.fill()}}
+ ctx.restore();}
+let mode='auto',paused=false,last=0,t=0,ready=false;const names={idle:'休息',alert:'警戒',graze:'低頭',hop:'跳躍'};const status=document.getElementById('status');
+function frame(ms){if(!last)last=ms;const dt=Math.min(.05,(ms-last)/1000);last=ms;if(!paused)t+=dt*Number(document.getElementById('speed').value);ctx.clearRect(0,0,800,330);ctx.fillStyle='#314c34';ctx.fillRect(0,260,800,70);ctx.strokeStyle='#53694b';ctx.beginPath();ctx.moveTo(0,260);ctx.lineTo(800,260);ctx.stroke();ctx.strokeStyle='#5c7358';ctx.beginPath();ctx.moveTo(400,20);ctx.lineTo(400,305);ctx.stroke();ctx.fillStyle='#e4d6aa';ctx.font='16px system-ui';ctx.fillText('原始素材',24,28);ctx.fillText('關節動畫試驗',422,28);if(ready){ctx.drawImage(src,105,66,182.4,193.6);const p=pose(mode,t);drawRabbit(505,260,1.6,p,document.getElementById('rig').checked);status.textContent=names[p.type]||p.type;}requestAnimationFrame(frame);}
+document.getElementById('modes').addEventListener('click',e=>{const m=e.target.dataset.mode;if(!m)return;mode=m;t=0;for(const b of document.querySelectorAll('[data-mode]'))b.setAttribute('aria-pressed',String(b.dataset.mode===mode));});
+document.getElementById('pause').onclick=e=>{paused=!paused;e.target.textContent=paused?'繼續':'暫停';};
+src.onload=()=>{for(const [name,p] of Object.entries(parts))tiles[name]=cut(p);ready=true;};src.onerror=()=>status.textContent='素材載入失敗';src.src=window.DUNGEON_FOREST_V4_ASSETS.forest4_rabbit.src;requestAnimationFrame(frame);
+</script></body></html>
