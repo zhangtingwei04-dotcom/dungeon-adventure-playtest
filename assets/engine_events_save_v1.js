@@ -34,7 +34,7 @@ window.DungeonEventsV1=(function(){
  return Object.freeze({on,emit,appendTravel,discovery,diagnostics:()=>({subscriptions:[...handlers].map(([type,set])=>({type,ids:[...set.keys()]})),history:history.slice(),errors:errors.slice()})});
 })();
 window.DungeonSaveV1=(function(events){
- const CURRENT=1,PROJECT='dungeon-adventure',migrations=new Map();let last={state:'idle'};
+ const CURRENT=1,PROJECT='dungeon-adventure',migrations=new Map();let last={state:'idle'},writeProtected=false;
  const record=x=>x!==null&&typeof x==='object'&&!Array.isArray(x);
  const safeMap=x=>record(x)&&!Object.hasOwn(x,'__proto__')&&!Object.hasOwn(x,'constructor')&&!Object.hasOwn(x,'prototype');
  function valid(j,scenes){
@@ -58,9 +58,10 @@ window.DungeonSaveV1=(function(events){
  }
  function parse(raw,scenes){return prepare(JSON.parse(raw),scenes);}
  function read(storage,key,scenes){
-  try{const raw=storage.getItem(key);if(raw==null){last={state:'empty'};return null;}const j=parse(raw,scenes);last={state:'loaded',schema:CURRENT};return j;}catch(err){last={state:'read-error',message:String(err?.message||err)};return null;}
+  try{const raw=storage.getItem(key);if(raw==null){last={state:'empty'};return null;}const j=parse(raw,scenes);last={state:'loaded',schema:CURRENT};return j;}catch(err){writeProtected=true;last={state:'read-error',message:String(err?.message||err)};return null;}
  }
  function write(storage,key,actor,scenes){
+  if(writeProtected){last={state:'protected',message:'原始存檔無法讀取；禁止自動覆寫，請確認重新開始或匯入。'};return false;}
   try{
    const candidate=prepare(actor,scenes);candidate.savedAt=Date.now();
    const encoded=JSON.stringify(candidate);storage.setItem(key,encoded);
@@ -69,7 +70,7 @@ window.DungeonSaveV1=(function(events){
   }catch(err){last={state:'write-error',message:String(err?.message||err)};return false;}
  }
  function exportText(actor,scenes){return JSON.stringify(prepare(actor,scenes),null,2);}
- return Object.freeze({CURRENT,valid,prepare,parse,read,write,exportText,registerMigration,diagnostics:()=>({...last})});
+ return Object.freeze({CURRENT,valid,prepare,parse,read,write,exportText,registerMigration,allowReplacement:()=>{writeProtected=false;},diagnostics:()=>({...last,writeProtected})});
 })(window.DungeonEventsV1);
 window.DungeonEngineV1.register({id:'engine.events',version:'1.0.0',requires:['engine.registry']});
 window.DungeonEngineV1.register({id:'engine.save',version:'1.0.0',requires:['engine.time','engine.events']});
