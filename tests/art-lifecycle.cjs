@@ -71,3 +71,17 @@ const artwork={};
 for(const f of ['forest_v4_assets_1','forest_v4_assets_2','forest_v4_assets_3','forest_v4_assets_4'])new vm.Script(read('assets/'+f+'.js').toString()).runInNewContext({window:artwork});
 for(const o of scene.scenes.wreck)assert(artwork.DUNGEON_FOREST_V4_ASSETS?.[o.assetId]?.src,'Missing scene artwork '+o.assetId);
 console.log('PASS: '+layoutIds.size+' current forest objects resolve to artwork');
+
+
+const resources={};new vm.Script(read('assets/render_resources_v1.js').toString()).runInNewContext({window:resources});
+const R=resources.DungeonRenderResourcesV1;
+let loadCount=0;const load=R.onceLoad(()=>loadCount++);
+assert.equal(load(),true);assert.equal(load(),false);assert.equal(loadCount,1);
+let created=0;
+const cache=R.imageCache(2,()=>({complete:true,naturalWidth:1,id:++created}));
+const first=cache.get('a');cache.get('b');assert.equal(cache.get('a'),first);
+cache.get('c');assert.equal(cache.size(),2);assert.equal(cache.get('b').id,4);
+cache.clear();assert.equal(cache.size(),0);
+const pending=R.imageCache(2,()=>({complete:false,naturalWidth:0}));
+assert.equal(pending.get('pending'),null);assert.equal(pending.size(),1);
+console.log('PASS: render resource once-load, LRU, pending-image and clear checks');
