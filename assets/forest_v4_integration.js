@@ -41,9 +41,10 @@ window.DungeonForestV4Integration=(function integration(){
   };
   p={...p,...(groundBlend[k]||{})};
   // Dirt paths should not acquire a large decorative grass tuft.
-  if(k==='wheel_flat'&&o.x>37)p={...p,grassWidth:0};
   if(k==='crate_large'&&o.x>50)p={...p,grassWidth:0};
   if(o.contactGrass===true)p={...p,grassLeft:4,grassWidth:39,grassOpacity:.72};
+  // Fallen wheels rest on the existing terrain; never attach a floating grass sprite.
+  if(k==='wheel_flat')p={...p,grassWidth:0,grassOpacity:0};
   // Depth correction is intentionally restrained: only art appearance, never dimensions.
   const depth=Math.max(0,Math.min(1,(70-o.y)/45));
   return {...p,ground:!airborne,brightness:Math.max(.8,Math.min(1,p.brightness+depth*.025)),saturation:Math.max(.65,p.saturation-depth*.045),contrast:p.contrast-depth*.025,angle:k==='wheel_flat'||k==='plank'?o.rotation*.5:0};
