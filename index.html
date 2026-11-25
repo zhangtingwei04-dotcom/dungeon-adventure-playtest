@@ -4066,6 +4066,15 @@ html.stage-locked #app #topGameHud #hudPhase{font-size:clamp(10px,1.65vw,17px)}
 @keyframes discovery-appear{from{opacity:.25}to{opacity:1}}
 @media(prefers-reduced-motion:reduce){#sceneStage .discovery-summary,#sceneStage .discovery-object-cue,#sceneStage .discovery-route-cue{animation:none}}
 #app.scene-dialogue-active .discovery-summary,#app.encounter-pending .discovery-summary{visibility:hidden}
+/* One attention target at a time. */
+#app #travelFeed,#app #placeDrawer{transition:opacity .22s ease}
+#app.scene-dialogue-active #travelFeed,#app.scene-dialogue-active #placeDrawer,#app:has(#dialogVeil:not(.hidden)) #travelFeed,#app:has(#dialogVeil:not(.hidden)) #placeDrawer{opacity:.52}
+#app.scene-dialogue-active .discovery-object-cue,#app.scene-dialogue-active .discovery-route-cue,#app.route-attention .discovery-object-cue{visibility:hidden}
+#app.route-attention #travelFeed{opacity:.72}
+#app.route-attention .location-preview-travel:not(:disabled){border-color:#e2c98a!important;box-shadow:0 0 0 1px #d7bd7c,0 0 9px #d7bd7c65!important;color:#fff1c9!important}
+#app.route-attention .location-reference-card{animation:discovery-appear .28s ease-out}
+#app:has(#dialogVeil:not(.hidden)) .discovery-summary{visibility:hidden}
+@media(prefers-reduced-motion:reduce){#app #travelFeed,#app #placeDrawer{transition:none}#app.route-attention .location-reference-card{animation:none}}
 </style>
 </head>
 <body>
@@ -4610,7 +4619,7 @@ function searchForest(){
  normalizeRecovery();
  if(s.recovery.found){inspectOtherWreck();return;}
  recoveryTime(12);s.recovery.found=true;
- note('forestWreck','在林邊搜尋時，發現另一處舊馬車殘骸');
+ note('forestWreck','在林邊搜尋時，發現另一處舊馬車殘骸',true);
  addTravel('discovery','搜索林邊12分鐘，找到一輛被藤蔓遮住的廢棄馬車。','這不是我醒來的那輛馬車。');
  render();
  dialog('探索發現｜另一輛舊馬車','樹叢後藏著一輛很久以前就損毀的馬車，車篷塌陷、木輪半埋在泥土裡。\n\n與開場事故馬車不同，這裡是一處可以搜集的探索點。\n\n搜索耗時 12 分鐘。',[
@@ -5030,7 +5039,9 @@ function openingDepartureCue(){
  return true;
 }
 function exploreArea(){
- if(encounterPending||!EXPLORATION_AREAS[s.scene])return;
+ if(encounterPending||modal||sceneDialogueState.open||!EXPLORATION_AREAS[s.scene])return;
+ clearRouteAttention();$('toast').classList.remove('active');
+ const oldSummary=$('sceneStage').querySelector('.discovery-summary');if(oldSummary)oldSummary.hidden=true;
  if(!openingView().canExplore){if(!openingDepartureCue())toast('事故現場已探索完畢，仍可調查物件或沿道路離開。');return;}
  normalizeExploration();normalizeRouteDiscovery();normalizeRecovery();
  const site=s.scene,area=EXPLORATION_AREAS[site],e=s.exploration;
@@ -5050,7 +5061,7 @@ function exploreArea(){
  }
  if(site==='trail'&&!s.recovery.found&&(count>=2||Math.random()<.45)){
   s.recovery.found=true;latest.wreckFound=true;
-  note('forestWreck','在林邊搜尋時，發現另一處舊馬車殘骸');
+  note('forestWreck','在林邊搜尋時，發現另一處舊馬車殘骸',true);
  }
  latest.observation=area.events[(count-1)%area.events.length];
  if(area.materials.length){
@@ -5078,7 +5089,10 @@ function exploreArea(){
    if(ordinary&&s.travelLog?.length)Object.assign(s.travelLog[s.travelLog.length-1],{exploreGroup:key,exploreCount:1});
   }
  }else addTravel('daily','在'+names[site][0]+'進行第'+count+'次探索（約10分鐘，'+gameTime(s.worldMinutes)+'）'+feature+'。','這裡還有許多可以慢慢觀察的東西。');
- save();render();showDiscoverySummary({routeName:latest.route?routeCardTitle(site,latest.route):'',wreck:latest.wreckFound,materials:newMaterials,encounters:sceneFinds});if(site==='wreck'&&openingDepartureCue())return;toast(explorationToast(site,latest,newMaterials)+(sceneFinds.length?' · 發現'+sceneFinds.join('、'):'')+((site==='clearing'&&!sceneFinds.length&&window.DungeonSceneObjectsV1?.creatureVisible(s))?' · 留意場景中的生物':''));
+ save();render();
+ if(site==='wreck'&&openingDepartureCue())return;
+ if(latest.route){presentDiscoveredRoute(site,latest.route);return;}
+ showDiscoverySummary({wreck:latest.wreckFound,materials:newMaterials,encounters:sceneFinds});
 }
 
 /* Persistent discovered destinations; drawer open/closed and expanded card are only UI. */
@@ -5144,7 +5158,7 @@ function setPlaceDrawer(open,expandId=null){
 function closePlaceDrawer(){}
 function setActiveSideTab(tab){
  if(!['locations','character','equipment','inventory'].includes(tab))return;
- activeSideTab=tab;renderPlaceDrawer();$('placeDrawerList').scrollTop=0;
+ clearRouteAttention();activeSideTab=tab;renderPlaceDrawer();$('placeDrawerList').scrollTop=0;
 }
 function sideInfoText(out,text,cls='side-info-line'){
  const el=document.createElement('p');el.className=cls;el.textContent=text;out.appendChild(el);
@@ -6852,7 +6866,21 @@ function placeDrawerTravel(id){
 }
 // Navigation is scoped to unlocked/discovered location cards. This is UI only.
 let locationPreviewId=null,locationPreviewScene=null;
+let attentionRoute=null;
+function clearRouteAttention(){attentionRoute=null;$('app').classList.remove('route-attention');}
+function focusDiscoveredRoute(from,to){
+ if(s.scene!==from||!routeKnown(from,to))return false;
+ const card=visiblePlaceCards().find(c=>c.id===to&&c.reachable);if(!card)return false;
+ locationPreviewScene=from;locationPreviewId=to;activeSideTab='locations';
+ normalizePlaceCards();if(!s.placeCardsViewed.includes(to)){s.placeCardsViewed.push(to);save();}
+ $('app').classList.add('route-attention');renderPlaceDrawer();$('placeDrawerList').scrollTop=0;return true;
+}
+function presentDiscoveredRoute(from,to){
+ attentionRoute={from,to};
+ openSceneDialogue([{speaker:'旁白',text:from==='wreck'&&to==='trail'?'你順著泥地上的車轍望去，樹影間露出一條可以通行的小徑。':'你辨認出一條新的道路：'+routeCardTitle(from,to)+'。'}],'route-preview');
+}
 function moveLocationPreview(step){
+ clearRouteAttention();
  const cards=visiblePlaceCards();
  if(cards.length<2)return;
  const index=Math.max(0,cards.findIndex(card=>card.id===(locationPreviewId||s.scene)));
@@ -7430,7 +7458,7 @@ function save(){
 };
 function toast(msg){$('toast').textContent=msg;$('toast').classList.add('active');clearTimeout(toastHandle);toastHandle=setTimeout(()=>$('toast').classList.remove('active'),2400);}
 function beep(f=440){if(!s.sound)return;try{const AC=window.AudioContext||window.webkitAudioContext;const ctx=new AC(),osc=ctx.createOscillator(),gain=ctx.createGain();osc.type='sine';osc.frequency.value=f;gain.gain.setValueAtTime(.035,ctx.currentTime);gain.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.16);osc.connect(gain).connect(ctx.destination);osc.start();osc.stop(ctx.currentTime+.18);setTimeout(()=>ctx.close(),400);}catch{}}
-function note(id,msg){window.DungeonEventsV1.discovery(s,id,msg,discoveryThought[id]||'我先把這件事記下來。');save();toast('已記錄：'+msg);beep(680);}
+function note(id,msg,quiet=false){window.DungeonEventsV1.discovery(s,id,msg,discoveryThought[id]||'我先把這件事記下來。');save();if(!quiet){toast('已記錄：'+msg);beep(680);}}
 let lastMoveAt=0,lastActionAt=0,encounterPending=false,encounterTimer=null,encounterToken=0;
 // A 2D pan, not an artificial perspective rotation. 1.12x zoom allows 6% travel on either side.
 /* Per-scene camera distance: 1 = current view; >1 = camera farther away.
@@ -7520,8 +7548,8 @@ function renderSceneDialogue(){
  $('sceneDialogueName').textContent=line.speaker;
  $('sceneDialogueText').textContent=line.text;$('sceneDialogueText').scrollTop=0;
  const last=sceneDialogueState.index===sceneDialogueState.lines.length-1;
- $('sceneDialogueNext').textContent=last?(sceneDialogueState.purpose==='opening-departure'?'沿車轍離開 ▸':'結束對話 ▸'):'點擊繼續 ▸';
- $('sceneDialogueNext').setAttribute('aria-label',last?(sceneDialogueState.purpose==='opening-departure'?'沿車轍前往林間小徑':'結束場景對話'):'下一句');
+ $('sceneDialogueNext').textContent=last?(sceneDialogueState.purpose==='opening-departure'?'沿車轍離開 ▸':sceneDialogueState.purpose==='route-preview'?'查看道路 ▸':'結束對話 ▸'):'點擊繼續 ▸';
+ $('sceneDialogueNext').setAttribute('aria-label',last?(sceneDialogueState.purpose==='opening-departure'?'沿車轍前往林間小徑':sceneDialogueState.purpose==='route-preview'?'查看新道路':'結束場景對話'):'下一句');
  box.classList.remove('hidden');$('app').classList.add('scene-dialogue-active');
 }
 function openSceneDialogue(lines,purpose=null){
@@ -7541,7 +7569,7 @@ function nextSceneDialogue(){
  if(!sceneDialogueState.open)return;
  if(sceneDialogueState.index<sceneDialogueState.lines.length-1){
   sceneDialogueState.index++;renderSceneDialogue();
- }else {const departure=sceneDialogueState.purpose==='opening-departure';closeSceneDialogue();if(departure&&s.scene==='wreck')change('trail');}
+ }else {const purpose=sceneDialogueState.purpose,route=attentionRoute;closeSceneDialogue();if(purpose==='opening-departure'&&s.scene==='wreck')change('trail');else if(purpose==='route-preview'&&route){attentionRoute=null;focusDiscoveredRoute(route.from,route.to);}}
 }
 function openWreckIntroduction(){
  if(s.scene!=='wreck')return;
@@ -7557,7 +7585,7 @@ function openWreckIntroduction(){
 function guardedAction(fn){const now=Date.now();if(now-lastActionAt<300)return;lastActionAt=now;fn?.();}
 function change(scene,mode='walk'){
  if(encounterPending||!names[scene]||scene===s.scene)return;
- closeSceneDialogue();
+ clearRouteAttention();closeSceneDialogue();
  closePlaceDrawer();
  if((s.scene==='wreck'&&!travelRoute('wreck',scene))||(travelRoute(s.scene,scene)&&!routeKnown(s.scene,scene))){toast('尚未發現這條道路，請先探索周圍。');return;}
  const duration=travelTimeFor(s.scene,scene,mode);
@@ -7671,8 +7699,8 @@ function inspectTrailMarker(){
   {label:'先不調查',fn:()=>{},secondary:true}
  ]);
 }
-function glance(){s.flags.wagonLooked=true;note('wagon','馬車在你醒來之前就已被毀壞');dialog('傾斜的貨箱','一個貨箱倒扣在木板間。箱子裡只有濕透的布料與碎木屑，看不出它原本運送什麼。',[{label:'放回木板',fn:()=>{}}],'可選發現');}
-function marks(){note('scratches','車板上有不明的深刻痕跡');const known=routeKnown('wreck','trail');dialog('破裂的車輪','車輪旁留下幾道深深的刻痕。也許是什麼野獸，但你無法確定。'+(known?'你已辨認出車轍通往林間小徑。':'泥土上的車轍似乎延伸到樹叢深處。'),[{label:known?'沿已發現的道路前進':'循著車轍探索 · 10分鐘',fn:()=>known?change('trail'):discoverNearbyRoute()},{label:'暫時留在這裡',fn:()=>{}}],'可選發現');}
+function glance(){s.flags.wagonLooked=true;note('wagon','馬車在你醒來之前就已被毀壞',true);dialog('傾斜的貨箱','一個貨箱倒扣在木板間。箱子裡只有濕透的布料與碎木屑，看不出它原本運送什麼。',[{label:'放回木板',fn:()=>{}}],'可選發現');}
+function marks(){note('scratches','車板上有不明的深刻痕跡',true);const known=routeKnown('wreck','trail');dialog('破裂的車輪','車輪旁留下幾道深深的刻痕。也許是什麼野獸，但你無法確定。'+(known?'你已辨認出車轍通往林間小徑。':'泥土上的車轍似乎延伸到樹叢深處。'),[{label:known?'沿已發現的道路前進':'循著車轍探索 · 10分鐘',fn:()=>known?change('trail'):discoverNearbyRoute()},{label:'暫時留在這裡',fn:()=>{}}],'可選發現');}
 function light(){s.flags.lightSeen=true;note('light','空地的樹根旁有微光');dialog('樹根間的微光','你發現一件形狀奇怪的東西。它沒有立即展現任何用途，也無法確定是否安全。',[{label:'記下位置',fn:()=>note('lightMark','已在日誌記下微光所在位置')},{label:'收起碎片',fn:()=>{addUnique(s.items,'不明的微光碎片（測試物品）');s.flags.lightTaken=true;note('lightTake','取得一件來源不明的微光碎片');render();}},{label:'先不碰它',fn:()=>{}}],'未知發現');}
 function soundInForest(){if(!s.flags.creatureResolved&&(s.exploration?.counts?.clearing||0)>0&&window.DungeonSceneObjectsV1&&!window.DungeonSceneObjectsV1.creatureVisible(s)){dialog('林間暫時安靜','剛才的生物已離開這一帶。繼續探索，也許還會遇見牠。',[{label:'繼續觀察',fn:()=>{}}],'森林觀察');return;}if(s.flags.creatureResolved){dialog('寂靜再次降臨','那陣聲響沒有再出現。遠處的森林仍有許多你不認識的生物。',[{label:'離開',fn:()=>{}}]);return;}note('sound','林間傳來陌生生物的動靜');dialog('樹叢正在晃動','一隻陌生的林地生物從草葉後露出身影。它沒有立刻攻擊，只是警戒地注視著你。',[{label:'保持距離',fn:()=>{s.flags.creatureResolved=true;note('avoid','你選擇避開陌生生物');render();}},{label:'嘗試繞過',fn:()=>{s.flags.creatureResolved=true;note('avoid','你沒有和陌生生物發生衝突');render();}},{label:'進入戰鬥測試',fn:()=>battleStart()}],'未知遭遇');}
 function ruinLook(){note('ruin','森林裡有一座被苔蘚覆蓋的舊石門');dialog('石門的另一面','古老的門框已失去原本的功能。遠處仍可看到朦朧的空間，但暫時沒有可以安全通行的路。',[{label:'記下這座遺構',fn:()=>note('ruinMark','已記錄無名石門的位置')},{label:'返回小徑',fn:()=>change('trail')}],'特殊探索');}
@@ -8057,6 +8085,8 @@ function forestV4Action(o){
  const info=objectCore.describe(o,finds,s,'wreck');
  if(!info)return;
  if(objectCore.inspect(s,'wreck',o))save();
+ clearRouteAttention();$('toast').classList.remove('active');
+ const summary=$('sceneStage').querySelector('.discovery-summary');if(summary)summary.hidden=true;
  const options=finds.map(item=>({label:'收集：'+item.material,fn:()=>collectExplorationMaterial('wreck',item.id)}));
  if(k==='wagon'||k==='wheel_flat')options.push({label:'仔細調查刻痕',fn:marks});
  if(k.startsWith('crate'))options.push({label:'檢查貨箱',fn:glance});
@@ -8120,7 +8150,7 @@ function showDiscoverySummary(data){
  const parts=window.DungeonDiscoveryCueV1.summary(data);if(!parts.length)return;
  const stage=$('sceneStage');let banner=stage.querySelector('.discovery-summary');
  if(!banner){banner=document.createElement('div');banner.className='discovery-summary';banner.setAttribute('role','status');stage.appendChild(banner);}
- banner.textContent=parts.join(' · ');banner.hidden=false;
+ banner.textContent=parts[0];banner.hidden=false;
  clearTimeout(discoverySummaryTimer);discoverySummaryTimer=setTimeout(()=>{banner.hidden=true;},3400);
 }
 function applyDiscoveryCue(node,info){
