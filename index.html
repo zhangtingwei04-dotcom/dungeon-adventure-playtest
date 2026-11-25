@@ -4003,6 +4003,35 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 #app[data-weather] #sceneStage .forest-v4-layer.env-motion-v2 .forest-v4-object[data-motion="plant"]:not([data-live-kind="vine"]) .forest-v4-art img{animation:weather-plant-wind var(--weather-wind-duration,7.4s) ease-in-out infinite;animation-delay:var(--env-motion-delay,0s);transform-origin:50% 100%}
 @keyframes weather-plant-wind{0%,100%{transform:skewX(0)}30%{transform:skewX(var(--weather-wind-angle,2deg))}65%{transform:skewX(calc(var(--weather-wind-angle,2deg) * -.45))}}
 @media(prefers-reduced-motion:reduce){#app[data-weather] #sceneStage .forest-v4-layer.env-motion-v2 .forest-v4-object[data-motion="plant"] .forest-v4-art img{animation:none!important}}
+/* Individual grass rhythm: keep root anchor and synchronize the original art with all overlays. */
+#sceneStage .forest-v4-object[data-grass-detail="true"] .forest-v4-art>img,
+#sceneStage .forest-v4-object[data-grass-detail="true"] .winter-snow-cap,
+#sceneStage .forest-v4-object[data-grass-detail="true"] .surface-wet-glints{
+ transform-origin:50% 100%;
+ scale:var(--grass-size,1);
+}
+#app[data-weather] #sceneStage .forest-v4-layer:is(.env-v1,.env-motion-v2) .forest-v4-object[data-grass-detail="true"] .forest-v4-art>:is(img,.winter-snow-cap,.surface-wet-glints){
+ animation:individual-grass-wind calc(var(--weather-wind-duration,7.4s) * var(--grass-tempo,1)) ease-in-out infinite;
+ animation-delay:var(--env-motion-delay,0s);
+}
+@keyframes individual-grass-wind{
+ 0%,100%{transform:skewX(calc(var(--weather-wind-angle,2deg) * var(--grass-wind,1) * .18)) scaleY(calc(1 - var(--snow-cover,0) * .07 - var(--plant-wet,0) * .025))}
+ 32%{transform:skewX(calc(var(--weather-wind-angle,2deg) * var(--grass-wind,1))) scaleY(calc(1 - var(--snow-cover,0) * .09 - var(--plant-wet,0) * .035))}
+ 72%{transform:skewX(calc(var(--weather-wind-angle,2deg) * var(--grass-wind,1) * -.16)) scaleY(calc(1 - var(--snow-cover,0) * .07 - var(--plant-wet,0) * .025))}
+}
+#app[data-indoor="false"] #sceneStage .forest-v4-object[data-grass-detail="true"] .forest-v4-art>img{
+ filter:var(--scene-light,brightness(1)) brightness(calc(var(--grass-tone,1) - var(--plant-wet,0) * .10)) saturate(calc(1 - var(--frost,0) * .19));
+}
+#sceneStage .forest-v4-object[data-grass-detail="true"] .winter-snow-cap{
+ opacity:clamp(0,calc(max(var(--snow-cover,0),var(--frost,0) * .85) * var(--snow-hold,1) * var(--grass-frost,1)),1);
+}
+#sceneStage .forest-v4-object[data-winter-plant="true"] .surface-wet-glints{clip-path:none}
+#app[data-indoor="false"] #sceneStage .forest-v4-contact-grass{
+ opacity:calc(var(--v4-grass-opacity,.68) * (1 - var(--snow-cover,0) * .93));
+}
+@media(prefers-reduced-motion:reduce){
+ #app[data-weather] #sceneStage .forest-v4-layer:is(.env-v1,.env-motion-v2) .forest-v4-object[data-grass-detail="true"] .forest-v4-art>:is(img,.winter-snow-cap,.surface-wet-glints){animation:none!important}
+}
 #app[data-weather] #hudPhase{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 html.stage-locked #app #topGameHud .top-hud-phase{min-width:0}
 #hudWeatherBtn{border:1px solid #b69d6866;cursor:pointer;pointer-events:auto;touch-action:manipulation;font:inherit;color:inherit;min-height:28px}
@@ -4355,8 +4384,8 @@ html.stage-locked #app #topGameHud #hudPhase{font-size:clamp(10px,1.65vw,17px)}
 <script src="./assets/scene_spatial_motion_v1.js?v=3-action-map"></script>
 <script src="./assets/bird_motion_live_v1.js?v=2-hop-joints"></script>
 <script src="./assets/scene_environment_v1.js?v=15-action-points"></script>
-<script src="./assets/winter_surfaces_v1.js?v=5-snow-texture"></script>
-<script src="./assets/weather_system_v1.js?v=14-blizzard-detail"></script>
+<script src="./assets/winter_surfaces_v1.js?v=6-grass-detail"></script>
+<script src="./assets/weather_system_v1.js?v=15-foreground-frost"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/scene_objects_v1.js?v=20261125-winter"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
