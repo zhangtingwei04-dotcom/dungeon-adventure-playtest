@@ -3933,7 +3933,7 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 </style>
 <link rel="stylesheet" href="./assets/scene_light_v1.css?v=20261124-1">
 <link rel="stylesheet" href="./assets/forest_v4_integration.css?v=4-shadow">
-<link rel="stylesheet" href="./assets/scene_environment_v1.css?v=3-live-motion">
+<link rel="stylesheet" href="./assets/scene_environment_v1.css?v=4-wildlife">
 </head>
 <body>
 <div id="app"><div id="worldFrame" aria-hidden="true">
@@ -4272,7 +4272,7 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 </script>
 <script src="./assets/forest_v4_spawns.js?v=2-rabbit-depth"></script>
 <script src="./assets/forest_v4_integration.js?v=8-grass"></script>
-<script src="./assets/scene_environment_v1.js?v=4-waterflow"></script>
+<script src="./assets/scene_environment_v1.js?v=5-wildlife"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/scene_objects_v1.js?v=20261124-2"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
@@ -7966,7 +7966,7 @@ function renderForestV4(el){
   const node=document.createElement(interactive?'button':'div');node.dataset.renderSignature=signature;if(interactive){node.type='button';node.setAttribute('aria-label',o.name+(finds.length?'：可收集'+finds.map(f=>f.material).join('、'):''));node.title=o.name+(finds.length?' · 可收集':'');node.onclick=()=>guardedAction(()=>forestV4Action(o));}else node.setAttribute('aria-hidden','true');
   node.className='forest-v4-object';node.dataset.objectId=o.id;node.dataset.motion=animal?'animal':plant?'plant':'fixed';node.dataset.liveKind=k;node.style.setProperty('--env-motion-delay',(-([...o.id].reduce((n,ch)=>(n*31+ch.charCodeAt(0))%89,0)/10))+'s');node.style.left=o.x+'%';node.style.top=o.y+'%';node.style.width=o.width+'%';node.style.zIndex=10+o.z;
   const art=document.createElement('span');art.className='forest-v4-art';art.style.transform='scaleX('+(o.flip?-1:1)+') rotate('+o.rotation+'deg)';
-  const im=document.createElement('img');im.src=o.artVariant==='barrel-side'?'./assets/forest_v4_barrel_side.svg?v=1':a.src;if(o.artVariant==='barrel-side')im.onerror=()=>{im.onerror=null;im.src=a.src;art.style.transform='rotate(72deg)';};im.alt='';im.draggable=false;art.appendChild(im);node.appendChild(art);window.DungeonForestV4Integration?.apply(node,o,assets);if(forestEnvironmentActive())window.DungeonSceneEnvironmentV1?.apply(node,art,im,o);updateForestFindCue(node,finds,k);keep.add(node);if(smooth&&existing&&!old)node.classList.add('env-entering');layer.appendChild(node);
+  const im=document.createElement('img');im.src=o.artVariant==='barrel-side'?'./assets/forest_v4_barrel_side.svg?v=1':a.src;if(o.artVariant==='barrel-side')im.onerror=()=>{im.onerror=null;im.src=a.src;art.style.transform='rotate(72deg)';};im.alt='';im.draggable=false;art.appendChild(im);node.appendChild(art);window.DungeonForestV4Integration?.apply(node,o,assets);if(liveMotion)window.DungeonSceneEnvironmentV1?.attachWildlife(node,o);if(forestEnvironmentActive())window.DungeonSceneEnvironmentV1?.apply(node,art,im,o);updateForestFindCue(node,finds,k);keep.add(node);if(smooth&&existing&&!old)node.classList.add('env-entering');layer.appendChild(node);
  }
  if(smooth)for(const node of previous.values()){if(keep.has(node)||!node.isConnected||node._exitTimer)continue;node.classList.remove('env-entering');node.classList.add('env-leaving');node.style.pointerEvents='none';if(node.tagName==='BUTTON')node.disabled=true;node._exitTimer=setTimeout(()=>{node.remove();},220);}
  if(!existing)el.appendChild(layer);
@@ -8226,7 +8226,7 @@ function sceneDraw(time){
  v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(3,14,13,.68)');
  rect(0,0,W,H,v);
 }
-function size(){const d=Math.min(devicePixelRatio||1,1.5);can.width=Math.floor(W*d);can.height=Math.floor(H*d);ctx.setTransform(d,0,0,d,0,0);}size();window.addEventListener('resize',()=>{size();refreshSceneFraming();renderHotspots();});refreshSceneFraming();function frame(ms){if(ms-last>68){t=ms/1000;sceneDraw(t);last=ms;}requestAnimationFrame(frame);}requestAnimationFrame(frame);render();
+function size(){const d=Math.min(devicePixelRatio||1,1.5);can.width=Math.floor(W*d);can.height=Math.floor(H*d);ctx.setTransform(d,0,0,d,0,0);}size();window.addEventListener('resize',()=>{size();refreshSceneFraming();renderHotspots();});refreshSceneFraming();const wildlifeMotionQuery=window.matchMedia('(prefers-reduced-motion: reduce)');function frame(ms){window.DungeonSceneEnvironmentV1?.tickWildlife(ms,s.scene==='wreck'&&!document.hidden&&!wildlifeMotionQuery.matches);if(ms-last>68){t=ms/1000;sceneDraw(t);last=ms;}requestAnimationFrame(frame);}requestAnimationFrame(frame);render();
 })();
 </script>
 </body>
