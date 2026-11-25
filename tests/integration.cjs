@@ -92,6 +92,45 @@ check('120 game days, multiple seeds, save boundaries and all environment ranges
  assert.deepEqual(R.diagnostics().faults,[]);assert.deepEqual(E.diagnostics().errors,[]);
  return {steps};
 });
+// Motion regression uses production samplers, not approximated equations.
+new Function('window',read('assets/bird_motion_live_v1.js'))(window);
+const B=window.DungeonBirdMotion;
+const finite=o=>Object.values(o).filter(x=>typeof x==='number').every(Number.isFinite);
+check('Bird flight, landing, hopping and wing joints: 10,800 samples',()=>{
+ let n=0;
+ for(const id of Object.keys(B.routes)){
+  const modes=new Set();
+  for(let i=0;i<2700;i++){
+   const v=B.sample({id,x:55,y:12,width:3.5,z:9},i/100);
+   assert(finite(v)&&v.x>=0&&v.x<=100&&v.visibleY>=0&&v.visibleY<=100&&v.h>=0&&v.width>0);
+   assert(finite(B.wingPose(i/100,v.open,v.brake)));
+   modes.add(v.mode);n++;
+  }
+  for(const mode of ['perch','fly','land','hop','forage'])assert(modes.has(mode),mode);
+ }
+ return {samples:n};
+});
+check('Beetle ground-only mode: 10,900 samples',()=>{
+ const modes=new Set();
+ for(let i=0;i<10900;i++){
+  const v=V.wildlifeSample('beetle',i/100,-1,true);
+  assert(finite(v)&&v.lift===0&&!['fly','unfold','fold'].includes(v.mode));
+  modes.add(V.wildlifeSample('beetle',i/100,-1,false).mode);
+ }
+ assert(modes.has('fly')&&modes.has('crawl'));
+ return {samples:10900};
+});
+check('Rabbit mixed weather: 6,000 ticks',()=>{
+ const b=V.rabbitBrain(.3,false),modes=new Set();
+ for(let i=0;i<6000;i++){
+  const kind=['clear','rain','blizzard'][Math.floor(i/1000)%3];
+  const v=V.rabbitTick(b,.1,{kind,wind:kind==='clear'?0:1});
+  assert(finite(v)&&b.hunger>=0&&b.hunger<=1&&b.energy>=0&&b.energy<=1&&b.q>=0&&b.q<=1);
+  modes.add(v.behavior);
+ }
+ assert(modes.has('shelter')&&modes.has('shelter-hop'));
+ return {samples:6000};
+});
 const report={checks,passed:checks.filter(c=>c.result==='PASS').length,failed:checks.filter(c=>c.result==='FAIL').length};
 fs.mkdirSync(path.join(root,'test-results'),{recursive:true});
 fs.writeFileSync(path.join(root,'test-results','integration-report.json'),JSON.stringify(report,null,2));
