@@ -55,12 +55,12 @@ window.DungeonWeatherV1=(function(){
  const snowParticles=particles.map(p=>({x:p.x,y:p.y}));
  function snowVelocity(i,speed,drift){return {x:drift*(.8+(i%7)*.07),y:(13+i%12)*speed};}
  function bind(el){canvas=el;ctx=el?.getContext('2d');if(canvas){canvas.width=W;canvas.height=H;}}
- let scene='wreck',sound=false,audio=null,lastThunder=-1,sceneHost=null,snowPreview=false,previewCover=0;
+ let scene='wreck',sound=false,audio=null,lastThunder=-1,sceneHost=null,snowPreview=false,weatherPreview=false,previewCover=0,previewMeltWet=0;
  function unlockAudio(){try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;if(!audio)audio=new AC();if(audio.state==='suspended')audio.resume().catch(()=>{});}catch{}}
  function thunder(){if(!sound||!audio||audio.state!=='running')return;try{const rate=audio.sampleRate,buf=audio.createBuffer(1,Math.floor(rate*2.7),rate),d=buf.getChannelData(0);let low=0;for(let i=0;i<d.length;i++){low=.94*low+.06*(Math.random()*2-1);d[i]=low;}const src=audio.createBufferSource(),f=audio.createBiquadFilter(),g=audio.createGain(),now=audio.currentTime;src.buffer=buf;f.type='lowpass';f.frequency.value=170;g.gain.setValueAtTime(.001,now);g.gain.linearRampToValueAtTime(.19,now+.24);g.gain.exponentialRampToValueAtTime(.001,now+2.6);src.connect(f);f.connect(g);g.connect(audio.destination);src.start(now);src.stop(now+2.7);}catch{}}
  function set(weather,indoor,reduce=false,options={}){
   scene=options.scene||'wreck';sound=Boolean(options.sound);sceneHost=options.sceneHost||sceneHost;
-  const nextPreview=Boolean(options.snowPreview);if(nextPreview&&!snowPreview)previewCover=options.previewStart??.04;snowPreview=nextPreview;
+  const nextPreview=Boolean(options.snowPreview),nextWeatherPreview=Boolean(options.weatherPreview)||nextPreview;if(nextWeatherPreview&&!weatherPreview){previewCover=nextPreview?(options.previewStart??.04):0;previewMeltWet=0;}if(!nextWeatherPreview){previewCover=0;previewMeltWet=0;}snowPreview=nextPreview;weatherPreview=nextWeatherPreview;
   hidden=Boolean(indoor);reduced=reduce;target=hidden?{...kinds.clear,wet:0,snow:0,snowCover:0}:{...weather,wet:weather.wet??weather.rain*.8,snow:weather.snow||0,snowCover:weather.snowCover||0};
   if(canvas)canvas.hidden=hidden;
   if(hidden&&ctx)ctx.clearRect(0,0,W,H);if(hidden&&sceneHost)sceneHost.style.setProperty('--snow-cover','0');
@@ -68,7 +68,7 @@ window.DungeonWeatherV1=(function(){
  function draw(ms){
   if(!ctx||hidden)return;
   const dt=last?clamp((ms-last)/1000,0,.1):.05;last=ms;
-  if(snowPreview){previewCover=clamp(previewCover+dt*(target.kind==='blizzard'?.10:.05),0,1);target.snowCover=previewCover;}
+  if(weatherPreview){const previous=previewCover;previewCover=clamp(previewCover+dt*(snowPreview?(target.kind==='blizzard'?.10:.05):-(target.kind==='rain'||target.kind==='storm'?.07:.035)),0,1);previewMeltWet=clamp(previewMeltWet+Math.max(0,previous-previewCover)*.95-dt*.018,0,.85);target.snowCover=previewCover;target.wet=Math.max(target.rain*.85,previewMeltWet);}
   for(const k of Object.keys(shown))shown[k]+=((target[k]||0)-shown[k])*(1-Math.exp(-dt*3.0));
   ctx.clearRect(0,0,W,H);
   if(shown.shade>.003){ctx.fillStyle='rgba(38,55,62,'+shown.shade.toFixed(3)+')';ctx.fillRect(0,0,W,H);}
