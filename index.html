@@ -4346,11 +4346,11 @@ html.stage-locked #app #topGameHud #hudPhase{font-size:clamp(10px,1.65vw,17px)}
 </script>
 <script src="./assets/forest_v4_spawns.js?v=4-winter-plants"></script>
 <script src="./assets/forest_v4_integration.js?v=8-grass"></script>
-<script src="./assets/rabbit_articulation_live_v1.js?v=2-golden"></script>
+<script src="./assets/rabbit_articulation_live_v1.js?v=3-behavior"></script>
 <script src="./assets/beetle_articulation_live_v1.js?v=2-flight"></script>
 <script src="./assets/scene_spatial_motion_v1.js?v=2-flight-test"></script>
 <script src="./assets/bird_motion_live_v1.js?v=2-hop-joints"></script>
-<script src="./assets/scene_environment_v1.js?v=13-water-continuity"></script>
+<script src="./assets/scene_environment_v1.js?v=14-rabbit-brain"></script>
 <script src="./assets/winter_surfaces_v1.js?v=4-wet-materials"></script>
 <script src="./assets/weather_system_v1.js?v=13-winter-plants"></script>
 <script src="./assets/trail_forest_v1.js"></script>
@@ -8056,7 +8056,7 @@ function renderForestV4(el){
  const bindings=forestV4MaterialBindings();
  let live=window.DungeonForestV4Life?.layout(s,cfg,window.DUNGEON_FOREST_V4_SPAWNS||[],bindings,plantSpawnWeather())||cfg;
  const weather=window.DungeonWeatherV1;const weatherKind=previewWeather||weather?.at(s.seed,s.worldMinutes).kind;
- if(weather&&weatherKind)live=live.filter(o=>{const k=o.assetId.replace('forest4_','');return !['bird','rabbit','beetle','butterfly'].includes(k)||weather.activity(k,weatherKind);});
+ if(weather&&weatherKind)live=live.filter(o=>{const k=o.assetId.replace('forest4_','');return k==='rabbit'||!['bird','beetle','butterfly'].includes(k)||weather.activity(k,weatherKind);});
  if(new URLSearchParams(location.search).get('wildlife')==='golden-rabbit'&&DEV_PREVIEW_MODE){const rabbit=cfg.find(o=>o.assetId==='forest4_rabbit');if(rabbit)live=[...live.filter(o=>o.assetId!=='forest4_rabbit'),{...rabbit,name:'金紋兔',rabbitVariant:'golden',previewOnly:true,visible:true}];}
  if(new URLSearchParams(location.search).get('wildlife')==='bird'&&DEV_PREVIEW_MODE){const bird=cfg.find(o=>o.assetId==='forest4_bird');if(bird)live=[...live.filter(o=>o.assetId!=='forest4_bird'),{...bird,id:'preview-bird-flight',visible:true}];}
  if(new URLSearchParams(location.search).get('wildlife')==='beetle'&&DEV_PREVIEW_MODE){const beetle=cfg.find(o=>o.assetId==='forest4_beetle');if(beetle)live=[...live.filter(o=>o.assetId!=='forest4_beetle'),{...beetle,id:'preview-beetle-flight',x:60,y:70,width:3.5,z:18,visible:true}];}
@@ -8342,7 +8342,7 @@ function sceneDraw(time){
  v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(3,14,13,.68)');
  rect(0,0,W,H,v);
 }
-function size(){const d=Math.min(devicePixelRatio||1,1.5);can.width=Math.floor(W*d);can.height=Math.floor(H*d);ctx.setTransform(d,0,0,d,0,0);}size();window.addEventListener('resize',()=>{size();refreshSceneFraming();renderHotspots();});refreshSceneFraming();const wildlifeMotionQuery=window.matchMedia('(prefers-reduced-motion: reduce)');function frame(ms){window.DungeonSceneEnvironmentV1?.tickWildlife(ms,s.scene==='wreck'&&!document.hidden&&!wildlifeMotionQuery.matches);requestAnimationFrame(frame);if(ms-last>68){t=ms/1000;try{sceneDraw(t);}finally{window.DungeonWeatherV1?.draw(ms);last=ms;}}}requestAnimationFrame(frame);render();
+function size(){const d=Math.min(devicePixelRatio||1,1.5);can.width=Math.floor(W*d);can.height=Math.floor(H*d);ctx.setTransform(d,0,0,d,0,0);}size();window.addEventListener('resize',()=>{size();refreshSceneFraming();renderHotspots();});refreshSceneFraming();const wildlifeMotionQuery=window.matchMedia('(prefers-reduced-motion: reduce)');function frame(ms){window.DungeonSceneEnvironmentV1?.tickWildlife(ms,s.scene==='wreck'&&!document.hidden&&!wildlifeMotionQuery.matches,previewWeather||currentWeather?.kind||'clear');requestAnimationFrame(frame);if(ms-last>68){t=ms/1000;try{sceneDraw(t);}finally{window.DungeonWeatherV1?.draw(ms);last=ms;}}}requestAnimationFrame(frame);render();
 })();
 </script>
 </body>
