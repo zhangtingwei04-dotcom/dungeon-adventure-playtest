@@ -21,7 +21,12 @@ window.DungeonWeatherV1=(function(){
   const temp=Math.round(s.temp-cold+5*Math.cos((hour-14)*Math.PI/12)+(kind==='clear'?1:kind==='storm'?-4:kind==='rain'?-3:kind==='fog'?-2:kind==='snow'?-3:kind==='blizzard'?-5:0));
   return {season:s.name,seasonDay:s.day,temperature:temp};
  }
- const histories=new Map();
+ const histories=new Map(),snowHistory=new WeakMap();
+ function snowStep(cover,kind,temp,minutes){
+  const hours=Math.max(0,minutes)/60;
+  const delta=kind==='blizzard'?hours/3:kind==='snow'?hours/6:-hours*(temp<=0?0:temp<=5?.045:temp<=12?.105:.19);
+  return clamp(cover+delta,0,1);
+ }
  function at(seed,minutes){
   const block=Math.floor(Math.max(0,Number(minutes)||0)/180);
   const key=String(seed??'world');let history=histories.get(key);
@@ -35,10 +40,14 @@ window.DungeonWeatherV1=(function(){
    history.push(kind);
   }
   const actual=j=>{const k=history[j];return kinds[k].rain>.05&&season(j*180).name==='冬季'&&climate(seed,j*180+90,k).temperature<=1?(k==='storm'?'blizzard':'snow'):k;};
-  const kind=actual(index);let wet=0,snowCover=0;
-  for(let j=Math.max(0,index-7);j<=index;j++){const k=actual(j),snowing=k==='snow'||k==='blizzard',temp=climate(seed,j*180+90,k).temperature,previous=snowCover;
-   snowCover=clamp(snowCover*(snowing?.96:temp<=0?.97:temp<=5?.80:.48)+(snowing?(k==='blizzard'?.48:.28):0),0,1);
-   wet=clamp(wet*.68+kinds[k].rain*.48+Math.max(0,previous-snowCover)*.8,0,1);}
+  const kind=actual(index);let wet=0;
+  let covers=snowHistory.get(history);if(!covers){covers=[0];snowHistory.set(history,covers);}
+  for(let j=covers.length-1;j<index;j++){const k=actual(j),temp=climate(seed,j*180+90,k).temperature;covers.push(snowStep(covers[j],k,temp,180));}
+  const elapsed=clamp((Number(minutes)||0)-index*180,0,180);
+  const snowCover=snowStep(covers[index],kind,climate(seed,index*180+90,kind).temperature,elapsed);
+  for(let j=Math.max(0,index-7);j<=index;j++){const k=actual(j),end=j===index?snowCover:covers[j+1];
+   wet=clamp(wet*.68+kinds[k].rain*.48+Math.max(0,covers[j]-end)*.8,0,1);}
+
   return {kind,...kinds[kind],snow:kinds[kind].snow||0,...climate(seed,minutes,kind),wet,snowCover,block};
  }
  let canvas=null,ctx=null,shown={shade:0,fog:0,rain:0,wind:0,wet:0,snow:0,snowCover:0,overcast:0,snowSpeed:0,snowDrift:0},target=kinds.clear,last=0,hidden=true,reduced=false;
@@ -46,11 +55,12 @@ window.DungeonWeatherV1=(function(){
  const snowParticles=particles.map(p=>({x:p.x,y:p.y}));
  function snowVelocity(i,speed,drift){return {x:drift*(.8+(i%7)*.07),y:(13+i%12)*speed};}
  function bind(el){canvas=el;ctx=el?.getContext('2d');if(canvas){canvas.width=W;canvas.height=H;}}
- let scene='wreck',sound=false,audio=null,lastThunder=-1,sceneHost=null;
+ let scene='wreck',sound=false,audio=null,lastThunder=-1,sceneHost=null,snowPreview=false,previewCover=0;
  function unlockAudio(){try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;if(!audio)audio=new AC();if(audio.state==='suspended')audio.resume().catch(()=>{});}catch{}}
  function thunder(){if(!sound||!audio||audio.state!=='running')return;try{const rate=audio.sampleRate,buf=audio.createBuffer(1,Math.floor(rate*2.7),rate),d=buf.getChannelData(0);let low=0;for(let i=0;i<d.length;i++){low=.94*low+.06*(Math.random()*2-1);d[i]=low;}const src=audio.createBufferSource(),f=audio.createBiquadFilter(),g=audio.createGain(),now=audio.currentTime;src.buffer=buf;f.type='lowpass';f.frequency.value=170;g.gain.setValueAtTime(.001,now);g.gain.linearRampToValueAtTime(.19,now+.24);g.gain.exponentialRampToValueAtTime(.001,now+2.6);src.connect(f);f.connect(g);g.connect(audio.destination);src.start(now);src.stop(now+2.7);}catch{}}
  function set(weather,indoor,reduce=false,options={}){
   scene=options.scene||'wreck';sound=Boolean(options.sound);sceneHost=options.sceneHost||sceneHost;
+  const nextPreview=Boolean(options.snowPreview);if(nextPreview&&!snowPreview)previewCover=options.previewStart??.04;snowPreview=nextPreview;
   hidden=Boolean(indoor);reduced=reduce;target=hidden?{...kinds.clear,wet:0,snow:0,snowCover:0}:{...weather,wet:weather.wet??weather.rain*.8,snow:weather.snow||0,snowCover:weather.snowCover||0};
   if(canvas)canvas.hidden=hidden;
   if(hidden&&ctx)ctx.clearRect(0,0,W,H);if(hidden&&sceneHost)sceneHost.style.setProperty('--snow-cover','0');
@@ -58,6 +68,7 @@ window.DungeonWeatherV1=(function(){
  function draw(ms){
   if(!ctx||hidden)return;
   const dt=last?clamp((ms-last)/1000,0,.1):.05;last=ms;
+  if(snowPreview){previewCover=clamp(previewCover+dt*(target.kind==='blizzard'?.10:.05),0,1);target.snowCover=previewCover;}
   for(const k of Object.keys(shown))shown[k]+=((target[k]||0)-shown[k])*(1-Math.exp(-dt*3.0));
   ctx.clearRect(0,0,W,H);
   if(shown.shade>.003){ctx.fillStyle='rgba(38,55,62,'+shown.shade.toFixed(3)+')';ctx.fillRect(0,0,W,H);}
@@ -99,9 +110,9 @@ window.DungeonWeatherV1=(function(){
   {x:284,y:233,rx:22,ry:4.2,seed:4}
  ];
  function puddleLevel(wet,rain){return clamp(Math.max((wet-.10)/.65,rain*.62),0,1);}
- function drawGround(g,t,width,height,enabled=true){
+ function drawGround(g,t,width,height,enabled=true,source=null){
   if(hidden||scene!=='wreck'||!enabled||!g)return;
-  window.DungeonWinterV1?.ground(g,shown.snowCover,width,height);
+  window.DungeonWinterV1?.ground(g,shown.snowCover,width,height,source);
   const amount=puddleLevel(shown.wet,shown.rain)*(1-shown.snowCover*.7);if(amount<.035)return;
   g.save();g.scale(width/W,height/H);
   for(const p of pools){
@@ -147,5 +158,5 @@ window.DungeonWeatherV1=(function(){
   return s.weatherExposure={minute:now,wetness:value,comfort,indoor:Boolean(indoor)};
  }
  function activity(kind,weather){if(weather==='storm'||weather==='blizzard')return false;if(weather==='snow')return kind==='rabbit';if(weather==='rain')return kind==='beetle'||kind==='rabbit';if(weather==='drizzle')return kind!=='butterfly';return true;}
- return {kinds,at,bind,set,draw,drawGround,puddleLevel,season,climate,exposure,activity,unlockAudio,snowVelocity};
+ return {kinds,at,bind,set,draw,drawGround,puddleLevel,season,climate,exposure,activity,unlockAudio,snowVelocity,snowStep};
 })();
