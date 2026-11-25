@@ -232,3 +232,21 @@ const oldLateOpening={scene:'wreck',worldMinutes:1500,flags:{},exploration:{coun
 assert(!opening.view(oldLateOpening,13).canExplore);assert.equal(oldLateOpening.worldMinutes,1500);
 assert(990+13<opening.FIRST_DUSK);
 console.log('PASS: first-dusk deadline, travel reserve, resumable departure cue and no legacy time rewind');
+
+
+const openingRouteSource=read('index.html').toString();
+const routeNormalizeStart=openingRouteSource.indexOf('function normalizeRouteDiscovery(){');
+const routeNormalizeEnd=openingRouteSource.indexOf('\nfunction routeKnown',routeNormalizeStart);
+assert(routeNormalizeStart>=0&&routeNormalizeEnd>routeNormalizeStart);
+const normalizeOpeningRoutes=new Function('s','ROUTE_TIMES','routeKey',openingRouteSource.slice(routeNormalizeStart,routeNormalizeEnd)+';normalizeRouteDiscovery();return s.routeDiscovery.known;');
+const openingRouteGraph=[{a:'wreck',b:'trail'},{a:'trail',b:'gate'},{a:'trail',b:'clearing'}];
+const openingRouteKey=(a,b)=>[a,b].sort().join('|');
+const freshRouteActor={scene:'wreck',flags:{},visits:{wreck:1},routeDiscovery:{known:[],searchCounts:{}}};
+assert.equal(normalizeOpeningRoutes(freshRouteActor,openingRouteGraph,openingRouteKey).length,0);
+freshRouteActor.routeDiscovery.known.push('trail|wreck');
+assert.equal(normalizeOpeningRoutes(freshRouteActor,openingRouteGraph,openingRouteKey).join(','),'trail|wreck');
+const visitedRouteActor={scene:'wreck',flags:{},visits:{wreck:2,trail:1},routeDiscovery:{known:[],searchCounts:{}}};
+assert.equal(normalizeOpeningRoutes(visitedRouteActor,openingRouteGraph,openingRouteKey).join(','),'trail|wreck');
+const legacyRouteActor={scene:'trail',flags:{},visits:{trail:1}};
+assert.equal(normalizeOpeningRoutes(legacyRouteActor,openingRouteGraph,openingRouteKey).length,3);
+console.log('PASS: fresh opening has no revealed exit; discovered and legacy routes remain available');
