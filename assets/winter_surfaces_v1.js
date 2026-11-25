@@ -13,6 +13,22 @@ window.DungeonWinterV1=(function(){
  // V5 terrain mask: preserve trees, boulders, foreground leaves and waterfall.
  const terrain=[[67,194],[104,177],[130,164],[164,166],[190,165],[208,164],[235,161],[257,162],[280,166],[305,175],[340,184],[364,188],[390,186],[420,188],[445,196],[467,199],[484,204],[508,207],[528,211],[556,213],[583,212],[610,208],[640,205],[640,255],[613,252],[600,269],[565,275],[548,295],[520,298],[510,321],[486,338],[459,360],[185,360],[184,339],[163,320],[151,309],[134,310],[130,292],[108,284],[103,260],[92,246],[82,228],[73,215]];
  const holes=[[[111,273],[120,258],[139,251],[164,252],[186,264],[198,282],[205,303],[188,311],[163,308],[141,301],[118,294]],[[499,284],[506,263],[524,250],[549,249],[571,255],[590,267],[598,284],[591,304],[562,306],[535,301],[514,294]]];
+ // The large right foreground boulder and grass are painted into the background,
+ // not the independent rock sprite. Add a source-textured, feathered winter layer.
+ const smooth=q=>{q=clamp(q,0,1);return q*q*(3-2*q);};
+ function snowIsland(x,y,cx,cy,rx,ry){
+  const px=(x-cx)/rx,py=(y-cy)/ry;
+  const edge=1+.065*Math.sin(x*.24+y*.31)+.04*Math.cos(x*.45-y*.21);
+  return smooth((edge-Math.hypot(px,py))/.34);
+ }
+ function rightSnowProfile(x,y){
+  // Upper boulder face, flower bed and rooted grass. Keep the lower rock face dark.
+  const cap=Math.max(snowIsland(x,y,548,264,49,17),snowIsland(x,y,566,269,31,13));
+  const flowers=snowIsland(x,y,557,279,32,12)*.86;
+  const base=Math.max(snowIsland(x,y,525,294,29,9),snowIsland(x,y,570,302,40,13),snowIsland(x,y,603,313,29,12));
+  const grass=Math.max(snowIsland(x,y,568,319,39,26),snowIsland(x,y,608,332,31,27),snowIsland(x,y,629,347,27,19));
+  return {cap,flowers,base,grass};
+ }
  let surface=null;
  function makeSurface(img){
   if(!img?.naturalWidth)return null;
@@ -35,6 +51,20 @@ window.DungeonWinterV1=(function(){
     const noise=.5+.5*Math.sin(x*.83+y*1.39)*Math.cos(y*.57-x*.24),q=zone*green*edge*(.35+.65*noise);
     fd[i]=clamp(l+64,0,244);fd[i+1]=clamp(l+79,0,250);fd[i+2]=clamp(l+88,0,255);fd[i+3]=Math.round(q*155);
    }fc.putImageData(ff,0,0);
+   const rightWinter=document.createElement('canvas');rightWinter.width=w;rightWinter.height=h;
+   const rc=rightWinter.getContext('2d'),rf=rc.createImageData(w,h),rd=rf.data;
+   for(let y=240;y<h;y++)for(let x=480;x<w;x++){
+    const i=(y*w+x)*4,{cap,flowers,base,grass}=rightSnowProfile(x,y);
+    const r=pixels[i],g=pixels[i+1],bl=pixels[i+2],l=.25*r+.55*g+.20*bl;
+    const n0=Math.sin(x*12.9898+y*78.233)*43758.5453,n=n0-Math.floor(n0)-.5;
+    const leaf=clamp((g-Math.min(r,bl)+6)/38,0,1);
+    const grain=.82+.18*Math.sin(x*.29+y*.58)*Math.cos(x*.67-y*.21);
+    const q=Math.max(cap*.97,flowers*.97,base*.94,grass*(.60+.32*leaf))*grain;
+    if(q<.01)continue;
+    // Snow shading keeps the source relief, flecks and contact texture.
+    const texture=(l-85)*.59+n*15+5*Math.sin(x*.11+y*.36);
+    rd[i]=clamp(207+texture,125,250);rd[i+1]=clamp(221+texture*.90,142,253);rd[i+2]=clamp(230+texture*.85,153,255);rd[i+3]=Math.round(clamp(q,0,1)*255);
+   }rc.putImageData(rf,0,0);
    for(let y=0,j=0;y<h;y++)for(let x=0;x<w;x++,j++){const i=j*4;if(!area[i+3])continue;const r=pixels[i],g=pixels[i+1],bl=pixels[i+2],l=.25*r+.55*g+.20*bl;
     const grain=Math.sin(x*12.9898+y*78.233)*43758.5453,noise=grain-Math.floor(grain)-.5;
     const green=clamp((g-r-4)/32,0,1),shade=clamp((95-l)/95,0,1);
@@ -46,13 +76,13 @@ window.DungeonWinterV1=(function(){
     // Keep some painted vegetation and dark rock texture even under heavy snow.
     area[i+3]=Math.round(area[i+3]*(1-green*.28-shade*.13));
    }
-   surface={source:img,w,h,out,o,frame,threshold,area,foliage,last:-1};return surface;
+   surface={source:img,w,h,out,o,frame,threshold,area,foliage,rightWinter,last:-1};return surface;
   }catch{return null;}
  }
  function paintSurface(ctx,cover,w,h,source,frost=0){
   const a=makeSurface(source);if(!a)return false;const level=Math.round(clamp(cover,0,1)*48)/48;
   if(a.last!==level){const d=a.frame.data;for(let j=0;j<a.threshold.length;j++){const i=j*4,mask=a.area[i+3];if(!mask){d[i+3]=0;continue;}const v=level<=0?0:clamp((level-a.threshold[j]+.11)/.22,0,1);const edge=v*v*(3-2*v);const complete=clamp((level-.88)/.12,0,1);d[i+3]=Math.round(mask*Math.max(edge*.91,complete*.87));}a.o.putImageData(a.frame,0,0);a.last=level;}
-  ctx.drawImage(a.out,0,0,w,h);ctx.save();ctx.globalAlpha=clamp(Math.max(cover*.83,frost*.68),0,1);ctx.drawImage(a.foliage,0,0,w,h);ctx.restore();return true;
+  ctx.drawImage(a.out,0,0,w,h);ctx.save();ctx.globalAlpha=clamp(Math.max(cover*.83,frost*.68),0,1);ctx.drawImage(a.foliage,0,0,w,h);ctx.globalAlpha=smooth((cover-.08)/.84);ctx.drawImage(a.rightWinter,0,0,w,h);ctx.restore();return true;
  }
  function ground(ctx,cover,w,h,source=null,frost=0){if(Math.max(cover,frost)<.025)return;if(source&&paintSurface(ctx,cover,w,h,source,frost))return;if(cover<.025)return;ctx.save();ctx.scale(w/640,h/360);
   patches.forEach(([x,y,rx,ry,threshold],i)=>{const q=clamp(cover*1.5-(1-threshold),0,1);if(q<.04)return;
@@ -62,7 +92,7 @@ window.DungeonWinterV1=(function(){
   });ctx.restore();}
  const cache=new Map();
  // Burial is visual only: do not remove resources, change positions or mutate saves.
- const burial={grass_a:1,grass_b:.76,purple_flower:.86,white_flower:.9,lavender:.53,yellow_shrub:.48,mushroom:.91};
+ const burial={grass_a:1,grass_b:.76,purple_flower:1,white_flower:.9,lavender:.53,yellow_shrub:.48,mushroom:.91};
  function plantDepth(kind,x,y,width){
   const base=burial[kind]||0;if(!base)return 0;
   const sheltered=x<38&&y<74?.78:1;
@@ -113,7 +143,7 @@ window.DungeonWinterV1=(function(){
   }
   const top=new Int32Array(w).fill(-1);
   for(let x=0;x<w;x++)for(let y=0;y<h;y++){if(src[(y*w+x)*4+3]>180){top[x]=y;break;}}
-  const thickness=Math.max(2,Math.min(kind==='wagon'?42:25,h*(kind==='wagon'?.20:kind.startsWith('grass')?.11:.24)));
+  const thickness=Math.max(2,Math.min(kind==='wagon'?42:kind.startsWith('rock_')?36:25,h*(kind==='wagon'?.20:kind.startsWith('rock_')?.34:.24)));
   for(let x=1;x<w-1;x++){const y=top[x];if(y<0||top[x-1]<0||top[x+1]<0||Math.abs(top[x-1]-top[x+1])>Math.max(5,thickness*1.8))continue;
    const n=.77+.17*Math.sin(x*.17)+.10*Math.cos(x*.81),depth=Math.max(1,thickness*n);
    for(let dy=0;dy<depth;dy++){const yy=y+dy;if(yy>=h)break;const i=(yy*w+x)*4;if(src[i+3]<140)continue;const q=dy/depth;const l=.25*src[i]+.55*src[i+1]+.2*src[i+2],detail=(l-115)*.25;
@@ -155,5 +185,5 @@ window.DungeonWinterV1=(function(){
   const init=()=>{if(!node.isConnected||!img.naturalWidth||art.querySelector('.winter-snow-cap'))return;try{applyBurial(node,art,img,kind);attachWet(node,art,img,kind);const key=kind+':'+img.src;let base=cache.get(key);if(!base){base=cap(img,kind);if(!base)return;cache.set(key,base);}const cv=document.createElement('canvas');cv.width=base.width;cv.height=base.height;cv.getContext('2d').drawImage(base,0,0);cv.className='winter-snow-cap';cv.setAttribute('aria-hidden','true');cv.style.setProperty('--snow-hold',String(weight));art.appendChild(cv);}catch{}};
   if(img.complete&&img.naturalWidth)queueMicrotask(init);else img.addEventListener('load',init,{once:true});
  }
- return {ground,attach,weights,plantDepth,grassProfile};
+ return {ground,attach,weights,plantDepth,grassProfile,rightSnowProfile};
 })();
