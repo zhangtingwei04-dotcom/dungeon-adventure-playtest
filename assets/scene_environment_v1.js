@@ -10,26 +10,42 @@ window.DungeonSceneEnvironmentV1=(function(){
  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
  const frac=v=>v-Math.floor(v);
  function path(ctx,poly){ctx.beginPath();poly.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.closePath();ctx.clip();}
- function draw(ctx,id,t,w=960,h=540){
+ function draw(ctx,id,t,w=960,h=540,period='day',source=null){
   const p=profiles[id];if(!p||!Number.isFinite(t))return;
   ctx.save();ctx.scale(w/960,h/540);
+  // The source has baked sunlight. Suppress it locally at dusk/night, rather than adding another beam.
+  const dim=period==='night'?.48:period==='dusk'?.29:period==='dawn'?.12:0;
+  if(dim){
+   ctx.save();ctx.globalCompositeOperation='multiply';
+   const g=ctx.createRadialGradient(455,37,8,455,37,290);
+   g.addColorStop(0,'rgba(104,126,151,'+dim+')');g.addColorStop(.47,'rgba(121,135,153,'+(dim*.7)+')');g.addColorStop(1,'rgba(121,135,153,0)');
+   ctx.fillStyle=g;ctx.fillRect(120,0,680,330);ctx.restore();
+  }
   ctx.save();path(ctx,p.waterfall);
+  // Re-use the real painted water texture, gently advecting it down the cascade.
+  if(source?.naturalWidth&&source?.naturalHeight){
+   const sw=source.naturalWidth,sh=source.naturalHeight,fit=Math.max(960/sw,540/sh),ox=(960-sw*fit)/2,oy=(540-sh*fit)/2;
+   const dx=826,dy=140,dw=66,dh=96,delta=2+Math.sin(t*2.4)*1.4;
+   ctx.save();ctx.globalAlpha=.15;
+   ctx.drawImage(source,(dx-ox)/fit,(dy-oy)/fit,dw/fit,(dh-delta)/fit,dx,dy+delta,dw,dh-delta);
+   ctx.restore();
+  }
   // Moving highlights are clipped to the actual cascade, not surrounding rocks.
   ctx.lineCap='round';
-  for(let i=0;i<19;i++){
+  for(let i=0;i<12;i++){
    const x=834+(i*17%54),y=142+frac(t*(.42+(i%4)*.065)+i*.173)*95;
    const len=8+i%4*4;
    const g=ctx.createLinearGradient(x,y,x-1,y+len);
-   g.addColorStop(0,'rgba(224,248,255,0)');g.addColorStop(.45,'rgba(220,246,255,.28)');g.addColorStop(1,'rgba(220,246,255,0)');
+   g.addColorStop(0,'rgba(224,248,255,0)');g.addColorStop(.45,'rgba(220,246,255,.13)');g.addColorStop(1,'rgba(220,246,255,0)');
    ctx.strokeStyle=g;ctx.lineWidth=.55+(i%3)*.45;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-1.6,y+len);ctx.stroke();
   }
   ctx.restore();
   // Subtle spray in the waterfall basin; no opaque white overlay.
   ctx.save();path(ctx,p.waterfall);
-  for(let i=0;i<5;i++){const q=frac(t*.45+i*.2),x=846+i*7+Math.sin(t*.8+i)*3,y=232-q*10,r=3+q*9;const g=ctx.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,'rgba(213,238,249,'+(.115*(1-q))+')');g.addColorStop(1,'rgba(213,238,249,0)');ctx.fillStyle=g;ctx.fillRect(x-r,y-r,r*2,r*2);}
+  for(let i=0;i<5;i++){const q=frac(t*.45+i*.2),x=846+i*7+Math.sin(t*.8+i)*3,y=232-q*10,r=3+q*9;const g=ctx.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,'rgba(213,238,249,'+(.06*(1-q))+')');g.addColorStop(1,'rgba(213,238,249,0)');ctx.fillStyle=g;ctx.fillRect(x-r,y-r,r*2,r*2);}
   ctx.restore();
   // Separate small stream zones avoid painted foreground rocks.
-  for(let j=0;j<p.pools.length;j++){ctx.save();path(ctx,p.pools[j]);const poly=p.pools[j],minX=Math.min(...poly.map(v=>v[0])),maxX=Math.max(...poly.map(v=>v[0])),minY=Math.min(...poly.map(v=>v[1])),maxY=Math.max(...poly.map(v=>v[1]));for(let i=0;i<5;i++){const q=frac(t*(.16+i*.02)+i*.31+j*.12),x=minX+q*(maxX-minX),y=minY+((i*.37)%1)*(maxY-minY);const alpha=.19*Math.sin(Math.PI*q);ctx.strokeStyle='rgba(205,240,250,'+alpha+')';ctx.lineWidth=.65;ctx.beginPath();ctx.moveTo(x,y);ctx.quadraticCurveTo(x+4,y-.8,x+8+i%3*2,y);ctx.stroke();}ctx.restore();}
+  for(let j=0;j<p.pools.length;j++){ctx.save();path(ctx,p.pools[j]);const poly=p.pools[j],minX=Math.min(...poly.map(v=>v[0])),maxX=Math.max(...poly.map(v=>v[0])),minY=Math.min(...poly.map(v=>v[1])),maxY=Math.max(...poly.map(v=>v[1]));for(let i=0;i<5;i++){const q=frac(t*(.16+i*.02)+i*.31+j*.12),x=minX+q*(maxX-minX),y=minY+((i*.37)%1)*(maxY-minY);const alpha=.09*Math.sin(Math.PI*q);ctx.strokeStyle='rgba(205,240,250,'+alpha+')';ctx.lineWidth=.65;ctx.beginPath();ctx.moveTo(x,y);ctx.quadraticCurveTo(x+4,y-.8,x+8+i%3*2,y);ctx.stroke();}ctx.restore();}
   ctx.restore();
  }
  function objectProfile(o,id='forestV4'){
