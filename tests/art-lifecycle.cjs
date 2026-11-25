@@ -38,3 +38,36 @@ if(process.argv[2]==='--audit-removal'){
  walk(root);console.log(JSON.stringify({candidate,hits,decision:hits.length?'BLOCKED_REFERENCES':'MANUAL_REVIEW_REQUIRED'},null,2));
  if(hits.length)process.exitCode=1;
 }
+
+
+// Keep the shared dependency index synchronized with core pages.
+const dependencyIndex=JSON.parse(read('assets/asset-dependency-index.json').toString());
+function directAssets(s){
+ return [...new Set([...s.matchAll(/<script\b[^>]*\bsrc=["']([^"']+)["'][^>]*>/gi),...s.matchAll(/<link\b(?=[^>]*\brel=["']stylesheet["'])[^>]*\bhref=["']([^"']+)["'][^>]*>/gi)].map(m=>m[1].split(/[?#]/)[0].replace(/^\.\//,'')).filter(p=>p.startsWith('assets/')))].sort();
+}
+assert.equal(dependencyIndex.schema,1);
+const directEdges=[];
+for(const [page,expected] of Object.entries(dependencyIndex.pages)){
+ const actual=directAssets(read(page).toString());
+ assert.deepEqual(actual,expected,'Dependency index stale: '+page);
+ for(const asset of actual){assert(fs.statSync(inside(asset)).isFile(),'Missing dependency '+asset);directEdges.push({page,asset});}
+}
+for(const rule of dependencyIndex.retiredLoads){
+ assert(Object.hasOwn(dependencyIndex.pages,rule.page));
+ for(const asset of rule.paths)assert(!dependencyIndex.pages[rule.page].includes(asset),'Retired dependency loaded: '+rule.page+' '+asset);
+}
+const assetCount=new Set(directEdges.map(e=>e.asset)).size;
+console.log('PASS: '+assetCount+' direct assets; '+directEdges.length+' page references');
+const vm=require('node:vm');
+const w={};new vm.Script(read('assets/wreck_current_layout_v1.js').toString()).runInNewContext({window:w});
+const scene=w.DUNGEON_WRECK_CURRENT_LAYOUT;
+assert.equal(scene.revision,'accident-c');
+const layoutIds=new Set();
+for(const o of scene.scenes.wreck){
+ assert(!layoutIds.has(o.id),'Duplicate scene object id '+o.id);layoutIds.add(o.id);
+ assert([o.x,o.y,o.width,o.z].every(Number.isFinite),'Invalid scene coordinates '+o.id);
+}
+const artwork={};
+for(const f of ['forest_v4_assets_1','forest_v4_assets_2','forest_v4_assets_3','forest_v4_assets_4'])new vm.Script(read('assets/'+f+'.js').toString()).runInNewContext({window:artwork});
+for(const o of scene.scenes.wreck)assert(artwork.DUNGEON_FOREST_V4_ASSETS?.[o.assetId]?.src,'Missing scene artwork '+o.assetId);
+console.log('PASS: '+layoutIds.size+' current forest objects resolve to artwork');
