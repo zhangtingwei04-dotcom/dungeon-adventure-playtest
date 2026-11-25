@@ -3959,6 +3959,15 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 #app[data-weather] #sceneStage .forest-v4-layer.env-motion-v2 .forest-v4-object[data-motion="plant"]:not([data-live-kind="vine"]) .winter-snow-cap{animation:weather-plant-wind var(--weather-wind-duration,7.4s) ease-in-out infinite;animation-delay:var(--env-motion-delay,0s)}
 #sceneStage .forest-v4-object[data-live-kind="vine"] .winter-snow-cap{animation:none}
 @media(prefers-reduced-motion:reduce){#sceneStage .forest-v4-object .winter-snow-cap{animation:none!important}}
+/* Wet leaves and frost retain their appearance after the weather changes. */
+#app[data-indoor="false"] #sceneStage .forest-v4-object[data-motion="plant"] .forest-v4-art>img,
+#app[data-indoor="false"] #sceneStage .forest-v4-object[data-winter-plant="true"] .forest-v4-art>img{
+ filter:var(--scene-light,brightness(1)) brightness(calc(1 - var(--plant-wet,0) * .13)) saturate(calc(1 + var(--plant-wet,0) * .12 - var(--frost,0) * .28));
+}
+#sceneStage .forest-v4-object[data-motion="plant"] .winter-snow-cap,
+#sceneStage .forest-v4-object[data-winter-plant="true"] .winter-snow-cap{
+ opacity:clamp(0,calc(max(var(--snow-cover,0),var(--frost,0) * .65) * var(--snow-hold,1)),1);
+}
 #app[data-indoor="false"][data-weather="snow"][data-period="day"]{--scene-light:brightness(.88) saturate(.72) contrast(.91)}
 #app[data-indoor="false"][data-weather="blizzard"][data-period="day"]{--scene-light:brightness(.75) saturate(.55) contrast(.86)}
 #app[data-indoor="false"][data-weather="snow"][data-period="dusk"],#app[data-indoor="false"][data-weather="blizzard"][data-period="dusk"]{--scene-light:brightness(.67) saturate(.61) contrast(.88)}
@@ -4326,7 +4335,7 @@ html.stage-locked #app #topGameHud #hudPhase{font-size:clamp(10px,1.65vw,17px)}
 <script src="./assets/bird_motion_live_v1.js?v=2-hop-joints"></script>
 <script src="./assets/scene_environment_v1.js?v=11-bird"></script>
 <script src="./assets/winter_surfaces_v1.js?v=3-plant-burial"></script>
-<script src="./assets/weather_system_v1.js?v=10-preview-thaw"></script>
+<script src="./assets/weather_system_v1.js?v=11-environment-continuity"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/scene_objects_v1.js?v=20261124-2"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
@@ -4501,7 +4510,8 @@ let previewPeriod=null,previewWeather=null;
 let currentWeather=null;
 function syncWeather(){
  const engine=window.DungeonWeatherV1;if(!engine)return;
- currentWeather=previewWeather?{kind:previewWeather,...engine.kinds[previewWeather],...engine.climate(s.seed,s.worldMinutes,previewWeather),wet:previewWeather==='rain'||previewWeather==='storm'?.92:engine.kinds[previewWeather].rain*.85,snowCover:0}:engine.at(s.seed,s.worldMinutes);
+ currentWeather=previewWeather?{kind:previewWeather,...engine.kinds[previewWeather],...engine.climate(s.seed,s.worldMinutes,previewWeather),...engine.environment()}:engine.at(s.seed,s.worldMinutes);
+ if(previewWeather){const k=engine.kinds[previewWeather],climate=engine.climate(s.seed,s.worldMinutes,previewWeather);Object.assign(currentWeather,k,climate,{kind:previewWeather,temperature:previewWeather==='blizzard'?-6:previewWeather==='snow'?-2:Math.max(6,climate.temperature),windDir:-1});}
  const indoor=INDOOR_SCENES.has(s.scene);const app=$('app');app.dataset.weather=currentWeather.kind;
  engine.exposure(s,indoor);app.style.setProperty('--weather-wind',String(currentWeather.wind));app.style.setProperty('--weather-wind-angle',(1+currentWeather.wind*7).toFixed(2)+'deg');app.style.setProperty('--weather-wind-duration',(7.4-currentWeather.wind*4.2).toFixed(2)+'s');
  const label=indoor?'室內 · 外面'+currentWeather.name:currentWeather.name;
@@ -6990,7 +7000,7 @@ function renderPlaceDrawer(){
  hero.appendChild(intro);summary.appendChild(hero);
  const description=document.createElement('p');description.className='location-summary-description';
  description.textContent=locationMeta.description;summary.appendChild(description);
- if(currentWeather&&previewCard.current){const weatherInfo=document.createElement('p');weatherInfo.className='location-weather-info';weatherInfo.textContent=currentWeather.season+' · '+currentWeather.temperature+'°C · '+(INDOOR_SCENES.has(s.scene)?'室外':'')+currentWeather.name+(previewWeather?'（預覽）':'')+' · 地表'+(currentWeather.snowCover>.85?'厚雪':currentWeather.snowCover>.15?'薄雪':currentWeather.wet>.6?'濕潤':currentWeather.wet>.15?'微濕':'偏乾');summary.appendChild(weatherInfo);}
+ if(currentWeather&&previewCard.current){const weatherInfo=document.createElement('p');weatherInfo.className='location-weather-info';weatherInfo.dataset.weatherPrefix=currentWeather.season+' · '+currentWeather.temperature+'°C · '+(INDOOR_SCENES.has(s.scene)?'室外':'')+currentWeather.name+(previewWeather?'（預覽）':'')+' · 地表';weatherInfo.textContent=weatherInfo.dataset.weatherPrefix+(currentWeather.snowCover>.85?'厚雪':currentWeather.snowCover>.15?'薄雪':currentWeather.puddles>.25?'積水':currentWeather.wet>.15?'濕潤':'偏乾');summary.appendChild(weatherInfo);}
  bindLocationPreviewSwipe(summary);
  out.appendChild(summary);
  const resourceSection=document.createElement('section');resourceSection.className='location-resource-section';
