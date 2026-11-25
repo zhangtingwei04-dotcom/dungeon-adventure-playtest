@@ -5,6 +5,11 @@ window.DungeonSceneEnvironmentV1=(function(){
    waterfall:[[837,146],[890,140],[885,162],[883,188],[881,212],[889,229],[876,236],[826,233],[833,216],[831,189]],
    pools:[[[798,240],[828,237],[849,239],[851,245],[827,250],[805,248]],[[878,239],[898,240],[910,247],[932,249],[960,251],[960,262],[927,259],[901,251],[878,248]],[[823,258],[850,257],[878,261],[899,265],[917,272],[899,276],[865,267],[834,266]],[[932,266],[960,265],[960,277],[945,278]]],
    light:{x:52,y:9,spread:63}
+  },
+  forestV5:{
+   waterfall:[[836,149],[893,141],[889,165],[887,189],[884,218],[890,238],[878,244],[827,244],[830,226],[833,188]],
+   pools:[[[795,247],[827,245],[844,247],[844,252],[817,256],[799,253]],[[870,244],[894,244],[905,248],[929,251],[960,253],[960,260],[928,258],[899,253],[870,251]],[[822,260],[842,258],[854,261],[875,264],[898,268],[903,273],[875,272],[844,265],[827,266]],[[932,265],[960,264],[960,276],[948,276]]],
+   cascade:[827,141,66,103],light:{x:52,y:9,spread:63},neutral:true
   }
  };
  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -14,7 +19,7 @@ window.DungeonSceneEnvironmentV1=(function(){
   const p=profiles[id];if(!p||!Number.isFinite(t))return;
   ctx.save();ctx.scale(w/960,h/540);
   // The source has baked sunlight. Suppress it locally at dusk/night, rather than adding another beam.
-  const dim=period==='night'?.48:period==='dusk'?.29:period==='dawn'?.12:0;
+  const dim=p.neutral?0:period==='night'?.48:period==='dusk'?.29:period==='dawn'?.12:0;
   if(dim){
    ctx.save();ctx.globalCompositeOperation='multiply';
    const g=ctx.createRadialGradient(455,37,8,455,37,290);
@@ -25,7 +30,7 @@ window.DungeonSceneEnvironmentV1=(function(){
   // Re-use the real painted water texture, gently advecting it down the cascade.
   if(source?.naturalWidth&&source?.naturalHeight){
    const sw=source.naturalWidth,sh=source.naturalHeight,fit=Math.max(960/sw,540/sh),ox=(960-sw*fit)/2,oy=(540-sh*fit)/2;
-   const dx=826,dy=140,dw=66,dh=96,delta=2+Math.sin(t*2.4)*1.4;
+   const [dx,dy,dw,dh]=p.cascade||[826,140,66,96],delta=2+Math.sin(t*2.4)*1.4;
    ctx.save();ctx.globalAlpha=.15;
    ctx.drawImage(source,(dx-ox)/fit,(dy-oy)/fit,dw/fit,(dh-delta)/fit,dx,dy+delta,dw,dh-delta);
    ctx.restore();
@@ -33,7 +38,7 @@ window.DungeonSceneEnvironmentV1=(function(){
   // Moving highlights are clipped to the actual cascade, not surrounding rocks.
   ctx.lineCap='round';
   for(let i=0;i<12;i++){
-   const x=834+(i*17%54),y=142+frac(t*(.42+(i%4)*.065)+i*.173)*95;
+   const [dx,dy,dw,dh]=p.cascade||[826,140,66,96];const x=dx+8+(i*17%(dw-12)),y=dy+2+frac(t*(.42+(i%4)*.065)+i*.173)*(dh-2);
    const len=8+i%4*4;
    const g=ctx.createLinearGradient(x,y,x-1,y+len);
    g.addColorStop(0,'rgba(224,248,255,0)');g.addColorStop(.45,'rgba(220,246,255,.13)');g.addColorStop(1,'rgba(220,246,255,0)');
