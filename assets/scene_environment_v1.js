@@ -117,13 +117,16 @@ window.DungeonSceneEnvironmentV1=(function(){
   const hash=Array.from(String(o.id||kind)).reduce((n,ch)=>(n*31+ch.charCodeAt(0))%997,0);
   node.dataset.wildlife=kind;
   wildlife.set(node,{kind,dir,phase:hash/100,start:null});
+  if(kind==='rabbit')window.DungeonRabbitArticulation?.attach(node);
  }
  function tickWildlife(ms,active){
   if(!active){for(const [node] of wildlife)if(!node.isConnected)wildlife.delete(node);return;}
   for(const [node,a] of wildlife){
    if(!node.isConnected){wildlife.delete(node);continue;}
    if(a.start===null)a.start=ms;
-   const v=wildlifeSample(a.kind,(ms-a.start)/1000+a.phase,a.dir);
+   const elapsed=(ms-a.start)/1000+a.phase;
+   const v=wildlifeSample(a.kind,elapsed,a.dir);
+   if(a.kind==='rabbit')window.DungeonRabbitArticulation?.render(node,v,elapsed,ms);
    node.style.setProperty('--wild-x',v.x.toFixed(2)+'%');
    node.style.setProperty('--wild-lift',(-v.lift).toFixed(2)+'%');
    node.style.setProperty('--wild-sx',(v.flip*v.sx).toFixed(3));
