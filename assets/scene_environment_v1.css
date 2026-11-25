@@ -112,9 +112,9 @@ html.stage-locked #app #placeDrawerPanel.is-location-tab #placePrimaryActions{po
 #sceneStage .forest-v4-object[data-beetle-rig="ready"] .forest-v4-art{position:relative}
 #sceneStage .forest-v4-object[data-beetle-rig="ready"] .forest-v4-art img{visibility:hidden}
 #sceneStage .forest-v4-object[data-beetle-rig="ready"] .beetle-rig-canvas{
- position:absolute;display:block;pointer-events:none;left:-5.51724%;top:-8.98876%;
- width:111.03448%;height:117.97753%;
- transform-origin:50% 92.38095%;
+ position:absolute;display:block;pointer-events:none;left:-16.55172%;top:-26.96629%;
+ width:133.10345%;height:153.93258%;
+ transform-origin:50% 82.48175%;
  transform:scale(var(--wild-sx,1),var(--wild-sy,1));
  filter:brightness(var(--v4-brightness,1)) saturate(var(--v4-saturation,1)) contrast(var(--v4-contrast,1)) var(--scene-light,brightness(1));
 }
@@ -133,7 +133,7 @@ html.stage-locked #app #placeDrawerPanel.is-location-tab #placePrimaryActions{po
  opacity:calc(var(--v4-shadow-strength,1) * var(--v4-shadow-opacity,.65) * var(--wild-shadow,1));
 }
 #sceneStage .forest-v4-object[data-beetle-rig="ready"] .beetle-rig-canvas{
- transform:translateY(calc(var(--wild-lift,0%) * .847619)) scale(var(--wild-sx,1),var(--wild-sy,1));
+ transform:translateY(calc(var(--wild-lift,0%) * .649635)) scale(var(--wild-sx,1),var(--wild-sy,1));
 }
 @media(prefers-reduced-motion:reduce){
  #sceneStage .forest-v4-layer .forest-v4-object[data-spatial-motion="true"]{
