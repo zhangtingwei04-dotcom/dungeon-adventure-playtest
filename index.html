@@ -3933,7 +3933,7 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 </style>
 <link rel="stylesheet" href="./assets/scene_light_v1.css?v=20261124-1">
 <link rel="stylesheet" href="./assets/forest_v4_integration.css?v=4-shadow">
-<link rel="stylesheet" href="./assets/scene_environment_v1.css?v=8-beetle-flight">
+<link rel="stylesheet" href="./assets/scene_environment_v1.css?v=9-bird">
 </head>
 <body>
 <div id="app"><div id="worldFrame" aria-hidden="true">
@@ -4275,7 +4275,8 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <script src="./assets/rabbit_articulation_live_v1.js?v=1"></script>
 <script src="./assets/beetle_articulation_live_v1.js?v=2-flight"></script>
 <script src="./assets/scene_spatial_motion_v1.js?v=2-flight-test"></script>
-<script src="./assets/scene_environment_v1.js?v=10-flight-visible"></script>
+<script src="./assets/bird_motion_live_v1.js?v=1"></script>
+<script src="./assets/scene_environment_v1.js?v=11-bird"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/scene_objects_v1.js?v=20261124-2"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
@@ -7951,6 +7952,7 @@ function renderForestV4(el){
  const keep=new Set();
  const bindings=forestV4MaterialBindings();
  let live=window.DungeonForestV4Life?.layout(s,cfg,window.DUNGEON_FOREST_V4_SPAWNS||[],bindings)||cfg;
+ if(new URLSearchParams(location.search).get('wildlife')==='bird'&&DEV_PREVIEW_MODE){const bird=cfg.find(o=>o.assetId==='forest4_bird');if(bird)live=[...live.filter(o=>o.assetId!=='forest4_bird'),{...bird,id:'preview-bird-flight',visible:true}];}
  if(new URLSearchParams(location.search).get('wildlife')==='beetle'&&DEV_PREVIEW_MODE){const beetle=cfg.find(o=>o.assetId==='forest4_beetle');if(beetle)live=[...live.filter(o=>o.assetId!=='forest4_beetle'),{...beetle,id:'preview-beetle-flight',x:60,y:70,width:3.5,z:18,visible:true}];}
  for(const o of live){
   const a=assets[o.assetId];if(!o.visible||!a?.src)continue;
