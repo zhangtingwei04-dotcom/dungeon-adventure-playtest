@@ -8,7 +8,7 @@
  content:"";position:absolute;pointer-events:none;left:var(--v4-shadow-left,50%);bottom:var(--v4-shadow-bottom,-1%);
  width:var(--v4-shadow-width,78%);height:var(--v4-shadow-height,13%);
  transform:translate(-50%,20%) rotate(var(--v4-ground-angle,0deg));
- border-radius:50%;background:radial-gradient(ellipse at center,rgba(27,39,22,.65) 0%,rgba(34,48,27,.44) 30%,rgba(41,52,28,.17) 57%,transparent 78%);
+ border-radius:50%;background:radial-gradient(ellipse at center,rgba(23,31,18,.76) 0%,rgba(36,43,24,.50) 29%,rgba(45,51,29,.21) 53%,transparent 77%);
  opacity:calc(var(--v4-shadow-strength,1) * var(--v4-shadow-opacity,.65));z-index:-1
 }
 #sceneStage .forest-v4-object[data-ground="true"]{isolation:isolate}
@@ -16,10 +16,10 @@
  filter:brightness(var(--v4-brightness,1)) saturate(var(--v4-saturation,1)) contrast(var(--v4-contrast,1)) var(--scene-light);
 }
 #sceneStage .forest-v4-contact-grass{
- position:absolute;pointer-events:none;left:var(--v4-grass-left,18%);bottom:-1%;
+ position:absolute;pointer-events:none;left:var(--v4-grass-left,18%);bottom:var(--v4-grass-bottom,-1%);
  width:var(--v4-grass-width,34%);height:auto;z-index:1;opacity:var(--v4-grass-opacity,.68);
- -webkit-mask-image:linear-gradient(to bottom,transparent 0%,#000 31%,#000 60%,transparent 100%);
- mask-image:linear-gradient(to bottom,transparent 0%,#000 31%,#000 60%,transparent 100%);
+ -webkit-mask-image:linear-gradient(to bottom,transparent 0%,#000 29%,#000 70%,transparent 100%);
+ mask-image:linear-gradient(to bottom,transparent 0%,#000 29%,#000 70%,transparent 100%);
 }
 #app[data-indoor="false"][data-period] #sceneStage .forest-v4-contact-grass{
  filter:brightness(.83) saturate(.82) var(--scene-light)
