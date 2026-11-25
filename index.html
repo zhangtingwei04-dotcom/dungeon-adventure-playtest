@@ -3938,6 +3938,13 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 <style id="weather-v1-style">
  #sceneStage #weatherOverlay{position:absolute;inset:0;width:100%;height:100%;z-index:4;pointer-events:none;object-fit:fill;display:block}
 #sceneStage #weatherOverlay[hidden]{display:none!important}
+/* Overcast uses shared lighting on the forest, wagon, plants and articulated creatures.
+   Keep midday visibly daytime, without the warm yellow highlights of clear weather. */
+#app[data-indoor="false"][data-weather="cloudy"][data-period="day"]{--scene-light:brightness(.84) saturate(.66) contrast(.86)}
+#app[data-indoor="false"][data-weather="cloudy"][data-period="dawn"]{--scene-light:brightness(.76) saturate(.62) contrast(.86)}
+#app[data-indoor="false"][data-weather="cloudy"][data-period="dusk"]{--scene-light:brightness(.68) saturate(.64) contrast(.87)}
+#app[data-indoor="false"][data-weather="cloudy"][data-period="night"]{--scene-light:brightness(.49) saturate(.52) contrast(.90) sepia(.14) hue-rotate(155deg)}
+
 .location-weather-info{margin:3px 0 4px;font-size:11px;line-height:1.25;color:#d6c7a2;overflow-wrap:anywhere}
 #app[data-weather] #sceneStage .forest-v4-layer.env-motion-v2 .forest-v4-object[data-motion="plant"]:not([data-live-kind="vine"]) .forest-v4-art img{animation:weather-plant-wind var(--weather-wind-duration,7.4s) ease-in-out infinite;animation-delay:var(--env-motion-delay,0s);transform-origin:50% 100%}
 @keyframes weather-plant-wind{0%,100%{transform:skewX(0)}30%{transform:skewX(var(--weather-wind-angle,2deg))}65%{transform:skewX(calc(var(--weather-wind-angle,2deg) * -.45))}}
@@ -4294,7 +4301,7 @@ html.stage-locked #app #topGameHud #hudPhase{font-size:clamp(10px,1.65vw,17px)}
 <script src="./assets/scene_spatial_motion_v1.js?v=2-flight-test"></script>
 <script src="./assets/bird_motion_live_v1.js?v=2-hop-joints"></script>
 <script src="./assets/scene_environment_v1.js?v=11-bird"></script>
-<script src="./assets/weather_system_v1.js?v=5-puddles"></script>
+<script src="./assets/weather_system_v1.js?v=6-overcast"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/scene_objects_v1.js?v=20261124-2"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
