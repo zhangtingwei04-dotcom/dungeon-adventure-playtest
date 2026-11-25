@@ -4428,7 +4428,8 @@ html.stage-locked #app #topGameHud #hudPhase{font-size:clamp(10px,1.65vw,17px)}
 <script src="./assets/bird_motion_live_v1.js?v=2-hop-joints"></script>
 <script src="./assets/scene_environment_v1.js?v=17-species-wind"></script>
 <script src="./assets/winter_surfaces_v1.js?v=8-contour-snow"></script>
-<script src="./assets/weather_system_v1.js?v=21-species-wind"></script>
+<script src="./assets/character_environment_v1.js?v=1"></script>
+<script src="./assets/weather_system_v1.js?v=22-character-core"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/scene_objects_v1.js?v=20261125-winter"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
@@ -4601,6 +4602,12 @@ function atmosphereSubtitle(scene,period){
 }
 let previewPeriod=null,previewWeather=null,previewWind=null,previewWindDir=null;
 let currentWeather=null;
+// Single shared reader: real persisted exposure is never driven by preview weather.
+function characterEnvironmentView(){
+ const core=window.DungeonCharacterEnvironmentV1,weather=window.DungeonWeatherV1;
+ if(!core||!weather)return null;
+ return core.snapshot(s,weather.at(s.seed,s.worldMinutes),INDOOR_SCENES.has(s.scene));
+}
 function syncWeather(){
  const engine=window.DungeonWeatherV1;if(!engine)return;
  currentWeather=previewWeather?{kind:previewWeather,...engine.kinds[previewWeather],...engine.climate(s.seed,s.worldMinutes,previewWeather),...Object.fromEntries(['snowCover','soil','plantWet','puddles','frost','wet','poolIce','edgeIce','flowIce','iceSnow'].map(key=>[key,engine.environment()[key]]))}:engine.at(s.seed,s.worldMinutes);
@@ -6626,6 +6633,7 @@ function setOwnedEquipmentEquipped(slotId,equip){
  if(!item||!s.equipmentV1.owned.includes(item.id))return;
  const wasEquipped=s.equipmentV1[slotId]===item.id;
  if(wasEquipped===Boolean(equip))return;
+ window.DungeonWeatherV1?.exposure(s,INDOOR_SCENES.has(s.scene));
  s.equipmentV1[slotId]=equip?item.id:null;
  paperDollTryOn=false;
  save();renderPlaceDrawer();
@@ -6658,6 +6666,8 @@ function showEquipmentDetail(id){
   note.textContent=part.hint+'（尚未開放穿戴）';
  }
  host.append(heading,note);
+ const protection=window.DungeonCharacterEnvironmentV1?.gear[item?.id];
+ if(protection){const stats=document.createElement('span');stats.className='equip-detail-note';stats.textContent='保暖 +'+protection.warmth+'｜防水 '+Math.round(protection.waterproof*100)+'%｜防風 '+Math.round(protection.windproof*100)+'%｜透氣 '+Math.round(protection.breathability*100)+'%';host.appendChild(stats);}
  const action=$('equipEquipmentAction');
  if(action){
   action.hidden=!owned;
@@ -6850,8 +6860,15 @@ function renderSideTab(tab,out){
   state.textContent=paperDollRestPreview.sleep==='awake'?
  (s.flags.rescued?'清醒 · 已受救援':'清醒 · 獨自探索'):
  window.DungeonExpressionMotion.restSleep[paperDollRestPreview.sleep]+'（預覽）';profile.appendChild(state);
- const wet=document.createElement('div');wet.className='protagonist-stat';const wetName=document.createElement('span');wetName.textContent='衣物潮濕';const wetValue=document.createElement('strong');wetValue.textContent=Math.round(s.weatherExposure?.wetness||0)+'%';wet.append(wetName,wetValue);profile.appendChild(wet);
- const comfort=document.createElement('div');comfort.className='protagonist-stat';const comfortName=document.createElement('span');comfortName.textContent='冷熱舒適度';const comfortValue=document.createElement('strong');comfortValue.textContent=Math.round(s.weatherExposure?.comfort??100)+'%';comfort.append(comfortName,comfortValue);profile.appendChild(comfort);
+ const core=window.DungeonCharacterEnvironmentV1;
+ const env=characterEnvironmentView();
+ if(core&&env){
+  for(const [label,value] of core.rows(env)){
+   const row=document.createElement('div');row.className='protagonist-stat';
+   const left=document.createElement('span');left.textContent=label;const right=document.createElement('strong');right.textContent=value;
+   row.append(left,right);profile.appendChild(row);
+  }
+ }
   const hp=document.createElement('div');hp.className='protagonist-stat';
   const hpName=document.createElement('span');hpName.textContent='♥ HP';
   const hpNum=document.createElement('strong');hpNum.textContent=s.hp+' / '+s.maxHp;
@@ -7946,12 +7963,14 @@ function renderPlayerStatus(){
  meter.setAttribute('aria-valuenow',String(hp));
 }
 function showPlayerStatus(){
+ const env=characterEnvironmentView(),core=window.DungeonCharacterEnvironmentV1;
+ const environmentText=env&&core?'\n\n'+core.rows(env).map(([k,v])=>k+'：'+v).join('\n'):'';
  dialog('玩家狀態',
   '生命／體力（HP）：'+s.hp+' / '+s.maxHp+
   '\n\n魔力（MP）：未開放'+
   '\n活力（SP 測試）：'+REST_SP_TEST_VALUES[paperDollRestPreview.vitality]+' / 100'+
   '\n睡眠（測試）：'+window.DungeonExpressionMotion.restSleep[paperDollRestPreview.sleep]+
-  '\n\n目前活力和睡眠僅供視覺測試，不寫入存檔，也不會限制遊戲行動。',
+  '\n\n目前活力和睡眠僅供視覺測試，不寫入存檔，也不會限制遊戲行動。'+environmentText,
   [{label:'返回探索',fn:()=>{}}],'角色資料');
 }
 
