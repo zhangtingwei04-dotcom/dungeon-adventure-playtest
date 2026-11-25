@@ -3033,6 +3033,10 @@ html.stage-locked #app #placeDrawerPanel.is-location-tab .location-hero .side-sc
  width:100%!important;height:100%!important;object-fit:contain!important;
  border-radius:5px!important;image-rendering:auto!important;
 }
+/* Consistent muted map-card palette, independent of the main scene lighting. */
+#app #placeDrawerPanel.is-location-tab .location-hero .side-scene-preview :is(canvas,img){
+ filter:saturate(.76) brightness(.94) contrast(.97);
+}
 html.stage-locked #app #placeDrawerPanel.is-location-tab .location-hero .side-scene-preview figcaption{
  display:none!important;
 }
@@ -8461,7 +8465,9 @@ function drawLocationThumbnail(ms){
     if(!o.visible||/forest4_(rabbit|bird|butterfly|beetle)$/.test(o.assetId))continue;
     const img=locationThumbImage(window.DUNGEON_FOREST_V4_ASSETS?.[o.assetId]?.src);if(!img)continue;
     const width=o.width*W/100,height=width*img.naturalHeight/img.naturalWidth;
-    g.save();g.translate(o.x*W/100,o.y*H/100);g.rotate((o.rotation||0)*Math.PI/180);g.scale(o.flip?-1:1,1);g.drawImage(img,-width/2,-height,width,height);g.restore();
+    g.save();g.translate(o.x*W/100,o.y*H/100);g.rotate((o.rotation||0)*Math.PI/180);g.scale(o.flip?-1:1,1);
+    const tone=window.DungeonForestV4Integration?.profile(o);try{if('filter' in g){if(o.assetId==='forest4_wagon')g.filter='brightness(.94) saturate(.65) contrast(.95)';else if(tone)g.filter='brightness('+tone.brightness+') saturate('+tone.saturation+') contrast('+tone.contrast+')';}}catch{}
+    g.drawImage(img,-width/2,-height,width,height);g.restore();
    }
   }
  }
