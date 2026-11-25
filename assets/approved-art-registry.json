@@ -1,0 +1,73 @@
+{
+  "schema": 1,
+  "project": "迷宮盡頭的燈火",
+  "scope": "首批已確認服裝；不是完整遊戲素材清冊",
+  "policy": {
+    "approvedOnly": true,
+    "retainRejectedArt": false,
+    "automaticDeletion": false,
+    "requireDependencyAudit": true
+  },
+  "assets": [
+    {
+      "id": "cloak",
+      "name": "深綠金邊披風",
+      "version": "V2",
+      "category": "服裝",
+      "path": "assets/dungeon_generated_cloak_v2.js",
+      "blob": "5b7ce9f3b9622dba3498e0c3f45f85aecdca1a72",
+      "evidence": "使用者確認披風；總工作台標示已核准及正式啟用。",
+      "state": "approved",
+      "consumers": [
+        "index.html",
+        "developer-studio.html"
+      ],
+      "visualAcceptance": "pending-device"
+    },
+    {
+      "id": "tunic",
+      "name": "自然長袖布衣",
+      "version": "V13",
+      "category": "服裝",
+      "path": "assets/natural_long_tunic_v13.js",
+      "blob": "2d6f2d7e847325eedb6057e56e4e6fdaea06b136",
+      "evidence": "使用者採用自然垂放長袖；總工作台確認正式載入，實機外觀仍待驗收。",
+      "state": "approved",
+      "consumers": [
+        "index.html",
+        "developer-studio.html"
+      ],
+      "visualAcceptance": "pending-device"
+    },
+    {
+      "id": "boots",
+      "name": "正面旅行皮靴",
+      "version": "V4",
+      "category": "服裝",
+      "path": "assets/travel_boots_front_v4.js",
+      "blob": "90d2b81acdbf5129dbd479a65d5bab50842d54d4",
+      "evidence": "正式遊戲引用標示 approved-game-20261124；視覺實機待驗收。",
+      "state": "approved",
+      "consumers": [
+        "index.html",
+        "developer-studio.html"
+      ],
+      "visualAcceptance": "pending-device"
+    },
+    {
+      "id": "gloves",
+      "name": "正面旅行皮手套",
+      "version": "V1",
+      "category": "服裝",
+      "path": "assets/travel_gloves_front_v1.js",
+      "blob": "41d6feca3cb35d88760c3215ddca9eafe9b575fa",
+      "evidence": "素材註明 2026-11-24 接受並安裝於正式遊戲。",
+      "state": "approved",
+      "consumers": [
+        "index.html",
+        "developer-studio.html"
+      ],
+      "visualAcceptance": "pending-device"
+    }
+  ]
+}
