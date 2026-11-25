@@ -215,3 +215,20 @@ openingActor.scene='wreck';assert(!opening.view(openingActor).canExplore);
 openingActor.flags.rescued=true;assert(opening.view(openingActor).canExplore);
 assert(opening.view({scene:'wreck',flags:{}}).canExplore);
 console.log('PASS: opening investigation exhausts without time drift; cue once; post-rescue exploration remains available');
+
+
+const openingDeadlineActor={scene:'wreck',flags:{},worldMinutes:996,exploration:{counts:{wreck:0}},visits:{wreck:1}};
+assert(opening.view(openingDeadlineActor,13).canExplore);
+openingDeadlineActor.worldMinutes=997;assert(!opening.view(openingDeadlineActor,13).canExplore);
+assert.equal(opening.view(openingDeadlineActor,13).latestDeparture,1006);
+assert(opening.markCue(openingDeadlineActor,13));
+const reloadedOpening=JSON.parse(JSON.stringify(openingDeadlineActor));
+assert(opening.view(reloadedOpening,13).needsCue,'Departure dialogue must remain resumable');
+assert(!opening.markCue(reloadedOpening,13),'Do not duplicate travel log cue');
+assert(opening.finish(reloadedOpening));
+assert(!opening.view(reloadedOpening,13).needsCue);
+reloadedOpening.scene='trail';assert(opening.view(reloadedOpening,13).canExplore);
+const oldLateOpening={scene:'wreck',worldMinutes:1500,flags:{},exploration:{counts:{wreck:0}}};
+assert(!opening.view(oldLateOpening,13).canExplore);assert.equal(oldLateOpening.worldMinutes,1500);
+assert(990+13<opening.FIRST_DUSK);
+console.log('PASS: first-dusk deadline, travel reserve, resumable departure cue and no legacy time rewind');
