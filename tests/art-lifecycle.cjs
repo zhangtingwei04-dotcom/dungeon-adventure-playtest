@@ -250,3 +250,19 @@ assert.equal(normalizeOpeningRoutes(visitedRouteActor,openingRouteGraph,openingR
 const legacyRouteActor={scene:'trail',flags:{},visits:{trail:1}};
 assert.equal(normalizeOpeningRoutes(legacyRouteActor,openingRouteGraph,openingRouteKey).length,3);
 console.log('PASS: fresh opening has no revealed exit; discovered and legacy routes remain available');
+
+
+const cueWindow={};new vm.Script(read('assets/discovery_cue_v1.js').toString()).runInNewContext({window:cueWindow});
+const cueCore=cueWindow.DungeonDiscoveryCueV1;
+assert.equal(cueCore.object({pending:1}).kind,'material');
+assert.equal(cueCore.object({pending:0}),null);
+assert.equal(cueCore.object({rare:true}).kind,'rare');
+assert.equal(cueCore.object({rare:true,observed:true}),null);
+assert.equal(cueCore.object({clue:true}).kind,'clue');
+assert.equal(cueCore.object({clue:true,observed:true}),null);
+assert.equal(cueCore.route(false,false),null);
+assert.equal(cueCore.route(true,false).kind,'route');
+assert.equal(cueCore.route(true,true),null);
+assert.equal(cueCore.summary({routeName:'林間小徑',materials:1}).length,2);
+assert.equal(cueCore.summary({}).length,0);
+console.log('PASS: discovery cue types, completion and hidden route protection');
