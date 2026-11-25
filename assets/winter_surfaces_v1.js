@@ -24,6 +24,17 @@ window.DungeonWinterV1=(function(){
    function poly(points){m.beginPath();points.forEach(([x,y],i)=>i?m.lineTo(x,y):m.moveTo(x,y));m.closePath();m.fill();}
    m.fillStyle='white';poly(terrain);m.globalCompositeOperation='destination-out';holes.forEach(poly);
    const pixels=b.getImageData(0,0,w,h).data,area=m.getImageData(0,0,w,h).data,frame=o.createImageData(w,h),threshold=new Float32Array(w*h),d=frame.data;
+   const foliage=document.createElement('canvas');foliage.width=w;foliage.height=h;const fc=foliage.getContext('2d'),ff=fc.createImageData(w,h),fd=ff.data;
+   // Only tint painted green leaves along the forest floor, not trunks, water or sky.
+   for(let y=175;y<h;y++)for(let x=0;x<w;x++){const i=(y*w+x)*4;
+    if(area[i+3]>120)continue;
+    const left=clamp((185-x)/50,0,1),right=clamp((x-490)/45,0,1),zone=Math.max(left,right)*clamp((y-175)/65,0,1);
+    const r=pixels[i],g=pixels[i+1],bl=pixels[i+2],l=.25*r+.55*g+.2*bl;
+    const green=clamp((g-Math.max(r,bl)-5)/22,0,1),edge=clamp((l-30)/75,0,1);
+    if(zone*green*edge<.03)continue;
+    const noise=.5+.5*Math.sin(x*.83+y*1.39)*Math.cos(y*.57-x*.24),q=zone*green*edge*(.35+.65*noise);
+    fd[i]=clamp(l+64,0,244);fd[i+1]=clamp(l+79,0,250);fd[i+2]=clamp(l+88,0,255);fd[i+3]=Math.round(q*155);
+   }fc.putImageData(ff,0,0);
    for(let y=0,j=0;y<h;y++)for(let x=0;x<w;x++,j++){const i=j*4;if(!area[i+3])continue;const r=pixels[i],g=pixels[i+1],bl=pixels[i+2],l=.25*r+.55*g+.20*bl;
     const grain=Math.sin(x*12.9898+y*78.233)*43758.5453,noise=grain-Math.floor(grain)-.5;
     const green=clamp((g-r-4)/32,0,1),shade=clamp((95-l)/95,0,1);
@@ -35,15 +46,15 @@ window.DungeonWinterV1=(function(){
     // Keep some painted vegetation and dark rock texture even under heavy snow.
     area[i+3]=Math.round(area[i+3]*(1-green*.28-shade*.13));
    }
-   surface={source:img,w,h,out,o,frame,threshold,area,last:-1};return surface;
+   surface={source:img,w,h,out,o,frame,threshold,area,foliage,last:-1};return surface;
   }catch{return null;}
  }
- function paintSurface(ctx,cover,w,h,source){
+ function paintSurface(ctx,cover,w,h,source,frost=0){
   const a=makeSurface(source);if(!a)return false;const level=Math.round(clamp(cover,0,1)*48)/48;
-  if(a.last!==level){const d=a.frame.data;for(let j=0;j<a.threshold.length;j++){const i=j*4,mask=a.area[i+3];if(!mask){d[i+3]=0;continue;}const v=clamp((level-a.threshold[j]+.11)/.22,0,1);const edge=v*v*(3-2*v);const complete=clamp((level-.88)/.12,0,1);d[i+3]=Math.round(mask*Math.max(edge*.91,complete*.87));}a.o.putImageData(a.frame,0,0);a.last=level;}
-  ctx.drawImage(a.out,0,0,w,h);return true;
+  if(a.last!==level){const d=a.frame.data;for(let j=0;j<a.threshold.length;j++){const i=j*4,mask=a.area[i+3];if(!mask){d[i+3]=0;continue;}const v=level<=0?0:clamp((level-a.threshold[j]+.11)/.22,0,1);const edge=v*v*(3-2*v);const complete=clamp((level-.88)/.12,0,1);d[i+3]=Math.round(mask*Math.max(edge*.91,complete*.87));}a.o.putImageData(a.frame,0,0);a.last=level;}
+  ctx.drawImage(a.out,0,0,w,h);ctx.save();ctx.globalAlpha=clamp(Math.max(cover*.83,frost*.68),0,1);ctx.drawImage(a.foliage,0,0,w,h);ctx.restore();return true;
  }
- function ground(ctx,cover,w,h,source=null){if(cover<.025)return;if(source&&paintSurface(ctx,cover,w,h,source))return;ctx.save();ctx.scale(w/640,h/360);
+ function ground(ctx,cover,w,h,source=null,frost=0){if(Math.max(cover,frost)<.025)return;if(source&&paintSurface(ctx,cover,w,h,source,frost))return;if(cover<.025)return;ctx.save();ctx.scale(w/640,h/360);
   patches.forEach(([x,y,rx,ry,threshold],i)=>{const q=clamp(cover*1.5-(1-threshold),0,1);if(q<.04)return;
    const size=.35+.65*q;shape(ctx,x,y,rx*size,ry*size,i);ctx.fillStyle='rgba(83,109,112,'+(q*.28)+')';ctx.fill();
    shape(ctx,x,y-.7,rx*size*.96,ry*size*.82,i);
@@ -65,20 +76,41 @@ window.DungeonWinterV1=(function(){
   for(let y=0;y<h;y++)for(let x=0;x<w;x++)if(d[(y*w+x)*4+3]>150){top=Math.min(top,y);bottom=Math.max(bottom,y);left=Math.min(left,x);right=Math.max(right,x);}
   return bottom<0?null:{padding:(h-1-bottom)/h*100,height:(bottom-top+1)/h*100,left:left/w*100,right:(w-1-right)/w*100};
  }
+ function grassProfile(id,x,y){
+  let h=2166136261;for(const ch of String(id))h=Math.imul(h^ch.charCodeAt(0),16777619);
+  const q=(h>>>0)/4294967296,shelter=x<38&&y<74?.66:1;
+  return {wind:(.80+q*.40)*shelter,tempo:.84+q*.32,size:.96+q*.08,tone:.96+q*.08,frost:.80+q*.20};
+ }
  function applyBurial(node,art,source,kind){
   const depth=plantDepth(kind,parseFloat(node.style.left)||50,parseFloat(node.style.top)||80,parseFloat(node.style.width)||5);
   if(!depth)return;
   const key='bounds:'+source.src;let b=cache.get(key);if(!b){b=bounds(source);if(!b)return;cache.set(key,b);}
   node.dataset.winterPlant='true';
+  if(kind.startsWith('grass_')){
+   const p=grassProfile(node.dataset.objectId,parseFloat(node.style.left)||50,parseFloat(node.style.top)||80);
+   node.dataset.grassDetail='true';for(const [key,value] of Object.entries(p))node.style.setProperty('--grass-'+key,value.toFixed(3));
+  }
   art.style.setProperty('--winter-padding',b.padding+'%');art.style.setProperty('--winter-depth',(b.height*depth)+'%');
   art.style.setProperty('--winter-left',Math.max(0,b.left-4)+'%');art.style.setProperty('--winter-right',Math.max(0,b.right-4)+'%');
  }
 
- const weights={vine:.25,wagon:1,crate_large:.86,crate_small:.86,crate_open:.48,barrel:.8,sack:.62,wheel_flat:.67,plank:.75,plank_lean:.32,rock_group:.85,rock_small:.9,log:.78,branch:.6,grass_a:.38,grass_b:.38,purple_flower:.22,white_flower:.22,lavender:.28,yellow_shrub:.45,mushroom:.45};
+ const weights={vine:.25,wagon:1,crate_large:.86,crate_small:.86,crate_open:.48,barrel:.8,sack:.62,wheel_flat:.67,plank:.75,plank_lean:.32,rock_group:.85,rock_small:.9,log:.78,branch:.6,grass_a:.84,grass_b:.78,purple_flower:.22,white_flower:.22,lavender:.28,yellow_shrub:.45,mushroom:.45};
  function cap(source,kind){
   const w=Math.min(320,source.naturalWidth),h=Math.max(1,Math.round(source.naturalHeight*w/source.naturalWidth));if(!w||!h)return null;
   const cv=document.createElement('canvas');cv.width=w;cv.height=h;const cx=cv.getContext('2d',{willReadFrequently:true});if(!cx)return null;
   cx.drawImage(source,0,0,w,h);const src=cx.getImageData(0,0,w,h).data,out=cx.createImageData(w,h),d=out.data;
+  // Frost follows individual exposed leaf edges instead of painting a continuous white band.
+  if(kind.startsWith('grass_')||burial[kind]||kind==='vine'){
+   const opaque=(x,y)=>x>=0&&y>=0&&x<w&&y<h&&src[(y*w+x)*4+3]>145;
+   for(let y=0;y<h;y++)for(let x=0;x<w;x++){const i=(y*w+x)*4;if(src[i+3]<145)continue;
+    const edge=!opaque(x,y-1)?1:!opaque(x,y-2)?.62:!opaque(x-1,y)?.35:!opaque(x+1,y)?.28:0;
+    const n=.5+.5*Math.sin(x*.61+y*.43)*Math.cos(x*.17-y*.82),height=1-y/h;
+    const q=edge*(.20+.80*n)*(.45+.55*height);
+    if(q<.08)continue;
+    const l=.25*src[i]+.55*src[i+1]+.20*src[i+2];
+    d[i]=clamp(179+l*.30,0,248);d[i+1]=clamp(195+l*.27,0,252);d[i+2]=clamp(207+l*.25,0,255);d[i+3]=Math.round(src[i+3]*q);
+   }cx.clearRect(0,0,w,h);cx.putImageData(out,0,0);return cv;
+  }
   const top=new Int32Array(w).fill(-1);
   for(let x=0;x<w;x++)for(let y=0;y<h;y++){if(src[(y*w+x)*4+3]>180){top[x]=y;break;}}
   const thickness=Math.max(2,Math.min(kind==='wagon'?42:25,h*(kind==='wagon'?.20:kind.startsWith('grass')?.11:.24)));
@@ -123,5 +155,5 @@ window.DungeonWinterV1=(function(){
   const init=()=>{if(!node.isConnected||!img.naturalWidth||art.querySelector('.winter-snow-cap'))return;try{applyBurial(node,art,img,kind);attachWet(node,art,img,kind);const key=kind+':'+img.src;let base=cache.get(key);if(!base){base=cap(img,kind);if(!base)return;cache.set(key,base);}const cv=document.createElement('canvas');cv.width=base.width;cv.height=base.height;cv.getContext('2d').drawImage(base,0,0);cv.className='winter-snow-cap';cv.setAttribute('aria-hidden','true');cv.style.setProperty('--snow-hold',String(weight));art.appendChild(cv);}catch{}};
   if(img.complete&&img.naturalWidth)queueMicrotask(init);else img.addEventListener('load',init,{once:true});
  }
- return {ground,attach,weights,plantDepth};
+ return {ground,attach,weights,plantDepth,grassProfile};
 })();
