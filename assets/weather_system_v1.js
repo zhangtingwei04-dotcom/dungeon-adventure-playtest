@@ -59,13 +59,6 @@ window.DungeonWeatherV1=(function(){
   if(shown.fog>.003){const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'rgba(194,209,202,'+(shown.fog*.36)+')');g.addColorStop(.35,'rgba(190,207,201,'+(shown.fog*.82)+')');g.addColorStop(.68,'rgba(185,203,198,'+(shown.fog*.56)+')');g.addColorStop(1,'rgba(181,200,193,'+(shown.fog*.13)+')');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);}
   // Ground glints are deliberately restricted to the lower foreground, no opaque puddles.
   if(shown.wet>.12){ctx.fillStyle='rgba(112,143,151,'+(shown.wet*.055)+')';ctx.fillRect(0,H*.72,W,H*.28);}
-  if(scene==='wreck'&&shown.wet>.28){
-   for(const [x,y,rx,ry] of [[342,309,15,2.7],[385,325,19,3.4],[319,339,10,2.1]]){
-    const a=clamp((shown.wet-.28)/.72,0,1);ctx.beginPath();ctx.ellipse(x,y,rx*a,ry*a,0,0,Math.PI*2);ctx.fillStyle='rgba(39,58,62,'+(a*.28)+')';ctx.fill();
-    ctx.beginPath();ctx.ellipse(x,y-.4,rx*a*.76,ry*a*.45,0,0,Math.PI*2);ctx.strokeStyle='rgba(170,198,205,'+(a*.25)+')';ctx.lineWidth=.65;ctx.stroke();
-    if(shown.rain>.1&&!reduced){const q=(ms/900+x*.03)%1;ctx.beginPath();ctx.ellipse(x,y,Math.max(.1,q*rx*.65),Math.max(.1,q*ry*.65),0,0,Math.PI*2);ctx.strokeStyle='rgba(208,227,231,'+((1-q)*a*.42)+')';ctx.stroke();}
-   }
-  }
   if(shown.snowCover>.08){ctx.fillStyle='rgba(213,229,231,'+(shown.snowCover*.10)+')';ctx.fillRect(0,H*.76,W,H*.24);}
   if(shown.snow>.01&&!reduced){const t=ms/1000;ctx.fillStyle='rgba(235,244,246,'+(.42+shown.snow*.22)+')';ctx.beginPath();for(let i=0;i<Math.min(particles.length,Math.ceil(75*shown.snow));i++){const p=particles[i],x=(p.x+t*8*shown.wind+Math.sin(t*.9+i)*9+W*100)%W,y=(p.y+t*(13+i%12))%H,r=.65+(i%4)*.25;ctx.moveTo(x+r,y);ctx.arc(x,y,r,0,Math.PI*2);}ctx.fill();}
   if(target.rain>=.99){const clock=ms/1000,cycle=clock%17.7,flash=Math.max(0,1-Math.abs(cycle-5.1)/.24);
@@ -83,6 +76,50 @@ window.DungeonWeatherV1=(function(){
    ctx.stroke();
   }
  }
+ // Draw on the background before DOM props, so water lies on the road.
+ // Coordinates calibrated against the approved V5 1280x720 neutral forest.
+ const pools=[
+  {x:367,y:310,rx:31,ry:7,seed:1},
+  {x:393,y:283,rx:24,ry:5.2,seed:2},
+  {x:345,y:338,rx:22,ry:5.4,seed:3},
+  {x:284,y:233,rx:22,ry:4.2,seed:4}
+ ];
+ function puddleLevel(wet,rain){return clamp(Math.max((wet-.10)/.65,rain*.62),0,1);}
+ function drawGround(g,t,width,height,enabled=true){
+  if(hidden||scene!=='wreck'||!enabled||!g)return;
+  const amount=puddleLevel(shown.wet,shown.rain);if(amount<.035)return;
+  g.save();g.scale(width/W,height/H);
+  for(const p of pools){
+   const {x,y,rx,ry,seed}=p;
+   const size=.48+.52*amount,alpha=Math.min(1,amount*1.35);
+   const shape=()=>{
+    g.beginPath();for(let i=0;i<20;i++){const a=i/20*Math.PI*2,f=.82+.12*Math.sin(i*2.3+seed)+.09*Math.cos(i*1.7+seed);
+     const px=x+Math.cos(a)*rx*size*f,py=y+Math.sin(a)*ry*size*f;
+     if(i===0)g.moveTo(px,py);else g.lineTo(px,py);}
+    g.closePath();
+   };
+   // Dark wet soil rim and restrained reflections of the cloudy sky.
+   shape();g.fillStyle='rgba(47,43,31,'+(alpha*.74)+')';g.fill();g.strokeStyle='rgba(62,53,38,'+(alpha*.65)+')';g.lineWidth=1.5;g.stroke();
+   g.save();shape();g.clip();
+   const grad=g.createLinearGradient(x,y-ry,x,y+ry);
+   grad.addColorStop(0,'rgba(57,79,72,'+(alpha*.88)+')');
+   grad.addColorStop(.40,'rgba(119,151,151,'+(alpha*.80)+')');
+   grad.addColorStop(.62,'rgba(158,181,179,'+(alpha*.72)+')');
+   grad.addColorStop(1,'rgba(74,91,76,'+(alpha*.87)+')');
+   g.fillStyle=grad;g.fillRect(x-rx-2,y-ry-2,rx*2+4,ry*2+4);
+   g.strokeStyle='rgba(194,217,213,'+(alpha*.54)+')';g.lineWidth=.8;
+   g.beginPath();g.moveTo(x-rx*.55*size,y+ry*.38*size);g.quadraticCurveTo(x,y+ry*.64*size,x+rx*.52*size,y+ry*.27*size);g.stroke();
+   if(shown.rain>.08&&!reduced){
+    for(let j=0;j<3;j++){const q=(t*(.9+j*.19)+seed*.27+j*.32)%1;
+     const cx=x+(j-1)*rx*.34*size,cy=y+(j%2-.5)*ry*.55;
+     g.beginPath();g.ellipse(cx,cy,.6+q*rx*.42*size,.25+q*ry*.55*size,0,0,Math.PI*2);
+     g.strokeStyle='rgba(218,237,232,'+((1-q)*alpha*.68)+')';g.lineWidth=.75;g.stroke();
+    }
+   }
+   g.restore();
+  }
+  g.restore();
+ }
  function exposure(s,indoor){
   const now=Math.max(0,Math.floor(Number(s.worldMinutes)||0)),old=s.weatherExposure;
   if(!old||!Number.isFinite(old.minute)||old.minute>now){s.weatherExposure={minute:now,wetness:0,comfort:100,indoor:Boolean(indoor)};return s.weatherExposure;}
@@ -95,5 +132,5 @@ window.DungeonWeatherV1=(function(){
   return s.weatherExposure={minute:now,wetness:value,comfort,indoor:Boolean(indoor)};
  }
  function activity(kind,weather){if(weather==='storm'||weather==='snow')return false;if(weather==='rain')return kind==='beetle'||kind==='rabbit';if(weather==='drizzle')return kind!=='butterfly';return true;}
- return {kinds,at,bind,set,draw,season,climate,exposure,activity,unlockAudio};
+ return {kinds,at,bind,set,draw,drawGround,puddleLevel,season,climate,exposure,activity,unlockAudio};
 })();
