@@ -4304,120 +4304,9 @@ html.stage-locked #app #topGameHud #hudPhase{font-size:clamp(10px,1.65vw,17px)}
 <script src="./assets/forest_v4_assets_4.js?v=1"></script>
 <script src="./assets/forest_v4_layout.js?v=1"></script>
 <script src="./assets/forest_v4_accident_b.js?v=20261125-c2"></script>
+<script src="./assets/wreck_current_layout_v1.js?v=1"></script>
 <script>
-/* Accident C: refine B without changing original source assets or object IDs. */
-(function(){
- const b=window.DUNGEON_FOREST_V4_ACCIDENT_LAYOUT;
- if(!b?.scenes?.wreck)return;
- const overrides={
-  "v4-wagon0": {
-    "x": 30.8,
-    "y": 69.8,
-    "width": 37,
-    "rotation": 2
-  },
-  "v4-grass_a10": {
-    "x": 25.5,
-    "y": 70.5,
-    "z": 4
-  },
-  "v4-grass_b11": {
-    "x": 33.7,
-    "y": 71.1,
-    "width": 5.1,
-    "z": 4,
-    "visible": false
-  },
-  "v4-plank_lean9": {
-    "x": 42.6,
-    "y": 74.4,
-    "width": 3.8,
-    "z": 4,
-    "rotation": -8,
-    "visible": false
-  },
-  "v4-wheel_flat7": {
-    "x": 39,
-    "y": 85.7,
-    "width": 10.8,
-    "rotation": 4
-  },
-  "v4-crate_large1": {
-    "x": 47.7,
-    "y": 78.5,
-    "width": 6.8,
-    "rotation": -3
-  },
-  "v4-crate_small2": {
-    "x": 44.6,
-    "y": 73.8,
-    "width": 3.8,
-    "rotation": 8,
-    "visible": false
-  },
-  "v4-crate_open5": {
-    "x": 46.4,
-    "y": 75.2,
-    "width": 7.6,
-    "rotation": -6,
-    "visible": false
-  },
-  "v4-sack6": {
-    "x": 53.2,
-    "y": 79.1,
-    "width": 4.4,
-    "z": 22,
-    "rotation": 6
-  },
-  "v4-plank8": {
-    "x": 47.5,
-    "y": 87,
-    "width": 6.5,
-    "rotation": -19
-  },
-  "v4-rabbit16": {
-    "x": 86,
-    "y": 70.1,
-    "width": 6,
-    "z": 5
-  },
-  "v4-purple_flower13": {
-    "x": 84.6,
-    "y": 81.2,
-    "width": 3.8,
-    "rotation": -3
-  },
-  "object-mwuw8uyw-i6ihju": {
-    "x": 69.1,
-    "y": 75.8,
-    "width": 8.4,
-    "rotation": 5,
-    "visible": false
-  },
-  "v4-barrel4": {
-    "visible": false
-  },
-  "object-mwuv250p-uzdjf7": {
-    "visible": false
-  },
-  "object-mwuv5puk-q16xf6": {
-    "visible": false
-  },
-  "object-mwuv6tcc-adz1cv": {
-    "visible": false
-  },
-  "object-mwuv6uwa-1hi1e7": {
-    "visible": false
-  },
-  "object-mwuv87s2-2i2kr9": {
-    "visible": false
-  }
-};
- const c={...b,layoutVariant:'accident-b',revision:'accident-c',scenes:{...b.scenes,wreck:b.scenes.wreck.map(o=>({...o,...(overrides[o.id]||{})}))}};
- window.DUNGEON_FOREST_V4_ACCIDENT_C_LAYOUT=c;
- if(!/(?:^|[?&])layout=(?:original|b)(?:&|$)/.test(location.search))window.DUNGEON_FOREST_V4_LAYOUT=c;
-})();
-
+window.DUNGEON_FOREST_V4_LAYOUT=window.DUNGEON_WRECK_CURRENT_LAYOUT;
 (function(){if(!/(?:^|[?&])layout=d(?:&|$)/.test(location.search))return;const b=window.DUNGEON_FOREST_V4_ORIGINAL_LAYOUT;if(!b?.scenes?.wreck)return;const patch={"v4-wagon0":{"x":31,"y":69.5,"width":32,"z":5,"rotation":8},"v4-crate_large1":{"x":54,"y":78,"width":7.5,"z":21,"rotation":-9},"v4-crate_small2":{"x":14.7,"y":73.6,"width":3.5,"z":17,"rotation":-5,"contactGrass":true},"v4-crate_open5":{"x":43.1,"y":73,"width":7.6,"z":12,"rotation":-10},"v4-sack6":{"x":49.5,"y":70,"width":4.2,"z":13,"rotation":12},"v4-wheel_flat7":{"x":30,"y":82,"width":10.6,"z":24,"rotation":10},"v4-plank8":{"x":39.9,"y":83,"width":6.8,"z":11,"rotation":-18},"v4-plank_lean9":{"x":39.6,"y":71.5,"width":4.5,"z":4,"rotation":-14},"v4-grass_a10":{"x":22.8,"y":69,"width":8,"z":8,"rotation":0},"v4-grass_b11":{"x":32,"y":70.5,"width":7.4,"z":8,"rotation":0},"v4-rabbit16":{"x":84.8,"y":68.2,"width":3.8,"z":7,"rotation":0},"v4-purple_flower13":{"x":84.6,"y":81.2,"width":3.8,"z":10,"rotation":-3},"v4-white_flower14":{"x":25.4,"y":82.2,"width":4.3,"z":10,"rotation":0},"v4-barrel4":{"visible":false}};const extra={"id":"v4-d-chassis-support","assetId":"forest4_chassis","name":"斷裂底盤","x":40,"y":72.2,"width":13,"z":3,"visible":true,"flip":false,"rotation":6};window.DUNGEON_FOREST_V4_LAYOUT={...b,layoutVariant:'accident-b',revision:'accident-d-preview',scenes:{...b.scenes,wreck:[...b.scenes.wreck.map(o=>({...o,...(patch[o.id]||{})})),extra]}};})();
 </script>
 <script src="./assets/forest_v4_spawns.js?v=4-winter-plants"></script>
@@ -8368,7 +8257,7 @@ if(DEV_PREVIEW_MODE&&new URLSearchParams(location.search).get('forest')==='edito
 const forestMode=new URLSearchParams(location.search).get('forest');
 if(window.DUNGEON_FOREST_V4_LAYOUT?.revision==='accident-c'){document.title=document.title.replace(/ · C2$/,'')+' · C2';document.documentElement.dataset.forestLayout='accident-c';}
 const forestV4Selected=forestMode!=='original'&&forestMode!=='old'&&forestMode!=='editor'&&new URLSearchParams(location.search).get('wagon')!=='trial'&&!!window.DUNGEON_FOREST_V4_BACKGROUND?.src&&Array.isArray(window.DUNGEON_FOREST_V4_LAYOUT?.scenes?.wreck)&&window.DUNGEON_FOREST_V4_LAYOUT.scenes.wreck.every(o=>!!window.DUNGEON_FOREST_V4_ASSETS?.[o.assetId]?.src);
-const neutralForestSelected=forestV4Selected&&forestMode!=='sunlit'&&!!window.DUNGEON_FOREST_V5_BACKGROUND?.src;
+const neutralForestSelected=forestV4Selected&&!!window.DUNGEON_FOREST_V5_BACKGROUND?.src;
 if(forestMode!=='original'&&(editorForestSrc||forestV4Selected||window.DUNGEON_WRECK_EMPTY_FOREST))emptyForest.src=editorForestSrc||(forestV4Selected?(neutralForestSelected?window.DUNGEON_FOREST_V5_BACKGROUND.src:window.DUNGEON_FOREST_V4_BACKGROUND.src):window.DUNGEON_WRECK_EMPTY_FOREST);
 const approvedWreck=new Image();let approvedWreckReady=false;
 approvedWreck.onload=()=>{
