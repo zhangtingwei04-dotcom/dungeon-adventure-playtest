@@ -193,11 +193,15 @@
   if(event.kind==='regrowth'&&targets.some(o=>get(o.assetId).type!=='renewable'))return false;
   if(event.kind==='decay'&&targets.some(o=>!['renewable','removable'].includes(get(o.assetId).type)&&o.assetId!=='forest4_log'))return false;
   if(event.kind==='cleanup'&&targets.some(o=>!['container','removable','persistent'].includes(get(o.assetId).type)||o.assetId.startsWith('forest4_rock')))return false;
+  const eventKey=event.scene+':'+event.id;
+  if(Object.hasOwn(actor.objectWorld?.appliedEvents||{},eventKey))return false;
   if(targets.every(o=>read(actor,event.scene,o.id)?.lastWorldEvent===event.id))return false;
   for(const o of targets){
    const r=state(actor,event.scene,o.id);if(r.lastWorldEvent===event.id)continue;
    r.removed=event.kind!=='regrowth';r.lastWorldEvent=event.id;r.lastWorldEventKind=event.kind;r.changedAt=actor.worldMinutes;
   }
+  if(!record(actor.objectWorld.appliedEvents))actor.objectWorld.appliedEvents={};
+  actor.objectWorld.appliedEvents[eventKey]=true;
   return true;
  }
  function describe(obj,finds=[],actor=null,scene='wreck'){
