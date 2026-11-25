@@ -92,3 +92,18 @@ html.stage-locked #app #placeDrawerPanel.is-location-tab #placePrimaryActions{po
  #sceneStage .forest-v4-layer .forest-v4-object[data-wildlife]{translate:none;will-change:auto}
  #sceneStage .forest-v4-layer .forest-v4-object[data-wildlife] .forest-v4-art img{transform:none;will-change:auto}
 }
+
+/* Original img reserves the exact approved geometry; canvas padding allows ear motion. */
+#sceneStage .forest-v4-object[data-rabbit-rig="ready"] .forest-v4-art{position:relative}
+#sceneStage .forest-v4-object[data-rabbit-rig="ready"] .forest-v4-art img{visibility:hidden}
+#sceneStage .forest-v4-object[data-rabbit-rig="ready"] .rabbit-rig-canvas{
+ position:absolute;display:block;pointer-events:none;left:-10.5263%;top:-9.9174%;
+ width:121.0526%;height:119.8347%;
+ transform-origin:50% 91.7241%;
+ transform:translateY(calc(var(--wild-lift,0%) * .834483)) scale(var(--wild-sx,1),var(--wild-sy,1));
+ filter:brightness(var(--v4-brightness,1)) saturate(var(--v4-saturation,1)) contrast(var(--v4-contrast,1)) var(--scene-light,brightness(1));
+}
+@media(prefers-reduced-motion:reduce){
+ #sceneStage .forest-v4-object[data-rabbit-rig="ready"] .forest-v4-art img{visibility:visible}
+ #sceneStage .forest-v4-object[data-rabbit-rig="ready"] .rabbit-rig-canvas{display:none}
+}
