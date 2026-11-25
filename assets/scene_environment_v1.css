@@ -107,3 +107,18 @@ html.stage-locked #app #placeDrawerPanel.is-location-tab #placePrimaryActions{po
  #sceneStage .forest-v4-object[data-rabbit-rig="ready"] .forest-v4-art img{visibility:visible}
  #sceneStage .forest-v4-object[data-rabbit-rig="ready"] .rabbit-rig-canvas{display:none}
 }
+
+/* Beetle overlay retains original 145 x 89 sprite dimensions and ground position. */
+#sceneStage .forest-v4-object[data-beetle-rig="ready"] .forest-v4-art{position:relative}
+#sceneStage .forest-v4-object[data-beetle-rig="ready"] .forest-v4-art img{visibility:hidden}
+#sceneStage .forest-v4-object[data-beetle-rig="ready"] .beetle-rig-canvas{
+ position:absolute;display:block;pointer-events:none;left:-5.51724%;top:-8.98876%;
+ width:111.03448%;height:117.97753%;
+ transform-origin:50% 92.38095%;
+ transform:scale(var(--wild-sx,1),var(--wild-sy,1));
+ filter:brightness(var(--v4-brightness,1)) saturate(var(--v4-saturation,1)) contrast(var(--v4-contrast,1)) var(--scene-light,brightness(1));
+}
+@media(prefers-reduced-motion:reduce){
+ #sceneStage .forest-v4-object[data-beetle-rig="ready"] .forest-v4-art img{visibility:visible}
+ #sceneStage .forest-v4-object[data-beetle-rig="ready"] .beetle-rig-canvas{display:none}
+}
