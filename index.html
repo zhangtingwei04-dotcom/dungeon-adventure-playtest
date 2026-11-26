@@ -3032,6 +3032,8 @@ html.stage-locked #app #placeActionPanel #placePrimaryActions .side-main-action{
 #placeDrawerList .scene-object-card.scene-object-departed{background:#22352e;border-color:#777c68}
 #placeDrawerList .scene-object-departed .scene-object-thumbnail{opacity:.65}
 #placeDrawerList .scene-object-departed .scene-object-status{color:#c3bba5}
+#placeDrawerList .scene-object-card.scene-object-taken{background:#26372e;border-color:#817d68}
+#placeDrawerList .scene-object-card.scene-object-taken .scene-object-status{display:block;font-size:10px;line-height:1.1;color:#c3bba5}
 
 html.stage-locked #app #placeDrawerPanel.is-location-tab .side-current-summary.location-reference-card{
  display:block!important;margin:0 0 4px!important;min-width:0!important;
@@ -4495,7 +4497,8 @@ html.stage-locked #app #battleSurface .battle-actions button{font-size:17px;min-
 <script src="./assets/adaptive_quality_v1.js?v=1"></script>
 <script src="./assets/fault_isolation_v1.js?v=1"></script>
 <script src="./assets/object_investigation_v1.js?v=6-resource-stock"></script>
-<script src="./assets/investigation_cards_v1.js?v=1.0.0"></script>
+<script src="./assets/investigation_cards_v1.js?v=1.1.0"></script>
+<script src="./assets/wreck_components_v1.js?v=1"></script>
 <script src="./assets/creature_capture_v1.js?v=1"></script>
 <script src="./assets/scene_action_time_v1.js?v=1"></script>
 <script src="./assets/scene_dialogue_v1.js"></script>
@@ -7194,7 +7197,12 @@ function renderSceneActionView(out){
   button.textContent=label;button.onclick=fn;parent.appendChild(button);
   return button;
  }
- if(openingExitOnly()){append(routeKnown('wreck','trail')?'查看林間小徑的位置':'尋找出口',()=>runSceneAction(exitOnlyAction));return;}
+ if(openingExitOnly()){
+  const core=window.DungeonWreckComponentsV1;
+  const cards=core.parts.map(p=>({name:p.name,assetId:p.assetId,entry:{fn:()=>inspectWreckComponent(p.id)},status:core.taken(s,p.id)?'已拿走':p.event?'劇情線索':'可搜取',action:core.taken(s,p.id)?'查看紀錄':'調查'}));
+  appendInvestigationCards(list,cards,append);
+  append(routeKnown('wreck','trail')?'查看林間小徑的位置':'尋找出口',()=>runSceneAction(exitOnlyAction));return;
+ }
  const actions=splitSceneActions(entries()).detail;
  const targets=Array.from($('hotspots').querySelectorAll('button:not(.env-leaving):not([disabled])'))
   .filter(node=>!node.matches('.scene-route-target')&&typeof node.onclick==='function'&&!['opening-tracks','opening-steps','light','sound','door'].includes(node.dataset.sceneInvestigation));
@@ -7527,7 +7535,8 @@ normalizeGameTime();normalizeRecovery();normalizeForestRare();normalizeBeetleCar
  ['world.scene-environment','17',['world.spatial','world.weather'],'DungeonSceneEnvironmentV1'],
  ['world.winter-surfaces','8',['world.weather'],'DungeonWinterV1'],
  ['world.objects','20261125',['engine.time','world.weather'],'DungeonSceneObjectsV1'],
- ['ui.investigation-cards','1.0.0',['world.objects'],'DungeonInvestigationCardsV1'],
+ ['ui.investigation-cards','1.1.0',['world.objects'],'DungeonInvestigationCardsV1'],
+ ['world.wreck-components','1.0.0',['ui.investigation-cards'],'DungeonWreckComponentsV1'],
  ['world.scene-action-time','1.0.0',['engine.time'],'DungeonSceneActionTimeV1'],
  ['world.creature-capture','1.0.0',['world.forest-life','ui.investigation-cards'],'DungeonCreatureCaptureV1'],
  ['world.forest-life','7',['world.weather'],'DungeonForestV4Life'],
@@ -7882,7 +7891,7 @@ function inspectInScene(text,choices){
  openSceneDialogue([{speaker:'旁白',text}],null,choices);
 }
 function glance(){
- if(exitOnlyAction())return;
+ if(openingExitOnly()){inspectWreckComponent('v4-crate_large1');return;}
  spendSceneInteraction('inspect');
  s.flags.wagonLooked=true;note('wagon','馬車在你醒來之前就已被毀壞',true);
  const taken=!!s.flags.openingClothTaken;
@@ -8466,7 +8475,7 @@ function collectionKind(material){
 }
 function sceneCollectionResult(fn,target=null,kind='default',performance=null){
  if(activeDialogueSurface()||s.flags.inBattle||encounterPending)return;
- if(exitOnlyAction())return;
+ if(!(performance?.wreckComponent===true&&window.DungeonWreckComponentsV1.get(target?.id)&&!window.DungeonWreckComponentsV1.get(target?.id).event)&&exitOnlyAction())return;
  const actor=s,site=s.scene,spec=performance||collectionPerformanceSpec(kind),notice=$('toast');
  notice.classList.remove('active');
  const stage=$('sceneStage');
@@ -8559,8 +8568,34 @@ function interactForestAnimal(o,action){
  }
  inspectInScene(preview&&action==='approach'?'這是生物外觀預覽。':behavior[action],[{label:'繼續',fn:()=>{}}]);
 }
+function inspectWreckComponent(id){
+ const core=window.DungeonWreckComponentsV1,p=core.get(id);
+ if(!p||s.scene!=='wreck'||s.flags.rescued||wreckCleared())return;
+ if(p.event){if(openingExitOnly()){exitOnlyAction();return;}marks();return;}
+ if(core.taken(s,id)){inspectInScene(p.name+'中的物品已拿走，沒有其他可搜取的東西。',[{label:'離開',fn:()=>{}}]);return;}
+ spendSceneInteraction('inspect');save();render();
+ inspectInScene(p.name+'附近有可以帶走的'+p.material+'。',[{label:'收取 '+p.material+' ×1',fn:()=>{
+  const kind=id==='v4-plank8'?'wood':id==='v4-sack6'?'fiber':'crate';
+  const spec={...collectionPerformanceSpec(kind),wreckComponent:true};
+  sceneCollectionResult(()=>{
+   if(s.scene!=='wreck'||wreckCleared()||core.taken(s,id))return;
+   const obj=window.DUNGEON_FOREST_V4_LAYOUT?.scenes?.wreck?.find(x=>x.id===id);
+   if(id==='v4-plank8'&&(!obj||!window.DungeonObjectInvestigationV1.harvest(s,'wreck',obj)))return;
+   // For a plank the harvest marks it taken; keep the separate container state as well.
+   const material=id==='v4-plank8'?p.material:core.take(s,id);
+   if(!material)return;
+   if(id==='v4-crate_large1')addUnique(s.items,material);
+   else{normalizeRecovery();s.recovery.parts[material]=(s.recovery.parts[material]||0)+1;}
+   addTravel('discovery','從'+p.name+'取得'+material+' ×1。','');
+   save();render();
+   inspectInScene('已拿走 '+material+' ×1。',[{label:'離開',fn:()=>{}}]);
+  },{id},kind,spec);
+ }},{label:'先離開',fn:()=>{}}]);
+}
 function forestV4Action(o){
- if(encounterPending||modal||s.flags.inBattle||$('app').classList.contains('scene-dialogue-active')||exitOnlyAction())return;
+ if(encounterPending||modal||s.flags.inBattle||$('app').classList.contains('scene-dialogue-active'))return;
+ if(openingExitOnly()){const p=window.DungeonWreckComponentsV1.get(o.id);if(p)inspectWreckComponent(p.id);else exitOnlyAction();return;}
+ if(o.id==='v4-sack6'&&!s.flags.rescued){inspectWreckComponent(o.id);return;}
  const k=o.assetId.replace('forest4_',''),finds=forestV4MaterialBindings().get(o.id)||[];
  const objectCore=window.DungeonObjectInvestigationV1;
  if(!objectCore.visible(s,'wreck',o))return;
@@ -8613,7 +8648,7 @@ function renderForestV4(el){
   live=live.filter(o=>{const k=o.assetId.replace('forest4_','');return !['rabbit','bird','beetle','butterfly'].includes(k)||weather.activity(k,env);});
  }
  live=live.filter(o=>window.DungeonObjectInvestigationV1?.visible(s,'wreck',o)!==false);
- if(openingExitOnly())live=live.filter(o=>/^forest4_(wagon|wheel_flat|crate_(large|small|open)|sack|plank(_lean)?|barrel)$/.test(o.assetId));
+ if(openingExitOnly())live=live.filter(o=>!!window.DungeonWreckComponentsV1.get(o.id)&&!(o.id==='v4-plank8'&&window.DungeonWreckComponentsV1.taken(s,o.id)));
  live=live.map(o=>({...o,width:o.width*window.DungeonObjectInvestigationV1.resourceScale(s,'wreck',o)}));
  window.DungeonSceneEnvironmentV1?.setActionMap(live.filter(o=>o.visible&&assets[o.assetId]?.src));
  for(const o of live){
