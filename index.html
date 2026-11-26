@@ -3957,6 +3957,33 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 @media(max-width:440px){.battle-test-roster{grid-template-columns:1fr}}
 </style>
 <style>
+
+/* Shared combat status panel V1: separate fixed monster zone and ranked allies. */
+.battle-test-layout{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:9px;align-items:start}
+.battle-test-main,.battle-test-side{min-width:0}
+.battle-test-side{max-height:48dvh;overflow:auto;overscroll-behavior:contain}
+.combat-status-panel{display:flex;flex-direction:column;gap:6px;color:#e9dfc6;font-size:clamp(11px,1.3vw,15px);line-height:1.35}
+.combat-status-panel section{min-width:0}
+.combat-enemy-zone{position:sticky;top:0;z-index:2;background:#183229;padding-bottom:4px}
+.combat-zone-title{font-size:1em;font-weight:700;color:#dcc595;margin:0 0 4px;padding-bottom:3px;border-bottom:1px solid #9e8c5b66}
+.combat-ally-list{display:flex;flex-direction:column;gap:4px}
+.combat-status-card{background:#233e32;border:1px solid #82785188;border-radius:4px;padding:5px 6px;min-width:0}
+.combat-status-name{display:flex;justify-content:space-between;gap:4px;font-weight:700;flex-wrap:wrap}
+.combat-hp-label{font-size:.82em;color:#d6d7bf;font-weight:400}
+.combat-status-meter{height:4px;background:#10241b;border-radius:3px;overflow:hidden;margin:4px 0}
+.combat-status-fill{display:block;height:100%;background:#8eae75}
+.combat-enemy-zone .combat-status-fill{background:#ad7863}
+.combat-status-card[data-priority="0"]{border-color:#bd7969;color:#ffbca9}
+.combat-status-card[data-priority="0"] .combat-status-fill{background:#c65d4c}
+.combat-status-line{margin:2px 0!important;font-size:.9em;overflow-wrap:anywhere;color:inherit}
+.combat-log-zone{border-top:1px solid #9e8c5b66;padding-top:4px}
+#placeDrawer[data-combat="true"] #sideInfoTabs,#placeDrawer[data-combat="true"] #placeActionPanel{display:none!important}
+html.stage-locked #app #placeDrawer[data-combat="true"] #placeDrawerList{padding:6px 8px!important}
+#sceneStage #battleSurface:not(.hidden){justify-content:flex-end}
+#battleSurface .battle-head,#battleSurface .battle-intent,#battleSurface .battle-feedback{display:none}
+#battleSurface .battle-actions{grid-template-columns:repeat(auto-fit,minmax(48px,1fr))}
+html.stage-locked #app .combat-status-panel{font-size:15px}
+@media(max-width:440px) and (orientation:portrait){.battle-test-layout{grid-template-columns:1fr}.battle-test-side{max-height:45dvh}}
 /* Scene objects V1 — native scene-relative positions; not the optional hint dots. */
 #sceneStage .world-object{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:1px;transform:translate(-50%,-100%);padding:0;border:0;background:transparent;color:#f4e4b9;pointer-events:auto;cursor:pointer;touch-action:manipulation;width:13%;min-width:34px;max-width:88px;height:auto;z-index:5;box-shadow:none;text-shadow:0 1px 2px #101b14}
 #sceneStage .world-object canvas{display:block;width:100%;height:auto;aspect-ratio:1;image-rendering:pixelated;filter:drop-shadow(0 2px 2px #15201988)}
@@ -4184,7 +4211,7 @@ html.stage-locked #app #travelFeed #travelRecent .diary-thought{font-size:14px}
 html.stage-locked #app #battleSurface .battle-range{font-size:14px}
 @media(prefers-reduced-motion:reduce){#battleSurface .battle-fx-hand,#battleSurface .battle-fx-flash{display:none}}
 
-#sceneStage #battleSurface{position:absolute;inset:0;z-index:9;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:3% 4%;pointer-events:auto;background:linear-gradient(180deg,#0d201a60,transparent 34%,transparent 55%,#0c1a16c0)}
+#sceneStage #battleSurface{position:absolute;inset:0;z-index:9;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:3% 4%;pointer-events:auto;background:linear-gradient(180deg,#0d201a60,transparent 34%,transparent 55%,#0c1a16c0)}
 #sceneStage #battleSurface.hidden{display:none!important}
 #battleSurface .battle-head{width:min(86%,360px);text-align:center;color:#eee5ce;text-shadow:0 1px 3px #000;font-size:clamp(12px,1.6vw,18px)}
 #battleSurface .battle-meter{height:5px;border-radius:4px;background:#15241f;border:1px solid #a49a73;overflow:hidden;margin:4px auto;width:56%}
@@ -4198,7 +4225,7 @@ html.stage-locked #app #battleSurface .battle-range{font-size:14px}
 #battleSurface .battle-controls{position:relative;width:100%;padding:8px 10px;background:#132821ed;border:1px solid #b6a07577;border-radius:5px;box-shadow:0 3px 9px #06130f88}
 #battleSurface .battle-intent{color:#f0e1bb;font-size:clamp(11px,1.5vw,16px);line-height:1.35;margin:0 0 4px}
 #battleSurface .battle-feedback{font-size:clamp(10px,1.3vw,14px);line-height:1.3;color:#b5c4b1;min-height:1.3em;margin:0 0 6px}
-#battleSurface .battle-actions{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+#battleSurface .battle-actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:4px}
 #battleSurface .battle-actions button{color:#eee4cd;background:#2e4539;border:1px solid #8f8861;border-radius:3px;min-width:0;min-height:32px;font-size:clamp(11px,1.5vw,16px);padding:4px 1px;white-space:nowrap}
 #battleSurface .battle-actions button:active{background:#51654b}
 #battleSurface[data-result="true"] .battle-actions{grid-template-columns:1fr}
@@ -4568,7 +4595,7 @@ window.DUNGEON_FOREST_V4_LAYOUT=window.DUNGEON_WRECK_CURRENT_LAYOUT;
 <!-- Official universal arm transparency follows the developer studio policy. -->
 <script src="./assets/arm_visibility_policy_v1.js?v=live-20261124"></script>
 <script src="./assets/arm_visibility_live_v1.js?v=live-20261124"></script>
-<script src="./assets/battle_playtest_v1.js?v=footer-exit"></script>
+<script src="./assets/battle_playtest_v1.js?v=combat-panel-v1"></script>
 <script>
 (()=>{'use strict';
 // Fixed design canvas: use the approved screenshot's exact 1536×707 ratio,
@@ -7227,7 +7254,9 @@ function renderPlaceDrawer(){
  const out=$('placeDrawerList');
  // Keep location-list scroll position when a new event, item, or route causes a render.
  // Reuse the existing image element so embedded art is not decoded on every update.
- const shownTab=sceneActionView?'investigation':activeSideTab;
+ const combat=!!s.flags.inBattle;
+ $('placeDrawer').dataset.combat=String(combat);
+ const shownTab=combat?'combat':sceneActionView?'investigation':activeSideTab;
  const sameContext=out.dataset.renderedTab===shownTab&&out.dataset.renderedScene===s.scene;
  const priorScroll=sameContext?out.scrollTop:0;
  const previewId=s.scene;
@@ -7236,7 +7265,7 @@ function renderPlaceDrawer(){
  out.dataset.renderedScene=s.scene;
  out.replaceChildren();
  const actionHost=$('placePrimaryActions');actionHost.replaceChildren();
- renderSceneActionDock(actionHost);
+ if(!combat)renderSceneActionDock(actionHost);
  const namesByTab={locations:'地點資訊',character:'角色狀態',equipment:'裝備欄',inventory:'背包'};
  $('sidePanelTitle').textContent=namesByTab[activeSideTab];
  $('placeDrawerSummary').textContent='';
@@ -7249,6 +7278,15 @@ function renderPlaceDrawer(){
   button.classList.toggle('selected',selected);
   button.setAttribute('aria-selected',String(selected));
   button.tabIndex=selected||sceneActionView&&button.dataset.infoTab===activeSideTab?0:-1;
+ }
+ if(combat){
+  const state=normalizeBattle(),monster=battleMonster(state);
+  $('sidePanelTitle').textContent='戰況資訊';$('placeDrawerPanel').setAttribute('aria-label','戰況資訊');
+  $('placeDrawerPanel').classList.remove('is-location-tab','is-character-tab','is-equipment-tab');
+  $('placeDrawerSummary').textContent=state.result?'遭遇結束':'第 '+(state.turn+1)+' 回合';
+  const outcomes={victory:'牠退回了林中。',retreat:'你已脫離遭遇。',defeat:'你體力不支，倒了下來。'};
+  window.DungeonBattlePlaytestV1.renderPanel(out,{enemy:{name:monster.name,hp:state.enemyHp,maxHp:state.maxEnemyHp||12,status:state.result?outcomes[state.result]:BATTLE_DISTANCES[state.distance]+'｜'+BATTLE_INTENTS[state.intent]},feedback:state.feedback});
+  out.scrollTop=priorScroll;return;
  }
  if(sceneActionView){renderSceneActionView(out);out.scrollTop=priorScroll;return;}
  if(activeSideTab!=='locations'){renderSideTab(activeSideTab,out);out.scrollTop=priorScroll;return;}
@@ -8159,7 +8197,7 @@ function renderBattleSurface(){
  const feedback=document.createElement('p');feedback.className='battle-feedback';feedback.setAttribute('aria-live','polite');feedback.textContent=state.feedback||'';
  const choices=document.createElement('div');choices.className='battle-actions';
  const buttons=state.result?[['finish',state.result==='defeat'?'稍後醒來':'繼續探索']]:[['attack','攻擊'],['guard','防禦'],['dodge','閃避'],['observe','觀察'],['approach','靠近'],['backstep','拉開'],['retreat','撤離']];
- for(const [id,label] of buttons){const button=document.createElement('button');button.type='button';button.textContent=label;button.disabled=(id==='attack'&&state.distance>0)||(id==='approach'&&state.distance===0)||(id==='backstep'&&state.distance===2);if(button.disabled)button.title=id==='attack'?'徒手攻擊需要近距離':'已達距離界線';button.onclick=()=>id==='finish'?finishBattle():battleTurn(id);choices.appendChild(button);}
+ for(const [id,label] of buttons){if((id==='attack'&&state.distance>0)||(id==='approach'&&state.distance===0)||(id==='backstep'&&state.distance===2))continue;const button=document.createElement('button');button.type='button';button.textContent=label;button.onclick=()=>id==='finish'?finishBattle():battleTurn(id);choices.appendChild(button);}
  controls.append(intent,feedback,choices);host.append(head,shadow,sprite,controls);syncDialogueInputLock();
 }
 function battleDialog(){renderBattleSurface();}
