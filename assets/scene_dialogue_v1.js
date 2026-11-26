@@ -1,5 +1,6 @@
 window.DungeonSceneDialogueV1 = {
  create({ $, syncDialogueInputLock, endLabels, onComplete }) {
+  const flow=window.LanternEventFlowV1.create();
   const sceneDialogueState={lines:[],index:0,open:false,purpose:null,choices:[],generation:0};
   function renderSceneDialogue(){
    const box=$('sceneDialogue');
@@ -30,7 +31,8 @@ window.DungeonSceneDialogueV1 = {
    for(const choice of choices){
     const button=document.createElement('button');button.type='button';button.textContent=choice.label;
     const generation=sceneDialogueState.generation;
-    button.onclick=()=>{if(!sceneDialogueState.open||sceneDialogueState.generation!==generation||sceneDialogueState.index!==sceneDialogueState.lines.length-1)return;closeSceneDialogue();choice.fn?.();};
+    const eventId=flow.status()?.id;
+    button.onclick=()=>{if(!sceneDialogueState.open||sceneDialogueState.generation!==generation||sceneDialogueState.index!==sceneDialogueState.lines.length-1)return;flow.resolve(eventId,()=>{closeSceneDialogue();choice.fn?.();});};
     options.appendChild(button);
    }
    box.classList.remove('hidden');
@@ -44,11 +46,13 @@ window.DungeonSceneDialogueV1 = {
     portrait:line.portrait==='protagonist'?'protagonist':null,image:line.image||null
    }));
    if(!validLines.length)return;
+   flow.begin(purpose);
    sceneDialogueState.generation++;
    sceneDialogueState.lines=validLines;
    sceneDialogueState.index=0;sceneDialogueState.open=true;sceneDialogueState.purpose=purpose;sceneDialogueState.choices=choices;renderSceneDialogue();
   }
   function closeSceneDialogue(){
+   flow.cancel();
    sceneDialogueState.generation++;
    sceneDialogueState.open=false;sceneDialogueState.lines=[];sceneDialogueState.index=0;sceneDialogueState.purpose=null;sceneDialogueState.choices=[];
    renderSceneDialogue();
@@ -57,8 +61,8 @@ window.DungeonSceneDialogueV1 = {
    if(!sceneDialogueState.open)return;
    if(sceneDialogueState.index<sceneDialogueState.lines.length-1){
     sceneDialogueState.index++;renderSceneDialogue();
-   }else if(!sceneDialogueState.choices.length){const purpose=sceneDialogueState.purpose;closeSceneDialogue();onComplete(purpose);}
+   }else if(!sceneDialogueState.choices.length){const purpose=sceneDialogueState.purpose;flow.resolve(flow.status()?.id,()=>{closeSceneDialogue();onComplete(purpose);});}
   }
-  return {sceneDialogueState, openSceneDialogue, closeSceneDialogue, nextSceneDialogue};
+  return {sceneDialogueState, openSceneDialogue, closeSceneDialogue, nextSceneDialogue, eventFlow:flow};
  }
 };
