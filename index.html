@@ -7106,6 +7106,7 @@ function renderSceneActionDock(host){
  add(sceneActionView?'返回資訊':'調查／其他行動',()=>{
   sceneActionView=sceneActionView?null:{actor:s,scene:s.scene};
   renderPlaceDrawer();
+  if(sceneActionView)openSceneDialogue([{speaker:'旁白',text:'你環顧四周，開始查看附近可以調查的物件。'}],'investigation-entry');
  },'explore');
 
 }
@@ -7680,7 +7681,7 @@ function refreshSceneFraming(){
  $('view').style.objectFit=illustrated?'fill':'cover';
  $('view').style.transform='none';$('hotspots').style.transform='none';
 }
-const lanternActionCore=window.LanternActionCoreV1.create({get:$});
+const lanternActionCore=window.LanternActionCoreV1.create({get:$,dialogue:()=>sceneDialogueState.purpose});
 const {sceneDialogueState, openSceneDialogue, closeSceneDialogue, nextSceneDialogue} =
  window.DungeonSceneDialogueV1.create({
   $, syncDialogueInputLock,
@@ -7711,7 +7712,7 @@ function openWreckIntroduction(){
 // Shared interaction policy; applies equally to narration, choices, inspections and encounters.
 function activeDialogueSurface(){return lanternActionCore.active();}
 function syncDialogueInputLock(){lanternActionCore.sync();}
-function guardedAction(fn){return lanternActionCore.run(fn);}
+function guardedAction(fn){return lanternActionCore.run(()=>{if(sceneDialogueState.purpose==='investigation-entry')closeSceneDialogue();fn();});}
 // Capture phase protects every background control, including dynamically generated buttons.
 function dialogueInfoAllowed(target){
  if(!target?.closest)return false;
