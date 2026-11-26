@@ -8,8 +8,8 @@ const $=id=>document.getElementById(id),canvas=$('scene'),ctx=canvas.getContext(
 let mode='original',elapsed=0,last=0,paused=false,ready=false,body,parts;
 const ground=136;
 const limbs=[
- {id:'front',hip:[75,87],knee:[65,112],foot:[42,136],bend:1,upper:[[59,75],[86,75],[91,94],[78,115],[58,120],[48,109]],lower:[[57,105],[78,111],[64,130],[52,141],[24,141],[23,133],[42,121]],phase:0},
- {id:'rear',hip:[151,93],knee:[147,116],foot:[161,136],bend:-1,upper:[[135,77],[164,78],[178,100],[164,122],[140,122],[131,109]],lower:[[138,109],[160,110],[170,123],[178,138],[144,142],[139,132],[145,124]],phase:.5}
+ {id:'front',hip:[75,87],knee:[65,112],foot:[42,136],bend:-1,upper:[[59,75],[86,75],[91,94],[78,115],[58,120],[48,109]],lower:[[57,105],[78,111],[64,130],[52,141],[24,141],[23,133],[42,121]],phase:0},
+ {id:'rear',hip:[151,93],knee:[147,116],foot:[161,136],bend:1,upper:[[135,77],[164,78],[178,100],[164,122],[140,122],[131,109]],lower:[[138,109],[160,110],[170,123],[178,138],[144,142],[139,132],[145,124]],phase:.5}
 ];
 const clamp=(n,l,h)=>Math.max(l,Math.min(h,n)),len=(a,b)=>Math.hypot(b[0]-a[0],b[1]-a[1]),angle=(a,b)=>Math.atan2(b[1]-a[1],b[0]-a[0]),ease=t=>{t=clamp(t,0,1);return t*t*(3-2*t)};
 function path(g,poly){g.beginPath();poly.forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));g.closePath();}
@@ -26,7 +26,7 @@ function solve(hip,foot,a,b,bend){
  const base=Math.atan2(dy,dx),off=Math.acos(clamp((a*a+d*d-b*b)/(2*a*d),-1,1));
  const theta=base+bend*off;return [hip[0]+Math.cos(theta)*a,hip[1]+Math.sin(theta)*a];
 }
-function footAt(l,phase,walk,far){const p=(phase+l.phase+(far?.5:0))%1,step=24;let x=l.foot[0],y=ground;
+function footAt(l,phase,walk,far){const p=(phase+l.phase+(far?.5:0))%1,step=16;let x=l.foot[0]+(l.id==='front'?5:0),y=ground;
  if(walk){if(p<.65)x+=-step/2+step*(p/.65);else{const t=(p-.65)/.35;x+=step/2-step*ease(t);y-=11*Math.sin(Math.PI*t);}}
  if(far){x+=5;y-=3;}return [x,y];}
 function segment(bitmap,fromA,fromB,toA,toB){ctx.save();ctx.translate(...toA);ctx.rotate(angle(toA,toB)-angle(fromA,fromB));ctx.translate(-fromA[0],-fromA[1]);ctx.drawImage(bitmap,0,0);ctx.restore();}
@@ -37,7 +37,7 @@ function drawLeg(l,phase,dy,walk,far,debug){
 }
 function render(){
  ctx.clearRect(0,0,480,220);const bg=ctx.createLinearGradient(0,0,0,220);bg.addColorStop(0,'#203a31');bg.addColorStop(1,'#43513b');ctx.fillStyle=bg;ctx.fillRect(0,0,480,220);
- const walk=mode==='walk',phase=(elapsed/900)%1,dy=mode==='rest'?12:mode==='rise'?12*(1-ease(elapsed/850)):walk?1.8*Math.cos(phase*4*Math.PI):0;
+ const walk=mode==='walk',phase=(elapsed/900)%1,dy=mode==='rest'?17:mode==='rise'?5+12*(1-ease(elapsed/850)):walk?5+1.2*Math.cos(phase*4*Math.PI):5;
  const debug=$('debug').checked;ctx.save();ctx.translate(130,48);ctx.imageSmoothingEnabled=false;
  ctx.fillStyle='#19291e99';ctx.beginPath();ctx.ellipse(105,ground+4,83,7,0,0,Math.PI*2);ctx.fill();
  if(debug){ctx.strokeStyle='#baae76';ctx.setLineDash([5,4]);ctx.beginPath();ctx.moveTo(-110,ground);ctx.lineTo(330,ground);ctx.stroke();ctx.setLineDash([]);}
