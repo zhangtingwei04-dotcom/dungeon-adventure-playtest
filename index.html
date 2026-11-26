@@ -5098,7 +5098,6 @@ function nextHiddenRoute(scene=s.scene){
  return preferred.find(to=>routeAllowedToSearch(scene,to)&&!routeKnown(scene,to))||null;
 }
 function routeCardTitle(a,b){
- if((a==='trail'||b==='trail')&&(a==='gate'||b==='gate')&&!s.flags.rescued)return '前方主路（終點未明）';
  return names[b]?.[0]||b;
 }
 function routeGo(destination){
@@ -5107,8 +5106,9 @@ function routeGo(destination){
  change(destination);
 }
 function discoverNearbyRoute(){exploreArea();}
+function routeDestinationLabel(to){return '前往'+(names[to]?.[0]||to);}
 function routeAction(label,to,fn,primary=false){
- const a=action(label,fn,primary);
+ const a=action(routeDestinationLabel(to),fn,primary);
  a.routeTo=to;
  return a;
 }
@@ -5188,7 +5188,7 @@ function renderOpeningObjective(){
  $('app').dataset.openingAdventure=String(openingAdventure());
  if(!openingAdventure()){el?.remove();return;}
  if(!el){el=document.createElement('div');el.className='opening-objective';stage.appendChild(el);}
- el.textContent=s.scene==='wreck'?(routeKnown('wreck','trail')?'沿小徑離開事故現場':s.flags.openingTracks?'循著泥地上的車轍':'看看馬車，尋找離開的線索'):(routeKnown('trail','gate')?'尋找能提供幫助的人':'留意道路前方的動靜');
+ el.textContent=s.scene==='wreck'?(routeKnown('wreck','trail')?routeDestinationLabel('trail'):s.flags.openingTracks?'循著泥地上的車轍':'看看馬車，尋找離開的線索'):(routeKnown('trail','gate')?routeDestinationLabel('gate'):'留意道路前方的動靜');
 }
 function observeOpening(){
  if(s.scene==='wreck'){
@@ -5259,7 +5259,7 @@ function exploreArea(){
  if(openingAdventure()&&s.scene!=='wreck'&&!routeKnown(s.scene,'gate')){observeOpening();return;}
  clearRouteAttention();$('toast').classList.remove('active');
  const oldSummary=$('sceneStage').querySelector('.discovery-summary');if(oldSummary)oldSummary.hidden=true;
- if(!openingView().canExplore){if(!openingDepartureCue())toast('事故現場已探索完畢，仍可調查物件或沿道路離開。');return;}
+ if(!openingView().canExplore){if(!openingDepartureCue())toast('事故現場已探索完畢，仍可調查物件或前往林間小徑。');return;}
  normalizeExploration();normalizeRouteDiscovery();normalizeRecovery();
  const site=s.scene,area=EXPLORATION_AREAS[site],e=s.exploration;
  window.DungeonSceneObjectsV1?.normalize(s);
@@ -7094,7 +7094,7 @@ function focusDiscoveredRoute(from,to){
 function presentDiscoveredRoute(from,to){
  inspectInScene(
   from==='wreck'&&to==='trail'?'你順著泥地上的車轍望去，樹影間露出一條可以通行的小徑。':'你辨認出一條新的道路：'+routeCardTitle(from,to)+'。',
-  [{label:from==='trail'&&to==='gate'&&!s.flags.rescued?'走向腳步聲':'前往'+routeCardTitle(from,to),fn:()=>placeDrawerTravel(to)},
+  [{label:routeDestinationLabel(to),fn:()=>placeDrawerTravel(to)},
    {label:'留在原地',fn:()=>{}}]
  );
 }
@@ -7701,7 +7701,7 @@ const {sceneDialogueState, openSceneDialogue, closeSceneDialogue, nextSceneDialo
  window.DungeonSceneDialogueV1.create({
   $, syncDialogueInputLock,
   endLabels:{
-   'opening-departure':['沿車轍離開','沿車轍前往林間小徑'],
+   'opening-departure':[routeDestinationLabel('trail'),routeDestinationLabel('trail')],
    'route-preview':['查看道路','查看新道路']
   },
   onComplete(purpose){
@@ -8208,8 +8208,8 @@ function finishBattle(){
 }
 
 function entries(){const a={
- wreck:[routeAction(openingView().exhausted?'循著車轍前往小徑':'沿著道路離開','trail',()=>change('trail'),true),...(wreckCleared()?[]:[action('查看倒塌貨箱',glance),action('查看車輪痕跡',marks)])],
- trail:[routeAction(s.flags.rescued?'前往城鎮':'沿道路繼續前進','gate',rescue,true),action(s.recovery.found?'調查舊馬車殘骸':'搜索林邊 · 12分鐘',searchForest,false,true),...(s.recovery.found?[action('留意甲蟲活動痕跡 · 8分鐘',()=>forestRareCheck('beetle'))]:[]),...(s.recovery.found&&s.beetle.questAccepted&&!s.beetle.captured?[action('設置甲蟲誘捕盒 · 10分鐘',captureRustBeetle)]:[]),routeAction('進入林間空地','clearing',()=>change('clearing')),routeAction('走近舊石門','ruin',()=>change('ruin')),action('查看路旁舊石碑',inspectTrailMarker),routeAction('返回馬車','wreck',()=>change('wreck'))],
+ wreck:[routeAction('前往林間小徑','trail',()=>change('trail'),true),...(wreckCleared()?[]:[action('查看倒塌貨箱',glance),action('查看車輪痕跡',marks)])],
+ trail:[routeAction('前往城鎮入口','gate',rescue,true),action(s.recovery.found?'調查舊馬車殘骸':'搜索林邊 · 12分鐘',searchForest,false,true),...(s.recovery.found?[action('留意甲蟲活動痕跡 · 8分鐘',()=>forestRareCheck('beetle'))]:[]),...(s.recovery.found&&s.beetle.questAccepted&&!s.beetle.captured?[action('設置甲蟲誘捕盒 · 10分鐘',captureRustBeetle)]:[]),routeAction('進入林間空地','clearing',()=>change('clearing')),routeAction('走近舊石門','ruin',()=>change('ruin')),action('查看路旁舊石碑',inspectTrailMarker),routeAction('返回馬車','wreck',()=>change('wreck'))],
  clearing:[routeAction('返回小徑','trail',()=>change('trail'),true),action('觀察空地生態 · 6分鐘',()=>observeForestEcology('clearing'),false,true),...(!s.flags.lightTaken?[action('查看樹根旁的微光',light)]:[]),action('留意林間聲響',soundInForest)],
  ruin:[routeAction('返回小徑','trail',()=>change('trail'),true),action('觀察石門生態 · 6分鐘',()=>observeForestEcology('ruin'),false,true),action('看看古老石門',ruinLook),action('觀察石門旁的長耳腳印 · 8分鐘',()=>forestRareCheck('rabbit'))],
  gate:[routeAction('前往旅店',s.flags.morning?'lobby':'inn',()=>change(s.flags.morning?'lobby':'inn'),true),...(s.flags.morning?[routeAction('走進城鎮街道','street',()=>change('street'))]:[]),routeAction('返回森林','trail',()=>change('trail')),action('問問冒險者',()=>dialog('四名冒險者','他們告訴你，這座城鎮有旅店、公會與來往的旅人。其他兩名夥伴今天留在住處。你們仍是剛認識的陌生人。',[{label:'道謝',fn:()=>{}}],'簡短對話'))],
@@ -8645,7 +8645,8 @@ function renderHotspots(){
   if(!panorama&&s.scene==='wreck'){screenX=x*100;screenY=y*100;}
   const b=document.createElement('button');b.className='hotspot scene-route-target'+(showHints?' on':'');
   b.style.left=screenX+'%';b.style.top=screenY+'%';
-  b.title=label;b.setAttribute('aria-label',routeCue?'新道路：'+label:label);b.onclick=()=>runSceneAction(()=>{if(!encounterPending&&!modal&&!sceneDialogueState.open)fn();});if(showHints){const hint=document.createElement('span');hint.textContent=label;b.appendChild(hint);}el.appendChild(b);
+  const destinationLabel=to?routeDestinationLabel(to):label;
+  b.title=destinationLabel;b.setAttribute('aria-label',routeCue?'新地點：'+destinationLabel:destinationLabel);b.onclick=()=>runSceneAction(()=>{if(!encounterPending&&!modal&&!sceneDialogueState.open)fn();});if(showHints){const hint=document.createElement('span');hint.textContent=destinationLabel;b.appendChild(hint);}el.appendChild(b);
  }
 }
 function renderRouteMap(out){
@@ -8657,7 +8658,7 @@ function renderRouteMap(out){
  note.textContent='探索周遭可反覆執行，每次10分鐘；新路線只需發現一次，普通材料則按地點與每日上限取得。地圖只提供方向，不會瞬間傳送或跳過劇情。';
  out.appendChild(note);
  const nearby=document.createElement('div');nearby.className='map-section';
- nearby.textContent='從這裡相連的道路';out.appendChild(nearby);
+ nearby.textContent='從這裡可前往的地點';out.appendChild(nearby);
  const routes=document.createElement('div');routes.className='map-routes';
  for(const route of ROUTE_TIMES.filter(r=>r.a===s.scene||r.b===s.scene)){
   const other=route.a===s.scene?route.b:route.a;
@@ -8667,7 +8668,7 @@ function renderRouteMap(out){
   const item=document.createElement('div');item.className='map-route route-card';
   const info=document.createElement('div');
   const title=document.createElement('div');title.className='map-route-name';
-  title.textContent=locked?'前方主路（終點未明）':names[other][0];
+  title.textContent=routeCardTitle(s.scene,other);
   const meta=document.createElement('div');meta.className='map-route-meta';
   meta.textContent=locked?'已辨認方向 · 主線相遇後開通':discovered?'已到訪':'已發現 · 尚未到訪';
   info.append(title,meta);
