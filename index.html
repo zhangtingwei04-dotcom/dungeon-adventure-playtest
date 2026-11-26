@@ -3020,6 +3020,14 @@ html.stage-locked #app #placeActionPanel #placePrimaryActions .side-main-action{
 #placeDrawerList .scene-action-tiles .scene-action-mushroom{width:42px;height:32px}
 #placeDrawerList .scene-action-ecology{flex-basis:100%;border-top:1px solid #ad91594d;padding-top:4px}
 #placeDrawerList .scene-action-ecology h3{margin:0;padding:4px 0;color:#c9dbc3;font-size:13px}
+#placeDrawerList .scene-object-card-grid{width:100%;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+#placeDrawerList .scene-object-card-grid .scene-object-card{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:2px;min-width:0;width:100%;padding:5px 3px;background:#173e33;border:1px solid #9f8b61;border-radius:6px;overflow:hidden}
+#placeDrawerList .scene-object-thumbnail{display:flex;width:100%;height:43px;align-items:center;justify-content:center;background:#102c2380;border-radius:3px;overflow:hidden}
+#placeDrawerList .scene-object-thumbnail img,#placeDrawerList .scene-object-thumbnail canvas{width:92%;height:100%;object-fit:contain;image-rendering:pixelated;display:block}
+#placeDrawerList .scene-object-thumbnail.thumbnail-unavailable{display:none}
+#placeDrawerList .scene-object-name{font-size:12px;color:#f4e9cd;line-height:1.2;overflow-wrap:anywhere;text-align:center}
+#placeDrawerList .scene-object-status{font-size:10px;color:#b9cca9;line-height:1.15}
+#placeDrawerList .scene-object-verb{font-size:11px;color:#dcc28a;line-height:1.15}
 
 html.stage-locked #app #placeDrawerPanel.is-location-tab .side-current-summary.location-reference-card{
  display:block!important;margin:0 0 4px!important;min-width:0!important;
@@ -7127,67 +7135,76 @@ function renderSceneActionDock(host){
  for(const item of actions.filter(a=>a.routeTo))add(item.title,item.fn,'route');
 
 }
+// All visible scene-object cards reuse the exact displayed art and route to the same object interaction.
+function sceneObjectThumbnail(node){
+ const original=node.querySelector('.forest-v4-art > img, :scope > img');
+ if(original?.getAttribute('src')){
+  const image=document.createElement('img');image.src=original.getAttribute('src');image.alt='';image.draggable=false;
+  image.onerror=()=>{image.hidden=true;image.parentElement?.classList.add('thumbnail-unavailable');};
+  return image;
+ }
+ const source=node.querySelector(':scope > canvas');
+ if(source){const canvas=document.createElement('canvas');canvas.width=source.width;canvas.height=source.height;canvas.getContext('2d').drawImage(source,0,0);canvas.setAttribute('aria-hidden','true');return canvas;}
+ return null;
+}
+function investigationCardData(node){
+ const kind=node.dataset.liveKind||node.dataset.kind||'';
+ const label=node.dataset.objectName||node.getAttribute('aria-label')||node.title||'';
+ const name=label.split('：')[0].split('｜')[0].trim();
+ const state=node.dataset.objectVisualState;
+ const collectible=node.dataset.objectCollectible==='true'||!!node.dataset.material;
+ const status=collectible?'可採集':node.dataset.motion==='animal'||['npc','creature'].includes(kind)?'可互動':state==='resource-taken'?'已收取':state==='inspected'?'已調查':'可調查';
+ const action=collectible?'查看／採集':node.dataset.motion==='animal'||['npc','creature'].includes(kind)?'互動':'調查';
+ return {node,kind,name,status,action};
+}
+function appendInvestigationCards(parent,items,append){
+ if(!items.length)return;
+ const grid=document.createElement('div');grid.className='scene-action-tiles scene-object-card-grid';parent.appendChild(grid);
+ for(const item of items){
+  const same=items.filter(o=>o.name===item.name);
+  const name=same.length>1?item.name+' '+(same.indexOf(item)+1):item.name;
+  const button=append('',()=>{
+   const node=item.node,id=node.dataset.objectId;
+   const live=id?Array.from($('hotspots').querySelectorAll('button[data-object-id]:not(.env-leaving):not([disabled])')).find(el=>el.dataset.objectId===id):node.isConnected?node:null;
+   if(live)live.onclick?.();else{renderPlaceDrawer();toast('物件已不在目前場景。');}
+  },grid);
+  button.classList.add('scene-object-card');button.setAttribute('aria-label',name+'，'+item.status+'，'+item.action);
+  const thumb=document.createElement('span');thumb.className='scene-object-thumbnail';
+  const art=sceneObjectThumbnail(item.node);if(art){thumb.appendChild(art);button.appendChild(thumb);}
+  const title=document.createElement('span');title.className='scene-object-name';title.textContent=name;
+  const status=document.createElement('span');status.className='scene-object-status';status.textContent=item.status;
+  const action=document.createElement('span');action.className='scene-object-verb';action.textContent=item.action;
+  button.append(title,status,action);
+ }
+}
 function renderWreckInvestigation(list,actions,targets,append){
- const namesByKind={wagon:'馬車',wheel_flat:'車輪',sack:'布袋',plank:'木板',plank_lean:'斜木板',
-  crate_large:'貨箱',crate_small:'小貨箱',crate_open:'翻倒貨箱',barrel:'木桶'};
  const objects=[],ecology=[],other=[],seen=new Set();
  for(const node of targets){
   if(node.dataset.sceneInvestigation==='opening-tracks')continue;
-  const kind=node.dataset.liveKind||'';
-  const label=node.getAttribute('aria-label')||node.title;
-  if(!label)continue;
-  const name=namesByKind[kind]||(/^草叢/.test(label)?'草叢':label);
-  const src=node.querySelector('.forest-v4-art > img, :scope > img')?.getAttribute('src');
-  const item={name,node,src:kind==='mushroom'?window.DUNGEON_FOREST_V4_ASSETS?.forest4_mushroom?.src||src:src};
-  if(kind==='mushroom'||node.dataset.motion==='plant'||node.dataset.motion==='animal'){
-   const key=node.dataset.objectId||name;
-   if(seen.has(key))continue;
-   seen.add(key);ecology.push(item);
-  }else if(Object.hasOwn(namesByKind,kind))objects.push(item);
+  const item=investigationCardData(node);if(!item.name)continue;
+  const key=node.dataset.objectId||node.dataset.sceneInvestigation||item.name;if(seen.has(key))continue;seen.add(key);
+  if(item.kind==='mushroom'||node.dataset.motion==='plant'||node.dataset.motion==='animal')ecology.push(item);
+  else if(node.dataset.objectId||node.querySelector('img,canvas'))objects.push(item);
   else other.push(item);
  }
  if(openingAdventure()){
   const clue=document.createElement('p');clue.className='scene-action-clue';
-  const wheel=objects.find(item=>item.node.dataset.liveKind==='wheel_flat');
-  if(wheel?.src){
-   const img=document.createElement('img');img.src=wheel.src;img.alt='';clue.appendChild(img);
-  }
-  clue.append(s.flags.openingTracks?'線索：車轍往林間延伸':'線索：先查看馬車附近');list.appendChild(clue);
+  clue.textContent=s.flags.openingTracks?'線索：車轍往林間延伸':'線索：先查看馬車附近';list.appendChild(clue);
  }
- function tiles(parent,items){
-  const grid=document.createElement('div');grid.className='scene-action-tiles';parent.appendChild(grid);
-  for(const item of items){
-   const same=items.filter(o=>o.name===item.name);
-   const label=same.length>1?item.name+' '+(same.indexOf(item)+1):item.name;
-   const button=append(label,()=>item.node.onclick(),grid);
-   if(!item.src)continue;
-   const image=document.createElement('img');image.src=item.src;image.alt='';
-   if(item.node.dataset.liveKind==='mushroom'){
-    image.className='scene-action-mushroom';
-    image.onerror=()=>{
-     const icon=document.createElement('span');icon.textContent='🍄';icon.setAttribute('aria-hidden','true');
-     image.replaceWith(icon);
-    };
-   }
-   button.prepend(image);
-  }
- }
- if(objects.length){
-  const order=['wagon','wheel_flat','crate_large','sack','plank'];
-  const rank=item=>{const index=order.indexOf(item.node.dataset.liveKind);return index<0?order.length:index;};
-  objects.sort((a,b)=>rank(a)-rank(b));
-  tiles(list,objects);
- }
+ const order=['wagon','wheel_flat','crate_large','crate_small','crate_open','sack','plank','plank_lean','barrel','branch'];
+ const rank=item=>{const i=order.indexOf(item.kind);return i<0?order.length:i;};
+ objects.sort((a,b)=>rank(a)-rank(b));
+ appendInvestigationCards(list,objects,append);
  if(ecology.length){
   const section=document.createElement('section');section.className='scene-action-ecology';
-  const title=document.createElement('h3');title.textContent='觀察生態';section.appendChild(title);
-  tiles(section,ecology);list.appendChild(section);
+  const title=document.createElement('h3');title.textContent='周圍生態';section.appendChild(title);
+  appendInvestigationCards(section,ecology,append);list.appendChild(section);
  }
  for(const item of actions){
-  if((item.fn===marks&&objects.some(o=>o.name==='車輪'))||(item.fn===glance&&objects.some(o=>o.name==='貨箱')))continue;
+  if((item.fn===marks&&objects.some(o=>o.kind==='wheel_flat'))||(item.fn===glance&&objects.some(o=>o.kind==='crate_large'))||(item.fn===marks&&other.some(o=>o.node.dataset.sceneInvestigation==='wheel'))||(item.fn===glance&&other.some(o=>o.node.dataset.sceneInvestigation==='crate')))continue;
   append(item.title,()=>runSceneAction(item.fn));
  }
- for(const item of other)append(item.name,()=>item.node.onclick());
+ appendInvestigationCards(list,other,append);
 }
 function renderSceneActionView(out){
  const title='調查／其他行動';
@@ -7213,11 +7230,13 @@ function renderSceneActionView(out){
   used.add(item.title);
   append(item.title,()=>runSceneAction(item.fn));
  }
+ const cards=[];
  for(const node of targets){
-  const label=node.getAttribute('aria-label')||node.title;
-  if(!label||used.has(label))continue;
-  used.add(label);append(label,()=>node.onclick());
+  const item=investigationCardData(node);if(!item.name)continue;
+  if(node.dataset.objectId||node.querySelector('img,canvas'))cards.push(item);
+  else if(!used.has(item.name)){used.add(item.name);append(item.name,()=>node.onclick());}
  }
+ appendInvestigationCards(list,cards,append);
 }
 function renderPlaceDrawer(){
  if(sceneActionView&&(sceneActionView.actor!==s||sceneActionView.scene!==s.scene||s.flags.inBattle))sceneActionView=null;
@@ -8583,12 +8602,12 @@ function renderForestV4(el){
   if(smooth&&old&&old.dataset.renderSignature===signature){
    keep.add(old);old._exitTimer&&clearTimeout(old._exitTimer);old._exitTimer=null;old.classList.remove('env-leaving');old.style.pointerEvents='';
    if(interactive){old.disabled=false;old.onclick=()=>runSceneAction(()=>forestV4Action(o));old.setAttribute('aria-label',o.name+(finds.length?'：可收集'+finds.map(f=>f.material).join('、'):''));old.title=o.name+(finds.length?' · 可收集':'');}
-   if(investigation){old.dataset.objectLifecycle=investigation.type;old.dataset.objectVisualState=investigation.visualState;}
+   if(investigation){old.dataset.objectLifecycle=investigation.type;old.dataset.objectVisualState=investigation.visualState;old.dataset.objectName=investigation.name;old.dataset.objectCollectible=String(investigation.collectible);}
    updateForestFindCue(old,finds,k);continue;
   }
   if(old){clearTimeout(old._exitTimer);old.remove();}
   const node=document.createElement(interactive?'button':'div');node.dataset.renderSignature=signature;if(interactive){node.type='button';node.setAttribute('aria-label',o.name+(finds.length?'：可收集'+finds.map(f=>f.material).join('、'):''));node.title=o.name+(finds.length?' · 可收集':'');node.onclick=()=>runSceneAction(()=>forestV4Action(o));}else node.setAttribute('aria-hidden','true');
-  node.className='forest-v4-object';if(investigation){node.dataset.objectLifecycle=investigation.type;node.dataset.objectVisualState=investigation.visualState;}node.dataset.objectId=o.id;node.dataset.motion=animal?'animal':plant?'plant':'fixed';node.dataset.liveKind=k;if(o.rabbitVariant)node.dataset.rabbitVariant=o.rabbitVariant;node.style.setProperty('--env-motion-delay',(-([...o.id].reduce((n,ch)=>(n*31+ch.charCodeAt(0))%89,0)/10))+'s');node.style.left=o.x+'%';node.style.top=o.y+'%';node.style.width=o.width+'%';node.style.zIndex=10+o.z;
+  node.className='forest-v4-object';if(investigation){node.dataset.objectLifecycle=investigation.type;node.dataset.objectVisualState=investigation.visualState;node.dataset.objectName=investigation.name;node.dataset.objectCollectible=String(investigation.collectible);}node.dataset.objectId=o.id;node.dataset.motion=animal?'animal':plant?'plant':'fixed';node.dataset.liveKind=k;if(o.rabbitVariant)node.dataset.rabbitVariant=o.rabbitVariant;node.style.setProperty('--env-motion-delay',(-([...o.id].reduce((n,ch)=>(n*31+ch.charCodeAt(0))%89,0)/10))+'s');node.style.left=o.x+'%';node.style.top=o.y+'%';node.style.width=o.width+'%';node.style.zIndex=10+o.z;
   const art=document.createElement('span');art.className='forest-v4-art';art.style.transform='scaleX('+(o.flip?-1:1)+') rotate('+o.rotation+'deg)';
   const im=document.createElement('img');im.src=o.artVariant==='barrel-side'?'./assets/forest_v4_barrel_side.svg?v=1':a.src;if(o.artVariant==='barrel-side')im.onerror=()=>{im.onerror=null;im.src=a.src;art.style.transform='rotate(72deg)';};im.alt='';im.draggable=false;art.appendChild(im);node.appendChild(art);if(window.DungeonWinterV1?.weights[k])window.DungeonWinterV1.attach(node,art,im,k);window.DungeonForestV4Integration?.apply(node,o,assets);if(liveMotion)window.DungeonSceneEnvironmentV1?.attachWildlife(node,o);if(forestEnvironmentActive())window.DungeonSceneEnvironmentV1?.apply(node,art,im,o);updateForestFindCue(node,finds,k);keep.add(node);if(smooth&&existing&&!old)node.classList.add('env-entering');layer.appendChild(node);
  }
@@ -8623,7 +8642,7 @@ function renderWorldObjects(el){
    const patch=document.createElement('div');patch.className='world-vegetation';patch.dataset.stage=obj.stage;patch.style.left=obj.x+'%';patch.style.top=obj.y+'%';patch.setAttribute('aria-hidden','true');
    const canvas=document.createElement('canvas');engine.sprite(canvas,obj.kind,obj.stage);patch.appendChild(canvas);el.appendChild(patch);continue;
   }
-  const b=document.createElement('button');b.type='button';b.className='world-object';b.dataset.kind=obj.kind;b.dataset.objectId=obj.id;b.style.left=obj.x+'%';b.style.top=obj.y+'%';b.setAttribute('aria-label',obj.label+(obj.material?'：'+obj.material:''));
+  const b=document.createElement('button');b.type='button';b.className='world-object';b.dataset.kind=obj.kind;b.dataset.objectId=obj.id;if(obj.material)b.dataset.material=obj.material;b.style.left=obj.x+'%';b.style.top=obj.y+'%';b.setAttribute('aria-label',obj.label+(obj.material?'：'+obj.material:''));
   const cv=document.createElement(obj.kind==='creature'?'img':'canvas');cv.setAttribute('aria-hidden','true');if(obj.kind==='creature'){cv.src=MONSTER_CATALOG_V1.moss_spine_beast.sprite;cv.alt='';cv.className='forest-monster-art';b.setAttribute('aria-label','苔棘鬃獸');}else engine.sprite(cv,obj.kind);
   const caption=document.createElement('span');caption.textContent=obj.kind==='creature'?'苔棘鬃獸':obj.label;b.append(cv,caption);
   applyDiscoveryCue(b,window.DungeonDiscoveryCueV1.object({pending:obj.material?1:0,clue:obj.kind==='wreck',observed:!!s.flags.trailWreckInspected||!!s.recovery.looted}));
