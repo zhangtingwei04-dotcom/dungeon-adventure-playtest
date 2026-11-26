@@ -7111,20 +7111,22 @@ function runSceneAction(fn){
 }
 function renderSceneActionDock(host){
  const actions=entries();
- const primary=actions.find(item=>item.primary)||actions[0];
+ const exploration=actions.find(item=>item.fn===exploreArea);
+ const primary=actions.find(item=>item.primary&&item.fn!==exploreArea)||actions.find(item=>item.fn!==exploreArea);
  function add(label,fn,kind){
   const button=document.createElement('button');button.type='button';
-  button.className='side-main-action '+kind;
+  button.className='side-main-action '+(kind==='investigation'?'explore':kind);
   setActionVisual(button,kind,label);
-  button.onclick=()=>kind==='explore'?guardedAction(fn):runSceneAction(fn);
+  button.onclick=()=>kind==='investigation'?guardedAction(fn):runSceneAction(fn);
   host.appendChild(button);
  }
  if(primary)add(primary.title,primary.fn,'primary');
+ if(exploration)add(exploration.title,exploration.fn,'explore');
  add(sceneActionView?'返回資訊':'調查／其他行動',()=>{
   sceneActionView=sceneActionView?null:{actor:s,scene:s.scene};
   renderPlaceDrawer();
   if(sceneActionView)openSceneDialogue([{speaker:'旁白',text:'你環顧四周，看看有沒有值得留意的地方。'}],'investigation-entry');
- },'explore');
+ },'investigation');
  for(const item of actions){
   if(item===primary||!item.routeTo)continue;
   add(item.title,item.fn,'route');
@@ -7185,7 +7187,7 @@ function renderWreckInvestigation(list,actions,primary,targets,append){
   tiles(section,ecology);list.appendChild(section);
  }
  for(const item of actions){
-  if(item===primary||item.routeTo||(item.fn===marks&&objects.some(o=>o.name==='車輪'))||(item.fn===glance&&objects.some(o=>o.name==='貨箱')))continue;
+  if(item===primary||item.routeTo||item.fn===exploreArea||(item.fn===marks&&objects.some(o=>o.name==='車輪'))||(item.fn===glance&&objects.some(o=>o.name==='貨箱')))continue;
   append(item.title,()=>runSceneAction(item.fn));
  }
  for(const item of other)append(item.name,()=>item.node.onclick());
@@ -7204,7 +7206,7 @@ function renderSceneActionView(out){
   return button;
  }
  const actions=entries();
- const primary=actions.find(item=>item.primary)||actions[0];
+ const primary=actions.find(item=>item.primary&&item.fn!==exploreArea)||actions.find(item=>item.fn!==exploreArea);
  const targets=Array.from($('hotspots').querySelectorAll('button:not(.env-leaving):not([disabled])'))
   .filter(node=>!node.matches('.scene-route-target')&&typeof node.onclick==='function');
  if(s.scene==='wreck'){
@@ -7212,7 +7214,7 @@ function renderSceneActionView(out){
  }
  const used=new Set();
  for(const item of actions){
-  if(item===primary||item.routeTo)continue;
+  if(item===primary||item.routeTo||item.fn===exploreArea)continue;
   used.add(item.title);
   append(item.title,()=>runSceneAction(item.fn));
  }
@@ -8360,7 +8362,7 @@ function render(){if(!names[s.scene])s.scene='wreck';normalizeGameTime();tickBee
  guild:'公告板寫著普通的工作與路況情報。你不必立即登記或接受委託。',
  outskirts:'城牆外的風帶著草木氣味。你可以看看風景、記下路標，或直接回城。',
  home:'六人的公共起居室裡有生活的痕跡。你只是受邀來訪，還不是固定房客。'
-};$('narrative').textContent=texts[s.scene];$('actions').replaceChildren();const available=entries();const primary=available.find(a=>a.primary)||available[0];
+};$('narrative').textContent=texts[s.scene];$('actions').replaceChildren();const available=entries().filter(a=>a.fn!==exploreArea);const primary=available.find(a=>a.primary)||available[0];
 if(primary){const b=document.createElement('button');b.className='action primary';setActionVisual(b,/探索|觀察/.test(primary.title)?'explore':'route',primary.title);b.title='主要行動；點擊執行';b.onclick=()=>runSceneAction(primary.fn);$('actions').appendChild(b);}
 const quick=available.find(a=>a.quick&&a!==primary);if(quick){const b=document.createElement('button');b.className='action explore';setActionVisual(b,'explore',quick.title);b.onclick=()=>runSceneAction(quick.fn);$('actions').appendChild(b);}
 /* Secondary interactions are now grouped under the right-side place drawer. */renderHotspots();renderFeed();renderPlaceDrawer();renderSceneInfoBar();renderOpeningObjective();renderBattleSurface();save();}
