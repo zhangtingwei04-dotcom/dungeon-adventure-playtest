@@ -79,7 +79,9 @@
  function mount({resolve,intents,distances,sprite,embedded=null}){
   const box=embedded?.host||document.createElement('dialog');
   if(!embedded){box.className='battle-playtest';box.setAttribute('aria-label','測試戰鬥');document.body.append(box);}
+  let entryToken=0;
   function exit(){
+   entryToken++;
    if(embedded){box.replaceChildren();embedded.side.replaceChildren();embedded.onClose();}
    else box.close();
   }
@@ -101,7 +103,11 @@
    team=setup(total,front);vacancies=0;previous=[];lastActions=new Map();
    foes=Array.from({length:enemyCount},(_,id)=>({id,name:'苔棘鬃獸'+(enemyCount>1?' '+(id+1):''),enemyHp:16,maxEnemyHp:16,turn:0,intent:id===0?'pounce':'watch',distance:id===0?1:2,focused:false,braced:false,result:null}));
    selectedId=0;round=0;outcome=null;battle=foes[0];
-   feedback=enemyCount+' 隻苔棘鬃獸從林邊現身。';phase='fight';render();
+   feedback=enemyCount+' 隻苔棘鬃獸起身，從不同位置靠近。';
+   if(embedded?.onStart){
+    const token=++entryToken;phase='entering';render();
+    Promise.resolve(embedded.onStart(enemyCount)).then(ok=>{if(token===entryToken&&ok!==false){phase='fight';render();}}).catch(()=>{if(token===entryToken){phase='fight';render();}});
+   }else{phase='fight';render();}
   }
   function turn(action,out,incoming){
    if(outcome||!battle||battle.result)return;
@@ -166,7 +172,9 @@
    const footer=add(box,'footer','','battle-test-footer');
    const controls=add(footer,'div','','battle-test-actions');
    const exitButton=button(embedded?'結束測試':'離開',exit);exitButton.className='battle-test-exit';footer.append(exitButton);
+   if(phase==='entering'){add(content,'p','怪物正在起身、靠近……');embedded?.onRender?.('迎戰入場');return;}
    if(phase==='setup'){
+    embedded?.onSetup?.(enemyCount);
     add(content,'p','測試使用獨立隊伍與體力，不影響正式存檔。');
     if(embedded){add(embedded.side,'p','設定測試隊伍與怪物數量後即可開始。','combat-status-line');embedded.onRender?.('測試配置');}
     select(content,'出發人數 ',total,6,n=>{total=n;front=Math.min(front,n);});
@@ -180,7 +188,7 @@
    const scene=add(main,'div','','battle-test-scene');
    const group=add(scene,'div','','battle-test-monsters');
    for(const foe of foes){
-    if(foe.result==='victory')continue;
+    if(embedded?.onState||foe.result==='victory')continue;
     const item=add(group,'div','','battle-test-monster');item.dataset.selected=String(foe.id===selectedId&&!outcome);
     const monster=add(item,'img','');monster.src=sprite;monster.alt=foe.name;
     add(item,'strong',foe.name);
@@ -197,7 +205,7 @@
     return {...m,action,status:position+'｜'+intent};
    });
    previous=renderPanel(side,{enemyList:foes.map(m=>({id:m.id,name:m.name,hp:m.enemyHp,maxHp:m.maxEnemyHp,result:m.result,selected:!outcome&&m.id===selectedId,status:m.result==='victory'?'已退走':m.result==='retreat'?'已脫離遭遇':distances[m.distance]+'｜'+intents[m.intent]})),onTarget:outcome?null:id=>{const next=foes[id];if(next&&!next.result){selectedId=id;battle=next;render();}},allies,feedback,previous,positions});
-   if(embedded){side.scrollTop=scroll;embedded.onRender?.(outcome?outcomes[outcome]:'第 '+(round+1)+' 回合');}
+   if(embedded){embedded.onState?.(foes,outcome?null:selectedId);side.scrollTop=scroll;embedded.onRender?.(outcome?outcomes[outcome]:'第 '+(round+1)+' 回合');}
    if(outcome){controls.append(button('重新配置',()=>{phase='setup';render();}));return;}
    for(const [id,label] of moves){if(id==='attack'&&battle.distance!==0||id==='approach'&&battle.distance===0||id==='backstep'&&battle.distance===2)continue;controls.append(button(label,()=>turn(id)));}
    const ready=team.filter(m=>!m.front&&m.hp>0);
@@ -219,7 +227,7 @@
     for(const incoming of ready)options.append(button(out.name+'換成'+incoming.name,()=>turn('dispatch',out,incoming)));
    }
   }
-  return ()=>{phase='setup';if(embedded)embedded.onOpen();render();if(!embedded)box.showModal();};
+  return ()=>{entryToken++;phase='setup';if(embedded)embedded.onOpen();render();if(!embedded)box.showModal();};
  }
  root.DungeonBattlePlaytestV1=Object.freeze({mount,setup,plan,priority,sortAllies,renderPanel,snapshot});
 })(typeof window!=='undefined'?window:globalThis);
