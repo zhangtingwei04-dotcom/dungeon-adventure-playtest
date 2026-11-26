@@ -1,11 +1,11 @@
 <!doctype html>
 <html lang="zh-Hant"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>苔棘鬃獸｜四足動態骨架試驗</title>
 <style>*{box-sizing:border-box}body{margin:0;background:#112820;color:#e6d9b7;font:15px system-ui,sans-serif;padding:12px}main{max-width:850px;margin:auto}h1{font-size:19px;margin:0 0 8px}p{line-height:1.6;margin:8px 0}canvas{width:100%;height:auto;display:block;background:#253c30;border:1px solid #9f8d60;border-radius:8px;image-rendering:pixelated}nav{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}button{background:#29483a;border:1px solid #a8915d;color:#f4e7c6;border-radius:5px;padding:9px 12px;font:inherit}button[aria-pressed=true]{background:#d3b879;color:#203126}label{display:inline-flex;align-items:center;gap:6px}small{color:#bcbea9}</style>
-<main><h1>苔棘鬃獸 V2｜四足骨架試驗</h1><p>同一張側面母圖；固定腳掌落點，關節帶動身體，非重新生成每一幀。</p><canvas id="scene" width="480" height="220" aria-label="四足動畫預覽"></canvas><nav><button data-mode="original">原圖</button><button data-mode="rest">休息</button><button data-mode="rise">起身</button><button data-mode="walk">原地步態</button><button data-mode="travel">地面行走</button><label>速度 <select id="speed"><option value=".5">半速</option><option value="1" selected>正常</option><option value="1.5">快速</option></select></label><button id="pause">暫停</button><label><input id="debug" type="checkbox">顯示骨架與足點</label></nav><p id="status" role="status">讀取 V2 母圖…</p><small>獨立研究頁：尚未接入遊戲。圖層切割、遠側肢體與地面接觸仍待美術驗收。</small></main>
+<main><h1>苔棘鬃獸 V2｜四足骨架試驗</h1><p>同一張側面母圖；固定腳掌落點，關節帶動身體，非重新生成每一幀。</p><canvas id="scene" width="480" height="220" aria-label="四足動畫預覽"></canvas><nav><button data-mode="original">原圖</button><button data-mode="rest">休息</button><button data-mode="rise">起身</button><button data-mode="walk">原地步態</button><button data-mode="travel">地面行走</button><button data-mode="alert">警戒</button><label><input id="secondary" type="checkbox" checked>頭部／鬃毛／尾部連動</label><label>速度 <select id="speed"><option value=".5">半速</option><option value="1" selected>正常</option><option value="1.5">快速</option></select></label><button id="pause">暫停</button><label><input id="debug" type="checkbox">顯示骨架與足點</label></nav><p id="status" role="status">讀取 V2 母圖…</p><small>獨立研究頁：尚未接入遊戲。圖層切割、遠側肢體與地面接觸仍待美術驗收。</small></main>
 <script>
 'use strict';
 const $=id=>document.getElementById(id),canvas=$('scene'),ctx=canvas.getContext('2d'),img=new Image();
-let mode='original',elapsed=0,last=0,paused=false,ready=false,body,parts;
+let mode='original',elapsed=0,last=0,paused=false,ready=false,body,parts,bodyPixels,warpCanvas,warpContext,warpPixels;
 const ground=136,period=1000,stance=.75,stride=16,travelSpeed=stride/(stance*period);
 const limbs=[
  {id:'front',hip:[75,87],knee:[65,112],foot:[42,136],bend:-1,upper:[[59,75],[86,75],[91,94],[78,115],[58,120],[48,109]],lower:[[57,105],[78,111],[64,130],[52,141],[24,141],[23,133],[42,121]],phase:0},
@@ -20,6 +20,35 @@ function prepare(){
  g.globalCompositeOperation='destination-out';for(const l of limbs){path(g,l.lower);g.fill();path(g,l.upper.map(([x,y])=>[x,Math.max(y,l.hip[1]+8)]));g.fill();}
  g.fillRect(0,140,body.width,body.height-140);
  parts=limbs.map(l=>({...l,a:len(l.hip,l.knee),b:len(l.knee,l.foot),u:layer(l.upper),v:layer(l.lower)}));
+ bodyPixels=g.getImageData(0,0,body.width,body.height);warpCanvas=document.createElement('canvas');warpCanvas.width=body.width;warpCanvas.height=body.height;warpContext=warpCanvas.getContext('2d');warpPixels=warpContext.createImageData(body.width,body.height);
+}
+// Soft, bounded secondary motion in mother-image coordinates. No new silhouettes.
+// The hip/shoulder attachment bands remain fixed so the leg rig is unaffected.
+function secondaryMotion(mode,elapsed,phase){
+ const cycle=phase*2*Math.PI,breath=Math.sin(elapsed/1000*2*Math.PI/3.4);
+ if(mode==='walk'||mode==='travel')return {head:.85*Math.sin(2*cycle-.4),mane:.65*Math.sin(2*cycle-1.1),tail:1.7*Math.sin(cycle-1.0),alert:0};
+ if(mode==='rise'){const p=ease(elapsed/850);return {head:-1.5*p*(1-p)*4,mane:.45*Math.sin(Math.PI*p),tail:.8*Math.sin(Math.PI*p),alert:0};}
+ if(mode==='alert'){const p=ease(elapsed/500);return {head:-1.8*p,mane:.6*p+.15*breath,tail:-1.3*p+.3*breath,alert:p};}
+ return {head:.28*breath,mane:.22*breath,tail:.45*Math.sin(elapsed/1000*2*Math.PI/3.4-.8),alert:0};
+}
+function displacement(x,y,m){
+ const head=(1-ease((x-26)/48))*ease((y-22)/34)*(1-ease((y-92)/17));
+ const mane=ease((x-45)/25)*(1-ease((x-145)/25))*(1-ease((y-30)/44));
+ const tail=ease((x-164)/35)*ease((y-45)/27);
+ // Attenuate displacement near the two fixed leg attachment points.
+ const anchor=(cx,cy)=>ease(Math.hypot(x-cx,y-cy)/22);
+ const fixed=anchor(75,87)*anchor(151,93);
+ return [fixed*(m.head*.18*head+m.mane*.5*mane-m.tail*.27*tail),fixed*(m.head*head+m.mane*mane+m.tail*tail)];
+}
+function warpedBody(m){
+ if(!bodyPixels||!$('secondary').checked)return body;
+ const w=body.width,h=body.height,src=bodyPixels.data,dst=warpPixels.data;
+ for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+  const [dx,dy]=displacement(x,y,m),sx=Math.round(x-dx),sy=Math.round(y-dy),out=4*(y*w+x);
+  if(sx<0||sx>=w||sy<0||sy>=h){dst[out]=dst[out+1]=dst[out+2]=dst[out+3]=0;continue;}
+  const i=4*(sy*w+sx);dst[out]=src[i];dst[out+1]=src[i+1];dst[out+2]=src[i+2];dst[out+3]=src[i+3];
+ }
+ warpContext.putImageData(warpPixels,0,0);return warpCanvas;
 }
 function solve(hip,foot,a,b,bend){
  const dx=foot[0]-hip[0],dy=foot[1]-hip[1],raw=Math.hypot(dx,dy),d=clamp(raw,Math.abs(a-b)+.01,a+b-.01);
@@ -48,14 +77,14 @@ function render(){
  ctx.save();ctx.translate(baseX,48);ctx.imageSmoothingEnabled=false;
  ctx.fillStyle='#19291e99';ctx.beginPath();ctx.ellipse(105,ground+4,83,7,0,0,Math.PI*2);ctx.fill();
  if(debug){ctx.strokeStyle='#baae76';ctx.setLineDash([5,4]);ctx.beginPath();ctx.moveTo(-110,ground);ctx.lineTo(330,ground);ctx.stroke();ctx.setLineDash([]);}
- if(ready){if(mode==='original')ctx.drawImage(img,0,0);else{for(const l of parts)drawLeg(l,phase,dy,walk,true,debug,overlays);ctx.drawImage(body,0,dy);for(const l of parts)drawLeg(l,phase,dy,walk,false,debug,overlays);}}
+ if(ready){if(mode==='original')ctx.drawImage(img,0,0);else{for(const l of parts)drawLeg(l,phase,dy,walk,true,debug,overlays);ctx.drawImage(warpedBody(secondaryMotion(mode,elapsed,phase)),0,dy);for(const l of parts)drawLeg(l,phase,dy,walk,false,debug,overlays);}}
  if(debug){for(const {hip,knee,foot,far,planted} of overlays){ctx.strokeStyle=far?'#7898a1':'#e2c475';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(...hip);ctx.lineTo(...knee);ctx.lineTo(...foot);ctx.stroke();for(const p of [hip,knee]){ctx.fillStyle='#f4db91';ctx.fillRect(p[0]-1.5,p[1]-1.5,3,3);}ctx.fillStyle=planted?'#a8e5a2':'#e7b880';ctx.fillRect(foot[0]-2,foot[1]-2,4,4);}}
- ctx.restore();ctx.fillStyle='#ddd1ae';ctx.font='12px system-ui';ctx.fillText(walk?'步態相位 '+Math.round(phase*100)+'%':mode==='rise'?'起身 '+Math.round(clamp(elapsed/850,0,1)*100)+'%':mode==='rest'?'低伏':'母圖',12,18);
+ ctx.restore();ctx.fillStyle='#ddd1ae';ctx.font='12px system-ui';ctx.fillText(walk?'步態相位 '+Math.round(phase*100)+'%':mode==='rise'?'起身 '+Math.round(clamp(elapsed/850,0,1)*100)+'%':mode==='rest'?'低伏':mode==='alert'?'警戒':'母圖',12,18);
 }
 function tick(now){if(!paused)elapsed+=Math.min(60,last?now-last:0)*Number($('speed').value);last=now;render();requestAnimationFrame(tick);}
 for(const b of document.querySelectorAll('[data-mode]'))b.onclick=()=>{mode=b.dataset.mode;elapsed=0;paused=false;$('pause').textContent='暫停';for(const n of document.querySelectorAll('[data-mode]'))n.setAttribute('aria-pressed',String(n===b));};
 $('pause').onclick=()=>{paused=!paused;$('pause').textContent=paused?'繼續':'暫停';};
-img.onload=()=>{prepare();ready=true;$('status').textContent='母圖 '+img.naturalWidth+' × '+img.naturalHeight+'；四拍步態、三足支撐、地面移動對應步幅。';document.querySelector('[data-mode="original"]').click();requestAnimationFrame(tick);};
+img.onload=()=>{prepare();ready=true;$('status').textContent='母圖 '+img.naturalWidth+' × '+img.naturalHeight+'；四拍步態、三足支撐；頭部、棘鬃與尾部使用同一母圖的小幅形變。';document.querySelector('[data-mode="original"]').click();requestAnimationFrame(tick);};
 img.onerror=()=>$('status').textContent='母圖載入失敗，未使用替代舊圖。';
 img.src='./assets/monsters/moss_beast_v2_side.png';
 </script></html>
