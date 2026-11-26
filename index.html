@@ -5200,7 +5200,7 @@ function explorationToast(site,last,newMaterials){
 function openingView(){return window.DungeonOpeningProgressionV1.view(s,travelTimeFor('wreck','trail'));}
 function openingAdventure(){return !s.flags.rescued&&['wreck','trail'].includes(s.scene);}
 function openingExitOnly(){return window.DungeonSceneActionTimeV1.openingExitOnly(s,openingView());}
-function exitOnlyAction(){if(!openingExitOnly())return false;if(routeKnown('wreck','trail')){inspectInScene('車轍指向林間小徑。',[{label:routeDestinationLabel('trail'),fn:()=>change('trail')},{label:'留在原地',fn:()=>{}}]);}else openingDepartureCue();return true;}
+function exitOnlyAction(){if(!openingExitOnly())return false;if(routeKnown('wreck','trail')){inspectInScene('車轍指向林間小徑。',[{label:routeDestinationLabel('trail'),fn:()=>change('trail')},{label:'留在原地',fn:()=>{}}]);}else if(s.flags.openingTracks)followOpeningClue();else marks();return true;}
 function spendSceneInteraction(kind){recoveryTime(window.DungeonSceneActionTimeV1.cost(kind));}
 function renderOpeningObjective(){
  const stage=$('sceneStage');let el=stage.querySelector('.opening-objective');
@@ -5237,7 +5237,6 @@ function followOpeningClue(){
  const from=s.scene,to=from==='wreck'?'trail':'gate';
  if(from==='wreck'&&!s.flags.openingTracks)return;
  if(routeKnown(from,to)){focusDiscoveredRoute(from,to);return;}
- if(from==='wreck'&&openingDepartureCue())return;
  recoveryTime(from==='wreck'?10:5);
  if(!discoverRoute(from,to))return;
  addTravel('discovery',from==='wreck'?'循著車轍找到了林間小徑。':'道路前方有腳步聲，似乎有人經過。',from==='wreck'?'終於有離開的方向了。':'也許可以找到幫助。');
@@ -5247,8 +5246,8 @@ function followOpeningClue(){
 }
 function openingDepartureCue(){
  if(!openingView().needsCue)return false;
- // A story observation resolves the exit even if an older save reached the deadline without discovering it.
- if(!routeKnown('wreck','trail')){discoverRoute('wreck','trail');addTravel('discovery','循著車轍辨認出一條通往林間小徑的道路。','終於找到可以離開的方向。');}
+ // Deadline only supplies a hint. It must never unlock the route itself.
+ if(!routeKnown('wreck','trail')){inspectInScene('天色漸暗，得先查看馬車附近留下的道路線索。',[{label:'查看車輪與泥地',fn:marks},{label:'先離開',fn:()=>{}}]);return true;}
  if(window.DungeonOpeningProgressionV1.markCue(s,travelTimeFor('wreck','trail'))){
   addTravel('scene','事故現場已大致查看完畢，車轍延伸向林間小徑。','天色即將轉暗，得趁還看得清道路時離開。');
   save();render();
@@ -7900,13 +7899,12 @@ function glance(){
  {label:'先離開',fn:()=>{}}]);
 }
 function marks(){
- if(exitOnlyAction())return;
  spendSceneInteraction('inspect');
  const known=routeKnown('wreck','trail');note('scratches','車板上有不明的深刻痕跡',true);
  inspectInScene(known?'泥地上的車轍延伸到已發現的小徑。':'你蹲下查看破裂的車輪。泥地上有兩道被壓深的車轍，一路延伸到樹叢深處。',[
  {label:known?'前往林間小徑':'循著車轍',fn:()=>{
   if(known){routeGo('trail');return;}
-  s.flags.openingTracks=true;
+  s.flags.openingTracks=true;save();
   followOpeningClue();
  }},
  {label:'留在原地',fn:()=>{}}
@@ -8213,7 +8211,7 @@ function finishBattle(){
  if(state.source==='opening')s.flags.openingMonsterResolved=true;
  if(state.result==='defeat'){s.hp=Math.min(s.maxHp,5);advanceGameTime(state.source==='opening'?3:20,'combat-recovery');}
  $('battleSurface').classList.add('hidden');syncDialogueInputLock();save();render();
- if(state.source==='opening'&&s.scene==='wreck'&&!s.flags.rescued){if(!openingDepartureCue())presentDiscoveredRoute('wreck','trail');}
+ if(state.source==='opening'&&s.scene==='wreck'&&!s.flags.rescued){if(routeKnown('wreck','trail'))presentDiscoveredRoute('wreck','trail');else inspectInScene('林間重新安靜下來，你還需要確認離開的道路。',[{label:'查看車輪與泥地',fn:marks},{label:'先離開',fn:()=>{}}]);}
 }
 
 function entries(){const a={
@@ -8229,7 +8227,7 @@ function entries(){const a={
  outskirts:[routeAction('返回城鎮街道','street',()=>offerOutskirtsTransport('street'),true),action('看看路口的舊路標',roadsideSign),action('眺望遠處的林地',countryside)],
  home:[routeAction('回到城鎮街道','street',()=>change('street'),true),(s.flags.homeMet?action:eventAction)('與昨天留守的兩人聊天',meetHome),action('看看公共空間',()=>dialog('一起生活的地方','牆邊掛著修補過的旅行斗篷，桌上則是輪流採買的清單。這裡是六位冒險者自己生活的地方，並不是主角自動入住的房間。',[{label:'不打擾了',fn:()=>{}}],'生活角落'))]
 };
- if(openingExitOnly())return routeKnown('wreck','trail')?[routeAction('前往林間小徑','trail',()=>change('trail'),true)]:[eventAction('尋找出口',exitOnlyAction,true)];
+ if(openingExitOnly())return routeKnown('wreck','trail')?[routeAction('前往林間小徑','trail',()=>change('trail'),true)]:[eventAction(s.flags.openingTracks?'循著車轍':'尋找出口',exitOnlyAction,true)];
  const filtered=(a[s.scene]||[]).filter(x=>!x.routeTo||routeKnown(s.scene,x.routeTo));
  const primary=!filtered.some(x=>x.primary);
  const opening=openingView();
