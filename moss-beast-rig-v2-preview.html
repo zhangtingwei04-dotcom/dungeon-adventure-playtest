@@ -1,15 +1,15 @@
 <!doctype html>
 <html lang="zh-Hant"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>苔棘鬃獸｜四足動態骨架試驗</title>
 <style>*{box-sizing:border-box}body{margin:0;background:#112820;color:#e6d9b7;font:15px system-ui,sans-serif;padding:12px}main{max-width:850px;margin:auto}h1{font-size:19px;margin:0 0 8px}p{line-height:1.6;margin:8px 0}canvas{width:100%;height:auto;display:block;background:#253c30;border:1px solid #9f8d60;border-radius:8px;image-rendering:pixelated}nav{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}button{background:#29483a;border:1px solid #a8915d;color:#f4e7c6;border-radius:5px;padding:9px 12px;font:inherit}button[aria-pressed=true]{background:#d3b879;color:#203126}label{display:inline-flex;align-items:center;gap:6px}small{color:#bcbea9}</style>
-<main><h1>苔棘鬃獸 V2｜四足骨架試驗</h1><p>同一張側面母圖；固定腳掌落點，關節帶動身體，非重新生成每一幀。</p><canvas id="scene" width="480" height="220" aria-label="四足動畫預覽"></canvas><nav><button data-mode="original">原圖</button><button data-mode="rest">休息</button><button data-mode="rise">起身</button><button data-mode="walk">四足步態</button><button id="pause">暫停</button><label><input id="debug" type="checkbox">顯示骨架與足點</label></nav><p id="status" role="status">讀取 V2 母圖…</p><small>獨立研究頁：尚未接入遊戲。圖層切割、遠側肢體與地面接觸仍待美術驗收。</small></main>
+<main><h1>苔棘鬃獸 V2｜四足骨架試驗</h1><p>同一張側面母圖；固定腳掌落點，關節帶動身體，非重新生成每一幀。</p><canvas id="scene" width="480" height="220" aria-label="四足動畫預覽"></canvas><nav><button data-mode="original">原圖</button><button data-mode="rest">休息</button><button data-mode="rise">起身</button><button data-mode="walk">原地步態</button><button data-mode="travel">地面行走</button><label>速度 <select id="speed"><option value=".5">半速</option><option value="1" selected>正常</option><option value="1.5">快速</option></select></label><button id="pause">暫停</button><label><input id="debug" type="checkbox">顯示骨架與足點</label></nav><p id="status" role="status">讀取 V2 母圖…</p><small>獨立研究頁：尚未接入遊戲。圖層切割、遠側肢體與地面接觸仍待美術驗收。</small></main>
 <script>
 'use strict';
 const $=id=>document.getElementById(id),canvas=$('scene'),ctx=canvas.getContext('2d'),img=new Image();
 let mode='original',elapsed=0,last=0,paused=false,ready=false,body,parts;
-const ground=136;
+const ground=136,period=1000,stance=.75,stride=16,travelSpeed=stride/(stance*period);
 const limbs=[
  {id:'front',hip:[75,87],knee:[65,112],foot:[42,136],bend:-1,upper:[[59,75],[86,75],[91,94],[78,115],[58,120],[48,109]],lower:[[57,105],[78,111],[64,130],[52,141],[24,141],[23,133],[42,121]],phase:0},
- {id:'rear',hip:[151,93],knee:[147,116],foot:[161,136],bend:1,upper:[[135,77],[164,78],[178,100],[164,122],[140,122],[131,109]],lower:[[138,109],[160,110],[170,123],[178,138],[144,142],[139,132],[145,124]],phase:.5}
+ {id:'rear',hip:[151,93],knee:[147,116],foot:[161,136],bend:1,upper:[[135,77],[164,78],[178,100],[164,122],[140,122],[131,109]],lower:[[138,109],[160,110],[170,123],[178,138],[144,142],[139,132],[145,124]],phase:.25}
 ];
 const clamp=(n,l,h)=>Math.max(l,Math.min(h,n)),len=(a,b)=>Math.hypot(b[0]-a[0],b[1]-a[1]),angle=(a,b)=>Math.atan2(b[1]-a[1],b[0]-a[0]),ease=t=>{t=clamp(t,0,1);return t*t*(3-2*t)};
 function path(g,poly){g.beginPath();poly.forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));g.closePath();}
@@ -26,28 +26,36 @@ function solve(hip,foot,a,b,bend){
  const base=Math.atan2(dy,dx),off=Math.acos(clamp((a*a+d*d-b*b)/(2*a*d),-1,1));
  const theta=base+bend*off;return [hip[0]+Math.cos(theta)*a,hip[1]+Math.sin(theta)*a];
 }
-function footAt(l,phase,walk,far){const p=(phase+l.phase+(far?.5:0))%1,step=16;let x=l.foot[0]+(l.id==='front'?5:0),y=ground;
- if(walk){if(p<.65)x+=-step/2+step*(p/.65);else{const t=(p-.65)/.35;x+=step/2-step*ease(t);y-=11*Math.sin(Math.PI*t);}}
- if(far){x+=5;y-=3;}return [x,y];}
+function footAt(l,phase,walk,far){
+ const p=(phase+l.phase+(far?.5:0))%1;let x=l.foot[0]+(l.id==='front'?5:0),y=ground;
+ // Four-beat crawl: only one limb swings at a time. During support,
+ // local foot motion cancels the body's forward world translation.
+ if(walk){if(p<stance)x+=-stride/2+stride*(p/stance);else{const t=(p-stance)/(1-stance);x+=stride/2-stride*ease(t);y-=7*Math.sin(Math.PI*t)**2;}}
+ if(far){x+=5;y-=3;}return [x,y];
+}
+function support(l,phase,far){return (phase+l.phase+(far?.5:0))%1<stance;}
 function segment(bitmap,fromA,fromB,toA,toB){ctx.save();ctx.translate(...toA);ctx.rotate(angle(toA,toB)-angle(fromA,fromB));ctx.translate(-fromA[0],-fromA[1]);ctx.drawImage(bitmap,0,0);ctx.restore();}
-function drawLeg(l,phase,dy,walk,far,debug){
+function drawLeg(l,phase,dy,walk,far,debug,overlays){
  const hip=[l.hip[0]+(far?5:0),l.hip[1]+dy-(far?3:0)],foot=footAt(l,phase,walk,far),knee=solve(hip,foot,l.a,l.b,l.bend);
  ctx.save();if(far)ctx.filter='brightness(.65)';segment(l.u,l.hip,l.knee,hip,knee);segment(l.v,l.knee,l.foot,knee,foot);ctx.restore();
- if(debug){ctx.strokeStyle=far?'#7898a1':'#e2c475';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(...hip);ctx.lineTo(...knee);ctx.lineTo(...foot);ctx.stroke();for(const p of [hip,knee,foot]){ctx.fillStyle='#f4db91';ctx.fillRect(p[0]-1.5,p[1]-1.5,3,3);}}
+ if(debug)overlays.push({hip,knee,foot,far,planted:!walk||support(l,phase,far)});
 }
 function render(){
  ctx.clearRect(0,0,480,220);const bg=ctx.createLinearGradient(0,0,0,220);bg.addColorStop(0,'#203a31');bg.addColorStop(1,'#43513b');ctx.fillStyle=bg;ctx.fillRect(0,0,480,220);
- const walk=mode==='walk',phase=(elapsed/900)%1,dy=mode==='rest'?17:mode==='rise'?5+12*(1-ease(elapsed/850)):walk?5+1.2*Math.cos(phase*4*Math.PI):5;
- const debug=$('debug').checked;ctx.save();ctx.translate(130,48);ctx.imageSmoothingEnabled=false;
+ const walk=mode==='walk'||mode==='travel',phase=(elapsed/period)%1,dy=mode==='rest'?17:mode==='rise'?5+12*(1-ease(elapsed/850)):walk?5+.9*Math.cos(phase*8*Math.PI):5;
+ const debug=$('debug').checked,overlays=[];const baseX=mode==='travel'?490-(elapsed*travelSpeed)%710:130;
+ ctx.strokeStyle='#89906b66';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0,190);ctx.lineTo(480,190);ctx.stroke();for(let x=0;x<480;x+=24){ctx.fillStyle='#9ca07866';ctx.fillRect(x,190,2,3);}
+ ctx.save();ctx.translate(baseX,48);ctx.imageSmoothingEnabled=false;
  ctx.fillStyle='#19291e99';ctx.beginPath();ctx.ellipse(105,ground+4,83,7,0,0,Math.PI*2);ctx.fill();
  if(debug){ctx.strokeStyle='#baae76';ctx.setLineDash([5,4]);ctx.beginPath();ctx.moveTo(-110,ground);ctx.lineTo(330,ground);ctx.stroke();ctx.setLineDash([]);}
- if(ready){if(mode==='original')ctx.drawImage(img,0,0);else{for(const l of parts)drawLeg(l,phase,dy,walk,true,debug);ctx.drawImage(body,0,dy);for(const l of parts)drawLeg(l,phase,dy,walk,false,debug);}}
+ if(ready){if(mode==='original')ctx.drawImage(img,0,0);else{for(const l of parts)drawLeg(l,phase,dy,walk,true,debug,overlays);ctx.drawImage(body,0,dy);for(const l of parts)drawLeg(l,phase,dy,walk,false,debug,overlays);}}
+ if(debug){for(const {hip,knee,foot,far,planted} of overlays){ctx.strokeStyle=far?'#7898a1':'#e2c475';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(...hip);ctx.lineTo(...knee);ctx.lineTo(...foot);ctx.stroke();for(const p of [hip,knee]){ctx.fillStyle='#f4db91';ctx.fillRect(p[0]-1.5,p[1]-1.5,3,3);}ctx.fillStyle=planted?'#a8e5a2':'#e7b880';ctx.fillRect(foot[0]-2,foot[1]-2,4,4);}}
  ctx.restore();ctx.fillStyle='#ddd1ae';ctx.font='12px system-ui';ctx.fillText(walk?'步態相位 '+Math.round(phase*100)+'%':mode==='rise'?'起身 '+Math.round(clamp(elapsed/850,0,1)*100)+'%':mode==='rest'?'低伏':'母圖',12,18);
 }
-function tick(now){if(!paused)elapsed+=Math.min(60,last?now-last:0);last=now;render();requestAnimationFrame(tick);}
+function tick(now){if(!paused)elapsed+=Math.min(60,last?now-last:0)*Number($('speed').value);last=now;render();requestAnimationFrame(tick);}
 for(const b of document.querySelectorAll('[data-mode]'))b.onclick=()=>{mode=b.dataset.mode;elapsed=0;paused=false;$('pause').textContent='暫停';for(const n of document.querySelectorAll('[data-mode]'))n.setAttribute('aria-pressed',String(n===b));};
 $('pause').onclick=()=>{paused=!paused;$('pause').textContent=paused?'繼續':'暫停';};
-img.onload=()=>{prepare();ready=true;$('status').textContent='母圖 '+img.naturalWidth+' × '+img.naturalHeight+'；兩節關節、交替足點、固定地面。';document.querySelector('[data-mode="original"]').click();requestAnimationFrame(tick);};
+img.onload=()=>{prepare();ready=true;$('status').textContent='母圖 '+img.naturalWidth+' × '+img.naturalHeight+'；四拍步態、三足支撐、地面移動對應步幅。';document.querySelector('[data-mode="original"]').click();requestAnimationFrame(tick);};
 img.onerror=()=>$('status').textContent='母圖載入失敗，未使用替代舊圖。';
 img.src='./assets/monsters/moss_beast_v2_side.png';
 </script></html>
