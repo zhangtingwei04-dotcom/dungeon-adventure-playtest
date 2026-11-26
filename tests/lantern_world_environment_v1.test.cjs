@@ -1,0 +1,14 @@
+const assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs');
+const window={};vm.runInNewContext(fs.readFileSync(require('node:path').join(__dirname,'../assets/lantern_world_environment_v1.js'),'utf8'),{window});
+const actor={seed:1,worldMinutes:960,scene:'wreck'};
+const weather={at:()=>({kind:'clear',temperature:18,snowCover:0,wind:.2}),kinds:{snow:{wind:.2,rain:0,snow:1}},climate:()=>({temperature:4}),profileFor:()=>({temp:0,wind:1,rain:1,snow:1}),environment:()=>({snowCover:.3,behaviorWind:.4})};
+const core=window.LanternWorldEnvironmentV1.create(weather);
+assert.equal(core.actual(actor).kind,'clear');
+assert.equal(core.presentation(actor,{kind:'snow',wind:5}).kind,'snow');
+assert.equal(core.presentation(actor,{kind:'snow',wind:5}).wind,1);
+assert.equal(core.ecology(actor,{kind:'snow'}).snowCover,.3);
+assert.equal(core.character(actor,{snapshot:(a,w)=>w},false).kind,'clear');
+assert.equal(core.actual(actor).temperature,18);
+assert.equal(actor.worldMinutes,960);
+assert.equal(Object.isFrozen(core.actual(actor)),true);
+console.log('Lantern world environment passed');
