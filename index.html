@@ -7135,12 +7135,21 @@ function renderSceneActionDock(host,preview){
   const button=document.createElement('button');button.type='button';
   button.className='side-main-action '+kind;
   setActionVisual(button,kind,label);
-  button.onclick=()=>guardedAction(fn);host.appendChild(button);
+  button.onclick=()=>guardedAction(()=>{
+   const before=s.scene;
+   const notice=$('toast').textContent;
+   fn();
+   if(activeDialogueSurface()||sceneDialogueState.open)return;
+   if(s.scene!==before)showDockNarration('你來到'+names[s.scene][0]+'。');
+   else if($('toast').classList.contains('active')&&$('toast').textContent!==notice)showDockNarration($('toast').textContent);
+  });
+  host.appendChild(button);
  }
  if(primary)add(primary.title,primary.fn,'primary');
  add('調查／其他行動',()=>{
   sceneActionView=sceneActionView?null:{actor:s,scene:s.scene,detail:null};
   renderPlaceDrawer();
+  if(sceneActionView)showDockNarration('你環顧四周，開始查看附近可以調查的物件。');
  },'explore');
  if(activeSideTab==='locations'&&preview.reachable&&!preview.current){
   add(preview.special?'前往調查':'前往 '+names[preview.id][0],()=>placeDrawerTravel(preview.id),'location-preview-travel');
@@ -7859,7 +7868,9 @@ function renderSceneDialogue(){
   button.onclick=()=>{closeSceneDialogue();choice.fn?.();};
   options.appendChild(button);
  }
- box.classList.remove('hidden');$('app').classList.add('scene-dialogue-active');syncDialogueInputLock();
+ box.classList.remove('hidden');
+ $('app').classList.toggle('scene-dialogue-active',sceneDialogueState.purpose!=='dock-feedback');
+ syncDialogueInputLock();
 }
 function openSceneDialogue(lines,purpose=null,choices=[]){
  if(!Array.isArray(lines)||!lines.length)return;
@@ -7869,6 +7880,9 @@ function openSceneDialogue(lines,purpose=null,choices=[]){
  }));
  if(!sceneDialogueState.lines.length)return;
  sceneDialogueState.index=0;sceneDialogueState.open=true;sceneDialogueState.purpose=purpose;sceneDialogueState.choices=choices;renderSceneDialogue();
+}
+function showDockNarration(text){
+ openSceneDialogue([{speaker:'旁白',text}],'dock-feedback');
 }
 function closeSceneDialogue(){
  sceneDialogueState.open=false;sceneDialogueState.lines=[];sceneDialogueState.index=0;sceneDialogueState.purpose=null;sceneDialogueState.choices=[];
@@ -7893,6 +7907,7 @@ function openWreckIntroduction(){
 // Shared interaction policy; applies equally to narration, choices, inspections and encounters.
 function activeDialogueSurface(){
  for(const id of ['dialogVeil','sceneDialogue','sceneInspection','encounterCue','battleSurface']){
+  if(id==='sceneDialogue'&&sceneDialogueState.purpose==='dock-feedback')continue;
   const el=$(id);
   if(el&&!el.classList.contains('hidden'))return el;
  }
@@ -7905,7 +7920,7 @@ function syncDialogueInputLock(){
   const el=$(id);if(el)el.inert=!!active&&!el.contains(active);
  }
 }
-function guardedAction(fn){if(activeDialogueSurface())return;const now=Date.now();if(now-lastActionAt<300)return;lastActionAt=now;fn?.();}
+function guardedAction(fn){if(activeDialogueSurface())return;const now=Date.now();if(now-lastActionAt<300)return;lastActionAt=now;if(sceneDialogueState.purpose==='dock-feedback')closeSceneDialogue();fn?.();}
 // Capture phase protects every background control, including dynamically generated buttons.
 function dialogueInfoAllowed(target){
  if(!target?.closest)return false;
