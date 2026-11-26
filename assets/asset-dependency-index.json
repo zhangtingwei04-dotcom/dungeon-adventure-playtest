@@ -34,6 +34,7 @@
       "assets/forest_v5_neutral_background.js",
       "assets/lantern_action_core_v1.js",
       "assets/lantern_appearance_core_v1.js",
+      "assets/lantern_battle_core_v1.js",
       "assets/lantern_character_core_v1.js",
       "assets/lantern_creature_behavior_v1.js",
       "assets/lantern_ecology_core_v1.js",
