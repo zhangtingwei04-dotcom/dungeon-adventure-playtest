@@ -1,0 +1,16 @@
+const assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs');
+const window={};vm.runInNewContext(fs.readFileSync(require('node:path').join(__dirname,'../assets/object_investigation_v1.js'),'utf8'),{window});
+const core=window.DungeonObjectInvestigationV1,actor={worldMinutes:960},wagon={id:'wagon',assetId:'forest4_wagon'},mushroom={id:'mushroom',assetId:'forest4_mushroom'};
+const objects=[wagon,mushroom];
+assert.equal(core.known(actor,'wreck',objects).length,0);
+assert.equal(core.inspect(actor,'wreck',wagon),true);
+assert.equal(core.inspect(actor,'wreck',wagon),false);
+assert.equal(core.known(actor,'wreck',objects).length,1);
+assert.equal(core.known(actor,'trail',objects).length,0);
+assert.equal(core.inspect(actor,'wreck',mushroom),true);
+assert.ok(core.known(actor,'wreck',objects).some(x=>x.includes('可採集')));
+assert.equal(core.collect(actor,'wreck',mushroom),true);
+assert.equal(core.collect(actor,'wreck',mushroom),false);
+assert.equal(core.visible(actor,'wreck',mushroom),false);
+assert.ok(core.known(actor,'wreck',objects).some(x=>x.includes('已採集')));
+console.log('Lantern investigation knowledge passed');
