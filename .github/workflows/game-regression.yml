@@ -1,7 +1,7 @@
 name: Game regression
 on:
   push:
-    branches: [main]
+    branches: [main, lantern-core-v1]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -30,6 +30,10 @@ jobs:
         run: node tests/art-lifecycle.cjs
       - name: Run cross-module integration and long simulation
         run: node tests/integration.cjs
+      - name: Test Lantern core lifecycle
+        run: |
+          node tests/scene_dialogue_v1.test.cjs
+          node tests/lantern_action_core_v1.test.cjs
       - name: Install test runner
         run: npm install --no-save --no-package-lock playwright@1.56.1
       - name: Install browser
