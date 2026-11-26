@@ -4511,6 +4511,7 @@ window.DUNGEON_FOREST_V4_LAYOUT=window.DUNGEON_WRECK_CURRENT_LAYOUT;
 <script src="./assets/lantern_ecology_core_v1.js"></script>
 <script src="./assets/lantern_creature_behavior_v1.js"></script>
 <script src="./assets/lantern_resource_core_v1.js"></script>
+<script src="./assets/lantern_character_core_v1.js"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/scene_objects_v1.js?v=20261125-winter"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
@@ -5806,12 +5807,10 @@ const PAPERDOLL_ABNORMAL_STATES=Object.freeze({
 });
 let paperDollAbnormalPreview=new Set(),paperDollAbnormalPreviewOpen=false;
 function currentPaperDollAbnormalStates(){
- const real=Array.isArray(s.physicalStatusEffects)?s.physicalStatusEffects:[];
- return [...new Set([...real,...paperDollAbnormalPreview])].filter(id=>Object.prototype.hasOwnProperty.call(PAPERDOLL_ABNORMAL_STATES,id));
+ return window.LanternCharacterCoreV1.effects(s,PAPERDOLL_ABNORMAL_STATES,paperDollAbnormalPreview);
 }
 function paperDollBodyCondition(){
- const max=Math.max(1,Number(s.maxHp)||1),hp=Math.max(0,Math.min(max,Number(s.hp)||0)),ratio=hp/max;
- const actual=ratio>0.75?'normal':ratio>0.50?'tired':ratio>0.25?'weak':'critical';
+ const {max,hp,condition:actual}=window.LanternCharacterCoreV1.health(s);
  const id=paperDollPhysicalPreview&&PAPERDOLL_BODY_CONDITIONS[paperDollPhysicalPreview]?paperDollPhysicalPreview:actual;
  return {id,actual,preview:paperDollPhysicalPreview!==null,...PAPERDOLL_BODY_CONDITIONS[id],hp,max};
 }
@@ -8199,9 +8198,7 @@ function setActionVisual(button,kind,label){
 /* Only HP is a real gameplay stat. MP is disabled; SP displays a session-only
    VISUAL prototype with no gameplay effects or save attributes. */
 function renderPlayerStatus(){
- const max=Math.max(1,Number(s.maxHp)||1);
- const hp=Math.max(0,Math.min(max,Number(s.hp)||0));
- const percent=Math.max(0,Math.min(100,hp/max*100));
+ const {max,hp,percent}=window.LanternCharacterCoreV1.health(s);
  $('playerHpValue').textContent=hp+'/'+max;
  $('playerHpFill').style.width=percent+'%';
  $('hudHPText').textContent=hp+'/'+max;
