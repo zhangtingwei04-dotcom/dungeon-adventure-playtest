@@ -1,0 +1,15 @@
+const assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs');
+const window={};vm.runInNewContext(fs.readFileSync(require('node:path').join(__dirname,'../assets/lantern_location_core_v1.js'),'utf8'),{window});
+const core=window.LanternLocationCoreV1.create({names:{wreck:['馬車'],trail:['小徑']},routes:[{a:'wreck',b:'trail',walk:13},{a:'street',b:'outskirts',walk:25,carriage:9},{a:'street',b:'home',walk:8},{a:'gate',b:'street',walk:7}],indoors:new Set(['home'])});
+const a={flags:{}};
+assert.equal(core.duration(a,'trail','wreck'),13);
+assert.equal(core.duration(a,'street','outskirts','carriage'),null);
+assert.equal(core.searchable(a,'street','home'),false);
+assert.equal(core.searchable(a,'gate','street'),false);
+a.flags.morning=true;a.flags.houseInvite=true;
+assert.equal(core.duration(a,'street','outskirts','carriage'),9);
+assert.equal(core.searchable(a,'street','home'),true);
+assert.equal(core.searchable(a,'gate','street'),true);
+assert.equal(core.indoor('home'),true);
+assert.equal(core.has('constructor'),false);
+console.log('Lantern location core passed');
