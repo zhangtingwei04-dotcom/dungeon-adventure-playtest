@@ -1,0 +1,12 @@
+const assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs'),path=require('node:path');
+const window={};vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../assets/lantern_character_core_v1.js'),'utf8'),{window});
+const core=window.LanternCharacterCoreV1;
+for(const [hp,condition] of [[16,'normal'],[12,'tired'],[8,'weak'],[4,'critical'],[0,'critical']])assert.equal(core.health({hp,maxHp:16}).condition,condition);
+assert.equal(core.health({hp:20,maxHp:16}).hp,16);
+assert.equal(core.health({hp:-2,maxHp:16}).hp,0);
+assert.equal(core.health({hp:Infinity,maxHp:Infinity}).percent,0);
+const actor={hp:8,maxHp:16,physicalStatusEffects:['injury']};
+assert.equal(core.effects(actor,{injury:'受傷',poison:'中毒'},new Set(['poison','invalid'])).join(','),'injury,poison');
+assert.equal(actor.physicalStatusEffects.join(','),'injury');
+assert.equal(core.health(actor).percent,50);
+console.log('Lantern character core passed');
