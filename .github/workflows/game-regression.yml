@@ -26,14 +26,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Check approved art baselines and consumers
-        run: node tests/art-lifecycle.cjs
-      - name: Run cross-module integration and long simulation
-        run: node tests/integration.cjs
       - name: Test Lantern core lifecycle
         run: |
           node tests/scene_dialogue_v1.test.cjs
           node tests/lantern_action_core_v1.test.cjs
+          node tests/lantern_investigation_v1.test.cjs
+      - name: Check approved art baselines and consumers
+        run: node tests/art-lifecycle.cjs
+      - name: Run cross-module integration and long simulation
+        run: node tests/integration.cjs
       - name: Install test runner
         run: npm install --no-save --no-package-lock playwright@1.56.1
       - name: Install browser
