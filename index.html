@@ -4510,6 +4510,7 @@ window.DUNGEON_FOREST_V4_LAYOUT=window.DUNGEON_WRECK_CURRENT_LAYOUT;
 <script src="./assets/lantern_scene_core_v1.js"></script>
 <script src="./assets/lantern_ecology_core_v1.js"></script>
 <script src="./assets/lantern_creature_behavior_v1.js"></script>
+<script src="./assets/lantern_resource_core_v1.js"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/scene_objects_v1.js?v=20261125-winter"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
@@ -5151,9 +5152,8 @@ function collectExplorationMaterial(site,id){
   const target=bound&&[...(window.DUNGEON_FOREST_V4_LAYOUT?.scenes?.wreck||[]),...(window.DUNGEON_FOREST_V4_SPAWNS||[])].find(o=>o.id===bound[0]);
   if(target)window.DungeonObjectInvestigationV1.collect(s,site,target);
  }
- daily.collected++;
+ if(!window.LanternResourceCoreV1.collect(s.recovery.parts,daily,find.material))return;
  queue.splice(index,1);
- s.recovery.parts[find.material]=(s.recovery.parts[find.material]||0)+1;
  addTravel('discovery','在'+names[site][0]+'收取普通材料：'+find.material+' ×1。','只是一般環境資源，先收好再考慮用途。');
  save();render();toast('已收取 '+find.material+' ×1');
 }
@@ -8385,9 +8385,7 @@ function harvestForestObject(o){
  const daily=explorationDaily('wreck');
  if(daily.collected>=2){toast('今天從這裡帶走的普通材料已達上限。');return;}
  normalizeRecovery();
- if(!core.collect(s,'wreck',o))return;
- daily.collected++;
- s.recovery.parts[material]=(s.recovery.parts[material]||0)+1;
+ if(!window.LanternResourceCoreV1.collect(s.recovery.parts,daily,material,{commit:()=>core.collect(s,'wreck',o)}))return;
  addTravel('discovery','採下蘑菇並收起一份未辨識的樣本。','等確認種類後，再決定要怎麼處理。');
  save();render();toast('已採集 '+material+' ×1');
 }
