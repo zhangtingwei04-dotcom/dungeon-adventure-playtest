@@ -3028,6 +3028,9 @@ html.stage-locked #app #placeActionPanel #placePrimaryActions .side-main-action{
 #placeDrawerList .scene-object-name{font-size:12px;color:#f4e9cd;line-height:1.2;overflow-wrap:anywhere;text-align:center}
 #placeDrawerList .scene-object-status{font-size:10px;color:#b9cca9;line-height:1.15}
 #placeDrawerList .scene-object-verb{font-size:11px;color:#dcc28a;line-height:1.15}
+#placeDrawerList .scene-object-card.scene-object-departed{background:#22352e;border-color:#777c68}
+#placeDrawerList .scene-object-departed .scene-object-thumbnail{opacity:.65}
+#placeDrawerList .scene-object-departed .scene-object-status{color:#c3bba5}
 
 html.stage-locked #app #placeDrawerPanel.is-location-tab .side-current-summary.location-reference-card{
  display:block!important;margin:0 0 4px!important;min-width:0!important;
@@ -7157,6 +7160,18 @@ function investigationCardData(node){
  const action=collectible?'查看／採集':node.dataset.motion==='animal'||['npc','creature'].includes(kind)?'互動':'調查';
  return {node,kind,name,status,action};
 }
+// Last confirmed encounter, saved separately from live spawn state.
+function rememberDepartedAnimal(actor,o,info,reason){
+ if(!actor||!o||o.previewOnly||String(o.id).startsWith('preview-')||!info||info.type!=='living')return;
+ const world=actor.objectWorld||(actor.objectWorld={scenes:{}});
+ if(!world.animalEncounters||typeof world.animalEncounters!=='object'||Array.isArray(world.animalEncounters))world.animalEncounters={};
+ const key=actor.scene+':'+o.assetId+(o.rabbitVariant==='golden'?':golden':'');
+ world.animalEncounters[key]={scene:actor.scene,assetId:o.assetId,variant:o.rabbitVariant==='golden'?'golden':'',name:info.name,description:reason,minute:actor.worldMinutes};
+}
+function departedAnimalCards(actor,live){
+ const records=Object.values(actor.objectWorld?.animalEncounters||{});
+ return records.filter(r=>r&&r.scene===actor.scene&&typeof r.name==='string'&&typeof r.description==='string'&&window.DungeonObjectInvestigationV1.get(r.assetId)?.type==='living'&&!live.some(item=>item.kind===r.assetId.replace('forest4_','')&&item.name===r.name)).map(r=>({record:r,kind:r.assetId.replace('forest4_',''),name:r.name,status:'已離開',action:'查看紀錄'}));
+}
 function appendInvestigationCards(parent,items,append){
  if(!items.length)return;
  const grid=document.createElement('div');grid.className='scene-action-tiles scene-object-card-grid';parent.appendChild(grid);
@@ -7164,13 +7179,17 @@ function appendInvestigationCards(parent,items,append){
   const same=items.filter(o=>o.name===item.name);
   const name=same.length>1?item.name+' '+(same.indexOf(item)+1):item.name;
   const button=append('',()=>{
+   if(item.record){inspectInScene(item.record.description+' 目前牠已離開這裡。',[{label:'關閉',fn:()=>{}}]);return;}
    const node=item.node,id=node.dataset.objectId;
    const live=id?Array.from($('hotspots').querySelectorAll('button[data-object-id]:not(.env-leaving):not([disabled])')).find(el=>el.dataset.objectId===id):node.isConnected?node:null;
    if(live)live.onclick?.();else{renderPlaceDrawer();toast('物件已不在目前場景。');}
   },grid);
   button.classList.add('scene-object-card');button.setAttribute('aria-label',name+'，'+item.status+'，'+item.action);
   const thumb=document.createElement('span');thumb.className='scene-object-thumbnail';
-  const art=sceneObjectThumbnail(item.node);if(art){thumb.appendChild(art);button.appendChild(thumb);}
+  let art;
+  if(item.record){const src=window.DUNGEON_FOREST_V4_ASSETS?.[item.record.assetId]?.src;if(src){art=document.createElement('img');art.src=src;art.alt='';art.draggable=false;}button.classList.add('scene-object-departed');}
+  else art=sceneObjectThumbnail(item.node);
+  if(art){thumb.appendChild(art);button.appendChild(thumb);}
   const title=document.createElement('span');title.className='scene-object-name';title.textContent=name;
   const status=document.createElement('span');status.className='scene-object-status';status.textContent=item.status;
   const action=document.createElement('span');action.className='scene-object-verb';action.textContent=item.action;
@@ -7195,6 +7214,7 @@ function renderWreckInvestigation(list,actions,targets,append){
  const rank=item=>{const i=order.indexOf(item.kind);return i<0?order.length:i;};
  objects.sort((a,b)=>rank(a)-rank(b));
  appendInvestigationCards(list,objects,append);
+ ecology.push(...departedAnimalCards(s,ecology));
  if(ecology.length){
   const section=document.createElement('section');section.className='scene-action-ecology';
   const title=document.createElement('h3');title.textContent='周圍生態';section.appendChild(title);
@@ -8527,7 +8547,8 @@ function interactForestAnimal(o,action){
    if(o.rabbitVariant==='golden'){normalizeForestRare();s.forestRare.sighted.goldenRabbit=true;}
    if(!s.seen.includes(key))note(key,'觀察到'+info.name+'。',true);
    if(o.rabbitVariant==='golden')note('goldenRabbit','在林間目擊稀有的金紋兔',true);
-  }else if(behavior.leave){
+  }else if(action==='approach'&&behavior.leave){
+   rememberDepartedAnimal(s,o,info,behavior.approach);
    if(!s.forestV4Life||typeof s.forestV4Life!=='object')s.forestV4Life={last:-1,animals:{}};
    if(!s.forestV4Life.animals||typeof s.forestV4Life.animals!=='object')s.forestV4Life.animals={};
    s.forestV4Life.animals[kind]=null;
