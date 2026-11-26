@@ -3269,10 +3269,10 @@ html.stage-locked #app #sceneStage #sceneDialogueNext{
  cursor:pointer;padding:4px 7px!important;touch-action:manipulation;
 }
 html.stage-locked #app #sceneStage #sceneDialogue:has(#sceneDialogueChoices:not([hidden])){
- padding:31px 16px 9px 22px!important;
+ padding-right:16px!important;padding-bottom:9px!important;
 }
 #sceneStage #sceneDialogueChoices:not([hidden]){
- display:flex;flex:0 0 auto;flex-wrap:wrap;justify-content:flex-end;gap:2px 14px;margin-top:auto;padding-top:4px;
+ display:flex;flex:0 0 auto;flex-wrap:wrap;justify-content:flex-end;gap:2px 14px;margin-top:auto;padding-top:4px;max-height:66px;overflow-y:auto;overscroll-behavior:contain;
 }
 html.stage-locked #app #sceneStage #sceneDialogueChoices button{
  min-height:30px;padding:4px 7px!important;border:0!important;background:transparent!important;
@@ -5314,7 +5314,7 @@ function exploreArea(){
 
 /* Persistent discovered destinations; drawer open/closed and expanded card are only UI. */
 let placeDrawerOpen=false,placeCardExpanded=null,activeSideTab='locations';
-let sceneActionView=null,invokingSceneAction=false;
+let sceneActionView=null;
 const PLACE_SIGNS=Object.freeze({wreck:'◇',trail:'♧',clearing:'✿',ruin:'▣',gate:'▤',inn:'⌂',lobby:'⌂',street:'▥',guild:'✦',outskirts:'♧',home:'⌂'});
 function normalizePlaceCards(){
  if(!Array.isArray(s.placeCardsViewed))s.placeCardsViewed=[];
@@ -7149,24 +7149,13 @@ function renderSceneActionDock(host,preview){
  }
  if(primary)add(primary.title,primary.fn,'primary');
  add('調查／其他行動',()=>{
-  sceneActionView=sceneActionView?null:{actor:s,scene:s.scene,detail:null};
+  sceneActionView=sceneActionView?null:{actor:s,scene:s.scene};
   renderPlaceDrawer();
   if(sceneActionView)showDockNarration('你環顧四周，開始查看附近可以調查的物件。');
  },'explore');
  if(activeSideTab==='locations'&&preview.reachable&&!preview.current){
   add(preview.special?'前往調查':'前往 '+names[preview.id][0],()=>placeDrawerTravel(preview.id),'location-preview-travel');
  }
-}
-function runSceneAction(fn){
- invokingSceneAction=true;
- sceneActionView.detail=null;
- try{fn?.();}finally{invokingSceneAction=false;}
- renderPlaceDrawer();
-}
-function showSceneActionDetail(title,text,choices){
- if(!invokingSceneAction||sceneActionView?.actor!==s||sceneActionView.scene!==s.scene)return false;
- sceneActionView.detail={title,text,choices};
- return true;
 }
 function renderWreckInvestigation(list,actions,primary,targets,append){
  const namesByKind={wagon:'馬車',wheel_flat:'車輪',sack:'布袋',plank:'木板',plank_lean:'斜木板',
@@ -7194,13 +7183,10 @@ function renderWreckInvestigation(list,actions,primary,targets,append){
   }
   clue.append(s.flags.openingTracks?'線索：車轍往林間延伸':'線索：先查看馬車附近');list.appendChild(clue);
  }
- function tiles(parent,items,showDialog=false){
+ function tiles(parent,items){
   const grid=document.createElement('div');grid.className='scene-action-tiles';parent.appendChild(grid);
   for(const item of items){
-   const button=append(item.name,()=>{
-    if(showDialog)item.node.onclick();
-    else runSceneAction(()=>item.node.onclick());
-   },grid);
+   const button=append(item.name,()=>item.node.onclick(),grid);
    if(!item.src)continue;
    const image=document.createElement('img');image.src=item.src;image.alt='';
    if(item.node.dataset.liveKind==='mushroom'){
@@ -7217,7 +7203,7 @@ function renderWreckInvestigation(list,actions,primary,targets,append){
   const order=['wagon','wheel_flat','crate_large','sack','plank'];
   const rank=item=>{const index=order.indexOf(item.node.dataset.liveKind);return index<0?order.length:index;};
   objects.sort((a,b)=>rank(a)-rank(b));
-  tiles(list,objects,true);
+  tiles(list,objects);
  }
  if(ecology.length){
   const section=document.createElement('section');section.className='scene-action-ecology';
@@ -7226,14 +7212,12 @@ function renderWreckInvestigation(list,actions,primary,targets,append){
  }
  for(const item of actions){
   if(item===primary||(item.fn===marks&&objects.some(o=>o.name==='車輪'))||(item.fn===glance&&objects.some(o=>o.name==='貨箱')))continue;
-  const inspectObject=item.fn===marks||item.fn===glance;
-  append(item.title,()=>guardedAction(inspectObject?item.fn:()=>runSceneAction(item.fn)));
+  append(item.title,()=>guardedAction(item.fn));
  }
- for(const item of other)append(item.name,()=>runSceneAction(()=>item.node.onclick()));
+ for(const item of other)append(item.name,()=>item.node.onclick());
 }
 function renderSceneActionView(out){
- const view=sceneActionView,detail=view.detail;
- const title=detail?.title||'調查／其他行動';
+ const title='調查／其他行動';
  $('sidePanelTitle').textContent=title;
  $('placeDrawerSummary').textContent='';
  $('placeDrawerSummary').removeAttribute('aria-label');
@@ -7244,16 +7228,8 @@ function renderSceneActionView(out){
   const button=document.createElement('button');button.type='button';
   button.textContent=label;button.onclick=fn;parent.appendChild(button);return button;
  }
- const back=append(detail?'返回調查清單':'返回資訊',()=>{
-  if(detail)view.detail=null;else sceneActionView=null;
-  renderPlaceDrawer();
- });
+ const back=append('返回資訊',()=>{sceneActionView=null;renderPlaceDrawer();});
  back.className='scene-action-back';
- if(detail){
-  const text=document.createElement('p');text.textContent=detail.text;list.appendChild(text);
-  for(const choice of detail.choices)append(choice.label,()=>guardedAction(()=>runSceneAction(choice.fn)));
-  return;
- }
  const actions=entries();
  const primary=actions.find(item=>item.primary)||actions[0];
  const targets=Array.from($('hotspots').querySelectorAll('button:not(.env-leaving):not([disabled])'))
@@ -7265,12 +7241,12 @@ function renderSceneActionView(out){
  for(const item of actions){
   if(item===primary)continue;
   used.add(item.title);
-  append(item.title,()=>guardedAction(()=>runSceneAction(item.fn)));
+  append(item.title,()=>guardedAction(item.fn));
  }
  for(const node of targets){
   const label=node.getAttribute('aria-label')||node.title;
   if(!label||used.has(label))continue;
-  used.add(label);append(label,()=>runSceneAction(()=>node.onclick()));
+  used.add(label);append(label,()=>node.onclick());
  }
 }
 function renderPlaceDrawer(){
@@ -7279,7 +7255,7 @@ function renderPlaceDrawer(){
  const cards=visiblePlaceCards(),out=$('placeDrawerList');
  // Keep location-list scroll position when a new event, item, or route causes a render.
  // Reuse the existing image element so embedded art is not decoded on every update.
- const shownTab=sceneActionView?(sceneActionView.detail?'investigation-detail':'investigation'):activeSideTab;
+ const shownTab=sceneActionView?'investigation':activeSideTab;
  const sameContext=out.dataset.renderedTab===shownTab&&out.dataset.renderedScene===s.scene;
  const priorScroll=sameContext?out.scrollTop:0;
  if(locationPreviewScene!==s.scene){locationPreviewScene=s.scene;locationPreviewId=s.scene;}
@@ -7846,7 +7822,7 @@ function renderSceneDialogue(){
  }
  const line=sceneDialogueState.lines[sceneDialogueState.index];
  const portraitCode=line.portrait||(line.speaker==='你'?'protagonist':null);
- const portraitUrl=portraitCode==='protagonist'?window.DUNGEON_PROTAGONIST_PORTRAIT:null;
+ const portraitUrl=line.image||(portraitCode==='protagonist'?window.DUNGEON_PROTAGONIST_PORTRAIT:null);
  const hasPortrait=Boolean(portraitUrl);
  const portrait=$('sceneDialoguePortrait');
  portrait.hidden=!hasPortrait;
@@ -7878,7 +7854,7 @@ function openSceneDialogue(lines,purpose=null,choices=[]){
  if(!Array.isArray(lines)||!lines.length)return;
  sceneDialogueState.lines=lines.filter(line=>line&&typeof line.text==='string'&&line.text.trim()).map(line=>({
   speaker:String(line.speaker||'旁白').slice(0,24),text:line.text,
-  portrait:line.portrait==='protagonist'?'protagonist':null
+  portrait:line.portrait==='protagonist'?'protagonist':null,image:line.image||null
  }));
  if(!sceneDialogueState.lines.length)return;
  sceneDialogueState.index=0;sceneDialogueState.open=true;sceneDialogueState.purpose=purpose;sceneDialogueState.choices=choices;renderSceneDialogue();
@@ -7975,7 +7951,13 @@ function change(scene,mode='walk'){
  save();render();beep(350);
  if(openingTrailArrival)inspectInScene('你踏上林間小徑。身後的馬車漸漸被樹影遮住，前方傳來微弱的動靜。',[{label:'繼續探索'}]);
 }
-function dialog(title,text,choices,kicker='途中事件',locked=false,speaker=null,emotion='neutral'){if(!locked&&!speaker&&['物件調查','現場觀察','場景調查','場景採集','生態觀察','森林觀察','未知發現','特殊探索'].includes(kicker)&&showSceneActionDetail(title,text,choices))return;closeSceneDialogue();closePlaceDrawer();hideSceneInspection();renderDialogueActor(speaker,emotion);if(/旅店的早晨|陌生人的善意|熟悉的四張面孔|留守的兩名夥伴|冒險者公會櫃台|普通的邀請|普通的生活|附近的道路|街上的日常/.test(title))addTravel('talk','交談：'+title,'也許能更了解這裡的人。');modal={title,text,choices,locked};$('dialogKicker').textContent=kicker;$('dialogTitle').textContent=title;$('dialogText').textContent=text;$('dialogChoices').replaceChildren();for(const c of choices){const b=document.createElement('button');b.className='choice';b.textContent=c.label;b.addEventListener('click',()=>{if(!modal)return;modal=null;$('dialogVeil').classList.add('hidden');syncDialogueInputLock();c.fn?.();});$('dialogChoices').appendChild(b);} $('dialogClose').classList.toggle('hidden',locked);$('dialogVeil').classList.remove('hidden');syncDialogueInputLock();beep(540);}
+function dialog(title,text,choices,kicker='途中事件',locked=false,speaker=null,emotion='neutral'){closeSceneDialogue();closePlaceDrawer();hideSceneInspection();renderDialogueActor(speaker,emotion);if(/旅店的早晨|陌生人的善意|熟悉的四張面孔|留守的兩名夥伴|冒險者公會櫃台|普通的邀請|普通的生活|附近的道路|街上的日常/.test(title))addTravel('talk','交談：'+title,'也許能更了解這裡的人。');if(speaker||/^(第一章|第二章)/.test(kicker)||/調查|觀察|場景採集|發現|遭遇|探索相遇|對話|委託|城鎮|邀請|冒險者的建議/.test(kicker)){
+ let image=null;
+ if(speaker)image=$('dialogCharacterCanvas').toDataURL();
+ openSceneDialogue([{speaker:speaker?.name||'旁白',text,image}],locked?'story-locked':'story',choices);
+ beep(540);return;
+ }
+ modal={title,text,choices,locked};$('dialogKicker').textContent=kicker;$('dialogTitle').textContent=title;$('dialogText').textContent=text;$('dialogChoices').replaceChildren();for(const c of choices){const b=document.createElement('button');b.className='choice';b.textContent=c.label;b.addEventListener('click',()=>{if(!modal)return;modal=null;$('dialogVeil').classList.add('hidden');syncDialogueInputLock();c.fn?.();});$('dialogChoices').appendChild(b);} $('dialogClose').classList.toggle('hidden',locked);$('dialogVeil').classList.remove('hidden');syncDialogueInputLock();beep(540);}
 function closeDialog(){if(modal?.locked)return;modal=null;$('dialogVeil').classList.add('hidden');syncDialogueInputLock();renderDialogueActor(null);}
 function action(title,fn,primary=false,quick=false){return{title,fn,primary,quick};}
 function hideSceneInspection(){$('sceneInspection').classList.add('hidden');$('sceneInspection').classList.remove('route-discovery','exploration-results');syncDialogueInputLock();}
@@ -8048,28 +8030,13 @@ function beginForestEncounter(){
  ]);
 }
 
-function openSceneInspection(title,description,actions){
- if(showSceneActionDetail(title,description,actions))return;
- closePlaceDrawer();
- const box=$('sceneInspection');
- $('sceneInspectionTitle').textContent=title;
- $('sceneInspectionText').textContent=description;
- const container=$('sceneInspectionActions');container.replaceChildren();
- for(const a of actions){
-  const button=document.createElement('button');button.type='button';
-  button.textContent=a.label;if(a.secondary)button.className='secondary';
-  button.onclick=()=>{hideSceneInspection();a.fn?.();};
-  container.appendChild(button);
- }
- box.classList.remove('hidden');syncDialogueInputLock();
-}
 $('sceneInspectionClose').onclick=hideSceneInspection;
 function inspectTrailMarker(){
  if(s.seen.includes('trailMarker')){
-  openSceneInspection('路邊的舊石碑','你先前已記錄過這座石碑。風化的刻痕依然看不出明確用途。',[{label:'繼續探索',fn:()=>{}}]);
+  inspectInScene('你先前已記錄過這座石碑。風化的刻痕依然看不出明確用途。',[{label:'繼續探索',fn:()=>{}}]);
   return;
  }
- openSceneInspection('路邊的舊石碑','青苔包住古老的石面，中央留下模糊的刻痕。這是個可以記錄、也可以忽略的小發現。',[
+ inspectInScene('青苔包住古老的石面，中央留下模糊的刻痕。這是個可以記錄、也可以忽略的小發現。',[
   {label:'記入旅途紀錄',fn:()=>note('trailMarker','林道旁有一座刻著模糊紋樣的舊石碑')},
   {label:'先不調查',fn:()=>{},secondary:true}
  ]);
@@ -8650,8 +8617,7 @@ function forestV4Action(o){
  if(o.rabbitVariant==='golden')options.push({label:'安靜觀察並記錄',fn:()=>{if(!o.previewOnly){normalizeForestRare();s.forestRare.sighted.goldenRabbit=true;note('goldenRabbit','在林間目擊稀有的金紋兔');renderHotspots();}else toast('金紋兔外觀預覽');}});
  options.push({label:info.type==='living'?'不打擾牠':'先離開',fn:()=>{}});
  const text=info.description+(finds.length?'\n\n附近有探索時發現的可收集材料。':'');
- if(invokingSceneAction)dialog(info.name,text,options,info.type==='living'?'生態觀察':'物件調查');
- else inspectInScene(text,options);
+ inspectInScene(text,options);
 }
 function forestEnvironmentActive(){return DEV_PREVIEW_MODE&&window.DUNGEON_FOREST_V4_LAYOUT?.revision==='accident-d-preview'&&new URLSearchParams(location.search).get('env')!=='off';}
 function plantSpawnWeather(){
@@ -8982,7 +8948,7 @@ const active=activeDialogueSurface();
   if(active.id==='sceneDialogue'){
    if((e.key==='Enter'||e.key===' ')&&e.target.closest?.('#sceneDialogueChoices button'))return;
    if(e.key==='Enter'||e.key===' '||e.key==='ArrowRight'){e.preventDefault();nextSceneDialogue();}
-   else if(e.key==='Escape'){e.preventDefault();if(!sceneDialogueState.choices.length&&sceneDialogueState.purpose!=='opening-departure')closeSceneDialogue();}
+   else if(e.key==='Escape'){e.preventDefault();if(sceneDialogueState.purpose==='story'||(!sceneDialogueState.choices.length&&sceneDialogueState.purpose!=='opening-departure'))closeSceneDialogue();}
    return;
   }
   if(e.key==='Escape'){e.preventDefault();if(active.id==='dialogVeil')closeDialog();else if(active.id==='sceneInspection')hideSceneInspection();return;}
