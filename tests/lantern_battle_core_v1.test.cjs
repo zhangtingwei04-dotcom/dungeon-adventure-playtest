@@ -1,0 +1,18 @@
+const assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs'),path=require('node:path');
+const window={};vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../assets/lantern_battle_core_v1.js'),'utf8'),{window});
+const core=window.LanternBattleCoreV1;
+const fresh=(extra={})=>({enemyHp:16,maxEnemyHp:16,turn:0,intent:'pounce',distance:1,focused:false,braced:false,result:null,...extra});
+assert.equal(core.resolve(fresh(),16,'attack').skipped,true);
+assert.equal(core.resolve(fresh(),16,'guard').hit,2);
+assert.equal(core.resolve(fresh(),16,'dodge').hit,0);
+assert.equal(core.resolve(fresh(),16,'dodge',{slippery:true}).hit,1);
+assert.equal(core.resolve(fresh({intent:'exposed',distance:0,focused:true}),16,'attack').damage,8);
+assert.equal(core.resolve(fresh({source:'opening',turn:4}),16,'guard').state.result,'retreat');
+assert.equal(core.resolve(fresh(),1,'guard').state.result,'defeat');
+const original=fresh();core.resolve(original,16,'guard');assert.equal(original.turn,0);
+assert.equal(core.validProfessions(['守燈人','獵痕影','織律師']),true);
+assert.equal(core.validProfessions(['守燈人','守燈人']),false);
+assert.equal(core.validProfessions([...core.professions]),false);
+assert.equal(core.validProfessions(['隱藏職業']),false);
+assert.equal(core.validProfessions(['隱藏職業'],['隱藏職業']),true);
+console.log('Lantern battle core passed');
