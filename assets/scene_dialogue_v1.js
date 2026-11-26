@@ -33,7 +33,7 @@ window.DungeonSceneDialogueV1 = {
     options.appendChild(button);
    }
    box.classList.remove('hidden');
-   $('app').classList.toggle('scene-dialogue-active',sceneDialogueState.purpose!=='dock-feedback');
+   $('app').classList.toggle('scene-dialogue-active',!['dock-feedback','investigation-entry'].includes(sceneDialogueState.purpose));
    syncDialogueInputLock();
   }
   function openSceneDialogue(lines,purpose=null,choices=[]){
