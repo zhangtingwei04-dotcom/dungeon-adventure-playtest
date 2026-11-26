@@ -108,7 +108,8 @@
     "name": "蘑菇",
     "type": "renewable",
     "description": "菌傘從潮濕地面冒出，尚無法判斷是否適合食用。",
-    "visualPolicy": "目前只供觀察，未開放食用或採集。"
+    "visualPolicy": "採集後從原位移除，取得的樣本可在背包查看。",
+    "harvest": "未辨識蘑菇"
   },
   "forest4_log": {
     "name": "苔木",
@@ -182,7 +183,9 @@
   const d=get(obj?.assetId);if(!d||d.type==='living'||obj.previewOnly||!visible(actor,scene,obj))return false;
   const r=state(actor,scene,obj.id);
   r.collected=(Number.isSafeInteger(r.collected)&&r.collected>=0?r.collected:0)+1;
-  r.lastCollectedAt=actor.worldMinutes;return true;
+  r.lastCollectedAt=actor.worldMinutes;
+  if(d.harvest)r.removed=true;
+  return true;
  }
  // Future quest/ecology handlers call this explicitly after an authored event resolves.
  // No wall-clock or automatic cleanup is enabled. Validate all targets before mutation.

@@ -3016,6 +3016,7 @@ html.stage-locked #app #placeActionPanel #placePrimaryActions .side-main-action{
 #placeDrawerList .scene-action-tiles img,.scene-action-clue img{
  width:34px;height:28px;object-fit:contain;image-rendering:pixelated;
 }
+#placeDrawerList .scene-action-tiles .scene-action-mushroom{width:42px;height:32px}
 #placeDrawerList .scene-action-ecology{flex-basis:100%;border-top:1px solid #ad91594d;padding-top:4px}
 #placeDrawerList .scene-action-ecology summary{cursor:pointer;padding:4px 0;color:#c9dbc3}
 
@@ -4467,7 +4468,7 @@ html.stage-locked #app #battleSurface .battle-actions button{font-size:17px;min-
 <script src="./assets/performance_monitor_v1.js?v=1"></script>
 <script src="./assets/adaptive_quality_v1.js?v=1"></script>
 <script src="./assets/fault_isolation_v1.js?v=1"></script>
-<script src="./assets/object_investigation_v1.js?v=2-world-state"></script>
+<script src="./assets/object_investigation_v1.js?v=3-object-harvest"></script>
 <script src="./assets/opening_progression_v1.js?v=2-departure"></script>
 <script src="./assets/discovery_cue_v1.js?v=1"></script>
 <script>window.DungeonRuntimeFaultsV1=window.DungeonFaultIsolationV1.create();</script>
@@ -7152,7 +7153,8 @@ function renderWreckInvestigation(list,view,actions,primary,targets,append){
   const label=node.getAttribute('aria-label')||node.title;
   if(!label)continue;
   const name=namesByKind[kind]||(/^草叢/.test(label)?'草叢':label);
-  const item={name,node,src:node.querySelector('img')?.getAttribute('src')};
+  const src=node.querySelector('.forest-v4-art > img, :scope > img')?.getAttribute('src');
+  const item={name,node,src:kind==='mushroom'?window.DUNGEON_FOREST_V4_ASSETS?.forest4_mushroom?.src||src:src};
   if(node.dataset.motion==='plant'||node.dataset.motion==='animal'){
    if(seen.has(name))continue;
    seen.add(name);ecology.push(item);
@@ -7172,7 +7174,15 @@ function renderWreckInvestigation(list,view,actions,primary,targets,append){
   for(const item of items){
    const button=append(item.name,()=>runSceneAction(()=>item.node.onclick()),grid);
    if(!item.src)continue;
-   const image=document.createElement('img');image.src=item.src;image.alt='';button.prepend(image);
+   const image=document.createElement('img');image.src=item.src;image.alt='';
+   if(item.node.dataset.liveKind==='mushroom'){
+    image.className='scene-action-mushroom';
+    image.onerror=()=>{
+     const icon=document.createElement('span');icon.textContent='🍄';icon.setAttribute('aria-hidden','true');
+     image.replaceWith(icon);
+    };
+   }
+   button.prepend(image);
   }
  }
  if(objects.length){
@@ -8563,6 +8573,20 @@ function bindForestV4Materials(layout,queue){
 function forestV4MaterialBindings(){
  return bindForestV4Materials([...(window.DUNGEON_FOREST_V4_LAYOUT?.scenes?.wreck||[]),...(window.DUNGEON_FOREST_V4_SPAWNS||[])].filter(o=>window.DungeonObjectInvestigationV1.visible(s,'wreck',o)),s.exploration?.pending?.wreck||[]);
 }
+function harvestForestObject(o){
+ if(s.scene!=='wreck'||s.flags.inBattle)return;
+ const core=window.DungeonObjectInvestigationV1;
+ const material=core.get(o.assetId)?.harvest;
+ if(!material||o.previewOnly||!core.visible(s,'wreck',o))return;
+ const daily=explorationDaily('wreck');
+ if(daily.collected>=2){toast('今天從這裡帶走的普通材料已達上限。');return;}
+ normalizeRecovery();
+ if(!core.collect(s,'wreck',o))return;
+ daily.collected++;
+ s.recovery.parts[material]=(s.recovery.parts[material]||0)+1;
+ addTravel('discovery','採下蘑菇並收起一份未辨識的樣本。','等確認種類後，再決定要怎麼處理。');
+ save();render();toast('已採集 '+material+' ×1');
+}
 function forestV4Action(o){
  if(encounterPending||modal||s.flags.inBattle||$('app').classList.contains('scene-dialogue-active'))return;
  const k=o.assetId.replace('forest4_',''),finds=forestV4MaterialBindings().get(o.id)||[];
@@ -8574,6 +8598,7 @@ function forestV4Action(o){
  clearRouteAttention();$('toast').classList.remove('active');
  const summary=$('sceneStage').querySelector('.discovery-summary');if(summary)summary.hidden=true;
  const options=finds.map(item=>({label:'收集：'+item.material,fn:()=>collectExplorationMaterial('wreck',item.id)}));
+ if(objectCore.get(o.assetId)?.harvest&&!o.previewOnly)options.unshift({label:'採集蘑菇 ×1',fn:()=>harvestForestObject(o)});
  if(k==='wagon'||k==='wheel_flat')options.push({label:'仔細調查車輪與泥地',fn:marks});
  if(k.startsWith('crate'))options.push({label:'檢查貨箱',fn:glance});
  if(o.rabbitVariant==='golden')options.push({label:'安靜觀察並記錄',fn:()=>{if(!o.previewOnly){normalizeForestRare();s.forestRare.sighted.goldenRabbit=true;note('goldenRabbit','在林間目擊稀有的金紋兔');renderHotspots();}else toast('金紋兔外觀預覽');}});
