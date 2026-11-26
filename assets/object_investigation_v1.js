@@ -173,7 +173,48 @@
   const objects=w.scenes[scene];if(!Object.hasOwn(objects,id)||!record(objects[id]))objects[id]={};
   return objects[id];
  }
- function visible(actor,scene,obj){return read(actor,scene,obj.id)?.removed!==true;}
+ // Each placed object has an independent stock. Renewable resources recover by elapsed game time.
+ const resourceRules=Object.freeze({
+  forest4_branch:{material:'枯枝',max:1,hours:2,hide:true},
+  forest4_wagon:{material:'舊繩纖維',max:1,hours:0},
+  forest4_plank:{material:'破損木板',max:1,hours:0,hide:true},
+  forest4_plank_lean:{material:'破損木板',max:1,hours:0,hide:true},
+  forest4_grass_a:{material:'草纖維',max:2,hours:6,scale:.75},
+  forest4_grass_b:{material:'草纖維',max:2,hours:6,scale:.75},
+  forest4_purple_flower:{material:'未辨識紫花',max:1,hours:24,scale:.65},
+  forest4_white_flower:{material:'未辨識白花',max:1,hours:24,scale:.65},
+  forest4_lavender:{material:'薰衣草',max:1,hours:24,scale:.65},
+  forest4_vine:{material:'藤條',max:2,hours:12,scale:.75},
+  forest4_yellow_shrub:{material:'未辨識嫩葉',max:2,hours:12,scale:.8},
+  forest4_mushroom:{material:'未辨識蘑菇',max:1,hours:12,hide:true},
+  forest4_log:{material:'苔蘚',max:2,hours:24},
+  forest4_rock_small:{material:'小石頭',max:2,hours:0,scale:.7}
+ });
+ function resource(actor,scene,obj){
+  const rule=resourceRules[obj?.assetId];if(!rule)return null;
+  const r=read(actor,scene,obj.id),now=Math.max(0,Number(actor?.worldMinutes)||0);
+  if(r?.removed&&r.lastWorldEventKind!=='regrowth'&&r.lastWorldEvent)return {...rule,remaining:0,permanent:true};
+  const legacy=r?.removed&&Number.isFinite(r.lastCollectedAt)?0:rule.max;
+  let stock=Number.isFinite(r?.resourceStock)?Math.max(0,Math.min(rule.max,r.resourceStock)):legacy;
+  const last=Number.isFinite(r?.resourceAt)?r.resourceAt:r?.lastCollectedAt;
+  if(rule.hours&&Number.isFinite(last)&&now>=last+rule.hours*60)stock=rule.max;
+  return {...rule,remaining:stock,permanent:!!(r?.removed&&!Number.isFinite(last))};
+ }
+ function visible(actor,scene,obj){
+  const r=read(actor,scene,obj.id),v=resource(actor,scene,obj);
+  if(r?.removed&&(!v||v.permanent||r.lastWorldEvent&&r.lastWorldEventKind!=='regrowth'))return false;
+  return !(v?.hide&&v.remaining<=0);
+ }
+ function harvest(actor,scene,obj){
+  const v=resource(actor,scene,obj);
+  if(!v||v.permanent||v.remaining<=0||obj.previewOnly||!visible(actor,scene,obj))return null;
+  const r=state(actor,scene,obj.id);
+  r.resourceStock=v.remaining-1;r.resourceAt=actor.worldMinutes;r.lastCollectedAt=actor.worldMinutes;
+  r.collected=(Number.isSafeInteger(r.collected)&&r.collected>=0?r.collected:0)+1;
+  r.removed=false;
+  return v.material;
+ }
+ function resourceScale(actor,scene,obj){const v=resource(actor,scene,obj);return v?.scale&&v.remaining<v.max?1-(1-v.scale)*(1-v.remaining/v.max):1;}
  function inspect(actor,scene,obj){
   const d=get(obj?.assetId);if(!d||d.type==='living'||obj.previewOnly||!visible(actor,scene,obj))return false;
   if(read(actor,scene,obj.id)?.inspected===true)return false;
@@ -181,10 +222,10 @@
  }
  function collect(actor,scene,obj){
   const d=get(obj?.assetId);if(!d||d.type==='living'||obj.previewOnly||!visible(actor,scene,obj))return false;
+  if(resourceRules[obj.assetId])return !!harvest(actor,scene,obj);
   const r=state(actor,scene,obj.id);
   r.collected=(Number.isSafeInteger(r.collected)&&r.collected>=0?r.collected:0)+1;
   r.lastCollectedAt=actor.worldMinutes;
-  if(d.harvest)r.removed=true;
   return true;
  }
  // Future quest/ecology handlers call this explicitly after an authored event resolves.
@@ -218,8 +259,9 @@
   const def=get(obj?.assetId);if(!def)return null;
   const r=read(actor,scene,obj.id),pending=Array.isArray(finds)?finds.length:0;
   const golden=obj.rabbitVariant==='golden';
-  const visualState=r?.removed?'removed':pending?'resource-available':r?.collected>0?'resource-taken':r?.inspected?'inspected':'normal';
-  return {name:golden?'金紋兔':def.name,type:def.type,description:golden?'一隻金黃色的長耳兔停在附近，側身仍有熟悉的月牙紋路。':def.description,visualPolicy:def.visualPolicy,visualState,collectible:!obj.previewOnly&&!r?.removed&&(pending>0||!!def.harvest)};
+  const stock=resource(actor,scene,obj),available=stock&&!stock.permanent&&stock.remaining>0;
+  const visualState=!visible(actor,scene,obj)?'removed':(pending||available)?'resource-available':r?.collected>0?'resource-taken':r?.inspected?'inspected':'normal';
+  return {name:golden?'金紋兔':def.name,type:def.type,description:golden?'一隻金黃色的長耳兔停在附近，側身仍有熟悉的月牙紋路。':def.description,visualPolicy:def.visualPolicy,visualState,collectible:!obj.previewOnly&&visible(actor,scene,obj)&&(stock?available:pending>0)};
  }
- root.DungeonObjectInvestigationV1=Object.freeze({get,describe,read,visible,inspect,collect,applyWorldEvent,animalInteraction,ids:()=>Object.keys(entries)});
+ root.DungeonObjectInvestigationV1=Object.freeze({get,describe,read,visible,inspect,collect,harvest,resource,resourceScale,applyWorldEvent,animalInteraction,ids:()=>Object.keys(entries)});
 })(window);
