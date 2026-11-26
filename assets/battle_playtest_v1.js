@@ -76,12 +76,14 @@
   const report=make(log,'p','combat-status-line',feedback||'等待行動。');report.setAttribute('aria-live','polite');
   return sorted.map(m=>m.id);
  }
- function mount({resolve,intents,distances,sprite}){
-  const box=document.createElement('dialog');
-  box.className='battle-playtest';
-  box.setAttribute('aria-label','測試戰鬥');
-  document.body.append(box);
-  let total=6,front=3,enemyCount=1,team,battle,foes=[],selectedId=0,round=0,outcome=null,feedback,vacancies,phase='setup',previous=[],lastActions=new Map();
+ function mount({resolve,intents,distances,sprite,embedded=null}){
+  const box=embedded?.host||document.createElement('dialog');
+  if(!embedded){box.className='battle-playtest';box.setAttribute('aria-label','測試戰鬥');document.body.append(box);}
+  function exit(){
+   if(embedded){box.replaceChildren();embedded.side.replaceChildren();embedded.onClose();}
+   else box.close();
+  }
+  let total=embedded?4:6,front=3,enemyCount=embedded?3:1,team,battle,foes=[],selectedId=0,round=0,outcome=null,feedback,vacancies,phase='setup',previous=[],lastActions=new Map();
   function button(label,act,disabled=false){
    const b=document.createElement('button');b.type='button';b.textContent=label;b.disabled=disabled;b.onclick=act;return b;
   }
@@ -159,13 +161,14 @@
    feedback=reports.join(' ');render();
   }
   function render(){
-   const positions=snapshot(box);box.replaceChildren();
+   const positions=snapshot(embedded?.side||box);const scroll=embedded?.side.scrollTop||0;box.replaceChildren();if(embedded)embedded.side.replaceChildren();
    const content=add(box,'div','','battle-test-content');
    const footer=add(box,'footer','','battle-test-footer');
    const controls=add(footer,'div','','battle-test-actions');
-   const exit=button('離開',()=>box.close());exit.className='battle-test-exit';footer.append(exit);
+   const exitButton=button(embedded?'結束測試':'離開',exit);exitButton.className='battle-test-exit';footer.append(exitButton);
    if(phase==='setup'){
-    add(content,'p','測試使用獨立隊伍與體力。');
+    add(content,'p','測試使用獨立隊伍與體力，不影響正式存檔。');
+    if(embedded){add(embedded.side,'p','設定測試隊伍與怪物數量後即可開始。','combat-status-line');embedded.onRender?.('測試配置');}
     select(content,'出發人數 ',total,6,n=>{total=n;front=Math.min(front,n);});
     select(content,'前線人數 ',front,Math.min(4,total),n=>{front=n;});
     select(content,'怪物數量 ',enemyCount,4,n=>{enemyCount=n;});
@@ -186,7 +189,7 @@
    const outcomes={victory:'所有怪物已退走',retreat:'隊伍已撤離',defeat:'主角倒地'};
    const status=add(main,'p',outcome?outcomes[outcome]:'第 '+(round+1)+' 回合 · '+distances[battle.distance]+'。'+intents[battle.intent]+(target?' 牠盯著'+target.name+'。':''));status.className='battle-test-status';status.setAttribute('role','status');
    add(main,'p','主角 · '+team[0].hp+'/'+team[0].maxHp+' HP','battle-test-feedback');
-   const side=add(layout,'aside','','battle-test-side');
+   const side=embedded?.side||add(layout,'aside','','battle-test-side');
    const allies=team.filter(m=>m.id!==0).map(m=>{
     const position=m.hp===0?'倒地':m.front?'前線':'後方';
     const action=lastActions.get(m.id)||'';
@@ -194,6 +197,7 @@
     return {...m,action,status:position+'｜'+intent};
    });
    previous=renderPanel(side,{enemyList:foes.map(m=>({id:m.id,name:m.name,hp:m.enemyHp,maxHp:m.maxEnemyHp,result:m.result,selected:!outcome&&m.id===selectedId,status:m.result==='victory'?'已退走':m.result==='retreat'?'已脫離遭遇':distances[m.distance]+'｜'+intents[m.intent]})),onTarget:outcome?null:id=>{const next=foes[id];if(next&&!next.result){selectedId=id;battle=next;render();}},allies,feedback,previous,positions});
+   if(embedded){side.scrollTop=scroll;embedded.onRender?.(outcome?outcomes[outcome]:'第 '+(round+1)+' 回合');}
    if(outcome){controls.append(button('重新配置',()=>{phase='setup';render();}));return;}
    for(const [id,label] of moves){if(id==='attack'&&battle.distance!==0||id==='approach'&&battle.distance===0||id==='backstep'&&battle.distance===2)continue;controls.append(button(label,()=>turn(id)));}
    const ready=team.filter(m=>!m.front&&m.hp>0);
@@ -215,7 +219,7 @@
     for(const incoming of ready)options.append(button(out.name+'換成'+incoming.name,()=>turn('dispatch',out,incoming)));
    }
   }
-  return ()=>{phase='setup';render();box.showModal();};
+  return ()=>{phase='setup';if(embedded)embedded.onOpen();render();if(!embedded)box.showModal();};
  }
  root.DungeonBattlePlaytestV1=Object.freeze({mount,setup,plan,priority,sortAllies,renderPanel,snapshot});
 })(typeof window!=='undefined'?window:globalThis);
