@@ -4498,7 +4498,7 @@ html.stage-locked #app #battleSurface .battle-actions button{font-size:17px;min-
 <script src="./assets/fault_isolation_v1.js?v=1"></script>
 <script src="./assets/object_investigation_v1.js?v=6-resource-stock"></script>
 <script src="./assets/investigation_cards_v1.js?v=1.1.0"></script>
-<script src="./assets/wreck_components_v1.js?v=1"></script>
+<script src="./assets/wreck_components_v1.js?v=1.1"></script>
 <script src="./assets/creature_capture_v1.js?v=1"></script>
 <script src="./assets/scene_action_time_v1.js?v=1"></script>
 <script src="./assets/scene_dialogue_v1.js"></script>
@@ -7536,7 +7536,7 @@ normalizeGameTime();normalizeRecovery();normalizeForestRare();normalizeBeetleCar
  ['world.winter-surfaces','8',['world.weather'],'DungeonWinterV1'],
  ['world.objects','20261125',['engine.time','world.weather'],'DungeonSceneObjectsV1'],
  ['ui.investigation-cards','1.1.0',['world.objects'],'DungeonInvestigationCardsV1'],
- ['world.wreck-components','1.0.0',['ui.investigation-cards'],'DungeonWreckComponentsV1'],
+ ['world.wreck-components','1.1.0',['ui.investigation-cards'],'DungeonWreckComponentsV1'],
  ['world.scene-action-time','1.0.0',['engine.time'],'DungeonSceneActionTimeV1'],
  ['world.creature-capture','1.0.0',['world.forest-life','ui.investigation-cards'],'DungeonCreatureCaptureV1'],
  ['world.forest-life','7',['world.weather'],'DungeonForestV4Life'],
@@ -8574,9 +8574,10 @@ function inspectWreckComponent(id){
  if(p.event){if(openingExitOnly()){exitOnlyAction();return;}marks();return;}
  if(core.taken(s,id)){inspectInScene(p.name+'中的物品已拿走，沒有其他可搜取的東西。',[{label:'離開',fn:()=>{}}]);return;}
  spendSceneInteraction('inspect');save();render();
- inspectInScene(p.name+'附近有可以帶走的'+p.material+'。',[{label:'收取 '+p.material+' ×1',fn:()=>{
-  const kind=id==='v4-plank8'?'wood':id==='v4-sack6'?'fiber':'crate';
-  const spec={...collectionPerformanceSpec(kind),wreckComponent:true};
+ const quantity=p.quantity||1,lootLabel=p.material+' ×'+quantity;
+ inspectInScene(p.wallet?'布袋裡傳出金屬碰撞聲，裡面有'+lootLabel+'。':p.name+'附近有可以帶走的'+p.material+'。',[{label:'收取 '+lootLabel,fn:()=>{
+  const kind=id==='v4-plank8'?'wood':'crate';
+  const spec={...collectionPerformanceSpec(kind),...(p.wallet?{text:'解開布袋，清點裡面的錢幣…'}:{}),wreckComponent:true};
   sceneCollectionResult(()=>{
    if(s.scene!=='wreck'||wreckCleared()||core.taken(s,id))return;
    const obj=window.DUNGEON_FOREST_V4_LAYOUT?.scenes?.wreck?.find(x=>x.id===id);
@@ -8584,11 +8585,12 @@ function inspectWreckComponent(id){
    // For a plank the harvest marks it taken; keep the separate container state as well.
    const material=id==='v4-plank8'?p.material:core.take(s,id);
    if(!material)return;
-   if(id==='v4-crate_large1')addUnique(s.items,material);
-   else{normalizeRecovery();s.recovery.parts[material]=(s.recovery.parts[material]||0)+1;}
-   addTravel('discovery','從'+p.name+'取得'+material+' ×1。','');
+   if(p.wallet){normalizeWallet();s.wallet[p.wallet]+=quantity;}
+   else if(id==='v4-crate_large1')addUnique(s.items,material);
+   else{normalizeRecovery();s.recovery.parts[material]=(s.recovery.parts[material]||0)+quantity;}
+   addTravel('discovery','從'+p.name+'取得'+lootLabel+'。','');
    save();render();
-   inspectInScene('已拿走 '+material+' ×1。',[{label:'離開',fn:()=>{}}]);
+   inspectInScene('已拿走 '+lootLabel+'。',[{label:'離開',fn:()=>{}}]);
   },{id},kind,spec);
  }},{label:'先離開',fn:()=>{}}]);
 }
