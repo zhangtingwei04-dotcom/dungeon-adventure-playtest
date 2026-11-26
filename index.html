@@ -7213,7 +7213,7 @@ function renderWreckInvestigation(list,actions,targets,append){
   if(node.dataset.sceneInvestigation==='opening-tracks')continue;
   const item=investigationCardData(node);if(!item.name)continue;
   const key=node.dataset.objectId||node.dataset.sceneInvestigation||item.name;if(seen.has(key))continue;seen.add(key);
-  if(item.kind==='creature')monsters.push({...item,status:'可調查',action:'觀察／迎戰'});
+  if(item.kind==='creature')monsters.push({...item,status:node.dataset.objectId==='wreck-trial-monster'?'測試遭遇':'可調查',action:'觀察／迎戰'});
   else if(item.kind==='mushroom'||node.dataset.motion==='plant'||node.dataset.motion==='animal')ecology.push(item);
   else if(node.dataset.objectId||node.querySelector('img,canvas'))objects.push(item);
   else other.push(item);
@@ -7226,7 +7226,7 @@ function renderWreckInvestigation(list,actions,targets,append){
  const rank=item=>{const i=order.indexOf(item.kind);return i<0?order.length:i;};
  objects.sort((a,b)=>rank(a)-rank(b));
  appendInvestigationCards(list,objects,append);
- appendInvestigationCards(list,monsters,append);
+ if(monsters.length){const section=document.createElement('section');section.className='scene-action-ecology';const title=document.createElement('h3');title.textContent='怪物';section.appendChild(title);appendInvestigationCards(section,monsters,append);list.appendChild(section);}
  ecology.push(...departedAnimalCards(s,ecology));
  if(ecology.length){
   const section=document.createElement('section');section.className='scene-action-ecology';
@@ -7256,6 +7256,10 @@ function renderSceneActionView(out){
   const core=window.DungeonWreckComponentsV1;
   const cards=core.parts.map(p=>({name:p.name,assetId:p.assetId,entry:{fn:()=>inspectWreckComponent(p.id)},status:core.taken(s,p.id)?'已拿走':p.event?'劇情線索':'可搜取',action:core.taken(s,p.id)?'查看紀錄':'調查'}));
   appendInvestigationCards(list,cards,append);
+  if(openingMonsterTrialVisible()){
+   const node=$('hotspots').querySelector('button[data-object-id="wreck-trial-monster"]');
+   if(node){const section=document.createElement('section');section.className='scene-action-ecology';const title=document.createElement('h3');title.textContent='怪物（測試）';section.appendChild(title);appendInvestigationCards(section,[{...investigationCardData(node),status:'測試遭遇',action:'觀察／迎戰'}],append);list.appendChild(section);}
+  }
   append(routeKnown('wreck','trail')?'查看林間小徑的位置':'尋找出口',()=>runSceneAction(exitOnlyAction));return;
  }
  const actions=splitSceneActions(entries()).detail;
@@ -8464,6 +8468,11 @@ function render(){if(!names[s.scene])s.scene='wreck';normalizeGameTime();tickBee
 if(primary){const b=document.createElement('button');b.className='action primary';setActionVisual(b,/探索|觀察/.test(primary.title)?'explore':'route',primary.title);b.title='主要行動；點擊執行';b.onclick=()=>runSceneAction(primary.fn);$('actions').appendChild(b);}
 const quick=available.find(a=>a.quick&&a!==primary);if(quick){const b=document.createElement('button');b.className='action explore';setActionVisual(b,'explore',quick.title);b.onclick=()=>runSceneAction(quick.fn);$('actions').appendChild(b);}
 /* Secondary interactions are now grouped under the right-side place drawer. */renderHotspots();renderFeed();renderPlaceDrawer();renderSceneInfoBar();renderOpeningObjective();renderBattleSurface();save();}
+function openingMonsterTrialVisible(){return s.scene==='wreck'&&!s.flags.inBattle&&new URLSearchParams(location.search).get('combat-trial')==='1';}
+function inspectOpeningMonsterTrial(){
+ if(!openingMonsterTrialVisible()||activeDialogueSurface()||encounterPending)return;
+ inspectInScene('一隻苔棘鬃獸停在林邊，正警戒地觀察你的動作。',[{label:'迎戰（測試）',fn:openOpeningCombatTrial},{label:'保持距離',fn:()=>{}}]);
+}
 function wreckMonsterPresent(actor=s){return actor.scene==='wreck'&&wreckCleared(actor)&&!actor.flags?.openingMonsterResolved&&!actor.flags?.inBattle;}
 function inspectWreckMonster(){
  if(!wreckMonsterPresent()||activeDialogueSurface()||encounterPending)return;
@@ -8795,9 +8804,11 @@ function updateForestFindCue(node,finds,k){
  applyDiscoveryCue(node,window.DungeonDiscoveryCueV1.object({pending:finds.length,rare,observed:!!s.forestRare?.sighted?.goldenRabbit}));
 }
 function renderWorldObjects(el){
- const engine=window.DungeonSceneObjectsV1;if(!engine||encounterPending||openingExitOnly())return;
- const visibleObjects=engine.objects(s,plantSpawnWeather());
- if(wreckMonsterPresent())visibleObjects.push({id:'wreck-monster',kind:'creature',x:70,y:76,label:'苔棘鬃獸'});
+ const engine=window.DungeonSceneObjectsV1;if(!engine||encounterPending)return;
+ const trial=openingMonsterTrialVisible(),exitOnly=openingExitOnly();if(exitOnly&&!trial)return;
+ const visibleObjects=exitOnly?[]:engine.objects(s,plantSpawnWeather());
+ if(trial)visibleObjects.push({id:'wreck-trial-monster',kind:'creature',x:70,y:76,label:'苔棘鬃獸'});
+ else if(wreckMonsterPresent())visibleObjects.push({id:'wreck-monster',kind:'creature',x:70,y:76,label:'苔棘鬃獸'});
  for(const obj of visibleObjects){
   if(forestV4Active()&&obj.material&&(['碎木片','舊繩纖維'].includes(obj.material)||[...forestV4MaterialBindings().values()].some(list=>list.some(item=>item.id===obj.id))))continue;
   if(obj.decorative){
@@ -8809,7 +8820,7 @@ function renderWorldObjects(el){
   const cv=document.createElement(obj.kind==='creature'?'img':'canvas');cv.setAttribute('aria-hidden','true');if(obj.kind==='creature'){cv.src=MONSTER_CATALOG_V1.moss_spine_beast.sprite;cv.alt='';cv.className='forest-monster-art';b.setAttribute('aria-label','苔棘鬃獸');}else engine.sprite(cv,obj.kind);
   const caption=document.createElement('span');caption.textContent=obj.kind==='creature'?'苔棘鬃獸':obj.label;b.append(cv,caption);
   applyDiscoveryCue(b,window.DungeonDiscoveryCueV1.object({pending:obj.material?1:0,clue:obj.kind==='wreck',observed:!!s.flags.trailWreckInspected||!!s.recovery.looted}));
-  b.onclick=()=>runSceneAction(()=>interactSceneObject(obj.id));el.appendChild(b);
+  b.onclick=()=>runSceneAction(obj.id==='wreck-trial-monster'?inspectOpeningMonsterTrial:()=>interactSceneObject(obj.id));el.appendChild(b);
  }
 }
 // Scene-first investigation. Static targets use normalized canvas coordinates;
