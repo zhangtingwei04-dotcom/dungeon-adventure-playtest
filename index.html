@@ -4481,7 +4481,7 @@ html.stage-locked #app #battleSurface .battle-actions button{font-size:17px;min-
 <script src="./assets/performance_monitor_v1.js?v=1"></script>
 <script src="./assets/adaptive_quality_v1.js?v=1"></script>
 <script src="./assets/fault_isolation_v1.js?v=1"></script>
-<script src="./assets/object_investigation_v1.js?v=3-object-harvest"></script>
+<script src="./assets/object_investigation_v1.js?v=5-species-interactions"></script>
 <script src="./assets/scene_dialogue_v1.js"></script>
 <script src="./assets/opening_progression_v1.js?v=2-departure"></script>
 <script src="./assets/discovery_cue_v1.js?v=1"></script>
@@ -8360,7 +8360,7 @@ const quick=available.find(a=>a.quick&&a!==primary);if(quick){const b=document.c
 function interactSceneObject(id){
  const engine=window.DungeonSceneObjectsV1;
  if(!engine||encounterPending||modal||s.flags.inBattle||$('app').classList.contains('scene-dialogue-active'))return;
- const site=s.scene,obj=engine.objects(s).find(x=>x.id===id);if(!obj)return;
+ const site=s.scene,obj=engine.objects(s,plantSpawnWeather()).find(x=>x.id===id);if(!obj)return;
  if(obj.kind==='wreck'){openTrailWreckActions();return;}
  if(obj.kind==='creature'){soundInForest();return;}
  if(obj.kind==='npc'){
@@ -8379,7 +8379,7 @@ function interactSceneObject(id){
   ],'探索相遇');return;
  }
  dialog(obj.label,'你在這裡發現可收取的普通材料：'+obj.material+'。採集會沿用原本的每日材料上限。',[
-  {label:'收取 '+obj.material+' ×1',fn:()=>collectExplorationMaterial(site,id)},
+  {label:'採集 '+obj.material+' ×1',fn:()=>sceneCollectionResult(()=>collectExplorationMaterial(site,id))},
   {label:'先保留在原地',fn:()=>{}}
  ],'場景採集');
 }
@@ -8429,6 +8429,31 @@ function harvestForestObject(o){
  addTravel('discovery','採下蘑菇並收起一份未辨識的樣本。','等確認種類後，再決定要怎麼處理。');
  save();render();toast('已採集 '+material+' ×1');
 }
+function sceneCollectionResult(fn){
+ const notice=$('toast');notice.classList.remove('active');fn();
+ if(!activeDialogueSurface()&&!sceneDialogueState.open&&notice.classList.contains('active'))inspectInScene(notice.textContent,[{label:'繼續',fn:()=>{}}]);
+}
+function interactForestAnimal(o,action){
+ if(s.scene!=='wreck'||s.flags.inBattle)return;
+ const core=window.DungeonObjectInvestigationV1,behavior=core.animalInteraction(o.assetId);
+ if(!behavior)return;
+ const preview=o.previewOnly||String(o.id).startsWith('preview-');
+ const kind=o.assetId.replace('forest4_',''),info=core.describe(o,[],s,'wreck');
+ if(!preview){
+  const key='observed-wreck-'+(o.rabbitVariant==='golden'?'goldenRabbit':o.assetId);
+  if(action==='observe'){
+   if(o.rabbitVariant==='golden'){normalizeForestRare();s.forestRare.sighted.goldenRabbit=true;}
+   if(!s.seen.includes(key))note(key,'觀察到'+info.name+'。',true);
+   if(o.rabbitVariant==='golden')note('goldenRabbit','在林間目擊稀有的金紋兔',true);
+  }else if(behavior.leave){
+   if(!s.forestV4Life||typeof s.forestV4Life!=='object')s.forestV4Life={last:-1,animals:{}};
+   if(!s.forestV4Life.animals||typeof s.forestV4Life.animals!=='object')s.forestV4Life.animals={};
+   s.forestV4Life.animals[kind]=null;
+  }
+  save();render();
+ }
+ inspectInScene(preview&&action==='approach'?'這是生物外觀預覽。':behavior[action],[{label:'繼續',fn:()=>{}}]);
+}
 function forestV4Action(o){
  if(encounterPending||modal||s.flags.inBattle||$('app').classList.contains('scene-dialogue-active'))return;
  const k=o.assetId.replace('forest4_',''),finds=forestV4MaterialBindings().get(o.id)||[];
@@ -8436,19 +8461,22 @@ function forestV4Action(o){
  if(!objectCore.visible(s,'wreck',o))return;
  const info=objectCore.describe(o,finds,s,'wreck');
  if(!info)return;
- if(info.type==='living'&&!o.previewOnly){
-  const key='observed-wreck-'+(o.rabbitVariant==='golden'?'goldenRabbit':o.assetId);
-  if(!s.seen.includes(key))note(key,'觀察到'+info.name+'。',true);
- }else if(objectCore.inspect(s,'wreck',o))save();
+ if(info.type!=='living'&&objectCore.inspect(s,'wreck',o))save();
  clearRouteAttention();$('toast').classList.remove('active');
  const summary=$('sceneStage').querySelector('.discovery-summary');if(summary)summary.hidden=true;
- const options=finds.map(item=>({label:'收集：'+item.material,fn:()=>collectExplorationMaterial('wreck',item.id)}));
- if(objectCore.get(o.assetId)?.harvest&&!o.previewOnly)options.unshift({label:'採集蘑菇 ×1',fn:()=>harvestForestObject(o)});
+ const options=[];
+ if(!o.previewOnly&&!String(o.id).startsWith('preview-')){
+  for(const item of finds)options.push({label:'採集 '+item.material+' ×1',fn:()=>sceneCollectionResult(()=>collectExplorationMaterial('wreck',item.id))});
+  if(objectCore.get(o.assetId)?.harvest)options.unshift({label:'採集蘑菇 ×1',fn:()=>sceneCollectionResult(()=>harvestForestObject(o))});
+ }
  if(k==='wagon'||k==='wheel_flat')options.push({label:'仔細調查車輪與泥地',fn:marks});
  if(k.startsWith('crate'))options.push({label:'檢查貨箱',fn:glance});
- if(o.rabbitVariant==='golden')options.push({label:'安靜觀察並記錄',fn:()=>{if(!o.previewOnly){normalizeForestRare();s.forestRare.sighted.goldenRabbit=true;note('goldenRabbit','在林間目擊稀有的金紋兔');renderHotspots();}else toast('金紋兔外觀預覽');}});
+ if(info.type==='living'&&objectCore.animalInteraction(o.assetId)){
+  options.push({label:'安靜觀察',fn:()=>interactForestAnimal(o,'observe')});
+  options.push({label:k==='beetle'?'俯身查看':'慢慢靠近',fn:()=>interactForestAnimal(o,'approach')});
+ }
  options.push({label:info.type==='living'?'不打擾牠':'先離開',fn:()=>{}});
- const text=info.description+(finds.length?'\n\n附近有探索時發現的可收集材料。':'');
+ const text=info.description;
  inspectInScene(text,options);
 }
 function forestEnvironmentActive(){return DEV_PREVIEW_MODE&&window.DUNGEON_FOREST_V4_LAYOUT?.revision==='accident-d-preview'&&new URLSearchParams(location.search).get('env')!=='off';}
