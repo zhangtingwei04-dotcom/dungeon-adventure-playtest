@@ -7607,7 +7607,7 @@ function save(){
 function toast(msg){$('toast').textContent=msg;$('toast').classList.add('active');clearTimeout(toastHandle);toastHandle=setTimeout(()=>$('toast').classList.remove('active'),2400);}
 function beep(f=440){if(!s.sound)return;try{const AC=window.AudioContext||window.webkitAudioContext;const ctx=new AC(),osc=ctx.createOscillator(),gain=ctx.createGain();osc.type='sine';osc.frequency.value=f;gain.gain.setValueAtTime(.035,ctx.currentTime);gain.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.16);osc.connect(gain).connect(ctx.destination);osc.start();osc.stop(ctx.currentTime+.18);setTimeout(()=>ctx.close(),400);}catch{}}
 function note(id,msg,quiet=false){window.DungeonEventsV1.discovery(s,id,msg,discoveryThought[id]||'我先把這件事記下來。');save();if(!quiet){toast('已記錄：'+msg);beep(680);}}
-let lastMoveAt=0,encounterPending=false,encounterTimer=null,encounterToken=0;
+let encounterPending=false,encounterTimer=null,encounterToken=0;
 // A 2D pan, not an artificial perspective rotation. 1.12x zoom allows 6% travel on either side.
 /* Per-scene camera distance: 1 = current view; >1 = camera farther away.
    The wreck panorama is the first scene with a real full-width asset. */
@@ -7740,7 +7740,7 @@ function change(scene,mode='walk'){
  const openingTrailArrival=s.scene==='wreck'&&scene==='trail'&&!s.visits.trail;
  const duration=travelTimeFor(s.scene,scene,mode);
  if(duration===null){toast('此路線目前無法使用馬車，請選擇步行。');return;}
- const now=Date.now();if(now-lastMoveAt<300)return;lastMoveAt=now;
+ if(!lanternActionCore.allow('travel'))return;
  hideSceneInspection();hideSceneActors();
  const discoveryBanner=$('sceneStage').querySelector('.discovery-summary');if(discoveryBanner)discoveryBanner.hidden=true;
  previewPeriod=null;
@@ -8038,7 +8038,7 @@ function normalizeBattle(){
  const state=s.flags.battleV2;if(!Number.isInteger(state.distance))state.distance=1;state.distance=Math.max(0,Math.min(2,state.distance));
  return state;
 }
-let lastBattleAction=0,battleAnimating=false;
+let battleAnimating=false;
 function battleStart(options={}){
  if(s.flags.inBattle)return;
  const opening=options.opening===true,ambush=options.ambush===true;
@@ -8048,7 +8048,7 @@ function battleStart(options={}){
  s.flags.inBattle=true;s.flags.monsterHp=maxHp;
  s.flags.battleV2={monsterId:monster.id,enemyHp:maxHp,maxEnemyHp:maxHp,turn:0,intent:opening?'pounce':ambush?'watch':'pounce',distance:ambush?0:1,focused:false,braced:false,result:s.hp===0?'defeat':null,source:opening?'opening':ambush?'exploration':'story',feedback:opening?(options.clearedWreck?'馬車原先停放的位置傳來低吼，苔棘鬃獸從林邊撲出！':'車架下傳來低吼，陌生生物猛然撲出！')+(hit?'受到 '+hit+' 點傷害。':'你及時退開。'):ambush?'草叢突然晃動，一隻陌生生物撲了過來！受到 '+hit+' 點傷害。':'牠警戒地盯著你。'};
  if(ambush){addTravel('combat','在'+names[s.scene][0]+'探索時遭到生物突襲。'+(s.hp===0?'你體力不支。':''),'事情發生得太突然了。');}
- lastBattleAction=0;save();render();
+ lanternActionCore.reset('battle');save();render();
  if(ambush){$('battleSurface').dataset.distance='1';playBattleMotion('ambush',{damage:0,hit,enemyAction:'pounce'});}
 }
 function renderBattleSurface(){
@@ -8080,7 +8080,7 @@ $('battlePlaytestBtn').onclick=()=>{$('menuVeil').classList.add('hidden');openBa
 
 function battleTurn(kind){
  if(!s.flags.inBattle||battleAnimating)return;
- const now=Date.now();if(now-lastBattleAction<300)return;lastBattleAction=now;
+ if(!lanternActionCore.allow('battle'))return;
  const current=normalizeBattle();if(current.result)return;
  const weather=window.DungeonWeatherV1?.at(s.seed,s.worldMinutes,s.scene)||{};
  const result=resolveBattleTurn(current,s.hp,kind,{slippery:weather.puddles>.35||weather.snowCover>.4||weather.frost>.45});
