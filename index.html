@@ -7170,10 +7170,13 @@ function renderWreckInvestigation(list,actions,primary,targets,append){
   }
   clue.append(s.flags.openingTracks?'線索：車轍往林間延伸':'線索：先查看馬車附近');list.appendChild(clue);
  }
- function tiles(parent,items){
+ function tiles(parent,items,showDialog=false){
   const grid=document.createElement('div');grid.className='scene-action-tiles';parent.appendChild(grid);
   for(const item of items){
-   const button=append(item.name,()=>runSceneAction(()=>item.node.onclick()),grid);
+   const button=append(item.name,()=>{
+    if(showDialog)item.node.onclick();
+    else runSceneAction(()=>item.node.onclick());
+   },grid);
    if(!item.src)continue;
    const image=document.createElement('img');image.src=item.src;image.alt='';
    if(item.node.dataset.liveKind==='mushroom'){
@@ -7190,7 +7193,7 @@ function renderWreckInvestigation(list,actions,primary,targets,append){
   const order=['wagon','wheel_flat','crate_large','sack','plank'];
   const rank=item=>{const index=order.indexOf(item.node.dataset.liveKind);return index<0?order.length:index;};
   objects.sort((a,b)=>rank(a)-rank(b));
-  tiles(list,objects);
+  tiles(list,objects,true);
  }
  if(ecology.length){
   const section=document.createElement('section');section.className='scene-action-ecology';
@@ -7199,7 +7202,8 @@ function renderWreckInvestigation(list,actions,primary,targets,append){
  }
  for(const item of actions){
   if(item===primary||(item.fn===marks&&objects.some(o=>o.name==='車輪'))||(item.fn===glance&&objects.some(o=>o.name==='貨箱')))continue;
-  append(item.title,()=>guardedAction(()=>runSceneAction(item.fn)));
+  const inspectObject=item.fn===marks||item.fn===glance;
+  append(item.title,()=>guardedAction(inspectObject?item.fn:()=>runSceneAction(item.fn)));
  }
  for(const item of other)append(item.name,()=>runSceneAction(()=>item.node.onclick()));
 }
