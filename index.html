@@ -2484,6 +2484,7 @@ html.stage-locked #app #placePrimaryActions .side-main-action{
  cursor:pointer;touch-action:manipulation;
  box-shadow:inset 0 0 0 1px rgba(255,220,156,.16)!important;
 }
+html.stage-locked #app #placePrimaryActions .side-main-action.event{border-color:#d7ba7e!important;background:linear-gradient(160deg,#75502d,#503921)!important;}
 html.stage-locked #app #placePrimaryActions .side-main-action.explore{
  border-color:#68c49b!important;
  background:linear-gradient(160deg,#167450,#10563e)!important;
@@ -7118,7 +7119,8 @@ function renderSceneActionDock(host){
   button.onclick=()=>kind==='investigation'?guardedAction(fn):runSceneAction(fn);
   host.appendChild(button);
  }
- for(const item of actions.filter(a=>!a.routeTo))add(item.title,item.fn,item.fn===exploreArea?'explore':'primary');
+ for(const item of actions.filter(a=>a.scope==='event'))add(item.title,item.fn,'event');
+ for(const item of actions.filter(a=>a.scope!=='event'&&!a.routeTo))add(item.title,item.fn,item.fn===exploreArea?'explore':'primary');
  add(sceneActionView?'返回資訊':'調查／其他行動',()=>{
   sceneActionView=sceneActionView?null:{actor:s,scene:s.scene};
   renderPlaceDrawer();
@@ -7201,7 +7203,7 @@ function renderSceneActionView(out){
  }
  const actions=splitSceneActions(entries()).detail;
  const targets=Array.from($('hotspots').querySelectorAll('button:not(.env-leaving):not([disabled])'))
-  .filter(node=>!node.matches('.scene-route-target')&&typeof node.onclick==='function');
+  .filter(node=>!node.matches('.scene-route-target')&&typeof node.onclick==='function'&&!['opening-tracks','opening-steps','light','sound','door'].includes(node.dataset.sceneInvestigation));
  if(s.scene==='wreck'){
   renderWreckInvestigation(list,actions,targets,append);return;
  }
@@ -7795,10 +7797,11 @@ function dialog(title,text,choices,kicker='途中事件',locked=false,speaker=nu
  }
  modal={title,text,choices,locked};$('dialogKicker').textContent=kicker;$('dialogTitle').textContent=title;$('dialogText').textContent=text;$('dialogChoices').replaceChildren();for(const c of choices){const b=document.createElement('button');b.className='choice';b.textContent=c.label;b.addEventListener('click',()=>{if(!modal)return;modal=null;$('dialogVeil').classList.add('hidden');syncDialogueInputLock();c.fn?.();});$('dialogChoices').appendChild(b);} $('dialogClose').classList.toggle('hidden',locked);$('dialogVeil').classList.remove('hidden');syncDialogueInputLock();beep(540);}
 function closeDialog(){if(modal?.locked)return;modal=null;$('dialogVeil').classList.add('hidden');syncDialogueInputLock();renderDialogueActor(null);}
-// Shared action scope: scene = first-level controls; detail = second-level events.
+// Shared action scope: scene and event in lower dock, detail in upper panel.
 function action(title,fn,primary=false,quick=false,scope='detail'){return{title,fn,primary,quick,scope};}
 function sceneAction(title,fn,primary=false,quick=false){return action(title,fn,primary,quick,'scene');}
-function splitSceneActions(actions){return {scene:actions.filter(a=>a.scope==='scene'),detail:actions.filter(a=>a.scope!=='scene')};}
+function eventAction(title,fn,primary=false,quick=false){return action(title,fn,primary,quick,'event');}
+function splitSceneActions(actions){return {scene:actions.filter(a=>a.scope==='scene'||a.scope==='event'),detail:actions.filter(a=>a.scope!=='scene'&&a.scope!=='event')};}
 function hideSceneInspection(){$('sceneInspection').classList.add('hidden');$('sceneInspection').classList.remove('route-discovery','exploration-results');syncDialogueInputLock();}
 function hideSceneActors(){
  encounterToken++;
@@ -8206,24 +8209,24 @@ function finishBattle(){
 
 function entries(){const a={
  wreck:[routeAction('前往林間小徑','trail',()=>change('trail'),true),...(wreckCleared()?[]:[action('查看倒塌貨箱',glance),action('查看車輪痕跡',marks)])],
- trail:[routeAction('前往城鎮入口','gate',rescue,true),action(s.recovery.found?'調查舊馬車殘骸':'搜索林邊 · 12分鐘',searchForest,false,true),...(s.recovery.found?[action('留意甲蟲活動痕跡 · 8分鐘',()=>forestRareCheck('beetle'))]:[]),...(s.recovery.found&&s.beetle.questAccepted&&!s.beetle.captured?[action('設置甲蟲誘捕盒 · 10分鐘',captureRustBeetle)]:[]),routeAction('進入林間空地','clearing',()=>change('clearing')),routeAction('走近舊石門','ruin',()=>change('ruin')),action('查看路旁舊石碑',inspectTrailMarker),routeAction('返回馬車','wreck',()=>change('wreck'))],
- clearing:[routeAction('返回小徑','trail',()=>change('trail'),true),action('觀察空地生態 · 6分鐘',()=>observeForestEcology('clearing'),false,true),...(!s.flags.lightTaken?[action('查看樹根旁的微光',light)]:[]),action('留意林間聲響',soundInForest)],
- ruin:[routeAction('返回小徑','trail',()=>change('trail'),true),action('觀察石門生態 · 6分鐘',()=>observeForestEcology('ruin'),false,true),action('看看古老石門',ruinLook),action('觀察石門旁的長耳腳印 · 8分鐘',()=>forestRareCheck('rabbit'))],
+ trail:[routeAction('前往城鎮入口','gate',rescue,true),action(s.recovery.found?'調查舊馬車殘骸':'搜索林邊 · 12分鐘',searchForest,false,true),...(s.recovery.found?[action('留意甲蟲活動痕跡 · 8分鐘',()=>forestRareCheck('beetle'))]:[]),...(s.recovery.found&&s.beetle.questAccepted&&!s.beetle.captured?[eventAction('設置甲蟲誘捕盒 · 10分鐘',captureRustBeetle)]:[]),routeAction('進入林間空地','clearing',()=>change('clearing')),routeAction('走近舊石門','ruin',()=>change('ruin')),action('查看路旁舊石碑',inspectTrailMarker),routeAction('返回馬車','wreck',()=>change('wreck'))],
+ clearing:[routeAction('返回小徑','trail',()=>change('trail'),true),action('觀察空地生態 · 6分鐘',()=>observeForestEcology('clearing'),false,true),...(!s.flags.lightTaken?[eventAction('查看樹根旁的微光',light)]:[]),eventAction('留意林間聲響',soundInForest)],
+ ruin:[routeAction('返回小徑','trail',()=>change('trail'),true),action('觀察石門生態 · 6分鐘',()=>observeForestEcology('ruin'),false,true),eventAction('看看古老石門',ruinLook),action('觀察石門旁的長耳腳印 · 8分鐘',()=>forestRareCheck('rabbit'))],
  gate:[routeAction('前往旅店',s.flags.morning?'lobby':'inn',()=>change(s.flags.morning?'lobby':'inn'),true),...(s.flags.morning?[routeAction('走進城鎮街道','street',()=>change('street'))]:[]),routeAction('返回森林','trail',()=>change('trail')),action('問問冒險者',()=>dialog('四名冒險者','他們告訴你，這座城鎮有旅店、公會與來往的旅人。其他兩名夥伴今天留在住處。你們仍是剛認識的陌生人。',[{label:'道謝',fn:()=>{}}],'簡短對話'))],
- inn:[...(s.flags.morning?[routeAction('前往旅店大廳','lobby',()=>change('lobby'),true)]:[sceneAction('迎接新的早晨',morning,true)]),action(s.flags.sigilSeen?'再看看鏡子':'整理衣物與鏡子',innMark),sceneAction('休息片刻',rest),routeAction('返回城鎮入口','gate',()=>change('gate'))],
+ inn:[...(s.flags.morning?[routeAction('前往旅店大廳','lobby',()=>change('lobby'),true)]:[sceneAction('迎接新的早晨',morning,true)]),(s.flags.sigilSeen?action:eventAction)(s.flags.sigilSeen?'再看看鏡子':'整理衣物與鏡子',innMark),sceneAction('休息片刻',rest),routeAction('返回城鎮入口','gate',()=>change('gate'))],
  lobby:[routeAction('走出旅店','street',()=>change('street'),true),action('與旅店工作人員交談',talkInnkeeper),routeAction('回到客房','inn',()=>change('inn'))],
- street:[routeAction('進入冒險者公會','guild',()=>change('guild'),true),routeAction('前往城外近郊','outskirts',()=>offerOutskirtsTransport('outskirts')),action('與救援者再次交談',meetRescuers),action('向雜貨商詢問甲蟲委託',beetleMerchant),...(s.flags.houseInvite?[routeAction('拜訪小隊的公共起居室','home',()=>change('home'))]:[]),routeAction('返回旅店','lobby',()=>change('lobby')),routeAction('往城門走','gate',()=>change('gate'))],
- guild:[action('與公會櫃台交談',guildClerk,true),action('查看今日委託',guildBoard),routeAction('返回城鎮街道','street',()=>change('street'))],
+ street:[routeAction('進入冒險者公會','guild',()=>change('guild'),true),routeAction('前往城外近郊','outskirts',()=>offerOutskirtsTransport('outskirts')),eventAction('與救援者再次交談',meetRescuers),eventAction('向雜貨商詢問甲蟲委託',beetleMerchant),...(s.flags.houseInvite?[routeAction('拜訪小隊的公共起居室','home',()=>change('home'))]:[]),routeAction('返回旅店','lobby',()=>change('lobby')),routeAction('往城門走','gate',()=>change('gate'))],
+ guild:[action('與公會櫃台交談',guildClerk,true),eventAction('查看今日委託',guildBoard),routeAction('返回城鎮街道','street',()=>change('street'))],
  outskirts:[routeAction('返回城鎮街道','street',()=>offerOutskirtsTransport('street'),true),action('看看路口的舊路標',roadsideSign),action('眺望遠處的林地',countryside)],
- home:[routeAction('回到城鎮街道','street',()=>change('street'),true),action('與昨天留守的兩人聊天',meetHome),action('看看公共空間',()=>dialog('一起生活的地方','牆邊掛著修補過的旅行斗篷，桌上則是輪流採買的清單。這裡是六位冒險者自己生活的地方，並不是主角自動入住的房間。',[{label:'不打擾了',fn:()=>{}}],'生活角落'))]
+ home:[routeAction('回到城鎮街道','street',()=>change('street'),true),(s.flags.homeMet?action:eventAction)('與昨天留守的兩人聊天',meetHome),action('看看公共空間',()=>dialog('一起生活的地方','牆邊掛著修補過的旅行斗篷，桌上則是輪流採買的清單。這裡是六位冒險者自己生活的地方，並不是主角自動入住的房間。',[{label:'不打擾了',fn:()=>{}}],'生活角落'))]
 };
  const filtered=(a[s.scene]||[]).filter(x=>!x.routeTo||routeKnown(s.scene,x.routeTo));
  const primary=!filtered.some(x=>x.primary);
  const opening=openingView();
  if(openingAdventure()&&!routeKnown(s.scene,s.scene==='wreck'?'trail':'gate')){
-  filtered.unshift(action(s.scene==='wreck'?(s.flags.openingTracks?'循著車轍':'觀察馬車'):'留意前方動靜',observeOpening,true));
+  filtered.unshift(eventAction(s.scene==='wreck'?(s.flags.openingTracks?'循著車轍':'觀察馬車'):'留意前方動靜',observeOpening,true));
  }else if(opening.canExplore&&!openingAdventure())filtered.unshift(sceneAction('探索周遭 · 10分鐘',exploreArea,primary,!primary));
- else if(opening.needsCue)filtered.unshift(sceneAction('辨認離開方向',openingDepartureCue,primary,!primary));
+ else if(opening.needsCue)filtered.unshift(eventAction('辨認離開方向',openingDepartureCue,primary,!primary));
  if(openingAdventure()&&s.scene==='wreck'&&opening.canExplore)filtered.push(sceneAction('探索周遭 · 10分鐘',exploreArea));
  return filtered;
 }
