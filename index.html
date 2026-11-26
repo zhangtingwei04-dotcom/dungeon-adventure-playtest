@@ -4506,6 +4506,7 @@ window.DUNGEON_FOREST_V4_LAYOUT=window.DUNGEON_WRECK_CURRENT_LAYOUT;
 <script src="./assets/character_environment_v1.js?v=1.1"></script>
 <script src="./assets/weather_system_v1.js?v=25-local-environment"></script>
 <script src="./assets/lantern_world_environment_v1.js"></script>
+<script src="./assets/lantern_location_core_v1.js"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/scene_objects_v1.js?v=20261125-winter"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
@@ -4652,6 +4653,7 @@ const ROUTE_TIMES=[
 function gameTime(minutes){return window.DungeonGameTimeV1.format(minutes);}
 const PERIOD_NAMES=Object.freeze({dawn:'清晨',day:'白天',dusk:'黃昏',night:'夜晚'});
 const INDOOR_SCENES=new Set(['inn','lobby','guild','home']);
+const lanternLocationCore=window.LanternLocationCoreV1.create({names,routes:ROUTE_TIMES,indoors:INDOOR_SCENES});
 function periodForMinutes(minutes){return window.DungeonGameTimeV1.parts(minutes).period;}
 function atmosphereSubtitle(scene,period){
  const alt={
@@ -4731,17 +4733,9 @@ function advanceToNextMorning(){
  window.DungeonWeatherV1?.exposure(s,INDOOR_SCENES.has(s.scene));
  return window.DungeonGameTimeV1.nextMorning(s,{fromScene:s.scene,toScene:s.scene});
 }
-function travelRoute(a,b){return ROUTE_TIMES.find(r=>(r.a===a&&r.b===b)||(r.a===b&&r.b===a))||null;}
-function horseCarriageAvailable(a,b){
- const r=travelRoute(a,b);
- return !!(r&&r.carriage&&s.flags.morning);
-}
-function travelTimeFor(a,b,mode='walk'){
- const r=travelRoute(a,b);
- if(!r)return mode==='walk'?5:null; // Fallback for a later connected scene pending route design.
- if(mode==='carriage')return horseCarriageAvailable(a,b)?r.carriage:null;
- return r.walk;
-}
+function travelRoute(a,b){return lanternLocationCore.route(a,b);}
+function horseCarriageAvailable(a,b){return lanternLocationCore.carriage(s,a,b);}
+function travelTimeFor(a,b,mode='walk'){return lanternLocationCore.duration(s,a,b,mode);}
 function offerOutskirtsTransport(destination){
  if(!horseCarriageAvailable(s.scene,destination)){change(destination);return;}
  const route=travelRoute(s.scene,destination);
@@ -5085,13 +5079,7 @@ function discoverRoute(a,b){
  const r=travelRoute(a,b);if(!r||routeKnown(a,b))return false;
  s.routeDiscovery.known.push(routeKey(a,b));updatePlaceDrawerBadge();save();return true;
 }
-function routeAllowedToSearch(from,to){
- if(!travelRoute(from,to))return false;
- if((to==='street'||to==='lobby')&&from==='gate'&&!s.flags.morning)return false;
- if(to==='lobby'&&from==='inn'&&!s.flags.morning)return false;
- if(to==='home'&&!s.flags.houseInvite)return false;
- return true;
-}
+function routeAllowedToSearch(from,to){return lanternLocationCore.searchable(s,from,to);}
 function nextHiddenRoute(scene=s.scene){
  normalizeRouteDiscovery();
  const preferred=ROUTE_SEARCH_ORDER[scene]||[];
