@@ -75,15 +75,16 @@
   }
   function render(){
    box.replaceChildren();
-   const head=add(box,'header','','battle-test-header');
-   add(head,'h2','測試戰鬥');head.append(button('離開',()=>box.close()));
    const content=add(box,'div','','battle-test-content');
+   const footer=add(box,'footer','','battle-test-footer');
+   const controls=add(footer,'div','','battle-test-actions');
+   const exit=button('離開',()=>box.close());exit.className='battle-test-exit';footer.append(exit);
    if(phase==='setup'){
     add(content,'p','測試使用獨立隊伍與體力。');
     select(content,'出發人數 ',total,6,n=>{total=n;front=Math.min(front,n);});
     select(content,'前線人數 ',front,Math.min(4,total),n=>{front=n;});
     add(content,'p',front+' 人前線 · '+(total-front)+' 人待命');
-    content.append(button('開始戰鬥',start));return;
+    controls.append(button('開始戰鬥',start));return;
    }
    const scene=add(content,'div','','battle-test-scene');
    const monster=add(scene,'img','');monster.src=sprite;monster.alt='苔棘鬃獸';
@@ -100,14 +101,12 @@
     row.dataset.position=member.hp===0?'down':member.front?'front':'rear';
     if(intent)add(row,'span',intent.slice(1),'battle-test-intent');
    }
-   const footer=add(box,'footer','','battle-test-footer');
-   const controls=add(footer,'div','','battle-test-actions');
    if(battle.result){controls.append(button('重新配置',()=>{phase='setup';render();}));return;}
    for(const [id,label] of moves)controls.append(button(label,()=>turn(id),id==='attack'&&battle.distance!==0||id==='approach'&&battle.distance===0||id==='backstep'&&battle.distance===2));
    const ready=team.filter(m=>!m.front&&m.hp>0);
    const active=team.filter(m=>m.id&&m.front&&m.hp>0);
    if(!ready.length&&!active.length)return;
-   const details=add(footer,'details','','battle-test-dispatch');
+   const details=add(controls,'details','','battle-test-dispatch');
    add(details,'summary','調度');
    const options=add(details,'div','','battle-test-actions battle-test-options');
    add(options,'p','換人或增援消耗一回合。');

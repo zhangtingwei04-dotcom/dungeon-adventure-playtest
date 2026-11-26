@@ -3897,13 +3897,11 @@ html.stage-locked #app .paperdoll-stage.paperdoll-female-trial .paperdoll-female
    approved neutral mouth is permitted even if the outfit stays unchanged. */
 html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="mouthShape"]{display:none!important}
 .battle-playtest{box-sizing:border-box;width:min(720px,94vw);max-height:92dvh;overflow:hidden;color:#eee4ca;background:#142b22;border:1px solid #a7985d;border-radius:10px;padding:0;font:400 12px/1.4 system-ui,sans-serif}
-.battle-playtest[open]{display:grid;grid-template-rows:auto minmax(0,1fr) auto}
+.battle-playtest[open]{display:grid;grid-template-rows:minmax(0,1fr) auto}
 .battle-playtest::backdrop{background:#06140de0}
-.battle-test-header,.battle-test-actions{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
-.battle-test-header{justify-content:space-between;padding:6px 10px}
-.battle-playtest h2{font-size:16px;margin:0}
+.battle-test-actions{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
 .battle-playtest p{margin:4px 0}
-.battle-test-content{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:0 10px 7px}
+.battle-test-content{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:5px 10px 7px}
 .battle-playtest label{display:inline-flex;align-items:center;gap:4px;margin:5px}
 .battle-playtest button,.battle-playtest select,.battle-test-dispatch summary{box-sizing:border-box;color:inherit;background:#294439;border:1px solid #a7985d;border-radius:5px;padding:4px 7px;min-height:34px;font:inherit;cursor:pointer}
 .battle-playtest button:disabled{opacity:.48}
@@ -3918,6 +3916,7 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 .battle-test-roster li[data-position="down"]{color:#ffb3a8}
 .battle-test-intent{display:block}
 .battle-test-footer{position:relative;display:flex;align-items:center;flex-wrap:wrap;gap:5px;padding:6px 10px;border-top:1px solid #a7985d66;background:#142b22}
+.battle-test-exit{margin-inline-start:auto}
 .battle-test-dispatch summary{padding-block:8px}
 .battle-test-options{position:absolute;z-index:1;inset-inline:6px;bottom:calc(100% + 3px);max-height:min(42dvh,175px);overflow-y:auto;overscroll-behavior:contain;padding:6px;background:#142b22;border:1px solid #a7985d;border-radius:6px}
 @media(max-width:440px){.battle-test-roster{grid-template-columns:1fr}}
@@ -4526,7 +4525,7 @@ window.DUNGEON_FOREST_V4_LAYOUT=window.DUNGEON_WRECK_CURRENT_LAYOUT;
 <!-- Official universal arm transparency follows the developer studio policy. -->
 <script src="./assets/arm_visibility_policy_v1.js?v=live-20261124"></script>
 <script src="./assets/arm_visibility_live_v1.js?v=live-20261124"></script>
-<script src="./assets/battle_playtest_v1.js?v=compact-controls"></script>
+<script src="./assets/battle_playtest_v1.js?v=footer-exit"></script>
 <script>
 (()=>{'use strict';
 // Fixed design canvas: use the approved screenshot's exact 1536×707 ratio,
