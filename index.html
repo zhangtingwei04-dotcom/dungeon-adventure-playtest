@@ -4507,6 +4507,7 @@ window.DUNGEON_FOREST_V4_LAYOUT=window.DUNGEON_WRECK_CURRENT_LAYOUT;
 <script src="./assets/weather_system_v1.js?v=25-local-environment"></script>
 <script src="./assets/lantern_world_environment_v1.js"></script>
 <script src="./assets/lantern_location_core_v1.js"></script>
+<script src="./assets/lantern_scene_core_v1.js"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/scene_objects_v1.js?v=20261125-winter"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
@@ -7658,7 +7659,7 @@ function wreckPanoramaCrop(){
 }
 // All scenes use a fixed camera position and keep existing aspect-ratio rules.
 function refreshSceneFraming(){
- const illustrated=(s.scene==='wreck'&&(emptyForestReady||approvedWreckReady||wreckPanoramaReady))||(s.scene==='trail'&&(trailForestReady||wreckPanoramaReady));
+ const illustrated=window.LanternSceneCoreV1.illustrated(s.scene,{emptyForestReady,approvedWreckReady,wreckPanoramaReady,trailForestReady});
  $('view').style.objectFit=illustrated?'fill':'cover';
  $('view').style.transform='none';$('hotspots').style.transform='none';
 }
@@ -8856,7 +8857,7 @@ function mote(time){const r=rng(939);for(let i=0;i<29;i++){const x=(r()*960+Math
 const wreckBattleBase=new Image();
 let wreckBattleAssetRequested=false;
 function wreckBattleBackdropActive(sceneId=s.scene){
- return sceneId==='wreck'&&s.flags.inBattle&&wreckBattleBase.complete&&wreckBattleBase.naturalWidth>0;
+ return window.LanternSceneCoreV1.select(sceneId,{inBattle:s.flags.inBattle,battleReady:wreckBattleBase.complete&&wreckBattleBase.naturalWidth>0})==='battle';
 }
 function sceneDraw(time,sceneId=s.scene,thumbnail=false){
  ensureSceneArt(sceneId);
@@ -8874,14 +8875,15 @@ function sceneDraw(time,sceneId=s.scene,thumbnail=false){
    return;
   }
  }
- const isTrailArt=sceneId==='trail'&&trailForestReady;
- if(sceneId==='wreck'&&emptyForestReady){
+ const sceneArt=window.LanternSceneCoreV1.select(sceneId,{thumbnail,emptyForestReady,approvedWreckReady,wreckPanoramaReady,trailForestReady,cleared:sceneId==='wreck'&&wreckCleared()});
+ const isTrailArt=sceneArt==='trail-illustration';
+ if(sceneArt==='empty-forest'){
   ctx.save();ctx.imageSmoothingEnabled=true;
   const w=emptyForest.naturalWidth,h=emptyForest.naturalHeight,fit=Math.max(W/w,H/h);
   ctx.drawImage(emptyForest,(W-w*fit)/2,(H-h*fit)/2,w*fit,h*fit);ctx.restore();if(!thumbnail&&forestV4Active()&&new URLSearchParams(location.search).get('env')!=='off'&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches)window.DungeonSceneEnvironmentV1?.draw(ctx,neutralForestSelected?'forestV5':'forestV4',time,W,H,previewPeriod||periodForMinutes(s.worldMinutes),emptyForest);if(!thumbnail)window.DungeonWeatherV1?.drawGround(ctx,time,W,H,forestV4Active()&&neutralForestSelected,emptyForest);else if(neutralForestSelected){const weather=window.DungeonWeatherV1?.at(s.seed,s.worldMinutes,sceneId);window.DungeonWinterV1?.ground(ctx,weather?.snowCover||0,W,H,emptyForest,weather?.frost||0);}return;
  }
- if(sceneId==='wreck'&&wreckCleared()){background('wreck');return;}
- if(sceneId==='wreck'&&approvedWreckReady){
+ if(sceneArt==='cleared'){background('wreck');return;}
+ if(sceneArt==='approved-wreck'){
   ctx.save();ctx.imageSmoothingEnabled=false;
   // Preserve the entire approved 676×390 composition without stretching or
   // cropping it inside the existing 16:9 interaction canvas.
@@ -8941,7 +8943,7 @@ function drawLocationThumbnail(ms){
   const original=ctx;try{ctx=g;sceneDraw(0,id,true);}finally{ctx=original;}
   if(id==='wreck'&&emptyForestReady&&forestV4Selected){
    const layout=window.DUNGEON_FOREST_V4_LAYOUT?.scenes?.wreck||[];
-   for(const o of [...layout].sort((a,b)=>a.z-b.z)){
+   for(const o of window.LanternSceneCoreV1.byDepth(layout)){
     if(!o.visible||!window.DungeonObjectInvestigationV1.visible(s,'wreck',o)||/forest4_(rabbit|bird|butterfly|beetle)$/.test(o.assetId))continue;
     const img=locationThumbImage(window.DUNGEON_FOREST_V4_ASSETS?.[o.assetId]?.src);if(!img)continue;
     const width=o.width*W/100,height=width*img.naturalHeight/img.naturalWidth;
