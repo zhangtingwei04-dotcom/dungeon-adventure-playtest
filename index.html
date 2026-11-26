@@ -4812,8 +4812,9 @@ function recoverIdentify(id){
 function recoverDismantle(id){
  normalizeRecovery();const i=s.recovery.items.findIndex(x=>x.id===id),def=RECOVERABLE[id];
  if(i<0||!def)return;
- recoveryTime(6);s.recovery.items.splice(i,1);
- for(const [name,n] of Object.entries(def.parts))s.recovery.parts[name]=(s.recovery.parts[name]||0)+n;
+ if(!window.LanternResourceCoreV1.plan(s.recovery.parts,def.parts))return;
+ recoveryTime(6);
+ if(!window.LanternResourceCoreV1.apply(s.recovery.parts,def.parts,{commit:()=>{s.recovery.items.splice(i,1);return true;}}))return;
  const result=Object.entries(def.parts).map(([name,n])=>name+' ×'+n).join('、');
  addTravel('discovery','分解「'+def.raw+'」，獲得：'+result+'。','這些材料可以先保留。');
  save();render();journal('items');toast('分解獲得：'+result);
@@ -4938,8 +4939,9 @@ function showForestRare(id){
    {label:'檢查牠留下的零件',fn:()=>{
     normalizeForestRare();
     if(s.forestRare.beetleGearTaken){toast('沒有新的零件。');return;}
+    normalizeRecovery();
+    if(!window.LanternResourceCoreV1.add(s.recovery.parts,'彎齒小齒輪'))return;
     s.forestRare.beetleGearTaken=true;
-    s.recovery.parts['彎齒小齒輪']=(s.recovery.parts['彎齒小齒輪']||0)+1;
     note('beetleGear','在鏽殼甲蟲活動區找到彎齒小齒輪');
     save();
    }}
