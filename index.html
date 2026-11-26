@@ -7719,14 +7719,8 @@ function dialogueInfoAllowed(target){
  return false;
 }
 function blockBackgroundDialogueInput(e){
- if(e.target.closest?.('.battle-playtest[open]'))return;
- const active=activeDialogueSurface();
- if(!active)return;
- const map=$('journalVeil');
- const mapOpen=!map.classList.contains('hidden')&&journalTab==='map';
- if(mapOpen){
-  if(map.contains(e.target)&&!e.target.closest('.journal-tab:not(.selected)'))return;
- }else if(active.contains(e.target)||dialogueInfoAllowed(e.target))return;
+ const mapOpen=!$('journalVeil').classList.contains('hidden')&&journalTab==='map';
+ if(!lanternActionCore.blocks(e.target,{mapOpen,infoAllowed:dialogueInfoAllowed}))return;
  if(e.cancelable)e.preventDefault();e.stopImmediatePropagation();
 }
 for(const type of ['click','dblclick','pointerdown','pointerup','touchstart','touchend','touchmove','wheel']){
