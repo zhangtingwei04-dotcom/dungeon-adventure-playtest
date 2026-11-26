@@ -145,15 +145,15 @@ window.DUNGEON_FOREST_V4_SPAWNS=[
   }
 ];
 window.DungeonForestV4Life=(function engine(){
- const animalKinds=['bird','rabbit','beetle','butterfly'];
- const periods={bird:['dawn','day','dusk'],rabbit:['dawn','dusk'],beetle:['dusk','night'],butterfly:['dawn','day','dusk']};
+ const ecology=window.LanternEcologyCoreV1;
+ const animalKinds=ecology.kinds;
  const kind=o=>o.assetId.replace('forest4_','');
  function state(s){if(!s.forestV4Life||typeof s.forestV4Life!=='object'||Array.isArray(s.forestV4Life))s.forestV4Life={last:-1,animals:{}};const v=s.forestV4Life;if(!v.animals||typeof v.animals!=='object')v.animals={};return v;}
  function update(s,base,slots,phase,random=Math.random){
   const v=state(s),count=s.exploration?.counts?.wreck||0;if(s.scene!=='wreck'||v.last===count||s.flags?.inBattle)return;
   v.last=count;
   for(const k of animalKinds){const options=[...base,...slots].filter(o=>o.visible&&kind(o)===k);if(!options.length)continue;
-   if(!periods[k].includes(phase)){v.animals[k]=null;continue;}
+   if(!ecology.activePeriod(k,phase)){v.animals[k]=null;continue;}
    const old=Object.hasOwn(v.animals,k)?v.animals[k]:options[0].id;
    const roll=random();if(old===null){v.animals[k]=roll<.5?options[Math.min(options.length-1,Math.floor(random()*options.length))].id:null;}
    else if(roll<.25)v.animals[k]=null;else if(roll<.75){const others=options.filter(o=>o.id!==old);v.animals[k]=others.length?others[Math.min(others.length-1,Math.floor(random()*others.length))].id:old;}else v.animals[k]=old;
