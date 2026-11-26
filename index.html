@@ -2981,7 +2981,7 @@ html.stage-locked #app #placeDrawerPanel.is-location-tab #placeDrawerList{
 html.stage-locked #app #placeDrawer{height:485px!important}
 html.stage-locked #app #placeActionPanel{
  box-sizing:border-box;display:flex;flex-direction:column;flex:0 0 151px;
- justify-content:flex-start;padding:6px 8px;
+ justify-content:flex-start;padding:6px 8px;min-height:0;overflow-y:auto;overscroll-behavior:contain;
  border:1px solid #baa16d;border-radius:9px;background:#0b3029;
 }
 html.stage-locked #app #placeActionPanel #placePrimaryActions{
@@ -7120,6 +7120,10 @@ function renderSceneActionDock(host){
   renderPlaceDrawer();
   if(sceneActionView)openSceneDialogue([{speaker:'旁白',text:'你環顧四周，看看有沒有值得留意的地方。'}],'investigation-entry');
  },'explore');
+ for(const item of actions){
+  if(item===primary||!item.routeTo)continue;
+  add(item.title,item.fn,'route');
+ }
 
 }
 function renderWreckInvestigation(list,actions,primary,targets,append){
@@ -7176,7 +7180,7 @@ function renderWreckInvestigation(list,actions,primary,targets,append){
   tiles(section,ecology);list.appendChild(section);
  }
  for(const item of actions){
-  if(item===primary||(item.fn===marks&&objects.some(o=>o.name==='車輪'))||(item.fn===glance&&objects.some(o=>o.name==='貨箱')))continue;
+  if(item===primary||item.routeTo||(item.fn===marks&&objects.some(o=>o.name==='車輪'))||(item.fn===glance&&objects.some(o=>o.name==='貨箱')))continue;
   append(item.title,()=>runSceneAction(item.fn));
  }
  for(const item of other)append(item.name,()=>item.node.onclick());
@@ -7203,7 +7207,7 @@ function renderSceneActionView(out){
  }
  const used=new Set();
  for(const item of actions){
-  if(item===primary)continue;
+  if(item===primary||item.routeTo)continue;
   used.add(item.title);
   append(item.title,()=>runSceneAction(item.fn));
  }
