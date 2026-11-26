@@ -170,7 +170,7 @@ assert.throws(()=>secureSave.prepare(futureDomain,saveScenes),/系統版本不�
 console.log('PASS: domain migration preserves progress, old route semantics, unknown fields and rejects unsupported known versions');
 
 
-const objectWindow={};for(const f of ['object_investigation_v1','wreck_current_layout_v1','forest_v4_spawns'])new vm.Script(read('assets/'+f+'.js').toString()).runInNewContext({window:objectWindow});
+const objectWindow={};for(const f of ['object_investigation_v1','wreck_current_layout_v1','lantern_ecology_core_v1','forest_v4_spawns'])new vm.Script(read('assets/'+f+'.js').toString()).runInNewContext({window:objectWindow});
 const investigation=objectWindow.DungeonObjectInvestigationV1;
 const forestObjects=[...objectWindow.DUNGEON_WRECK_CURRENT_LAYOUT.scenes.wreck,...objectWindow.DUNGEON_FOREST_V4_SPAWNS];
 for(const o of forestObjects){assert(investigation.describe(o),'Missing investigation '+o.id);assert.equal(investigation.describe(o).collectible,false);}
