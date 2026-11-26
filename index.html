@@ -7108,10 +7108,15 @@ function renderSceneActionDock(host){
   host.appendChild(button);
  }
  if(primary)add(primary.title,primary.fn,'primary');
- add(sceneActionView?'返回資訊':'調查／其他行動',()=>{
-  sceneActionView=sceneActionView?null:{actor:s,scene:s.scene};
-  renderPlaceDrawer();
- },'explore');
+ const menuButton=document.createElement('button');menuButton.type='button';
+ menuButton.className='side-main-action explore';
+ setActionVisual(menuButton,'explore','調查／其他行動');
+ menuButton.onclick=()=>{
+  if(activeDialogueSurface()||s.flags.inBattle||encounterPending)return;
+  if(sceneDialogueState.open)closeSceneDialogue();
+  openSceneActionMenu();
+ };
+ host.appendChild(menuButton);
 
 }
 function renderWreckInvestigation(list,actions,primary,targets,append){
@@ -7173,17 +7178,27 @@ function renderWreckInvestigation(list,actions,primary,targets,append){
  }
  for(const item of other)append(item.name,()=>item.node.onclick());
 }
-function renderSceneActionView(out){
+function openSceneActionMenu(){
+ const actor=s,scene=s.scene,choices=[];
+ renderSceneActionView(document.createElement('div'),choices);
+ choices.push({label:'先不行動',fn:()=>{}});
+ openSceneDialogue([{speaker:'旁白',text:choices.length>1?'你想做些什麼？':'附近暫時沒有其他可進行的行動。'}],'investigation-menu',choices.map(choice=>({label:choice.label,fn:()=>{if(s!==actor||s.scene!==scene||s.flags.inBattle)return;choice.fn();}})));
+}
+function renderSceneActionView(out,menuChoices=null){
  const title='調查／其他行動';
- $('sidePanelTitle').textContent=title;
- $('placeDrawerSummary').textContent='';
- $('placeDrawerSummary').removeAttribute('aria-label');
- $('placeDrawerPanel').setAttribute('aria-label',title);
+ if(!menuChoices){
+  $('sidePanelTitle').textContent=title;
+  $('placeDrawerSummary').textContent='';
+  $('placeDrawerSummary').removeAttribute('aria-label');
+  $('placeDrawerPanel').setAttribute('aria-label',title);
+ }
  const list=document.createElement('div');list.className='scene-action-list';
  out.appendChild(list);
  function append(label,fn,parent=list){
   const button=document.createElement('button');button.type='button';
-  button.textContent=label;button.onclick=fn;parent.appendChild(button);return button;
+  button.textContent=label;button.onclick=fn;parent.appendChild(button);
+  if(menuChoices&&!menuChoices.some(choice=>choice.label===label))menuChoices.push({label,fn});
+  return button;
  }
  const actions=entries();
  const primary=actions.find(item=>item.primary)||actions[0];
