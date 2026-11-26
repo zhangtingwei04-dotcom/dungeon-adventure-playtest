@@ -9,7 +9,7 @@
   function reset(channel){last.delete(channel);}
   function active(){
    const start=get('startVeil');if(start&&!start.classList.contains('hidden'))return null;
-   for(const id of surfaces){const el=get(id);if(el&&!el.classList.contains('hidden'))return el;}
+   for(const id of surfaces){if(id==='sceneDialogue'&&dialogue?.()==='investigation-entry')continue;const el=get(id);if(el&&!el.classList.contains('hidden'))return el;}
    return null;
   }
   function sync(){
