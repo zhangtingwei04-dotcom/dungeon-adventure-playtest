@@ -2997,22 +2997,20 @@ html.stage-locked #app #placeDrawerPanel.is-location-tab #placeDrawerList{
  order:1;flex:1 1 0!important;padding:7px 11px 12px!important;
  overflow-y:auto!important;min-height:0!important;
 }
-html.stage-locked #app #placeDrawerPanel.is-location-tab #placePrimaryActions{
- order:2;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
- gap:6px!important;flex:0 0 auto!important;
- padding:6px 8px!important;border:0!important;
- border-top:1px solid #b5996366!important;background:#0b3029!important;
+/* The action panel sits outside the independently scrolling information panel. */
+html.stage-locked #app #placeDrawer{height:485px!important}
+html.stage-locked #app #placeDrawer > #placePrimaryActions{
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));
+ grid-auto-rows:40px;gap:5px!important;flex:0 0 auto!important;
+ padding:6px 8px!important;border:1px solid #baa16d!important;
+ border-radius:9px;background:#0b3029!important;
 }
-html.stage-locked #app #placeDrawerPanel.is-location-tab #placePrimaryActions[hidden]{
- display:none!important;
+html.stage-locked #app #placeDrawer > #placePrimaryActions .side-main-action{
+ min-height:40px!important;padding:4px 5px!important;font-size:13px!important;line-height:1.12!important;
 }
-html.stage-locked #app #placeDrawerPanel.is-location-tab #placePrimaryActions .side-main-action{
- min-height:40px!important;padding:5px 6px!important;font-size:12px!important;
- line-height:1.17!important;gap:3px!important;
-}
-html.stage-locked #app #placeDrawerPanel.is-location-tab #placePrimaryActions .side-main-action svg{
- width:15px!important;height:15px!important;flex:0 0 15px!important;
-}
+html.stage-locked #app #placeDrawer > #placePrimaryActions .location-preview-travel{grid-column:1/-1}
+#hotspots[inert],#hotspots[inert] *{pointer-events:none!important}
+#dialogVeil.scene-action-menu #dialogChoices{max-height:40dvh;overflow-y:auto;overscroll-behavior:contain}
 html.stage-locked #app #placeDrawerPanel.is-location-tab .side-current-summary.location-reference-card{
  display:block!important;margin:0 0 4px!important;min-width:0!important;
 }
@@ -4305,7 +4303,7 @@ html.stage-locked #app #battleSurface .battle-actions button{font-size:17px;min-
  <path d="M8 45C15 32 30 35 30 21S41 8 51 14C56 17 53 24 48 23C45 22 46 19 49 19" fill="none" stroke="#b99359" stroke-width="2" stroke-linecap="round"/>
  <path d="M17 33Q8 31 8 23Q19 23 20 31M26 26Q31 12 41 15Q37 25 26 26M14 46Q23 37 31 43Q24 49 14 46" fill="#5a8558" stroke="#b5b079" stroke-width="1.1"/>
  <circle cx="31" cy="20" r="1.5" fill="#f2d99e"/>
- </svg><canvas id="view" aria-label="第一人稱冒險場景"></canvas><div id="dayTint" aria-hidden="true"></div><div id="shade"></div><canvas id="weatherOverlay" aria-hidden="true" hidden></canvas><div id="hotspots"></div><div id="sceneActors" aria-hidden="true"></div><section id="battleSurface" class="hidden" role="group" aria-label="遭遇戰"></section><div id="encounterCue" class="hidden" role="status" aria-live="polite"></div><div id="sceneDialogue" class="hidden" role="group" aria-label="場景對話，點擊繼續" tabindex="0"><div id="sceneDialoguePortrait" hidden aria-hidden="true"><img id="sceneDialoguePortraitImage" alt="" loading="eager" decoding="async"></div><div id="sceneDialogueName">旁白</div><p id="sceneDialogueText" aria-live="polite"></p><button id="sceneDialogueNext" type="button" aria-label="下一句">點擊繼續 ▸</button></div></section>
+ </svg><canvas id="view" aria-label="第一人稱冒險場景"></canvas><div id="dayTint" aria-hidden="true"></div><div id="shade"></div><canvas id="weatherOverlay" aria-hidden="true" hidden></canvas><div id="hotspots" inert></div><div id="sceneActors" aria-hidden="true"></div><section id="battleSurface" class="hidden" role="group" aria-label="遭遇戰"></section><div id="encounterCue" class="hidden" role="status" aria-live="polite"></div><div id="sceneDialogue" class="hidden" role="group" aria-label="場景對話，點擊繼續" tabindex="0"><div id="sceneDialoguePortrait" hidden aria-hidden="true"><img id="sceneDialoguePortraitImage" alt="" loading="eager" decoding="async"></div><div id="sceneDialogueName">旁白</div><p id="sceneDialogueText" aria-live="polite"></p><button id="sceneDialogueNext" type="button" aria-label="下一句">點擊繼續 ▸</button></div></section>
 <section id="sceneFuturePanel" aria-label="場景觀察、同行夥伴及探索紀錄">
  <div class="scene-info-column" aria-label="場景觀察">
   <div class="scene-info-heading">
@@ -4390,9 +4388,9 @@ html.stage-locked #app #battleSurface .battle-actions button{font-size:17px;min-
  </div>
  <section id="placeDrawerPanel" role="tabpanel" aria-label="地點資訊" aria-hidden="false">
   <div class="place-drawer-head"><div><strong id="sidePanelTitle">地點資訊</strong><span id="placeDrawerSummary"></span></div><button id="placeDrawerClose" hidden type="button">×</button></div>
-  <div id="placePrimaryActions" class="side-primary-actions" aria-label="目前地點的主要行動"></div>
   <div id="placeDrawerList"></div>
  </section>
+  <div id="placePrimaryActions" class="side-primary-actions" aria-label="目前地點的主要行動"></div>
 </aside>
 <button type="button" id="timePreviewTag" class="hidden" aria-label="結束時段預覽並恢復遊戲時間"></button>
 <section id="sceneInspection" class="hidden" role="group" aria-labelledby="sceneInspectionTitle">
@@ -7104,6 +7102,32 @@ function bindLocationPreviewSwipe(card){
  },{passive:true});
  card.addEventListener('touchcancel',()=>{start=null;},{passive:true});
 }
+function renderSceneActionDock(host,preview){
+ const actions=entries();
+ const primary=actions.find(item=>item.primary)||actions[0];
+ function add(label,fn,kind){
+  const button=document.createElement('button');button.type='button';
+  button.className='side-main-action '+kind;
+  setActionVisual(button,kind,label);
+  button.onclick=()=>guardedAction(fn);host.appendChild(button);
+ }
+ if(primary)add(primary.title,primary.fn,'primary');
+ add('調查／其他行動',()=>{
+  const choices=actions.filter(item=>item!==primary).map(item=>({label:item.title,fn:()=>guardedAction(item.fn)}));
+  const used=new Set(choices.map(choice=>choice.label));
+  const targets=$('hotspots').querySelectorAll('button:not(.env-leaving):not([disabled])');
+  for(const node of targets){
+   if(node.matches('.scene-route-target')||typeof node.onclick!=='function')continue;
+   const label=node.getAttribute('aria-label')||node.title;
+   if(!label||used.has(label))continue;
+   used.add(label);choices.push({label,fn:()=>node.onclick()});
+  }
+  dialog('目前地點的行動',choices.length?'選擇要調查的物件或要做的事。':'目前沒有其他可用行動。',choices,'場景操作');
+ },'explore');
+ if(activeSideTab==='locations'&&preview.reachable&&!preview.current){
+  add(preview.special?'前往調查':'前往 '+names[preview.id][0],()=>placeDrawerTravel(preview.id),'location-preview-travel');
+ }
+}
 function renderPlaceDrawer(){
  updatePlaceDrawerBadge();
  const cards=visiblePlaceCards(),out=$('placeDrawerList');
@@ -7121,8 +7145,7 @@ function renderPlaceDrawer(){
  out.dataset.renderedScene=s.scene;
  out.replaceChildren();
  const actionHost=$('placePrimaryActions');actionHost.replaceChildren();
- actionHost.hidden=activeSideTab!=='locations';
- actionHost.setAttribute('aria-hidden',String(activeSideTab!=='locations'));
+ renderSceneActionDock(actionHost,previewCard);
  const namesByTab={locations:'地點資訊',character:'角色狀態',equipment:'裝備欄',inventory:'背包'};
  $('sidePanelTitle').textContent=namesByTab[activeSideTab];
  $('placeDrawerSummary').textContent=activeSideTab==='locations'?String(cards.length)+' 處':'';
@@ -7138,20 +7161,6 @@ function renderPlaceDrawer(){
   button.tabIndex=selected?0:-1;
  }
  if(activeSideTab!=='locations'){renderSideTab(activeSideTab,out);out.scrollTop=priorScroll;return;}
- // Use the same live scene actions as the old bottom controls. No new
- // routes, time costs, or encounter rules are introduced.
- const actions=entries();
- const primary=actions.find(a=>a.primary)||actions[0];
- const quick=actions.find(a=>a.quick&&a!==primary&&!forestSceneActionOnCanvas(a));
- for(const [item,kind] of [[primary,'primary'],[quick,'explore']]){
-  if(!item)continue;
-  const button=document.createElement('button');button.type='button';
-  button.className='side-main-action '+kind;
-  setActionVisual(button,kind==='explore'||/探索|觀察/.test(item.title)?'explore':'route',item.title);
-  button.title=kind==='primary'?'主要行動':'快速探索／互動';
-  button.onclick=()=>guardedAction(item.fn);
-  actionHost.appendChild(button);
- }
  const special=Boolean(previewCard.special);
  const previewTitle=special?'林邊舊馬車殘骸':
   previewId==='gate'&&!s.flags.rescued?'前方主路（終點未明）':names[previewId]?.[0]||'未知地點';
@@ -7195,19 +7204,7 @@ function renderPlaceDrawer(){
  position.textContent='地點 '+(previewIndex+1)+' / '+cards.length+' · '+
   (previewCard.current?'目前所在地':previewCard.reachable?'可前往 · 預覽中':'已發現 · 僅預覽')+
   (cards.length>1?' · 可左右滑動':'');
- const canTravel=Boolean(previewCard.reachable&&!previewCard.current);
- const travelButton=document.createElement('button');travelButton.type='button';
- travelButton.className='location-preview-travel';
- travelButton.disabled=!canTravel;
- travelButton.textContent=previewCard.current?'目前位置':
-  canTravel?(special?'前往調查':'前往'):'尚不可達';
- const route=previewCard.adjacent?travelRoute(s.scene,previewId):null;
- travelButton.title=previewCard.current?'你已經在這個地點':
-  canTravel?(special?'調查這個已發現的殘骸':
-   (route?'沿已發現的道路前往，步行約'+route.walk+'分鐘':'前往此地，依現有路線規則')):'目前沒有可直接抵達的道路或通行權限';
- travelButton.setAttribute('aria-label',travelButton.title);
- if(canTravel)travelButton.onclick=()=>guardedAction(()=>placeDrawerTravel(previewId));
- positionRow.append(position,travelButton);intro.appendChild(positionRow);
+ positionRow.append(position);intro.appendChild(positionRow);
  for(const [icon,label,value] of [['◈','區域',locationMeta.area],['♟','類型',locationMeta.kind]]){
   const row=document.createElement('span');row.className='location-meta';
   const symbol=document.createElement('b');symbol.textContent=icon;
@@ -7247,21 +7244,18 @@ function renderPlaceDrawer(){
  }
  resourceSection.appendChild(resourceGrid);
  const resourceNote=document.createElement('p');resourceNote.className='location-resource-note';
- resourceNote.textContent=previewCard.current?'點擊場景內的物件或調查位置；可開啟互動提示查看名稱。':'這只是預覽；下方行動仍在目前所在地執行。';
+ resourceNote.textContent=previewCard.current?'使用右下方的行動按鈕調查或移動。':'這只是預覽；下方行動仍在目前所在地執行。';
  resourceSection.appendChild(resourceNote);out.appendChild(resourceSection);
  const shortcuts=document.createElement('div');shortcuts.className='side-location-shortcuts';
  for(const [label,handler] of [
   ['區域地圖',()=>journal('map')],
-  ['全部旅途',()=>journal('journey')],
-  ['互動提示',()=>$('hintBtn').click()]
+  ['全部旅途',()=>journal('journey')]
  ]){
   const btn=document.createElement('button');btn.type='button';
   btn.textContent=label;btn.onclick=handler;
-  if(label==='互動提示')btn.title='顯示場景內可互動位置；關閉提示後仍可點擊';
   shortcuts.appendChild(btn);
  }
  out.appendChild(shortcuts);
- // Removed the redundant paragraph; use the existing 互動提示 shortcut.
  // The scrollable list now begins directly with actionable content.
  normalizeExploration();
  const queue=s.exploration.pending[s.scene]||[];
@@ -7771,7 +7765,7 @@ function activeDialogueSurface(){
 function syncDialogueInputLock(){
  const active=activeDialogueSurface();
  $('app').dataset.dialogueLock=String(!!active);
- for(const id of ['hotspots','placePrimaryActions','travelFeed','sceneFuturePanel','actions']){
+ for(const id of ['placePrimaryActions','travelFeed','sceneFuturePanel','actions']){
   const el=$(id);if(el)el.inert=!!active&&!el.contains(active);
  }
 }
@@ -7826,7 +7820,7 @@ function change(scene,mode='walk'){
  }
  save();render();beep(350);
 }
-function dialog(title,text,choices,kicker='途中事件',locked=false,speaker=null,emotion='neutral'){closeSceneDialogue();closePlaceDrawer();hideSceneInspection();renderDialogueActor(speaker,emotion);if(/旅店的早晨|陌生人的善意|熟悉的四張面孔|留守的兩名夥伴|冒險者公會櫃台|普通的邀請|普通的生活|附近的道路|街上的日常/.test(title))addTravel('talk','交談：'+title,'也許能更了解這裡的人。');modal={title,text,choices,locked};$('dialogKicker').textContent=kicker;$('dialogTitle').textContent=title;$('dialogText').textContent=text;$('dialogChoices').replaceChildren();for(const c of choices){const b=document.createElement('button');b.className='choice';b.textContent=c.label;b.addEventListener('click',()=>{if(!modal)return;modal=null;$('dialogVeil').classList.add('hidden');syncDialogueInputLock();c.fn?.();});$('dialogChoices').appendChild(b);} $('dialogClose').classList.toggle('hidden',locked);$('dialogVeil').classList.remove('hidden');syncDialogueInputLock();beep(540);}
+function dialog(title,text,choices,kicker='途中事件',locked=false,speaker=null,emotion='neutral'){closeSceneDialogue();closePlaceDrawer();hideSceneInspection();renderDialogueActor(speaker,emotion);if(/旅店的早晨|陌生人的善意|熟悉的四張面孔|留守的兩名夥伴|冒險者公會櫃台|普通的邀請|普通的生活|附近的道路|街上的日常/.test(title))addTravel('talk','交談：'+title,'也許能更了解這裡的人。');modal={title,text,choices,locked};$('dialogVeil').classList.toggle('scene-action-menu',kicker==='場景操作');$('dialogKicker').textContent=kicker;$('dialogTitle').textContent=title;$('dialogText').textContent=text;$('dialogChoices').replaceChildren();for(const c of choices){const b=document.createElement('button');b.className='choice';b.textContent=c.label;b.addEventListener('click',()=>{if(!modal)return;modal=null;$('dialogVeil').classList.add('hidden');syncDialogueInputLock();c.fn?.();});$('dialogChoices').appendChild(b);} $('dialogClose').classList.toggle('hidden',locked);$('dialogVeil').classList.remove('hidden');syncDialogueInputLock();beep(540);}
 function closeDialog(){if(modal?.locked)return;modal=null;$('dialogVeil').classList.add('hidden');syncDialogueInputLock();renderDialogueActor(null);}
 function action(title,fn,primary=false,quick=false){return{title,fn,primary,quick};}
 function hideSceneInspection(){$('sceneInspection').classList.add('hidden');$('sceneInspection').classList.remove('route-discovery','exploration-results');syncDialogueInputLock();}
@@ -8829,7 +8823,7 @@ else if($('startVeil').classList.contains('hidden'))$('menuBtn').click();return;
 if(!$('startVeil').classList.contains('hidden'))return;
 if(/^[123]$/.test(e.key)){
 const choiceOpen=!$('dialogVeil').classList.contains('hidden');
-const buttons=choiceOpen?Array.from($('dialogChoices').querySelectorAll('button')):!overlaysOpen()?Array.from($('actions').querySelectorAll('.action')):[];
+const buttons=choiceOpen?Array.from($('dialogChoices').querySelectorAll('button')):!overlaysOpen()?Array.from($('placePrimaryActions').querySelectorAll('button')):[];
 const btn=buttons[Number(e.key)-1];if(btn){e.preventDefault();btn.click();}return;
 }
 if(e.key.toLowerCase()==='j'||e.key.toLowerCase()==='l'){e.preventDefault();if($('journalVeil').classList.contains('hidden'))journal('journey');else $('journalVeil').classList.add('hidden');}
