@@ -5146,12 +5146,18 @@ function observeOpening(){
   if(routeKnown('trail','gate'))rescue();else followOpeningClue();
  }
 }
-function openingMonsterPending(actor){
- return actor.scene==='wreck'&&!actor.flags?.rescued&&!actor.flags?.openingMonsterResolved&&!actor.flags?.inBattle&&!actor.visits?.trail;
+const WRECK_CLEANUP_EVENT='wreck-roadside-cleanup';
+function wreckCleared(actor=s){
+ return actor.objectWorld?.appliedEvents?.['wreck:'+WRECK_CLEANUP_EVENT]===true;
 }
-function startOpeningMonster(){
- if(!openingMonsterPending(s))return false;
- battleStart({opening:true,ambush:true});return true;
+function clearWreckOnReturn(){
+ if(!s.flags.rescued||wreckCleared())return;
+ const objects=window.DUNGEON_FOREST_V4_LAYOUT.scenes.wreck;
+ const targets=objects.filter(o=>/^forest4_(wagon|wheel_flat|crate_(large|small|open)|sack|plank(_lean)?|barrel)$/.test(o.assetId)).map(o=>o.id);
+ const event={id:WRECK_CLEANUP_EVENT,scene:'wreck',kind:'cleanup',targets};
+ if(window.DungeonObjectInvestigationV1.applyWorldEvent(s,event,objects)){
+  addTravel('scene','破損的馬車和散落的貨物已被搬離。','地上只剩壓痕，草叢裡似乎還有動靜。');
+ }
 }
 function followOpeningClue(){
  if(!openingAdventure()||modal||sceneDialogueState.open||encounterPending)return;
@@ -5163,7 +5169,6 @@ function followOpeningClue(){
  if(!discoverRoute(from,to))return;
  addTravel('discovery',from==='wreck'?'循著車轍找到了林間小徑。':'道路前方有腳步聲，似乎有人經過。',from==='wreck'?'終於有離開的方向了。':'也許可以找到幫助。');
  save();render();
- if(from==='wreck'&&startOpeningMonster())return;
  if(from==='wreck'&&openingDepartureCue())return;
  presentDiscoveredRoute(from,to);
 }
@@ -5227,7 +5232,7 @@ function exploreArea(){
   s.recovery.found=true;latest.wreckFound=true;
   note('forestWreck','在林邊搜尋時，發現另一處舊馬車殘骸',true);
  }
- latest.observation=area.events[(count-1)%area.events.length];
+ latest.observation=site==='wreck'&&wreckCleared()?'空地上還留著車輪壓過的泥痕。':area.events[(count-1)%area.events.length];
  if(area.materials.length){
   const daily=explorationDaily(site);
   if(!Array.isArray(e.pending[site]))e.pending[site]=[];
@@ -7129,6 +7134,7 @@ function renderPlaceDrawer(){
   {area:'森林內部',kind:'調查地點',description:'林間小徑旁的另一處舊馬車殘骸，與最初的事故現場不同。'}:
   previewId==='gate'&&!s.flags.rescued?
   {area:'森林外緣',kind:'未確認道路',description:'這條主路延伸向未知的方向，目的地尚未確認。'}:
+  previewId==='wreck'&&wreckCleared()?{...LOCATION_CARD_META.wreck,description:'馬車和散落的貨物已移走，林道旁只剩車輪壓過的泥痕。'}:
   LOCATION_CARD_META[previewId]||{area:'未知區域',kind:'探索地點',description:names[previewId]?.[1]||''};
  const summary=document.createElement('section');summary.className='side-current-summary location-reference-card';
  summary.setAttribute('aria-label','已發現地點預覽：'+previewTitle);
@@ -7774,7 +7780,6 @@ function change(scene,mode='walk'){
  clearRouteAttention();closeSceneDialogue();
  closePlaceDrawer();
  if((s.scene==='wreck'&&!travelRoute('wreck',scene))||(travelRoute(s.scene,scene)&&!routeKnown(s.scene,scene))){toast('尚未發現這條道路，請先探索周圍。');return;}
- if(s.scene==='wreck'&&scene==='trail'&&startOpeningMonster())return;
  const duration=travelTimeFor(s.scene,scene,mode);
  if(duration===null){toast('此路線目前無法使用馬車，請選擇步行。');return;}
  const now=Date.now();if(now-lastMoveAt<300)return;lastMoveAt=now;
@@ -7787,6 +7792,12 @@ function change(scene,mode='walk'){
  s.visits[scene]=(s.visits[scene]||0)+1;addUnique(s.seen,'area:'+scene);
  const revisited=s.visits[scene]>1;
  addTravel('scene',(revisited?'再次回到 ':'來到 ')+names[scene][0]+'（'+(mode==='carriage'?'馬車':'步行')+'約'+duration+'分鐘，'+gameTime(s.worldMinutes)+'）。'+(revisited?'（到訪 '+s.visits[scene]+' 次）':''),revisited?'這條路漸漸熟悉了。':moveThought[scene]||'接下來看看四周。');
+ if(scene==='wreck'){
+  clearWreckOnReturn();
+  if(wreckCleared()&&!s.flags.openingMonsterResolved){
+   battleStart({opening:true,ambush:true,clearedWreck:true});return;
+  }
+ }
  save();render();beep(350);
 }
 function dialog(title,text,choices,kicker='途中事件',locked=false,speaker=null,emotion='neutral'){closeSceneDialogue();closePlaceDrawer();hideSceneInspection();renderDialogueActor(speaker,emotion);if(/旅店的早晨|陌生人的善意|熟悉的四張面孔|留守的兩名夥伴|冒險者公會櫃台|普通的邀請|普通的生活|附近的道路|街上的日常/.test(title))addTravel('talk','交談：'+title,'也許能更了解這裡的人。');modal={title,text,choices,locked};$('dialogKicker').textContent=kicker;$('dialogTitle').textContent=title;$('dialogText').textContent=text;$('dialogChoices').replaceChildren();for(const c of choices){const b=document.createElement('button');b.className='choice';b.textContent=c.label;b.addEventListener('click',()=>{if(!modal)return;modal=null;$('dialogVeil').classList.add('hidden');syncDialogueInputLock();c.fn?.();});$('dialogChoices').appendChild(b);} $('dialogClose').classList.toggle('hidden',locked);$('dialogVeil').classList.remove('hidden');syncDialogueInputLock();beep(540);}
@@ -8137,7 +8148,7 @@ function battleStart(options={}){
  s.hp=Math.max(0,s.hp-hit);
  const monster=MONSTER_CATALOG_V1.moss_spine_beast,maxHp=opening?monster.openingHp:monster.forestHp;
  s.flags.inBattle=true;s.flags.monsterHp=maxHp;
- s.flags.battleV2={monsterId:monster.id,enemyHp:maxHp,maxEnemyHp:maxHp,turn:0,intent:opening?'pounce':ambush?'watch':'pounce',distance:ambush?0:1,focused:false,braced:false,result:s.hp===0?'defeat':null,source:opening?'opening':ambush?'exploration':'story',feedback:opening?'車架下傳來低吼，陌生生物猛然撲出！'+(hit?'受到 '+hit+' 點傷害。':'你及時退開。'):ambush?'草叢突然晃動，一隻陌生生物撲了過來！受到 '+hit+' 點傷害。':'牠警戒地盯著你。'};
+ s.flags.battleV2={monsterId:monster.id,enemyHp:maxHp,maxEnemyHp:maxHp,turn:0,intent:opening?'pounce':ambush?'watch':'pounce',distance:ambush?0:1,focused:false,braced:false,result:s.hp===0?'defeat':null,source:opening?'opening':ambush?'exploration':'story',feedback:opening?(options.clearedWreck?'馬車原先停放的位置傳來低吼，苔棘鬃獸從林邊撲出！':'車架下傳來低吼，陌生生物猛然撲出！')+(hit?'受到 '+hit+' 點傷害。':'你及時退開。'):ambush?'草叢突然晃動，一隻陌生生物撲了過來！受到 '+hit+' 點傷害。':'牠警戒地盯著你。'};
  if(ambush){addTravel('combat','在'+names[s.scene][0]+'探索時遭到生物突襲。'+(s.hp===0?'你體力不支。':''),'事情發生得太突然了。');}
  lastBattleAction=0;save();render();
  if(ambush){$('battleSurface').dataset.distance='1';playBattleMotion('ambush',{damage:0,hit,enemyAction:'pounce'});}
@@ -8209,11 +8220,11 @@ function finishBattle(){
  if(state.source==='opening')s.flags.openingMonsterResolved=true;
  if(state.result==='defeat'){s.hp=Math.min(s.maxHp,5);advanceGameTime(state.source==='opening'?3:20,'combat-recovery');}
  $('battleSurface').classList.add('hidden');syncDialogueInputLock();save();render();
- if(state.source==='opening'&&s.scene==='wreck'){if(!openingDepartureCue())presentDiscoveredRoute('wreck','trail');}
+ if(state.source==='opening'&&s.scene==='wreck'&&!s.flags.rescued){if(!openingDepartureCue())presentDiscoveredRoute('wreck','trail');}
 }
 
 function entries(){const a={
- wreck:[routeAction(openingView().exhausted?'循著車轍前往小徑':'沿著道路離開','trail',()=>change('trail'),true),action('查看倒塌貨箱',glance),action('查看車輪痕跡',marks)],
+ wreck:[routeAction(openingView().exhausted?'循著車轍前往小徑':'沿著道路離開','trail',()=>change('trail'),true),...(wreckCleared()?[]:[action('查看倒塌貨箱',glance),action('查看車輪痕跡',marks)])],
  trail:[routeAction(s.flags.rescued?'前往城鎮':'沿道路繼續前進','gate',rescue,true),action(s.recovery.found?'調查舊馬車殘骸':'搜索林邊 · 12分鐘',searchForest,false,true),...(s.recovery.found?[action('留意甲蟲活動痕跡 · 8分鐘',()=>forestRareCheck('beetle'))]:[]),...(s.recovery.found&&s.beetle.questAccepted&&!s.beetle.captured?[action('設置甲蟲誘捕盒 · 10分鐘',captureRustBeetle)]:[]),routeAction('進入林間空地','clearing',()=>change('clearing')),routeAction('走近舊石門','ruin',()=>change('ruin')),action('查看路旁舊石碑',inspectTrailMarker),routeAction('返回馬車','wreck',()=>change('wreck'))],
  clearing:[routeAction('返回小徑','trail',()=>change('trail'),true),action('觀察空地生態 · 6分鐘',()=>observeForestEcology('clearing'),false,true),...(!s.flags.lightTaken?[action('查看樹根旁的微光',light)]:[]),action('留意林間聲響',soundInForest)],
  ruin:[routeAction('返回小徑','trail',()=>change('trail'),true),action('觀察石門生態 · 6分鐘',()=>observeForestEcology('ruin'),false,true),action('看看古老石門',ruinLook),action('觀察石門旁的長耳腳印 · 8分鐘',()=>forestRareCheck('rabbit'))],
@@ -8395,7 +8406,7 @@ function interactSceneObject(id){
  ],'場景採集');
 }
 function renderOpeningWagonTrial(el){
- if(s.scene!=='wreck'||!emptyForestReady||new URLSearchParams(location.search).get('wagon')!=='trial'||encounterPending)return;
+ if(s.scene!=='wreck'||wreckCleared()||!emptyForestReady||new URLSearchParams(location.search).get('wagon')!=='trial'||encounterPending)return;
  const b=document.createElement('button');b.type='button';b.className='opening-wagon-trial';b.setAttribute('aria-label','調查破損馬車');
  const art=document.createElement('img');art.src='./assets/opening_wagon_layout_trial_v1.svg';art.alt='';art.draggable=false;b.appendChild(art);
  b.onclick=()=>guardedAction(()=>{if(!modal&&!$('app').classList.contains('scene-dialogue-active'))marks();});
@@ -8534,7 +8545,7 @@ function renderWorldObjects(el){
 function forestSceneTargets(){
  const t=(id,label,x,y,fn)=>({id,label,x,y,fn});
  if(s.scene==='wreck')return [
-  ...(!forestV4Active()?[t('crate','散落貨箱',36,71,glance),t('wheel','車輪痕跡',45,53,marks)]:[]),
+  ...(!wreckCleared()&&!forestV4Active()?[t('crate','散落貨箱',36,71,glance),t('wheel','車輪痕跡',45,53,marks)]:[]),
   ...(openingAdventure()&&s.flags.openingTracks&&!routeKnown('wreck','trail')?[t('opening-tracks','循著車轍',85,57,followOpeningClue)]:[])
  ];
  if(s.scene==='trail')return [
@@ -8915,6 +8926,7 @@ function sceneDraw(time,sceneId=s.scene,thumbnail=false){
   const w=emptyForest.naturalWidth,h=emptyForest.naturalHeight,fit=Math.max(W/w,H/h);
   ctx.drawImage(emptyForest,(W-w*fit)/2,(H-h*fit)/2,w*fit,h*fit);ctx.restore();if(!thumbnail&&forestV4Active()&&new URLSearchParams(location.search).get('env')!=='off'&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches)window.DungeonSceneEnvironmentV1?.draw(ctx,neutralForestSelected?'forestV5':'forestV4',time,W,H,previewPeriod||periodForMinutes(s.worldMinutes),emptyForest);if(!thumbnail)window.DungeonWeatherV1?.drawGround(ctx,time,W,H,forestV4Active()&&neutralForestSelected,emptyForest);else if(neutralForestSelected){const weather=window.DungeonWeatherV1?.at(s.seed,s.worldMinutes,sceneId);window.DungeonWinterV1?.ground(ctx,weather?.snowCover||0,W,H,emptyForest,weather?.frost||0);}return;
  }
+ if(sceneId==='wreck'&&wreckCleared()){background('wreck');return;}
  if(sceneId==='wreck'&&approvedWreckReady){
   ctx.save();ctx.imageSmoothingEnabled=false;
   // Preserve the entire approved 676×390 composition without stretching or
