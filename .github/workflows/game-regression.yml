@@ -38,6 +38,7 @@ jobs:
           node tests/lantern_resource_core_v1.test.cjs
           node tests/lantern_character_core_v1.test.cjs
           node tests/lantern_appearance_core_v1.test.cjs
+          node tests/lantern_battle_core_v1.test.cjs
       - name: Check approved art baselines and consumers
         run: node tests/art-lifecycle.cjs
       - name: Run cross-module integration and long simulation
