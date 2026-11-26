@@ -4639,8 +4639,8 @@ window.DUNGEON_FOREST_V4_LAYOUT=window.DUNGEON_WRECK_CURRENT_LAYOUT;
 <!-- Official universal arm transparency follows the developer studio policy. -->
 <script src="./assets/arm_visibility_policy_v1.js?v=live-20261124"></script>
 <script src="./assets/arm_visibility_live_v1.js?v=live-20261124"></script>
-<script src="./assets/monsters/moss_beast_art_v2.js?v=1"></script>
-<script src="./assets/encounter_motion_v1.js?v=2-art"></script>
+<script src="./assets/monsters/moss_beast_art_v2.js?v=2-direct-png"></script>
+<script src="./assets/encounter_motion_v1.js?v=3-direct-png"></script>
 <script src="./assets/battle_playtest_v1.js?v=encounter-motion-v1"></script>
 <script>
 (()=>{'use strict';
@@ -7219,7 +7219,7 @@ function renderSceneActionDock(host){
   if(sceneActionView)openSceneDialogue([{speaker:'旁白',text:openingExitOnly()?'天色漸暗，現在得先確認離開的道路。':'你環顧四周，看看有沒有值得留意的地方。'}],'investigation-entry');
  },'investigation');
  for(const item of actions.filter(a=>a.routeTo))add(item.title,item.fn,'route');
- if(s.scene==='wreck'&&!s.flags.inBattle&&new URLSearchParams(location.search).get('combat-trial')==='1')add('測試多怪物戰鬥',openOpeningCombatTrial,'investigation');
+ if(s.scene==='wreck'&&!s.flags.inBattle&&new URLSearchParams(location.search).get('combat-trial')==='1')add('測試多怪物戰鬥 · V2',openOpeningCombatTrial,'investigation');
 
 }
 // All visible scene-object cards reuse the exact displayed art and route to the same object interaction.
@@ -8841,9 +8841,9 @@ function renderWorldObjects(el){
    const canvas=document.createElement('canvas');engine.sprite(canvas,obj.kind,obj.stage);patch.appendChild(canvas);el.appendChild(patch);continue;
   }
   const b=document.createElement('button');b.type='button';b.className='world-object';b.dataset.kind=obj.kind;b.dataset.objectId=obj.id;if(obj.material)b.dataset.material=obj.material;b.style.left=obj.x+'%';b.style.top=obj.y+'%';b.setAttribute('aria-label',obj.label+(obj.material?'：'+obj.material:''));
-  const cv=document.createElement(obj.kind==='creature'?'img':'canvas');cv.setAttribute('aria-hidden','true');if(obj.kind==='creature'){cv.src=MONSTER_CATALOG_V1.moss_spine_beast.sprite;cv.alt='';cv.className='forest-monster-art';b.setAttribute('aria-label',obj.label);}else engine.sprite(cv,obj.kind);
+  const cv=document.createElement(obj.kind==='creature'?'img':'canvas');cv.setAttribute('aria-hidden','true');if(obj.kind==='creature'){cv.src=Number.isInteger(obj.trialIndex)?'./assets/monsters/moss_beast_v2_rest.png':MONSTER_CATALOG_V1.moss_spine_beast.sprite;cv.alt='';cv.className='forest-monster-art';b.setAttribute('aria-label',obj.label);}else engine.sprite(cv,obj.kind);
   const caption=document.createElement('span');caption.textContent=obj.label;b.append(cv,caption);
-  if(Number.isInteger(obj.trialIndex)){b.dataset.trialMonster=String(obj.trialIndex);b.dataset.encounterPose='rest';b.style.width=obj.width+'%';b.style.zIndex=String(10+Math.round(obj.y));const art=window.DungeonMossBeastArtV2;if(art){cv.src=art.rest;if(obj.trialIndex===1)cv.style.transform='scaleX(-1)';}}
+  if(Number.isInteger(obj.trialIndex)){b.dataset.trialMonster=String(obj.trialIndex);b.dataset.encounterPose='rest';b.style.width=obj.width+'%';b.style.zIndex=String(10+Math.round(obj.y));b.dataset.monsterArt='v2';cv.onerror=()=>{b.dataset.monsterArt='load-error';cv.alt='V2 素材載入失敗';};if(obj.trialIndex===1)cv.style.transform='scaleX(-1)';}
   applyDiscoveryCue(b,window.DungeonDiscoveryCueV1.object({pending:obj.material?1:0,clue:obj.kind==='wreck',observed:!!s.flags.trailWreckInspected||!!s.recovery.looted}));
   b.onclick=()=>runSceneAction(Number.isInteger(obj.trialIndex)?inspectOpeningMonsterTrial:()=>interactSceneObject(obj.id));el.appendChild(b);
  }
