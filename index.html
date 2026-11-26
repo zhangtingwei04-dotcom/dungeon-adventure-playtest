@@ -4503,7 +4503,7 @@ html.stage-locked #app #battleSurface .battle-actions button{font-size:17px;min-
 window.DUNGEON_FOREST_V4_LAYOUT=window.DUNGEON_WRECK_CURRENT_LAYOUT;
 (function(){if(!/(?:^|[?&])layout=d(?:&|$)/.test(location.search))return;const base=window.DUNGEON_WRECK_CURRENT_LAYOUT;const patch={"v4-wagon0":{"id":"v4-wagon0","assetId":"forest4_wagon","name":"破損馬車（無燈組裝測試）","x":31,"y":69.5,"width":32,"z":5,"visible":true,"flip":false,"rotation":8},"v4-crate_large1":{"id":"v4-crate_large1","assetId":"forest4_crate_large","name":"大型貨箱","x":54,"y":78,"width":7.5,"z":21,"visible":true,"flip":false,"rotation":-9},"v4-crate_small2":{"id":"v4-crate_small2","assetId":"forest4_crate_small","name":"小型貨箱","x":14.7,"y":73.6,"width":3.5,"z":17,"visible":true,"flip":false,"rotation":-5,"contactGrass":true},"v4-barrel4":{"id":"v4-barrel4","assetId":"forest4_barrel","name":"木桶","x":52.5,"y":63.5,"width":6.2,"z":1,"visible":false,"flip":false,"rotation":0},"v4-crate_open5":{"id":"v4-crate_open5","assetId":"forest4_crate_open","name":"翻倒貨箱","x":43.1,"y":73,"width":7.6,"z":12,"visible":true,"flip":false,"rotation":-10},"v4-sack6":{"id":"v4-sack6","assetId":"forest4_sack","name":"布袋","x":49.5,"y":70,"width":4.2,"z":13,"visible":true,"flip":false,"rotation":12},"v4-wheel_flat7":{"id":"v4-wheel_flat7","assetId":"forest4_wheel_flat","name":"掉落車輪","x":30,"y":82,"width":10.6,"z":24,"visible":true,"flip":false,"rotation":10},"v4-plank8":{"id":"v4-plank8","assetId":"forest4_plank","name":"木板","x":39.9,"y":83,"width":6.8,"z":11,"visible":true,"flip":false,"rotation":-18},"v4-plank_lean9":{"id":"v4-plank_lean9","assetId":"forest4_plank_lean","name":"斜木板","x":39.6,"y":71.5,"width":4.5,"z":4,"visible":true,"flip":false,"rotation":-14},"v4-grass_a10":{"id":"v4-grass_a10","assetId":"forest4_grass_a","name":"草叢 A","x":22.8,"y":69,"width":8,"z":8,"visible":true,"flip":false,"rotation":0},"v4-grass_b11":{"id":"v4-grass_b11","assetId":"forest4_grass_b","name":"草叢 B","x":32,"y":70.5,"width":7.4,"z":8,"visible":true,"flip":false,"rotation":0},"v4-rabbit16":{"id":"v4-rabbit16","assetId":"forest4_rabbit","name":"月紋兔","x":84.8,"y":68.2,"width":3.8,"z":7,"visible":true,"flip":false,"rotation":0},"object-mwuv250p-uzdjf7":{"id":"object-mwuv250p-uzdjf7","assetId":"forest4_rock_group","name":"苔石群","x":28.7,"y":58.6,"width":7.6,"z":1,"visible":true,"flip":false,"rotation":0},"object-mwuv5puk-q16xf6":{"id":"object-mwuv5puk-q16xf6","assetId":"forest4_log","name":"苔木","x":38.1,"y":54.7,"width":11.7,"z":2,"visible":true,"flip":false,"rotation":0},"object-mwuv6tcc-adz1cv":{"id":"object-mwuv6tcc-adz1cv","assetId":"forest4_branch","name":"樹枝","x":25.4,"y":59.7,"width":3.5,"z":-3,"visible":true,"flip":false,"rotation":0},"object-mwuv6uwa-1hi1e7":{"id":"object-mwuv6uwa-1hi1e7","assetId":"forest4_branch","name":"樹枝","x":66.3,"y":92.3,"width":5.1,"z":15,"visible":true,"flip":false,"rotation":0},"object-mwuv87s2-2i2kr9":{"id":"object-mwuv87s2-2i2kr9","assetId":"forest4_branch","name":"樹枝","x":53,"y":59.1,"width":2.6,"z":-2,"visible":true,"flip":false,"rotation":0},"object-mwuw8uyw-i6ihju":{"id":"object-mwuw8uyw-i6ihju","assetId":"forest4_rock_small","name":"小石群","x":66.9,"y":75,"width":10,"z":26,"visible":true,"flip":false,"rotation":0},"v4-d-chassis-support":{"id":"v4-d-chassis-support","assetId":"forest4_chassis","name":"斷裂底盤","x":40,"y":72.2,"width":13,"z":3,"visible":true,"flip":false,"rotation":6}};const ids=["v4-wagon0","v4-crate_large1","v4-crate_small2","v4-barrel4","v4-crate_open5","v4-sack6","v4-wheel_flat7","v4-plank8","v4-plank_lean9","v4-grass_a10","v4-grass_b11","v4-grass_a12","v4-purple_flower13","v4-white_flower14","v4-bird15","v4-rabbit16","v4-beetle17","v4-butterfly18","object-mwuv250p-uzdjf7","object-mwuv41ra-3crtm8","object-mwuv5puk-q16xf6","object-mwuv6tcc-adz1cv","object-mwuv6uwa-1hi1e7","object-mwuv87s2-2i2kr9","object-mwuvaclp-i4mdga","object-mwuvbpl0-9guy03","object-mwuw6sgr-1t7yrd","object-mwuw8uyw-i6ihju","object-mwuw9q2c-21p53e","object-mwuwarnj-dt352z","object-mwuwebj3-hpxaa4","object-mwuwepu6-3s6vnf","v4-d-chassis-support"];const originals=new Map(base.scenes.wreck.map(o=>[o.id,o]));window.DUNGEON_FOREST_V4_LAYOUT={...base,revision:'accident-d-preview',scenes:{...base.scenes,wreck:ids.map(id=>patch[id]||originals.get(id))}};})();
 </script>
-<script src="./assets/forest_v4_spawns.js?v=5-wildlife-activity"></script>
+<script src="./assets/forest_v4_spawns.js?v=6-collection-wildlife"></script>
 <script src="./assets/forest_v4_integration.js?v=8-grass"></script>
 <script src="./assets/rabbit_articulation_live_v1.js?v=3-behavior"></script>
 <script src="./assets/beetle_articulation_live_v1.js?v=2-flight"></script>
@@ -7573,7 +7573,7 @@ normalizeGameTime();normalizeRecovery();normalizeForestRare();normalizeBeetleCar
  ['world.scene-environment','17',['world.spatial','world.weather'],'DungeonSceneEnvironmentV1'],
  ['world.winter-surfaces','8',['world.weather'],'DungeonWinterV1'],
  ['world.objects','20261125',['engine.time','world.weather'],'DungeonSceneObjectsV1'],
- ['world.forest-life','5',['world.weather'],'DungeonForestV4Life'],
+ ['world.forest-life','6',['world.weather'],'DungeonForestV4Life'],
  ['character.expression','2.20',['engine.registry'],'DungeonExpressionMotion'],
  ['world.scene-presence','1.0.0',['engine.events','world.weather'],'DungeonScenePresenceV1'],
  ['world.beetle-care','1',['engine.time'],null]
@@ -8528,6 +8528,17 @@ function sceneCollectionResult(fn,target=null,kind='default'){
   anim=art.animate([{filter:'brightness(1)'},{filter:'brightness(1.12)'},{filter:'brightness(.92)'},{filter:'brightness(1.08)'},{filter:'brightness(1)'}],{duration:spec.ms,easing:'ease-in-out'});
  }
  if(typeof bar.animate==='function')bar.animate([{width:'0%'},{width:'100%'}],{duration:spec.ms,fill:'forwards'});
+ // During the performance, allow a quiet wildlife encounter without interrupting collection.
+ if(site==='wreck'&&forestV4Active()&&target?.id)setTimeout(()=>{
+  if(s!==actor||s.scene!==site||s.flags.inBattle||encounterPending||overlay.classList.contains('hidden')||!forestV4Active())return;
+  const sourceStillPresent=Array.from($('hotspots').querySelectorAll('[data-object-id]:not(.env-leaving):not([disabled])')).some(el=>el.dataset.objectId===target.id);
+  if(!sourceStillPresent||(kind==='crate'?s.flags.openingClothTaken||wreckCleared():explorationDaily(site).collected>=2))return;
+  const life=window.DungeonForestV4Life,weather=window.DungeonWeatherV1?.at(s.seed,s.worldMinutes,site);
+  if(!life?.duringCollection||!weather)return;
+  const arrival=life.duringCollection(s,window.DUNGEON_FOREST_V4_LAYOUT.scenes.wreck,window.DUNGEON_FOREST_V4_SPAWNS||[],periodForMinutes(s.worldMinutes),weather);
+  save();
+  if(arrival){renderHotspots();renderPlaceDrawer();syncDialogueInputLock();}
+ },Math.round(spec.ms*.55));
  setTimeout(()=>{
   anim?.cancel();overlay.classList.add('hidden');syncDialogueInputLock();
   if(s!==actor||s.scene!==site||s.flags.inBattle||encounterPending||activeDialogueSurface())return;
