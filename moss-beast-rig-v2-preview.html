@@ -14,21 +14,21 @@ const ground=136,period=1000,stance=.75,stride=16,travelSpeed=stride/(stance*per
 const gaits={walk:{period,stance,stride,lift:7},trot:{period:510,stance:.58,stride:20,lift:11},run:{period:480,stance:.28,stride:26,lift:19}};
 const speedOf=g=>g.stride/(g.stance*g.period);
 const limbs=[
- {id:'front',hip:[75,87],knee:[65,112],foot:[42,136],bend:-1,upper:[[59,75],[86,75],[91,94],[78,115],[58,120],[48,109]],lower:[[57,105],[78,111],[64,130],[52,141],[24,141],[23,133],[42,121]],phase:0},
- {id:'rear',hip:[151,93],knee:[147,116],foot:[161,136],bend:1,upper:[[135,77],[164,78],[178,100],[164,122],[140,122],[131,109]],lower:[[138,109],[160,110],[170,123],[178,138],[144,142],[139,132],[145,124]],phase:.25}
+ {id:'front',hip:[75,87],knee:[65,112],foot:[42,136],ankle:[52,126],paw:[[23,126],[45,122],[58,123],[65,130],[62,142],[22,142]],bend:-1,upper:[[59,75],[86,75],[91,94],[78,115],[58,120],[48,109]],lower:[[57,105],[78,111],[64,130],[52,141],[24,141],[23,133],[42,121]],phase:0},
+ {id:'rear',hip:[151,93],knee:[147,116],foot:[161,136],ankle:[160,126],paw:[[138,124],[155,120],[173,123],[178,140],[138,142]],bend:1,upper:[[135,77],[164,78],[178,100],[164,122],[140,122],[131,109]],lower:[[138,109],[160,110],[170,123],[178,138],[144,142],[139,132],[145,124]],phase:.25}
 ];
 const clamp=(n,l,h)=>Math.max(l,Math.min(h,n)),len=(a,b)=>Math.hypot(b[0]-a[0],b[1]-a[1]),angle=(a,b)=>Math.atan2(b[1]-a[1],b[0]-a[0]),ease=t=>{t=clamp(t,0,1);return t*t*(3-2*t)};
 function path(g,poly){g.beginPath();poly.forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));g.closePath();}
-function layer(poly){const c=document.createElement('canvas');c.width=cleanMother.width;c.height=cleanMother.height;const g=c.getContext('2d');g.imageSmoothingEnabled=false;path(g,poly);g.clip();g.drawImage(cleanMother,0,0);return c;}
+function layer(poly,exclude){const c=document.createElement('canvas');c.width=cleanMother.width;c.height=cleanMother.height;const g=c.getContext('2d');g.imageSmoothingEnabled=false;g.save();path(g,poly);g.clip();g.drawImage(cleanMother,0,0);g.restore();if(exclude){g.globalCompositeOperation='destination-out';path(g,exclude);g.fill();}return c;}
 // The original side art contains a baked-in grey ground shadow. Remove only
 // that near-neutral band before extracting body and limb textures.
 function prepare(){
  cleanMother=shadowCore.clean(img,'side');
  body=document.createElement('canvas');body.width=cleanMother.width;body.height=cleanMother.height;const g=body.getContext('2d');g.drawImage(cleanMother,0,0);
  // Preserve the shoulders/hips for overlap while removing the moving leg silhouettes.
- g.globalCompositeOperation='destination-out';for(const l of limbs){path(g,l.lower);g.fill();path(g,l.upper.map(([x,y])=>[x,Math.max(y,l.hip[1]+8)]));g.fill();}
+ g.globalCompositeOperation='destination-out';for(const l of limbs){path(g,l.lower);g.fill();path(g,l.paw);g.fill();path(g,l.upper.map(([x,y])=>[x,Math.max(y,l.hip[1]+8)]));g.fill();}
  g.fillRect(0,140,body.width,body.height-140);
- parts=limbs.map(l=>({...l,a:len(l.hip,l.knee),b:len(l.knee,l.foot),u:layer(l.upper),v:layer(l.lower)}));
+ parts=limbs.map(l=>({...l,a:len(l.hip,l.knee),b:len(l.knee,l.ankle),u:layer(l.upper,l.paw),v:layer(l.lower,l.paw),p:layer(l.paw)}));
  bodyPixels=g.getImageData(0,0,body.width,body.height);warpCanvas=document.createElement('canvas');warpCanvas.width=body.width;warpCanvas.height=body.height;warpContext=warpCanvas.getContext('2d');warpPixels=warpContext.createImageData(body.width,body.height);
 }
 // Soft, bounded secondary motion in mother-image coordinates. No new silhouettes.
@@ -99,10 +99,13 @@ function footAt(l,phase,walk,far,g=gaits.walk){
 }
 function support(l,phase,far,g=gaits.walk){return limbPhase(l,phase,far,g)<g.stance;}
 function segment(bitmap,fromA,fromB,toA,toB){ctx.save();ctx.translate(...toA);ctx.rotate(angle(toA,toB)-angle(fromA,fromB));ctx.translate(-fromA[0],-fromA[1]);ctx.drawImage(bitmap,0,0);ctx.restore();}
+// The paw has its own rigid texture and ground-facing orientation. Only the shin rotates.
+function pawPose(l,foot){return {ankle:[foot[0]+l.ankle[0]-l.foot[0],foot[1]+l.ankle[1]-l.foot[1]],angle:0};}
 function drawLeg(l,phase,dy,walk,far,debug,overlays,gait,pitch=0,jump=null){
- const hip=bodyPoint(l.hip[0]+(far?5:0),l.hip[1]-(far?3:0),dy,pitch),foot=jump?jumpFoot(l,far,jump):footAt(l,phase,walk,far,gait),knee=solve(hip,foot,l.a,l.b,l.bend);
- ctx.save();if(far)ctx.filter='brightness(.65)';segment(l.u,l.hip,l.knee,hip,knee);segment(l.v,l.knee,l.foot,knee,foot);ctx.restore();
- if(debug)overlays.push({hip,knee,foot,far,planted:jump?Math.abs(foot[1]-(ground-(far?3:0)))<.01:!walk||support(l,phase,far,gait)});
+ const hip=bodyPoint(l.hip[0]+(far?5:0),l.hip[1]-(far?3:0),dy,pitch),foot=jump?jumpFoot(l,far,jump):footAt(l,phase,walk,far,gait),paw=pawPose(l,foot),ankle=paw.ankle,knee=solve(hip,ankle,l.a,l.b,l.bend);
+ ctx.save();if(far)ctx.filter='brightness(.65)';segment(l.u,l.hip,l.knee,hip,knee);segment(l.v,l.knee,l.ankle,knee,ankle);
+ ctx.save();ctx.translate(foot[0]-l.foot[0],foot[1]-l.foot[1]);ctx.drawImage(l.p,0,0);ctx.restore();ctx.restore();
+ if(debug)overlays.push({hip,knee,ankle,foot,far,planted:jump?Math.abs(foot[1]-(ground-(far?3:0)))<.01:!walk||support(l,phase,far,gait)});
 }
 // Directional turn study: approved side, quarter and front drawings are
 // grounded by their lower edge. This is a staged sprite turn, not 3D rotation.
@@ -139,7 +142,7 @@ function render(){
  ctx.save();ctx.translate(baseX,48);ctx.imageSmoothingEnabled=false;
  if(debug){ctx.strokeStyle='#baae76';ctx.setLineDash([5,4]);ctx.beginPath();ctx.moveTo(-110,ground);ctx.lineTo(330,ground);ctx.stroke();ctx.setLineDash([]);}
  if(ready){if(mode==='original')ctx.drawImage(cleanMother,0,0);else if(['front','quarter','rest-art'].includes(mode)){const key=mode==='rest-art'?'rest':mode,a=shadowCore.clean(turnArts[key],key);if(a)ctx.drawImage(a,105-a.width/2,142-a.height);}else if(mode==='turn')drawTurn();else{for(const l of parts)drawLeg(l,phase,dy,walk,true,debug,overlays,gait,pitch,jump);ctx.save();ctx.translate(105,90+dy);ctx.rotate(pitch);ctx.translate(-105,-90);ctx.drawImage(warpedBody(secondaryMotion(mode,elapsed,phase)),0,0);ctx.restore();for(const l of parts)drawLeg(l,phase,dy,walk,false,debug,overlays,gait,pitch,jump);}}
- if(debug){for(const {hip,knee,foot,far,planted} of overlays){ctx.strokeStyle=far?'#7898a1':'#e2c475';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(...hip);ctx.lineTo(...knee);ctx.lineTo(...foot);ctx.stroke();for(const p of [hip,knee]){ctx.fillStyle='#f4db91';ctx.fillRect(p[0]-1.5,p[1]-1.5,3,3);}ctx.fillStyle=planted?'#a8e5a2':'#e7b880';ctx.fillRect(foot[0]-2,foot[1]-2,4,4);}}
+ if(debug){for(const {hip,knee,ankle,foot,far,planted} of overlays){ctx.strokeStyle=far?'#7898a1':'#e2c475';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(...hip);ctx.lineTo(...knee);ctx.lineTo(...ankle);ctx.lineTo(...foot);ctx.stroke();for(const p of [hip,knee]){ctx.fillStyle='#f4db91';ctx.fillRect(p[0]-1.5,p[1]-1.5,3,3);}ctx.fillStyle=planted?'#a8e5a2':'#e7b880';ctx.fillRect(foot[0]-2,foot[1]-2,4,4);}}
  ctx.restore();ctx.fillStyle='#ddd1ae';ctx.font='12px system-ui';ctx.fillText(jump?jump.stage+' · 高度 '+Math.round(jump.height)+' px':running?(phase<.36?'後足蹬地':phase<.40?'轉移騰空':phase<.76?'前足接地':'騰空收腿')+' · '+Math.round(phase*100)+'%':walk?'步態相位 '+Math.round(phase*100)+'%':mode==='rise'?'起身 '+Math.round(clamp(elapsed/850,0,1)*100)+'%':mode==='rest'?'低伏':mode==='alert'?'警戒':mode==='turn'?'轉身 '+Math.round(clamp(elapsed/1250,0,1)*100)+'%':'母圖',12,18);
 }
 function tick(now){if(!paused)elapsed+=Math.min(60,last?now-last:0)*Number($('speed').value);last=now;render();requestAnimationFrame(tick);}
