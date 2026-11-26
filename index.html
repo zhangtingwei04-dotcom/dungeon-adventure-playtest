@@ -4006,8 +4006,8 @@ html.stage-locked #app #placeDrawer .combat-enemy-list{max-height:145px}
 #sceneStage [data-encounter-pose="rest"] img{animation:encounter-rest 3.5s ease-in-out infinite;transform-origin:50% 100%}
 #sceneStage [data-encounter-pose="rise"] img,#sceneStage [data-encounter-pose="walk"] img{animation:none}
 #sceneStage [data-encounter-pose="ready"] img{animation:encounter-ready 2.8s ease-in-out infinite}
-#sceneStage [data-encounter-pose="alert"] img{transform:scaleY(.89) scaleX(1.04)}
-#sceneStage [data-encounter-pose="exposed"] img{transform:rotate(-6deg)}
+#sceneStage [data-encounter-pose="alert"] img{scale:1 0.97}
+#sceneStage [data-encounter-pose="exposed"] img{rotate:-6deg}
 @keyframes encounter-rest{0%,100%{scale:1 1}50%{scale:1 1.025}}
 @keyframes encounter-ready{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.025)}}
 @media(prefers-reduced-motion:reduce){#sceneStage [data-trial-monster] img{animation:none!important}}
@@ -4640,7 +4640,7 @@ window.DUNGEON_FOREST_V4_LAYOUT=window.DUNGEON_WRECK_CURRENT_LAYOUT;
 <script src="./assets/arm_visibility_policy_v1.js?v=live-20261124"></script>
 <script src="./assets/arm_visibility_live_v1.js?v=live-20261124"></script>
 <script src="./assets/monsters/moss_beast_art_v2.js?v=2-direct-png"></script>
-<script src="./assets/encounter_motion_v1.js?v=3-direct-png"></script>
+<script src="./assets/encounter_motion_v1.js?v=4-body-scale"></script>
 <script src="./assets/battle_playtest_v1.js?v=encounter-motion-v1"></script>
 <script>
 (()=>{'use strict';

@@ -3,10 +3,10 @@
 (function(root){
  'use strict';
  const slots=[
-  {rest:{x:54,y:65,w:12},via:[{x:59,y:71,w:14}],fight:{x:61,y:84,w:23},delay:0},
-  {rest:{x:91,y:72,w:14},via:[{x:88,y:76,w:17}],fight:{x:85,y:86,w:21},delay:280},
-  {rest:{x:76,y:55,w:9},via:[{x:74,y:62,w:11}],fight:{x:73,y:70,w:15},delay:540},
-  {rest:{x:16,y:91,w:16},via:[{x:25,y:92,w:18}],fight:{x:38,y:91,w:20},delay:380}
+  {rest:{x:54,y:65,w:12},via:[{x:57,y:72,w:13.5}],fight:{x:59,y:83,w:16},delay:0},
+  {rest:{x:89,y:72,w:13},via:[{x:85,y:76,w:14}],fight:{x:85,y:87,w:17},delay:280},
+  {rest:{x:76,y:55,w:9},via:[{x:75,y:63,w:10.5}],fight:{x:74,y:72,w:12.5},delay:540},
+  {rest:{x:16,y:91,w:16},via:[{x:25,y:92,w:16}],fight:{x:36,y:91,w:17},delay:380}
  ];
  const id=i=>'wreck-trial-monster-'+i;
  function restObjects(count=3){return slots.slice(0,count).map((p,i)=>({id:id(i),kind:'creature',x:p.rest.x,y:p.rest.y,width:p.rest.w,label:'苔棘鬃獸 '+(i+1),trialIndex:i}));}
@@ -22,14 +22,24 @@
   const reduced=()=>root.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
   function animate(node,frames,options){if(reduced()||!node.animate)return null;const a=node.animate(frames,options);animations.push(a);return a;}
   function stopFrames(node){const t=clocks.get(node);if(t){clearTimeout(t);clocks.delete(node);}}
-  function pose(node,name){stopFrames(node);const img=node.querySelector('img');if(!img||!artV2)return;img.src=artV2[name]||artV2.front;img.style.transform='none';}
+  // Pixel measurements of approved V2 frames; normalize actual opaque body, not canvas width.
+  const bounds={idle:[142,124,121,124,122,122,124],walk:[113,110,106,105,100,100,95,93]};
+  function setFrame(img,src,seq,index,flip){
+   img.src=src;img.style.transform=flip?'scaleX(-1)':'none';
+   img.style.width=(seq?168/bounds[seq][index]*100:100)+'%';
+   img.style.maxWidth='none';img.style.marginBottom=seq?(-6/bounds[seq][index]*100)+'%':'0';
+  }
+  function pose(node,name){stopFrames(node);const img=node.querySelector('img');if(!img||!artV2)return;const flip=Number(node.dataset.trialMonster)===1;
+   if(name==='ready'){setFrame(img,artV2.walk.frames[0],'walk',0,flip);return;}
+   setFrame(img,artV2[name]||artV2.rest,null,0,flip);
+  }
   function frames(node,name,duration=Infinity,flip=false,done){
    stopFrames(node);const img=node.querySelector('img'),seq=artV2?.[name];if(!img||!seq)return;
    img.style.transform=flip?'scaleX(-1)':'none';
    const start=Date.now(),token=generation;let last=-1;
    const tick=()=>{if(token!==generation||!node.isConnected){stopFrames(node);return;}const elapsed=Date.now()-start;if(elapsed>=duration){clocks.delete(node);done?.();return;}
     const idx=name==='rise'?Math.min(seq.frames.length-1,Math.floor(elapsed*seq.fps/1000)):Math.floor(elapsed*seq.fps/1000)%seq.frames.length;
-    if(idx!==last){img.src=seq.frames[idx];last=idx;}clocks.set(node,setTimeout(tick,1000/seq.fps));};tick();
+    if(idx!==last){setFrame(img,seq.frames[idx],name,idx,flip);last=idx;}clocks.set(node,setTimeout(tick,1000/seq.fps));};tick();
   }
   function clear(){
    for(const n of clocks.keys())stopFrames(n);
@@ -68,21 +78,23 @@
      const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
      jobs.push((async()=>{
       await wait(p.delay);if(token!==generation)return;
-      n.dataset.encounterPose='rise';frames(n,'rise',1000,i===1);
-      await wait(1000);if(token!==generation)return;
-      n.dataset.encounterPose='walk';frames(n,'walk',1050,i===1);
-      const a=animate(n,[frame(p.rest),...p.via.map(frame),frame(end)],{duration:1050,easing:'linear',fill:'backwards'});
+      n.dataset.encounterPose='rise';
+      // The old rise strip depicts a smaller, upright animal. Do not use it in this four-foot trial.
+      if(art.animate){const lift=art.animate([{scale:'1 1'},{scale:'1 1.09'}],{duration:320,easing:'ease-out'});animations.push(lift);}
+      await wait(320);if(token!==generation)return;
+      n.dataset.encounterPose='walk';frames(n,'walk',1450,i===1);
+      const a=animate(n,[frame(p.rest),...p.via.map(frame),frame(end)],{duration:1450,easing:'linear',fill:'backwards'});
       position(n,end);if(a)await a.finished.catch(()=>{});
-      if(token===generation){pose(n,i===0?'front':'threeQuarter');n.dataset.encounterPose='ready';}
+      if(token===generation){pose(n,'ready');n.dataset.encounterPose='ready';}
      })());
     }else{
-     if(artV2)pose(n,i===0?'front':'threeQuarter');
+     if(artV2)pose(n,'ready');
      const a=animate(n,[frame(p.rest),...p.via.map(frame),frame(end)],{duration:1250,delay:p.delay,easing:'ease-in-out',fill:'backwards'});
      position(n,end);if(a)jobs.push(a.finished);
     }
    }
    await Promise.allSettled(jobs);if(token!==generation)return false;
-   for(const n of actors){if(!n.hidden){n.dataset.encounterPose='ready';if(artV2)pose(n,Number(n.dataset.trialMonster)===0?'front':'threeQuarter');}}return true;
+   for(const n of actors){if(!n.hidden){n.dataset.encounterPose='ready';if(artV2)pose(n,'ready');}}return true;
   }
   function sync(foes,selected){
    if(!started)return;
@@ -99,9 +111,9 @@
     }
     const end=destination(i,m.distance),from=n._ground||end;
     if(Math.abs(from.y-end.y)>.1||Math.abs(from.x-end.x)>.1){
-     if(artV2&&!reduced())frames(n,'walk',420,end.x<from.x,()=>pose(n,i===0?'front':'threeQuarter'));
+     if(artV2&&!reduced())frames(n,'walk',420,i===1,()=>pose(n,'ready'));
      animate(n,[frame(from),frame(end)],{duration:420,easing:'linear'});position(n,end);
-    }else if(artV2&&!clocks.has(n))pose(n,i===0?'front':'threeQuarter');
+    }else if(artV2&&!clocks.has(n))pose(n,'ready');
     n.dataset.encounterPose=m.intent==='pounce'||m.intent==='heavy'?'alert':m.intent==='exposed'?'exposed':'ready';
    }
   }
