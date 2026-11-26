@@ -207,12 +207,19 @@
   actor.objectWorld.appliedEvents[eventKey]=true;
   return true;
  }
+ const animalInteractions=Object.freeze({
+  forest4_rabbit:Object.freeze({observe:'牠豎起長耳，留意著周圍的聲響。',approach:'牠察覺你的靠近，迅速退進草叢。',leave:true}),
+  forest4_bird:Object.freeze({observe:'牠轉動頭部，偶爾低頭啄食。',approach:'小鳥拍動翅膀，飛向林木深處。',leave:true}),
+  forest4_butterfly:Object.freeze({observe:'牠在花葉間停留，輕輕開合翅膀。',approach:'蝴蝶飛離花草，消失在林間。',leave:true}),
+  forest4_beetle:Object.freeze({observe:'牠緩慢爬過地面，觸角不時探向前方。',approach:'你俯身查看，牠仍在附近緩慢爬行。',leave:false})
+ });
+ function animalInteraction(assetId){return animalInteractions[assetId]||null;}
  function describe(obj,finds=[],actor=null,scene='wreck'){
   const def=get(obj?.assetId);if(!def)return null;
   const r=read(actor,scene,obj.id),pending=Array.isArray(finds)?finds.length:0;
   const golden=obj.rabbitVariant==='golden';
   const visualState=r?.removed?'removed':pending?'resource-available':r?.collected>0?'resource-taken':r?.inspected?'inspected':'normal';
-  return {name:golden?'金紋兔':def.name,type:def.type,description:golden?'一隻金黃色的長耳兔停在附近，側身仍有熟悉的月牙紋路。':def.description,visualPolicy:def.visualPolicy,visualState,collectible:pending>0&&!r?.removed};
+  return {name:golden?'金紋兔':def.name,type:def.type,description:golden?'一隻金黃色的長耳兔停在附近，側身仍有熟悉的月牙紋路。':def.description,visualPolicy:def.visualPolicy,visualState,collectible:!obj.previewOnly&&!r?.removed&&(pending>0||!!def.harvest)};
  }
  function known(actor,scene,objects){
   return objects.flatMap(obj=>{
@@ -221,5 +228,5 @@
    return [def.name+' · '+(r.removed?(r.collected?'已採集':'已移走'):def.harvest?'可採集':def.description)];
   });
  }
- root.DungeonObjectInvestigationV1=Object.freeze({get,describe,read,visible,inspect,collect,applyWorldEvent,known,ids:()=>Object.keys(entries)});
+ root.DungeonObjectInvestigationV1=Object.freeze({get,describe,read,visible,inspect,collect,applyWorldEvent,animalInteraction,known,ids:()=>Object.keys(entries)});
 })(window);
