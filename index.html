@@ -7839,10 +7839,9 @@ function beginForestEncounter(){
   encounterTimer=null;encounterPending=false;
   $('app').classList.remove('encounter-pending');syncDialogueInputLock();
   focusEncounterActor(four[0].id,'alert');
-  const who=four.map(p=>p.name).join('、');
-  dialog('有人接近了','林間傳來腳步聲。四名冒險者看見你從馬車殘骸的方向走來，停下了腳步。\n\n這次出勤的是：'+who+'。',[
+  dialog('有人接近了','你還能走嗎？',[
    {label:'向他們求助',fn:()=>rescueTalk(four,'help')},
-   {label:'先詢問這裡是哪裡',fn:()=>rescueTalk(four,'where')},
+   {label:'這裡是哪裡？',fn:()=>rescueTalk(four,'where')},
    {label:'保持沉默',fn:()=>rescueTalk(four,'quiet')}
   ],'第一章 · 相遇',true,four[0],'alert');
  };
@@ -7888,26 +7887,17 @@ function rescue(){beginForestEncounter();}
 function rescueTalk(four,tone){
  s.flags.rescued=true;s.flags.rescueTone=tone;
  addUnique(s.seen,'metFour');note('rescue','四位冒險者在森林中發現了你',true);
- const first=four[0],last=four[3];
- const answer=tone==='help'?'「我需要幫忙。」':tone==='where'?'「這裡是哪裡？」':'你沒有立刻回答。';
- const reaction=tone==='help'?'對方看了看你，又回頭確認附近的道路。':
-  tone==='where'?'對方稍微放慢語速，似乎想先讓你弄清楚自己的處境。':
-  '對方沒有逼你開口，只保持一段不會讓你不安的距離。';
- const firstEmotion=tone==='where'?'thinking':tone==='quiet'?'reassuring':'concerned';
- focusEncounterActor(first.id,firstEmotion);
- dialog('陌生人的善意',answer+'\n\n'+reaction+'\n'+first.name+'：「'+first.speech+'」',[
-  {label:'聽聽他們的提議',fn:()=>{
-   focusEncounterActor(last.id,'reassuring');
-   dialog('同行的提議',last.name+'：「'+last.speech+'」\n\n四人沒有急著追問你的身世，而是商量先帶你到城鎮休息。',[
-    {label:'跟著他們回城',fn:()=>change('gate')}
-   ],'第一章 · 救援',true,last,'reassuring');
-  }}
- ],'第一章 · 救援',true,first,firstEmotion);
+ const first=four[0];
+ const reply=tone==='where'?'這是進城的小徑。我們也要回城，一起走吧。':
+  tone==='quiet'?'慢慢來。我們在前面等你。':'扶著我的手。我們帶你回城。';
+ const emotion=tone==='where'?'thinking':tone==='quiet'?'reassuring':'concerned';
+ focusEncounterActor(first.id,emotion);
+ dialog('陌生人的善意',reply,[{label:'跟著他們回城',fn:()=>change('gate')}],'第一章 · 救援',true,first,emotion);
 }
 function innMark(){if(!s.flags.sigilSeen){s.flags.sigilSeen=true;note('sigil','背部有一道無法解釋的紋印');}dialog('鏡中的陌生人','你在客房裡整理衣物，才注意到背後有一道奇異的紋印。\n\n你想不起它從何而來，也無法確認自己為什麼出現在馬車上。至少今晚，你暫時安全了。',[{label:'記下這個疑問',fn:()=>{s.flags.chapterDone=true;note('chapter','第一章試玩片段已完成');render();}}],'第一章 · 伏筆');}
-function morning(){if(!s.flags.rescued){toast('先前往城鎮休息。');return;}const first=!s.flags.morning;s.flags.chapterDone=true;s.flags.morning=true;if(first){advanceToNextMorning();note('morning','在旅店迎來異世界的第一個早晨');discoverRoute('inn','lobby');discoverRoute('lobby','street');}clearTimePreview();syncTimeAtmosphere();save();dialog('陌生的早晨','街上傳來推車經過石板路的聲音。你在旅店醒來，窗外已有行人在忙碌。\n\n店員敲了敲門：「昨天帶你回來的那幾位冒險者，有人早上來問過你的情況。不用急著決定今天做什麼，先吃點東西吧。」',[{label:'去旅店大廳',fn:()=>change('lobby')},{label:'先到街上看看',fn:()=>change('street')},{label:'再整理一下客房',fn:()=>{render();}}],'第二章 · 清晨',true);}
-function talkInnkeeper(){const first=!s.flags.innkeeperMet;s.flags.innkeeperMet=true;if(first)note('innkeeper','認識旅店工作人員');dialog('旅店的早晨','「昨晚休息得好嗎？」店員把杯子收進托盤，指向門外。\n\n「沿街走就是市集，再往前能看見公會。想先待在這裡也可以，我們不會趕你出門。」',[{label:'詢問城鎮',fn:()=>dialog('街上的日常','這裡不是每個人都會去地下城。市場、工坊、貨運和旅館同樣忙碌。公會只是其中一個工作的地方。',[{label:'知道了',fn:()=>{}}],'城鎮介紹')},{label:'謝謝，先看看四周',fn:()=>{}}],'第二章 · 旅店');}
-function meetRescuers(){if(!s.flags.rescued){toast('你還沒遇見他們。');return;}const namesFour=s.party.map(i=>roster[i].name),who=namesFour.join('、');const old=s.flags.rescueTone;const memory=old==='quiet'?'「昨天你一句話都不說，我們還擔心你是不是太不舒服。」':old==='where'?'「昨天你最先問這是哪裡。現在至少知道城鎮的方向了吧。」':'「昨天你主動向我們求助。能看到你安全走出旅店就好。」';s.flags.rescuersMetAgain=true;note('secondMeet','在城鎮再次遇見昨天的救援者');dialog('熟悉的四張面孔','街口有人向你招手。是昨天出勤的四人：'+who+'。\n\n'+namesFour[0]+'：'+memory+'\n\n他們並沒有要求你加入隊伍，只是問你接下來有什麼打算。',[{label:'詢問附近可以去哪裡',fn:()=>dialog('附近的道路','「公會有路況紀錄，城外近郊也能散步。沒準備好前不用往深處走。」',[{label:'記下建議',fn:()=>note('roadTip','得知城外近郊有較安全的道路')}],'冒險者的建議')},{label:'有機會可以去拜訪嗎？',fn:()=>{s.flags.houseInvite=true;note('houseInvite','獲得拜訪小隊公共起居室的邀請');dialog('普通的邀請','「可以，但我們住處不大。大家都在時來坐坐就好，不必客氣。」\n\n你已能從城鎮街道前往他們的公共起居室。',[{label:'知道了',fn:()=>render()}],'日常對話');}},{label:'道謝後先離開',fn:()=>{}}],'第二章 · 再會');}
+function morning(){if(!s.flags.rescued){toast('先前往城鎮休息。');return;}const first=!s.flags.morning;s.flags.chapterDone=true;s.flags.morning=true;if(first){advanceToNextMorning();note('morning','在旅店迎來異世界的第一個早晨');discoverRoute('inn','lobby');discoverRoute('lobby','street');}clearTimePreview();syncTimeAtmosphere();save();dialog('陌生的早晨','門外傳來店員的聲音。「早餐好了。昨天送你來的人，剛才還問起你呢。」',[{label:'去旅店大廳',fn:()=>change('lobby')},{label:'先到街上看看',fn:()=>change('street')},{label:'再整理一下客房',fn:()=>{render();}}],'第二章 · 清晨',true);}
+function talkInnkeeper(){const first=!s.flags.innkeeperMet;s.flags.innkeeperMet=true;if(first)note('innkeeper','認識旅店工作人員');dialog('旅店的早晨','店員替你倒了杯水。「昨晚睡得好嗎？」',[{label:'詢問城鎮',fn:()=>dialog('街上的日常','「出門就是市集。沿街再走一段，能看見公會的招牌。」',[{label:'知道了',fn:()=>{}}],'城鎮介紹')},{label:'謝謝，先看看四周',fn:()=>{}}],'第二章 · 旅店');}
+function meetRescuers(){if(!s.flags.rescued){toast('你還沒遇見他們。');return;}const speaker=roster[s.party[0]];const old=s.flags.rescueTone;const memory=old==='quiet'?'「今天好些了嗎？昨天看你連話都說不出來。」':old==='where'?'「昨天你最先問這是哪裡。現在至少知道城鎮的方向了吧。」':'「今天能出來走走了？真好。」';s.flags.rescuersMetAgain=true;note('secondMeet','在城鎮再次遇見昨天的救援者');dialog('熟悉的四張面孔',memory,[{label:'詢問附近可以去哪裡',fn:()=>dialog('附近的道路','「公會有路況紀錄，城外近郊也能散步。沒準備好前不用往深處走。」',[{label:'記下建議',fn:()=>note('roadTip','得知城外近郊有較安全的道路')}],'冒險者的建議')},{label:'有機會可以去拜訪嗎？',fn:()=>{s.flags.houseInvite=true;note('houseInvite','獲得拜訪小隊公共起居室的邀請');dialog('普通的邀請','「可以，但我們住處不大。大家都在時來坐坐就好，不必客氣。」\n\n你已能從城鎮街道前往他們的公共起居室。',[{label:'知道了',fn:()=>render()}],'日常對話');}},{label:'道謝後先離開',fn:()=>{}}],'第二章 · 再會',false,speaker);}
 function meetHome(){const left=[0,1,2,3,4,5].filter(i=>!s.party.includes(i)).map(i=>roster[i].name);if(!s.flags.homeMet){s.flags.homeMet=true;note('leftbehind','認識昨天留守的兩名小隊成員');}dialog('留守的兩名夥伴','公共起居室裡有修補過的桌椅、堆放整齊的裝備，以及一張寫滿採買事項的紙。\n\n昨天留守的兩人是：'+left.join('、')+'。\n\n「我們聽說昨天救回一個人。原來就是你啊。」\n\n他們仍有自己的事情要做，沒有把你當成必須立刻加入的隊員。',[{label:'聊聊他們的日常',fn:()=>dialog('普通的生活','「房租不是小事，所以我們一起分攤住處。有人外出工作，也要有人整理物資。至於誰比較會煮飯，那可是另一回事。」',[{label:'原來如此',fn:()=>{}}],'日常對話')},{label:'不打擾他們',fn:()=>{}}],'第二章 · 初次見面');}
 /* One optional merchant quest, with non-combat capture and a three-stat home. */
 function beetleMerchant(){
