@@ -1,6 +1,6 @@
 window.DungeonSceneDialogueV1 = {
  create({ $, syncDialogueInputLock, endLabels, onComplete }) {
-  const sceneDialogueState={lines:[],index:0,open:false,purpose:null,choices:[]};
+  const sceneDialogueState={lines:[],index:0,open:false,purpose:null,choices:[],generation:0};
   function renderSceneDialogue(){
    const box=$('sceneDialogue');
    if(!sceneDialogueState.open||!sceneDialogueState.lines.length){
@@ -29,7 +29,8 @@ window.DungeonSceneDialogueV1 = {
    $('sceneDialogueNext').hidden=!!choices.length;
    for(const choice of choices){
     const button=document.createElement('button');button.type='button';button.textContent=choice.label;
-    button.onclick=()=>{closeSceneDialogue();choice.fn?.();};
+    const generation=sceneDialogueState.generation;
+    button.onclick=()=>{if(!sceneDialogueState.open||sceneDialogueState.generation!==generation||sceneDialogueState.index!==sceneDialogueState.lines.length-1)return;closeSceneDialogue();choice.fn?.();};
     options.appendChild(button);
    }
    box.classList.remove('hidden');
@@ -43,10 +44,12 @@ window.DungeonSceneDialogueV1 = {
     portrait:line.portrait==='protagonist'?'protagonist':null,image:line.image||null
    }));
    if(!validLines.length)return;
+   sceneDialogueState.generation++;
    sceneDialogueState.lines=validLines;
    sceneDialogueState.index=0;sceneDialogueState.open=true;sceneDialogueState.purpose=purpose;sceneDialogueState.choices=choices;renderSceneDialogue();
   }
   function closeSceneDialogue(){
+   sceneDialogueState.generation++;
    sceneDialogueState.open=false;sceneDialogueState.lines=[];sceneDialogueState.index=0;sceneDialogueState.purpose=null;sceneDialogueState.choices=[];
    renderSceneDialogue();
   }
