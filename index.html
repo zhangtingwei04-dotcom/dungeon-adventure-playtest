@@ -7115,6 +7115,7 @@ function renderSceneActionDock(host){
  add(sceneActionView?'返回資訊':'調查／其他行動',()=>{
   sceneActionView=sceneActionView?null:{actor:s,scene:s.scene};
   renderPlaceDrawer();
+  if(sceneActionView)openSceneDialogue([{speaker:'旁白',text:'你環顧四周，開始查看附近可以調查的物件。'}],'investigation-entry');
  },'explore');
 
 }
@@ -7712,7 +7713,7 @@ function openWreckIntroduction(){
 // Shared interaction policy; applies equally to narration, choices, inspections and encounters.
 function activeDialogueSurface(){
  for(const id of ['dialogVeil','sceneDialogue','sceneInspection','encounterCue','battleSurface']){
-  if(id==='sceneDialogue'&&sceneDialogueState.purpose==='dock-feedback')continue;
+  if(id==='sceneDialogue'&&['dock-feedback','investigation-entry'].includes(sceneDialogueState.purpose))continue;
   const el=$(id);
   if(el&&!el.classList.contains('hidden'))return el;
  }
@@ -7725,7 +7726,7 @@ function syncDialogueInputLock(){
   const el=$(id);if(el)el.inert=!!active&&!el.contains(active);
  }
 }
-function guardedAction(fn){if(activeDialogueSurface())return;const now=Date.now();if(now-lastActionAt<300)return;lastActionAt=now;if(sceneDialogueState.purpose==='dock-feedback')closeSceneDialogue();fn?.();}
+function guardedAction(fn){if(activeDialogueSurface())return;const now=Date.now();if(now-lastActionAt<300)return;lastActionAt=now;if(['dock-feedback','investigation-entry'].includes(sceneDialogueState.purpose))closeSceneDialogue();fn?.();}
 // Capture phase protects every background control, including dynamically generated buttons.
 function dialogueInfoAllowed(target){
  if(!target?.closest)return false;
