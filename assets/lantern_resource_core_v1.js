@@ -17,5 +17,22 @@
   if(!add(parts,material))return false;
   daily.collected++;return true;
  }
- root.LanternResourceCoreV1=Object.freeze({DAILY_LIMIT,canCollect,add,collect});
+ function plan(parts,changes){
+  if(!parts||!changes||typeof changes!=='object'||Array.isArray(changes))return null;
+  const next=[];
+  for(const [material,delta] of Object.entries(changes)){
+   if(!material.trim()||['__proto__','constructor','prototype'].includes(material)||!Number.isSafeInteger(delta))return null;
+   const previous=Object.hasOwn(parts,material)?parts[material]:0;
+   if(!Number.isSafeInteger(previous)||previous<0||!Number.isSafeInteger(previous+delta)||previous+delta<0)return null;
+   next.push([material,previous+delta]);
+  }
+  return next;
+ }
+ function apply(parts,changes,{commit=()=>true}={}){
+  const next=plan(parts,changes);if(!next||commit()===false)return false;
+  for(const [material,n] of next)parts[material]=n;
+  return true;
+ }
+ function consume(parts,material,quantity=1){return typeof material==='string'&&Number.isSafeInteger(quantity)&&quantity>0&&apply(parts,{[material]:-quantity});}
+ root.LanternResourceCoreV1=Object.freeze({DAILY_LIMIT,canCollect,add,collect,plan,apply,consume});
 })(window);
