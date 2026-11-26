@@ -5146,7 +5146,7 @@ function explorationDaily(site){
  if(!Number.isFinite(s.exploration.daily[site].spawned)||s.exploration.daily[site].spawned<0)s.exploration.daily[site].spawned=0;
  return s.exploration.daily[site];
 }
-function collectExplorationMaterial(site,id){
+function collectExplorationMaterial(site,id,objectId){
  normalizeExploration();normalizeRecovery();
  if(s.scene!==site)return;
  // Daily normalization may rebuild pending arrays, so fetch the current queue afterwards.
@@ -5156,16 +5156,14 @@ function collectExplorationMaterial(site,id){
  if(index<0)return;
  const find=queue[index];
  if(daily.collected>=2){toast('今天從這裡帶走的普通材料已達上限。');return;}
- let presenceTarget=null;
- if(site==='wreck'&&forestV4Active()){
-  const bound=[...forestV4MaterialBindings()].find(([,items])=>items.some(item=>item.id===id));
-  const target=bound&&[...(window.DUNGEON_FOREST_V4_LAYOUT?.scenes?.wreck||[]),...(window.DUNGEON_FOREST_V4_SPAWNS||[])].find(o=>o.id===bound[0]);
-  if(target){presenceTarget=target;window.DungeonObjectInvestigationV1.collect(s,site,target);}
- }
+ const source=collectionSource(site,id);
+ if(!source||source.id!==objectId){toast('這份材料不在目前的物件上，請重新調查。');return;}
+ const presenceTarget=source;
+ if(source.assetId&&!window.DungeonObjectInvestigationV1.collect(s,site,source)){toast('這個物件已無法採集。');return;}
  daily.collected++;
  queue.splice(index,1);
  s.recovery.parts[find.material]=(s.recovery.parts[find.material]||0)+1;
- addTravel('discovery','在'+names[site][0]+'收取普通材料：'+find.material+' ×1。','只是一般環境資源，先收好再考慮用途。');
+ addTravel('discovery','從'+(source.name||source.label)+'取得'+find.material+' ×1。','只是一般環境資源，先收好再考慮用途。');
  save();render();
  window.DungeonEventsV1.emit('scene.collection.succeeded',s,{material:find.material,target:presenceTarget?{x:presenceTarget.x,y:presenceTarget.y,id:presenceTarget.id}:null});
  toast('已收取 '+find.material+' ×1');
@@ -7142,8 +7140,9 @@ function renderWreckInvestigation(list,actions,targets,append){
   const src=node.querySelector('.forest-v4-art > img, :scope > img')?.getAttribute('src');
   const item={name,node,src:kind==='mushroom'?window.DUNGEON_FOREST_V4_ASSETS?.forest4_mushroom?.src||src:src};
   if(kind==='mushroom'||node.dataset.motion==='plant'||node.dataset.motion==='animal'){
-   if(seen.has(name))continue;
-   seen.add(name);ecology.push(item);
+   const key=node.dataset.objectId||name;
+   if(seen.has(key))continue;
+   seen.add(key);ecology.push(item);
   }else if(Object.hasOwn(namesByKind,kind))objects.push(item);
   else other.push(item);
  }
@@ -7158,7 +7157,9 @@ function renderWreckInvestigation(list,actions,targets,append){
  function tiles(parent,items){
   const grid=document.createElement('div');grid.className='scene-action-tiles';parent.appendChild(grid);
   for(const item of items){
-   const button=append(item.name,()=>item.node.onclick(),grid);
+   const same=items.filter(o=>o.name===item.name);
+   const label=same.length>1?item.name+' '+(same.indexOf(item)+1):item.name;
+   const button=append(label,()=>item.node.onclick(),grid);
    if(!item.src)continue;
    const image=document.createElement('img');image.src=item.src;image.alt='';
    if(item.node.dataset.liveKind==='mushroom'){
@@ -7322,17 +7323,16 @@ function renderPlaceDrawer(){
  if(queue.length){
   const today=explorationDaily(s.scene),remaining=Math.max(0,2-today.collected);
   const heading=document.createElement('div');heading.className='place-pending-heading';
-  const caption=document.createElement('strong');caption.textContent='本地待收取材料 · '+queue.length;
+  const caption=document.createElement('strong');caption.textContent='材料所在物件 · '+queue.length;
   const quota=document.createElement('span');quota.textContent='今日可收 '+remaining+' 份';
   heading.append(caption,quota);out.appendChild(heading);
+   const hint=document.createElement('p');hint.className='location-summary-description';hint.textContent='請點擊場景中的對應物件，再選擇採集。';out.appendChild(hint);
   const list=document.createElement('div');list.className='place-pending-list';
   for(const item of queue){
+   const source=collectionSource(s.scene,item.id);if(!source)continue;
    const row=document.createElement('div');row.className='place-pending-item';
-   const label=document.createElement('span');label.textContent=item.material+' ×1';
-   const take=document.createElement('button');take.type='button';take.textContent=remaining?'收取':'今日上限';
-   take.disabled=remaining===0;
-   take.onclick=()=>collectExplorationMaterial(s.scene,item.id);
-   row.append(label,take);list.appendChild(row);
+   const label=document.createElement('span');label.textContent=(source.name||source.label)+'：'+item.material+' ×1';
+   row.append(label);list.appendChild(row);
   }
   out.appendChild(list);
  }
@@ -8386,7 +8386,7 @@ function interactSceneObject(id){
   ],'探索相遇');return;
  }
  dialog(obj.label,'你在這裡發現可收取的普通材料：'+obj.material+'。採集會沿用原本的每日材料上限。',[
-  {label:'採集 '+obj.material+' ×1',fn:()=>sceneCollectionResult(()=>collectExplorationMaterial(site,id))},
+  {label:'採集 '+obj.material+' ×1',fn:()=>sceneCollectionResult(()=>collectExplorationMaterial(site,id,obj.id))},
   {label:'先保留在原地',fn:()=>{}}
  ],'場景採集');
 }
@@ -8422,8 +8422,19 @@ function bindForestV4Materials(layout,queue){
 function forestV4MaterialBindings(){
  return bindForestV4Materials([...(window.DUNGEON_FOREST_V4_LAYOUT?.scenes?.wreck||[]),...(window.DUNGEON_FOREST_V4_SPAWNS||[])].filter(o=>window.DungeonObjectInvestigationV1.visible(s,'wreck',o)),s.exploration?.pending?.wreck||[]);
 }
+// Revalidate the concrete source when collecting.
+function collectionSource(site,id){
+ if(site!==s.scene)return null;
+ if(site==='wreck'&&forestV4Active()){
+  const bound=[...forestV4MaterialBindings()].find(([,items])=>items.some(item=>item.id===id));
+  if(bound){const target=[...(window.DUNGEON_FOREST_V4_LAYOUT?.scenes?.wreck||[]),...(window.DUNGEON_FOREST_V4_SPAWNS||[])].find(o=>o.id===bound[0]);return target?.visible&&!target.previewOnly&&window.DungeonObjectInvestigationV1.visible(s,site,target)?target:null;}
+ }
+ return window.DungeonSceneObjectsV1?.objects(s,plantSpawnWeather()).find(o=>o.id===id&&o.material)||null;
+}
 function harvestForestObject(o){
- if(s.scene!=='wreck'||s.flags.inBattle)return;
+ if(s.scene!=='wreck'||s.flags.inBattle||!forestV4Active())return;
+ const current=[...(window.DUNGEON_FOREST_V4_LAYOUT?.scenes?.wreck||[]),...(window.DUNGEON_FOREST_V4_SPAWNS||[])].find(x=>x.id===o.id&&x.assetId===o.assetId&&x.visible);
+ if(!current)return;
  const core=window.DungeonObjectInvestigationV1;
  const material=core.get(o.assetId)?.harvest;
  if(!material||o.previewOnly||!core.visible(s,'wreck',o))return;
@@ -8475,11 +8486,11 @@ function forestV4Action(o){
  const summary=$('sceneStage').querySelector('.discovery-summary');if(summary)summary.hidden=true;
  const options=[];
  if(!o.previewOnly&&!String(o.id).startsWith('preview-')){
-  for(const item of finds)options.push({label:'採集 '+item.material+' ×1',fn:()=>sceneCollectionResult(()=>collectExplorationMaterial('wreck',item.id))});
-  if(objectCore.get(o.assetId)?.harvest)options.unshift({label:'採集蘑菇 ×1',fn:()=>sceneCollectionResult(()=>harvestForestObject(o))});
+  for(const item of finds)options.push({label:'採集 '+item.material+' ×1',fn:()=>sceneCollectionResult(()=>collectExplorationMaterial('wreck',item.id,o.id))});
+  if(objectCore.get(o.assetId)?.harvest)options.unshift({label:'採集 '+info.name+' ×1',fn:()=>sceneCollectionResult(()=>harvestForestObject(o))});
  }
  if(k==='wagon'||k==='wheel_flat')options.push({label:'仔細調查車輪與泥地',fn:marks});
- if(k.startsWith('crate'))options.push({label:'檢查貨箱',fn:glance});
+ if(o.id==='v4-crate_large1')options.push({label:'檢查貨箱內部',fn:glance});
  if(info.type==='living'&&objectCore.animalInteraction(o.assetId)){
   options.push({label:'安靜觀察',fn:()=>interactForestAnimal(o,'observe')});
   options.push({label:k==='beetle'?'俯身查看':'慢慢靠近',fn:()=>interactForestAnimal(o,'approach')});
