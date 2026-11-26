@@ -51,5 +51,7 @@ function resolveBattleTurn(previous,playerHp,action,ground={}){
  state.intent=next;state.feedback=feedback+(damage?' 造成 '+damage+' 點傷害。':'')+(hit?' 受到 '+hit+' 點傷害。':'');
  return {state,hp:nextHp,damage,hit,enemyAction};
 }
-root.LanternBattleCoreV1=Object.freeze({resolve:resolveBattleTurn,intents:BATTLE_INTENTS,distances:Object.freeze(BATTLE_DISTANCES)});
+const professions=Object.freeze(['守燈人','獵痕影','織律師','術環師']);
+function validProfessions(ids,available=professions){return Array.isArray(ids)&&ids.length<=3&&new Set(ids).size===ids.length&&ids.every(id=>typeof id==='string'&&available.includes(id));}
+root.LanternBattleCoreV1=Object.freeze({resolve:resolveBattleTurn,intents:BATTLE_INTENTS,distances:Object.freeze(BATTLE_DISTANCES),professions,validProfessions});
 })(window);
