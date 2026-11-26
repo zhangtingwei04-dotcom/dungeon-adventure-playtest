@@ -4707,7 +4707,7 @@ function syncTimeAtmosphere(){
  $('subplace').textContent=atmosphereSubtitle(s.scene,period);
  const tag=$('timePreviewTag');
  syncWeather();
- window.DungeonScenePresenceV1?.sync({enabled:forestV4Active(),scene:s.scene,period,weather:currentWeather?.kind,indoor:INDOOR_SCENES.has(s.scene),battle:!!s.flags.inBattle});
+
  const previews=[previewPeriod?'光線':'',previewWeather?'天氣':'',previewWind!==null||previewWindDir!==null?'風力':''].filter(Boolean);
  tag.classList.toggle('hidden',!previews.length);tag.textContent=previews.length?'結束'+previews.join('及')+'預覽':'';
 }
@@ -8613,6 +8613,7 @@ function openTrailWreckActions(){
  dialog('林邊舊馬車殘骸','你可以檢查殘骸，或留意附近生物活動留下的痕跡。',choices,'場景調查');
 }
 function renderHotspots(){
+ window.DungeonScenePresenceV1?.sync({enabled:forestV4Active(),scene:s.scene,period:previewPeriod||periodForMinutes(s.worldMinutes),weather:currentWeather?.kind,indoor:INDOOR_SCENES.has(s.scene),battle:!!s.flags.inBattle});
  const el=$('hotspots');const stable=forestV4Active()&&new URLSearchParams(location.search).get('env')!=='off';
  $('app').classList.toggle('env-repair-v2',stable&&forestEnvironmentActive());
  if(stable){for(const child of Array.from(el.children))if(!child.classList.contains('forest-v4-layer'))child.remove();}
