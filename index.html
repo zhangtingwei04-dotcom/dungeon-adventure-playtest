@@ -7106,7 +7106,7 @@ function renderSceneActionDock(host){
  add(sceneActionView?'返回資訊':'調查／其他行動',()=>{
   sceneActionView=sceneActionView?null:{actor:s,scene:s.scene};
   renderPlaceDrawer();
-  if(sceneActionView)openSceneDialogue([{speaker:'旁白',text:'你環顧四周，開始查看附近可以調查的物件。'}],'investigation-entry');
+  if(sceneActionView)openSceneDialogue([{speaker:'旁白',text:'你環顧四周，看看有沒有值得留意的地方。'}],'investigation-entry');
  },'explore');
 
 }
