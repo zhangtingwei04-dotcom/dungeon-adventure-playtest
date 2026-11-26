@@ -3018,7 +3018,7 @@ html.stage-locked #app #placeActionPanel #placePrimaryActions .side-main-action{
 }
 #placeDrawerList .scene-action-tiles .scene-action-mushroom{width:42px;height:32px}
 #placeDrawerList .scene-action-ecology{flex-basis:100%;border-top:1px solid #ad91594d;padding-top:4px}
-#placeDrawerList .scene-action-ecology summary{cursor:pointer;padding:4px 0;color:#c9dbc3}
+#placeDrawerList .scene-action-ecology h3{margin:0;padding:4px 0;color:#c9dbc3;font-size:13px}
 
 html.stage-locked #app #placeDrawerPanel.is-location-tab .side-current-summary.location-reference-card{
  display:block!important;margin:0 0 4px!important;min-width:0!important;
@@ -7144,7 +7144,7 @@ function showSceneActionDetail(title,text,choices){
  sceneActionView.detail={title,text,choices};
  return true;
 }
-function renderWreckInvestigation(list,view,actions,primary,targets,append){
+function renderWreckInvestigation(list,actions,primary,targets,append){
  const namesByKind={wagon:'馬車',wheel_flat:'車輪',sack:'布袋',plank:'木板',plank_lean:'斜木板',
   crate_large:'貨箱',crate_small:'小貨箱',crate_open:'翻倒貨箱',barrel:'木桶'};
  const objects=[],ecology=[],other=[],seen=new Set();
@@ -7156,7 +7156,7 @@ function renderWreckInvestigation(list,view,actions,primary,targets,append){
   const name=namesByKind[kind]||(/^草叢/.test(label)?'草叢':label);
   const src=node.querySelector('.forest-v4-art > img, :scope > img')?.getAttribute('src');
   const item={name,node,src:kind==='mushroom'?window.DUNGEON_FOREST_V4_ASSETS?.forest4_mushroom?.src||src:src};
-  if(node.dataset.motion==='plant'||node.dataset.motion==='animal'){
+  if(kind==='mushroom'||node.dataset.motion==='plant'||node.dataset.motion==='animal'){
    if(seen.has(name))continue;
    seen.add(name);ecology.push(item);
   }else if(Object.hasOwn(namesByKind,kind))objects.push(item);
@@ -7193,11 +7193,9 @@ function renderWreckInvestigation(list,view,actions,primary,targets,append){
   tiles(list,objects);
  }
  if(ecology.length){
-  const details=document.createElement('details');details.className='scene-action-ecology';
-  details.open=!!view.ecologyOpen;
-  details.ontoggle=()=>{view.ecologyOpen=details.open;};
-  const summary=document.createElement('summary');summary.textContent='觀察生態';details.appendChild(summary);
-  tiles(details,ecology);list.appendChild(details);
+  const section=document.createElement('section');section.className='scene-action-ecology';
+  const title=document.createElement('h3');title.textContent='觀察生態';section.appendChild(title);
+  tiles(section,ecology);list.appendChild(section);
  }
  for(const item of actions){
   if(item===primary||(item.fn===marks&&objects.some(o=>o.name==='車輪'))||(item.fn===glance&&objects.some(o=>o.name==='貨箱')))continue;
@@ -7233,7 +7231,7 @@ function renderSceneActionView(out){
  const targets=Array.from($('hotspots').querySelectorAll('button:not(.env-leaving):not([disabled])'))
   .filter(node=>!node.matches('.scene-route-target')&&typeof node.onclick==='function');
  if(s.scene==='wreck'){
-  renderWreckInvestigation(list,view,actions,primary,targets,append);return;
+  renderWreckInvestigation(list,actions,primary,targets,append);return;
  }
  const used=new Set();
  for(const item of actions){
