@@ -4557,7 +4557,8 @@ function syncDesignStage(){
  root.classList.toggle('stage-locked',lock);
  if(!lock){root.style.removeProperty('--stage-scale');
   root.style.removeProperty('--stage-left');root.style.removeProperty('--stage-top');return;}
- const scale=Math.min(viewportWidth/STAGE_WIDTH,viewportHeight/STAGE_HEIGHT);
+ const stageWidthLimit=viewportWidth*.865;
+ const scale=Math.min(stageWidthLimit/STAGE_WIDTH,viewportHeight/STAGE_HEIGHT);
  const dx=(viewportWidth-STAGE_WIDTH*scale)/2+(visual?.offsetLeft||0);
  const dy=(viewportHeight-STAGE_HEIGHT*scale)/2+(visual?.offsetTop||0);
  root.style.setProperty('--stage-scale',String(scale));
