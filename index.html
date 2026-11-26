@@ -7090,6 +7090,17 @@ function presentDiscoveredRoute(from,to){
    {label:'留在原地',fn:()=>{}}]
  );
 }
+// Run a real scene action once; preserve its own dialogue, otherwise present its actual feedback.
+function runSceneAction(fn){
+ return guardedAction(()=>{
+  const before=s.scene,notice=$('toast');
+  notice.classList.remove('active');
+  fn();
+  if(activeDialogueSurface()||sceneDialogueState.open)return;
+  const text=s.scene!==before?'你來到'+names[s.scene][0]+'。':notice.classList.contains('active')?notice.textContent:'';
+  if(text)inspectInScene(text,[{label:'繼續',fn:()=>{}}]);
+ });
+}
 function renderSceneActionDock(host){
  const actions=entries();
  const primary=actions.find(item=>item.primary)||actions[0];
@@ -7097,26 +7108,14 @@ function renderSceneActionDock(host){
   const button=document.createElement('button');button.type='button';
   button.className='side-main-action '+kind;
   setActionVisual(button,kind,label);
-  button.onclick=()=>guardedAction(()=>{
-   const before=s.scene;
-   const notice=$('toast').textContent;
-   fn();
-   if(activeDialogueSurface()||sceneDialogueState.open)return;
-   if(s.scene!==before)showDockNarration('你來到'+names[s.scene][0]+'。');
-   else if($('toast').classList.contains('active')&&$('toast').textContent!==notice)showDockNarration($('toast').textContent);
-  });
+  button.onclick=()=>kind==='explore'?guardedAction(fn):runSceneAction(fn);
   host.appendChild(button);
  }
  if(primary)add(primary.title,primary.fn,'primary');
- const menuButton=document.createElement('button');menuButton.type='button';
- menuButton.className='side-main-action explore';
- setActionVisual(menuButton,'explore','調查／其他行動');
- menuButton.onclick=()=>{
-  if(activeDialogueSurface()||s.flags.inBattle||encounterPending)return;
-  if(sceneDialogueState.open)closeSceneDialogue();
-  openSceneActionMenu();
- };
- host.appendChild(menuButton);
+ add(sceneActionView?'返回資訊':'調查／其他行動',()=>{
+  sceneActionView=sceneActionView?null:{actor:s,scene:s.scene};
+  renderPlaceDrawer();
+ },'explore');
 
 }
 function renderWreckInvestigation(list,actions,primary,targets,append){
@@ -7174,30 +7173,21 @@ function renderWreckInvestigation(list,actions,primary,targets,append){
  }
  for(const item of actions){
   if(item===primary||(item.fn===marks&&objects.some(o=>o.name==='車輪'))||(item.fn===glance&&objects.some(o=>o.name==='貨箱')))continue;
-  append(item.title,()=>guardedAction(item.fn));
+  append(item.title,()=>runSceneAction(item.fn));
  }
  for(const item of other)append(item.name,()=>item.node.onclick());
 }
-function openSceneActionMenu(){
- const actor=s,scene=s.scene,choices=[];
- renderSceneActionView(document.createElement('div'),choices);
- choices.push({label:'先不行動',fn:()=>{}});
- openSceneDialogue([{speaker:'旁白',text:choices.length>1?'你想做些什麼？':'附近暫時沒有其他可進行的行動。'}],'investigation-menu',choices.map(choice=>({label:choice.label,fn:()=>{if(s!==actor||s.scene!==scene||s.flags.inBattle)return;choice.fn();}})));
-}
-function renderSceneActionView(out,menuChoices=null){
+function renderSceneActionView(out){
  const title='調查／其他行動';
- if(!menuChoices){
-  $('sidePanelTitle').textContent=title;
-  $('placeDrawerSummary').textContent='';
-  $('placeDrawerSummary').removeAttribute('aria-label');
-  $('placeDrawerPanel').setAttribute('aria-label',title);
- }
+ $('sidePanelTitle').textContent=title;
+ $('placeDrawerSummary').textContent='';
+ $('placeDrawerSummary').removeAttribute('aria-label');
+ $('placeDrawerPanel').setAttribute('aria-label',title);
  const list=document.createElement('div');list.className='scene-action-list';
  out.appendChild(list);
  function append(label,fn,parent=list){
   const button=document.createElement('button');button.type='button';
   button.textContent=label;button.onclick=fn;parent.appendChild(button);
-  if(menuChoices&&!menuChoices.some(choice=>choice.label===label))menuChoices.push({label,fn});
   return button;
  }
  const actions=entries();
@@ -7211,7 +7201,7 @@ function renderSceneActionView(out,menuChoices=null){
  for(const item of actions){
   if(item===primary)continue;
   used.add(item.title);
-  append(item.title,()=>guardedAction(item.fn));
+  append(item.title,()=>runSceneAction(item.fn));
  }
  for(const node of targets){
   const label=node.getAttribute('aria-label')||node.title;
@@ -8355,8 +8345,8 @@ function render(){if(!names[s.scene])s.scene='wreck';normalizeGameTime();tickBee
  outskirts:'城牆外的風帶著草木氣味。你可以看看風景、記下路標，或直接回城。',
  home:'六人的公共起居室裡有生活的痕跡。你只是受邀來訪，還不是固定房客。'
 };$('narrative').textContent=texts[s.scene];$('actions').replaceChildren();const available=entries();const primary=available.find(a=>a.primary)||available[0];
-if(primary){const b=document.createElement('button');b.className='action primary';setActionVisual(b,/探索|觀察/.test(primary.title)?'explore':'route',primary.title);b.title='主要行動；點擊執行';b.onclick=()=>guardedAction(primary.fn);$('actions').appendChild(b);}
-const quick=available.find(a=>a.quick&&a!==primary);if(quick){const b=document.createElement('button');b.className='action explore';setActionVisual(b,'explore',quick.title);b.onclick=()=>guardedAction(quick.fn);$('actions').appendChild(b);}
+if(primary){const b=document.createElement('button');b.className='action primary';setActionVisual(b,/探索|觀察/.test(primary.title)?'explore':'route',primary.title);b.title='主要行動；點擊執行';b.onclick=()=>runSceneAction(primary.fn);$('actions').appendChild(b);}
+const quick=available.find(a=>a.quick&&a!==primary);if(quick){const b=document.createElement('button');b.className='action explore';setActionVisual(b,'explore',quick.title);b.onclick=()=>runSceneAction(quick.fn);$('actions').appendChild(b);}
 /* Secondary interactions are now grouped under the right-side place drawer. */renderHotspots();renderFeed();renderPlaceDrawer();renderSceneInfoBar();renderOpeningObjective();renderBattleSurface();save();}
 function interactSceneObject(id){
  const engine=window.DungeonSceneObjectsV1;
@@ -8490,12 +8480,12 @@ function renderForestV4(el){
   let old=previous.get(o.id);
   if(smooth&&old&&old.dataset.renderSignature===signature){
    keep.add(old);old._exitTimer&&clearTimeout(old._exitTimer);old._exitTimer=null;old.classList.remove('env-leaving');old.style.pointerEvents='';
-   if(interactive){old.disabled=false;old.onclick=()=>guardedAction(()=>forestV4Action(o));old.setAttribute('aria-label',o.name+(finds.length?'：可收集'+finds.map(f=>f.material).join('、'):''));old.title=o.name+(finds.length?' · 可收集':'');}
+   if(interactive){old.disabled=false;old.onclick=()=>runSceneAction(()=>forestV4Action(o));old.setAttribute('aria-label',o.name+(finds.length?'：可收集'+finds.map(f=>f.material).join('、'):''));old.title=o.name+(finds.length?' · 可收集':'');}
    if(investigation){old.dataset.objectLifecycle=investigation.type;old.dataset.objectVisualState=investigation.visualState;}
    updateForestFindCue(old,finds,k);continue;
   }
   if(old){clearTimeout(old._exitTimer);old.remove();}
-  const node=document.createElement(interactive?'button':'div');node.dataset.renderSignature=signature;if(interactive){node.type='button';node.setAttribute('aria-label',o.name+(finds.length?'：可收集'+finds.map(f=>f.material).join('、'):''));node.title=o.name+(finds.length?' · 可收集':'');node.onclick=()=>guardedAction(()=>forestV4Action(o));}else node.setAttribute('aria-hidden','true');
+  const node=document.createElement(interactive?'button':'div');node.dataset.renderSignature=signature;if(interactive){node.type='button';node.setAttribute('aria-label',o.name+(finds.length?'：可收集'+finds.map(f=>f.material).join('、'):''));node.title=o.name+(finds.length?' · 可收集':'');node.onclick=()=>runSceneAction(()=>forestV4Action(o));}else node.setAttribute('aria-hidden','true');
   node.className='forest-v4-object';if(investigation){node.dataset.objectLifecycle=investigation.type;node.dataset.objectVisualState=investigation.visualState;}node.dataset.objectId=o.id;node.dataset.motion=animal?'animal':plant?'plant':'fixed';node.dataset.liveKind=k;if(o.rabbitVariant)node.dataset.rabbitVariant=o.rabbitVariant;node.style.setProperty('--env-motion-delay',(-([...o.id].reduce((n,ch)=>(n*31+ch.charCodeAt(0))%89,0)/10))+'s');node.style.left=o.x+'%';node.style.top=o.y+'%';node.style.width=o.width+'%';node.style.zIndex=10+o.z;
   const art=document.createElement('span');art.className='forest-v4-art';art.style.transform='scaleX('+(o.flip?-1:1)+') rotate('+o.rotation+'deg)';
   const im=document.createElement('img');im.src=o.artVariant==='barrel-side'?'./assets/forest_v4_barrel_side.svg?v=1':a.src;if(o.artVariant==='barrel-side')im.onerror=()=>{im.onerror=null;im.src=a.src;art.style.transform='rotate(72deg)';};im.alt='';im.draggable=false;art.appendChild(im);node.appendChild(art);if(window.DungeonWinterV1?.weights[k])window.DungeonWinterV1.attach(node,art,im,k);window.DungeonForestV4Integration?.apply(node,o,assets);if(liveMotion)window.DungeonSceneEnvironmentV1?.attachWildlife(node,o);if(forestEnvironmentActive())window.DungeonSceneEnvironmentV1?.apply(node,art,im,o);updateForestFindCue(node,finds,k);keep.add(node);if(smooth&&existing&&!old)node.classList.add('env-entering');layer.appendChild(node);
@@ -8535,7 +8525,7 @@ function renderWorldObjects(el){
   const cv=document.createElement(obj.kind==='creature'?'img':'canvas');cv.setAttribute('aria-hidden','true');if(obj.kind==='creature'){cv.src=MONSTER_CATALOG_V1.moss_spine_beast.sprite;cv.alt='';cv.className='forest-monster-art';b.setAttribute('aria-label','苔棘鬃獸');}else engine.sprite(cv,obj.kind);
   const caption=document.createElement('span');caption.textContent=obj.kind==='creature'?'苔棘鬃獸':obj.label;b.append(cv,caption);
   applyDiscoveryCue(b,window.DungeonDiscoveryCueV1.object({pending:obj.material?1:0,clue:obj.kind==='wreck',observed:!!s.flags.trailWreckInspected||!!s.recovery.looted}));
-  b.onclick=()=>guardedAction(()=>interactSceneObject(obj.id));el.appendChild(b);
+  b.onclick=()=>runSceneAction(()=>interactSceneObject(obj.id));el.appendChild(b);
  }
 }
 // Scene-first investigation. Static targets use normalized canvas coordinates;
@@ -8592,7 +8582,7 @@ function renderHotspots(){
   button.style.left=o.x+'%';button.style.top=o.y+'%';
   button.title=o.label;button.setAttribute('aria-label',o.label);
   if(showHints){const label=document.createElement('span');label.textContent=o.label;button.appendChild(label);}
-  button.onclick=()=>guardedAction(()=>{if(!encounterPending&&!modal&&!s.flags.inBattle&&!$('app').classList.contains('scene-dialogue-active'))o.fn();});
+  button.onclick=()=>runSceneAction(()=>{if(!encounterPending&&!modal&&!s.flags.inBattle&&!$('app').classList.contains('scene-dialogue-active'))o.fn();});
   el.appendChild(button);
  }
  const panorama=s.scene==='wreck'?((emptyForestReady||approvedWreckReady)?null:wreckPanoramaCrop()):s.scene==='trail'?(trailForestReady?trailIllustrationCrop():trailPanoramaCrop()):null;
@@ -8608,7 +8598,7 @@ function renderHotspots(){
   if(!panorama&&s.scene==='wreck'){screenX=x*100;screenY=y*100;}
   const b=document.createElement('button');b.className='hotspot scene-route-target'+(showHints?' on':'');
   b.style.left=screenX+'%';b.style.top=screenY+'%';
-  b.title=label;b.setAttribute('aria-label',routeCue?'新道路：'+label:label);b.onclick=()=>guardedAction(()=>{if(!encounterPending&&!modal&&!sceneDialogueState.open)fn();});if(showHints){const hint=document.createElement('span');hint.textContent=label;b.appendChild(hint);}el.appendChild(b);
+  b.title=label;b.setAttribute('aria-label',routeCue?'新道路：'+label:label);b.onclick=()=>runSceneAction(()=>{if(!encounterPending&&!modal&&!sceneDialogueState.open)fn();});if(showHints){const hint=document.createElement('span');hint.textContent=label;b.appendChild(hint);}el.appendChild(b);
  }
 }
 function renderRouteMap(out){
