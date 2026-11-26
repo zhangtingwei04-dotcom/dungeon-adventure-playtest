@@ -2,7 +2,7 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const root=path.resolve(__dirname,'..');
 const read=p=>fs.readFileSync(path.join(root,p),'utf8');
-const modules=['engine_foundation_v1','engine_events_save_v1','character_environment_v1','weather_system_v1','forest_v4_spawns','forest_v4_layout','scene_objects_v1','scene_spatial_motion_v1','scene_environment_v1','winter_surfaces_v1'];
+const modules=['engine_foundation_v1','engine_events_save_v1','character_environment_v1','weather_system_v1','lantern_world_environment_v1','forest_v4_spawns','forest_v4_layout','scene_objects_v1','scene_spatial_motion_v1','scene_environment_v1','winter_surfaces_v1'];
 const window={};
 for(const m of modules)new Function('window',read('assets/'+m+'.js'))(window);
 const html=read('index.html');
@@ -10,7 +10,7 @@ const {DungeonEngineV1:R,DungeonGameTimeV1:T,DungeonEventsV1:E,DungeonSaveV1:S,D
 const names={wreck:[],trail:[],inn:[],clearing:[]};
 const fresh=()=>({v:1,seed:123,scene:'wreck',worldMinutes:960,hp:16,maxHp:16,party:[0,1,2,3],seen:[],notes:[],items:[],flags:{},visits:{wreck:1},equipmentV1:{outer:'starter_cloak'},exploration:{counts:{wreck:0,clearing:1},pending:{}}});
 function extract(start,end){const i=html.indexOf(start),j=html.indexOf(end,i);assert(i>=0&&j>i,'Production source boundary changed: '+start);return html.slice(i,j);}
-const actorHelpers=new Function('window','s','INDOOR_SCENES',extract('function characterEnvironmentView(){','function syncWeather(){')+extract('function advanceGameTime(','function travelRoute(')+'return {characterEnvironmentView,advanceGameTime,advanceToNextMorning};');
+const actorHelpers=new Function('window','s','INDOOR_SCENES','const lanternWorldEnvironment=window.LanternWorldEnvironmentV1.create(window.DungeonWeatherV1);'+extract('function characterEnvironmentView(){','function syncWeather(){')+extract('function advanceGameTime(','function travelRoute(')+'return {characterEnvironmentView,advanceGameTime,advanceToNextMorning};');
 const indoors=new Set(['inn','lobby','guild','home']);
 // Real time callback as registered by production HTML, with independent actor and no UI.
 const registration=html.match(/engine\.onTime\('world\.weather',[^\n]+/)[0];
