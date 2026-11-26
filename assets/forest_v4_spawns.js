@@ -158,7 +158,7 @@ window.DungeonForestV4Life=(function engine(){
  function seeded(s,key){let h=2166136261;for(const ch of String(s.seed??0)+':wildlife:'+key){h=Math.imul(h^ch.charCodeAt(0),16777619);}return ()=>{h=(h+0x6D2B79F5)|0;let t=Math.imul(h^h>>>15,1|h);t^=t+Math.imul(t^t>>>7,61|t);return ((t^t>>>14)>>>0)/4294967296;};}
  function update(s,base,slots,phase,random){
   const v=state(s),count=s.exploration?.counts?.wreck||0,day=Math.floor(Math.max(0,s.worldMinutes||0)/1440),visits=s.visits?.wreck||0;
-  const key=[day,phase,count,visits].join(':');
+  const key=[day,Math.floor(Math.max(0,s.worldMinutes||0)/60),phase,count,visits].join(':');
   if(s.scene!=='wreck'||v.activityKey===key||s.flags?.inBattle)return false;
   const roll=random||seeded(s,key);
   v.last=count;v.activityKey=key;
