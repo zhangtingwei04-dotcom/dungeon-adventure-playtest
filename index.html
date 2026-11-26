@@ -5351,23 +5351,13 @@ function placeCardCount(){
  return visiblePlaceCards().filter(x=>x.new).length;
 }
 function updatePlaceDrawerBadge(){
- const n=placeCardCount();
  normalizeExploration();
  const pending=(s.exploration.pending[s.scene]||[]).length;
- $('placeDrawerCount').textContent=n?'NEW '+n:(pending?'材料 '+pending:'');
- // The old vertical badge is hidden. Put the discovery cue on the visible
- // 地點 tab instead, so new places/materials are never silently missed.
- const tab=$('sideInfoTabs')?.querySelector('[data-info-tab="locations"]');
- if(tab){
-  tab.classList.toggle('has-unseen',n>0||pending>0);
-  tab.textContent=n?'◇ 地點 '+n:'◇ 地點';
-  tab.title=n?'有 '+n+' 處未查看的新地點':pending?'有 '+pending+' 份待收取材料':'地點資訊';
-  tab.setAttribute('aria-label',tab.title);
- }
- $('placeDrawer').classList.toggle('new-routes',n>0&&!placeDrawerOpen);
- const toggle=$('placeDrawerToggle');
- toggle.setAttribute('aria-label',(placeDrawerOpen?'收合':'展開')+'地點卡欄'+(n?'，有'+n+'處未查看的新地點':'')+(pending?'，有'+pending+'份待收取材料':''));
- toggle.setAttribute('aria-expanded',String(placeDrawerOpen));
+ const tab=$('sideInfoTabs').querySelector('[data-info-tab="locations"]');
+ tab.textContent='◇ 地點';tab.title='目前地點資訊';tab.setAttribute('aria-label',tab.title);
+ tab.classList.toggle('has-unseen',pending>0);
+ $('placeDrawerCount').textContent=pending?'材料 '+pending:'';
+ $('placeDrawerToggle').setAttribute('aria-expanded',String(placeDrawerOpen));
 }
 /* Permanent right-side board; closing a dialog does not close or disable it. */
 function setPlaceDrawer(open,expandId=null){
@@ -5408,9 +5398,6 @@ const LOCATION_CARD_META=Object.freeze({
  outskirts:{area:'城鎮近郊',kind:'道路地點',description:'道路漸漸遠離城牆，草叢與石塊之間能觀察到近郊環境的變化。'},
  home:{area:'城鎮內部',kind:'受邀空間',description:'冒險小隊共用的起居室，保留著成員共同生活的日常痕跡。'}
 });
-const LOCATION_CUE_ICONS=Object.freeze([
- ['🍃','草葉與植物'],['🍄','菌菇'],['🪵','木材'],['🪨','石塊'],['💎','礦晶']
-]);
 
 /* One wallet in the save; keep money separate from inventory categories. */
 function normalizeWallet(){window.DungeonDataSchemaV1.normalize(s,'wallet');}
@@ -7086,13 +7073,13 @@ function placeDrawerTravel(id){
  }
 }
 // Navigation is scoped to unlocked/discovered location cards. This is UI only.
-let locationPreviewId=null,locationPreviewScene=null;
+
 let attentionRoute=null;
 function clearRouteAttention(){attentionRoute=null;$('app').classList.remove('route-attention');}
 function focusDiscoveredRoute(from,to){
  if(s.scene!==from||!routeKnown(from,to))return false;
  const card=visiblePlaceCards().find(c=>c.id===to&&c.reachable);if(!card)return false;
- locationPreviewScene=from;locationPreviewId=to;activeSideTab='locations';
+ activeSideTab='locations';sceneActionView=null;
  normalizePlaceCards();if(!s.placeCardsViewed.includes(to)){s.placeCardsViewed.push(to);save();}
  $('app').classList.add('route-attention');renderPlaceDrawer();$('placeDrawerList').scrollTop=0;return true;
 }
@@ -7103,36 +7090,7 @@ function presentDiscoveredRoute(from,to){
    {label:'留在原地',fn:()=>{}}]
  );
 }
-function moveLocationPreview(step){
- if(!activeDialogueSurface())clearRouteAttention();
- const cards=visiblePlaceCards();
- if(cards.length<2)return;
- const index=Math.max(0,cards.findIndex(card=>card.id===(locationPreviewId||s.scene)));
- const next=Math.max(0,Math.min(cards.length-1,index+step));
- if(next===index)return;
- locationPreviewId=cards[next].id;
- // Viewing the card clears its NEW marker, but does not alter its route status.
- normalizePlaceCards();
- if(!s.placeCardsViewed.includes(locationPreviewId)&&!cards[next].current){
-  s.placeCardsViewed.push(locationPreviewId);save();
- }
- renderPlaceDrawer();
-}
-function bindLocationPreviewSwipe(card){
- let start=null;
- card.addEventListener('touchstart',event=>{
-  if(event.touches.length!==1||event.target.closest('button'))return;
-  start={x:event.touches[0].clientX,y:event.touches[0].clientY};
- },{passive:true});
- card.addEventListener('touchend',event=>{
-  if(!start||event.changedTouches.length!==1)return;
-  const dx=event.changedTouches[0].clientX-start.x,dy=event.changedTouches[0].clientY-start.y;
-  start=null;
-  if(Math.abs(dx)>=35&&Math.abs(dx)>Math.abs(dy)*1.25)moveLocationPreview(dx<0?1:-1);
- },{passive:true});
- card.addEventListener('touchcancel',()=>{start=null;},{passive:true});
-}
-function renderSceneActionDock(host,preview){
+function renderSceneActionDock(host){
  const actions=entries();
  const primary=actions.find(item=>item.primary)||actions[0];
  function add(label,fn,kind){
@@ -7154,9 +7112,7 @@ function renderSceneActionDock(host,preview){
   sceneActionView=sceneActionView?null:{actor:s,scene:s.scene};
   renderPlaceDrawer();
  },'explore');
- if(!sceneActionView&&activeSideTab==='locations'&&preview.reachable&&!preview.current&&preview.id!==primary?.routeTo){
-  add(preview.special?'前往調查':'前往 '+names[preview.id][0],()=>placeDrawerTravel(preview.id),'location-preview-travel');
- }
+
 }
 function renderWreckInvestigation(list,actions,primary,targets,append){
  const namesByKind={wagon:'馬車',wheel_flat:'車輪',sack:'布袋',plank:'木板',plank_lean:'斜木板',
@@ -7251,27 +7207,22 @@ function renderSceneActionView(out){
 function renderPlaceDrawer(){
  if(sceneActionView&&(sceneActionView.actor!==s||sceneActionView.scene!==s.scene||s.flags.inBattle))sceneActionView=null;
  updatePlaceDrawerBadge();
- const cards=visiblePlaceCards(),out=$('placeDrawerList');
+ const out=$('placeDrawerList');
  // Keep location-list scroll position when a new event, item, or route causes a render.
  // Reuse the existing image element so embedded art is not decoded on every update.
  const shownTab=sceneActionView?'investigation':activeSideTab;
  const sameContext=out.dataset.renderedTab===shownTab&&out.dataset.renderedScene===s.scene;
  const priorScroll=sameContext?out.scrollTop:0;
- if(locationPreviewScene!==s.scene){locationPreviewScene=s.scene;locationPreviewId=s.scene;}
- if(!cards.some(c=>c.id===locationPreviewId))locationPreviewId=s.scene;
- const previewIndex=Math.max(0,cards.findIndex(c=>c.id===locationPreviewId));
- const previewCard=cards[previewIndex]||{id:s.scene,current:true};
- const previewId=previewCard.id;
+ const previewId=s.scene;
  const retainedPreview=out.querySelector('.side-scene-preview');
  out.dataset.renderedTab=shownTab;
  out.dataset.renderedScene=s.scene;
  out.replaceChildren();
  const actionHost=$('placePrimaryActions');actionHost.replaceChildren();
- renderSceneActionDock(actionHost,previewCard);
+ renderSceneActionDock(actionHost);
  const namesByTab={locations:'地點資訊',character:'角色狀態',equipment:'裝備欄',inventory:'背包'};
  $('sidePanelTitle').textContent=namesByTab[activeSideTab];
- $('placeDrawerSummary').textContent=activeSideTab==='locations'?String(cards.length)+' 處':'';
- $('placeDrawerSummary').setAttribute('aria-label',activeSideTab==='locations'?'已記錄 '+cards.length+' 處地點':'');
+ $('placeDrawerSummary').textContent='';
  $('placeDrawerPanel').setAttribute('aria-label',namesByTab[activeSideTab]);
  $('placeDrawerPanel').classList.toggle('is-location-tab',activeSideTab==='locations');
  $('placeDrawerPanel').classList.toggle('is-character-tab',activeSideTab==='character');
@@ -7284,20 +7235,14 @@ function renderPlaceDrawer(){
  }
  if(sceneActionView){renderSceneActionView(out);out.scrollTop=priorScroll;return;}
  if(activeSideTab!=='locations'){renderSideTab(activeSideTab,out);out.scrollTop=priorScroll;return;}
- const special=Boolean(previewCard.special);
- const previewTitle=special?'林邊舊馬車殘骸':
-  previewId==='gate'&&!s.flags.rescued?'前方主路（終點未明）':names[previewId]?.[0]||'未知地點';
- const locationMeta=special?
-  {area:'森林內部',kind:'調查地點',description:'林間小徑旁的另一處舊馬車殘骸，與最初的事故現場不同。'}:
-  previewId==='gate'&&!s.flags.rescued?
-  {area:'森林外緣',kind:'未確認道路',description:'這條主路延伸向未知的方向，目的地尚未確認。'}:
-  previewId==='wreck'&&wreckCleared()?{...LOCATION_CARD_META.wreck,description:'馬車和散落的貨物已移走，林道旁只剩車輪壓過的泥痕。'}:
+ const previewTitle=names[previewId][0];
+ const locationMeta=previewId==='wreck'&&wreckCleared()?{...LOCATION_CARD_META.wreck,description:'馬車和散落的貨物已移走，林道旁只剩車輪壓過的泥痕。'}:
   LOCATION_CARD_META[previewId]||{area:'未知區域',kind:'探索地點',description:names[previewId]?.[1]||''};
  const summary=document.createElement('section');summary.className='side-current-summary location-reference-card';
- summary.setAttribute('aria-label','已發現地點預覽：'+previewTitle);
+ summary.setAttribute('aria-label','目前所在地：'+previewTitle);
  const hero=document.createElement('div');hero.className='location-hero';
  // Reuse the actual scene renderer, never substitute another location's art.
- if(!special&&names[previewId]){
+ if(names[previewId]){
   summary.classList.add('has-image');
   const preview=retainedPreview?.dataset.scene===previewId?retainedPreview:document.createElement('figure');
   if(!preview.querySelector('canvas')){
@@ -7314,20 +7259,7 @@ function renderPlaceDrawer(){
  const intro=document.createElement('div');intro.className='side-current-place';
  const titleRow=document.createElement('div');titleRow.className='location-preview-title-row';
  const title=document.createElement('strong');title.textContent=previewTitle;
- const arrows=document.createElement('div');arrows.className='location-preview-nav';
- for(const [symbol,delta,label] of [['‹',-1,'上一個地點'],['›',1,'下一個地點']]){
-  const button=document.createElement('button');button.type='button';button.className='location-preview-arrow';
-  button.textContent=symbol;button.title=label;
-  button.setAttribute('aria-label',label);button.disabled=delta<0?previewIndex===0:previewIndex>=cards.length-1;
-  button.onclick=()=>moveLocationPreview(delta);arrows.appendChild(button);
- }
- titleRow.append(title,arrows);intro.appendChild(titleRow);
- const positionRow=document.createElement('div');positionRow.className='location-preview-position-row';
- const position=document.createElement('span');position.className='location-preview-position';
- position.textContent='地點 '+(previewIndex+1)+' / '+cards.length+' · '+
-  (previewCard.current?'目前所在地':previewCard.reachable?'可前往 · 預覽中':'已發現 · 僅預覽')+
-  (cards.length>1?' · 可左右滑動':'');
- positionRow.append(position);intro.appendChild(positionRow);
+ titleRow.appendChild(title);intro.appendChild(titleRow);
  for(const [icon,label,value] of [['◈','區域',locationMeta.area],['♟','類型',locationMeta.kind]]){
   const row=document.createElement('span');row.className='location-meta';
   const symbol=document.createElement('b');symbol.textContent=icon;
@@ -7339,36 +7271,38 @@ function renderPlaceDrawer(){
  if(currentWeather){
   const engine=window.DungeonWeatherV1,indoor=INDOOR_SCENES.has(previewId);
   // Each destination reads its own surface history.
-  const env=previewCard.current?currentWeather:engine.at(s.seed,s.worldMinutes,previewId);
+  const env=currentWeather;
   const weatherInfo=document.createElement('p');weatherInfo.className='location-weather-info';weatherInfo.dataset.waterStatus=String(previewId==='wreck');
-  const prefix=env.season+' · '+env.temperature+'°C · '+(indoor?'室外':'')+env.name+(previewWeather&&previewCard.current?'（預覽）':'');
+  const prefix=env.season+' · '+env.temperature+'°C · '+(indoor?'室外':'')+env.name+(previewWeather?'（預覽）':'');
   const state=env.snowCover>.85?'厚雪':env.snowCover>.15?'薄雪':env.puddles>.25?'積水':env.wet>.15?'濕潤':'偏乾';
   const wind=engine.windLabel(env.wind,env.windDir);
-  if(!indoor&&previewCard.current){weatherInfo.dataset.weatherPrefix=prefix+' · 地表';weatherInfo.textContent=weatherInfo.dataset.weatherPrefix+state+' · '+wind;}
+  if(!indoor){weatherInfo.dataset.weatherPrefix=prefix+' · 地表';weatherInfo.textContent=weatherInfo.dataset.weatherPrefix+state+' · '+wind;}
   else weatherInfo.textContent=prefix+' · '+(indoor?'室內 · ':'地表'+state+' · ')+wind;
   if(previewId==='wreck')weatherInfo.textContent+=' · 水域'+engine.waterIceLabel(env);
-  if(!previewCard.current)weatherInfo.title='依目的地地形與目前世界時間推算；抵達時將隨旅途時間更新。';
   summary.appendChild(weatherInfo);
  }
- bindLocationPreviewSwipe(summary);
  out.appendChild(summary);
- const resourceSection=document.createElement('section');resourceSection.className='location-resource-section';
- resourceSection.setAttribute('aria-label','環境與探索線索');
- const resourceTitle=document.createElement('div');resourceTitle.className='location-resource-heading';
- resourceTitle.textContent='可採集 · 可調查';resourceSection.appendChild(resourceTitle);
- const resourceGrid=document.createElement('div');resourceGrid.className='location-resource-grid';
- for(const [icon,label] of LOCATION_CUE_ICONS){
-  const tile=document.createElement('div');tile.className='location-resource-tile';
-  tile.title=label+'（環境圖示，實際取得依探索結果）';
-  tile.setAttribute('role','img');tile.setAttribute('aria-label',tile.title);
-  const symbol=document.createElement('span');symbol.className='location-resource-icon';
-  symbol.textContent=icon;symbol.setAttribute('aria-hidden','true');
-  tile.appendChild(symbol);resourceGrid.appendChild(tile);
+ const findings=new Set();
+ for(const event of s.travelLog||[]){
+  if(event.scene===s.scene&&event.type==='discovery')findings.add(event.message);
  }
- resourceSection.appendChild(resourceGrid);
- const resourceNote=document.createElement('p');resourceNote.className='location-resource-note';
- resourceNote.textContent=previewCard.current?'使用右下方的行動按鈕調查或移動。':'這只是預覽；下方行動仍在目前所在地執行。';
- resourceSection.appendChild(resourceNote);out.appendChild(resourceSection);
+ const latest=s.exploration?.last?.[s.scene]?.observation;
+ if(latest)findings.add(latest);
+ const core=window.DungeonObjectInvestigationV1;
+ for(const obj of window.DUNGEON_FOREST_V4_LAYOUT?.scenes?.[s.scene]||[]){
+  const record=core.read(s,s.scene,obj.id);
+  if(!record?.inspected&&!record?.collected)continue;
+  const def=core.get(obj.assetId);
+  if(def)findings.add(def.name+' · '+(record.removed?(record.collected?'已採集':'已移走'):def.harvest?'可採集':def.description));
+ }
+ if(s.scene==='wreck'&&s.flags.openingTracks)findings.add('車輪旁的泥地留有車轍。');
+ const resources=document.createElement('section');resources.className='location-resource-section';
+ const heading=document.createElement('div');heading.className='location-resource-heading';heading.textContent='本地調查紀錄';
+ resources.appendChild(heading);
+ for(const text of findings.size?findings:['尚無調查紀錄']){
+  const line=document.createElement('p');line.className='location-summary-description';line.textContent=text;resources.appendChild(line);
+ }
+ out.appendChild(resources);
  normalizeExploration();
  const queue=s.exploration.pending[s.scene]||[];
  if(queue.length){
@@ -7387,78 +7321,6 @@ function renderPlaceDrawer(){
    row.append(label,take);list.appendChild(row);
   }
   out.appendChild(list);
- }
- // All secondary, non-route interactions remain accessible without a separate "look around" dialog.
- // Primary story actions and quick exploration stay at the bottom; route actions
- // already live in their discovered destination cards and are not duplicated here.
- const actions=entries();
- const primary=actions.find(item=>item.primary)||actions[0];
- const quick=actions.find(item=>item.quick&&item!==primary);
- const nearby=actions.filter(a=>a!==primary&&a!==quick&&!a.routeTo&&!forestSceneActionOnCanvas(a));
- if(nearby.length){
-  const section=document.createElement('section');section.className='place-nearby-actions';
-  const heading=document.createElement('div');heading.className='place-nearby-header';
-  const name=document.createElement('strong');name.textContent='附近可互動';
-  const count=document.createElement('span');count.textContent=nearby.length+' 項';
-  heading.append(name,count);section.appendChild(heading);
-  const list=document.createElement('div');list.className='place-nearby-list';
-  for(const item of nearby){
-   const button=document.createElement('button');button.type='button';
-   button.className='place-nearby-button';button.textContent=item.title;
-   button.onclick=()=>{closePlaceDrawer();guardedAction(item.fn);};
-   list.appendChild(button);
-  }
-  section.appendChild(list);out.appendChild(section);
- }
- const cardsTitle=document.createElement('div');cardsTitle.className='place-drawer-group';
- cardsTitle.textContent='已發現地點 · '+cards.length;out.appendChild(cardsTitle);
- if(!cards.length){const p=document.createElement('p');p.className='place-drawer-empty';p.textContent='尚未找到新的地點。';out.appendChild(p);out.scrollTop=priorScroll;return;}
- for(const card of cards){
-  const special=Boolean(card.special),id=card.id;
-  if(!special&&!names[id])continue;
-  const name=special?'林邊舊馬車殘骸':
-   (id==='gate'&&!s.flags.rescued?'前方主路（終點未明）':names[id][0]);
-  const route=card.adjacent?travelRoute(s.scene,id):null;
-  const title=card.current?'目前所在地':card.reachable?'相鄰路線':
-   card.visited?'已到訪':'已發現';
-  const article=document.createElement('article');article.className='place-mini-card';
-  if(card.new)article.classList.add('new');
-  const opened=placeCardExpanded===id;
-  if(opened)article.classList.add('expanded');
-  const toggle=document.createElement('button');toggle.className='place-mini-card-toggle';toggle.type='button';
-  toggle.setAttribute('aria-expanded',String(opened));toggle.setAttribute('aria-label',(opened?'收合':'展開')+name+'地點卡');
-  const sign=document.createElement('span');sign.className='place-mini-icon';sign.textContent=special?'▧':PLACE_SIGNS[id]||'◇';sign.setAttribute('aria-hidden','true');
-  const heading=document.createElement('span');heading.className='place-mini-heading';
-  const strong=document.createElement('strong');strong.textContent=name;
-  const info=document.createElement('small');info.textContent=title+(route?' · 步行約'+route.walk+'分鐘':'');
-  heading.append(strong,info);toggle.append(sign,heading);
-  if(card.new){const badge=document.createElement('span');badge.className='place-mini-badge';badge.textContent='NEW';toggle.appendChild(badge);}
-  const arrow=document.createElement('span');arrow.className='place-mini-expand';arrow.textContent=opened?'▴':'▾';toggle.appendChild(arrow);
-  toggle.onclick=()=>expandPlaceCard(id);
-  article.appendChild(toggle);
-  if(opened){
-   const details=document.createElement('div');details.className='place-mini-details';
-   const p=document.createElement('p');
-   if(special){
-    p.textContent='林間小徑旁的舊殘骸，與開場事故馬車不同。'+(s.recovery.looted?'可回收物已搜集完畢。':'仍可以返回檢查一次性物品。');
-   }else if(card.current){
-    const latest=s.exploration?.last?.[id];
-    p.textContent='你目前站在這裡。可以持續探索周遭，也能前往相連地點。'+(latest?.observation?'\n最近的觀察：'+latest.observation:'')+(latest?.routeProgress?'\n附近還有尚未辨認的路口。':'');
-   }else{
-    const clue=route?ROUTE_CLUES[routeKey(s.scene,id)]:null;
-    p.textContent=(clue||names[id][1])+(card.reachable?' 這條道路已經記錄在地圖中。':' 這個地點已記錄，但不能從目前的位置直接抵達。');
-   }
-   details.appendChild(p);
-   if(card.reachable){
-    const go=document.createElement('button');go.type='button';go.className='place-mini-go';
-    go.textContent=special?'調查舊殘骸':
-     (id==='gate'&&s.scene==='trail'&&!s.flags.rescued?'沿主路前進（劇情）':
-      ((s.scene==='street'&&id==='outskirts')||(s.scene==='outskirts'&&id==='street'))?'選擇步行／馬車':'前往 · 約'+(route?.walk||0)+'分鐘');
-    go.onclick=()=>placeDrawerTravel(id);details.appendChild(go);
-   }
-   article.appendChild(details);
-  }
-  out.appendChild(article);
  }
  out.scrollTop=priorScroll;
 }
@@ -8567,7 +8429,10 @@ function forestV4Action(o){
  if(!objectCore.visible(s,'wreck',o))return;
  const info=objectCore.describe(o,finds,s,'wreck');
  if(!info)return;
- if(objectCore.inspect(s,'wreck',o))save();
+ if(info.type==='living'&&!o.previewOnly){
+  const key='observed-wreck-'+(o.rabbitVariant==='golden'?'goldenRabbit':o.assetId);
+  if(!s.seen.includes(key))note(key,'觀察到'+info.name+'。',true);
+ }else if(objectCore.inspect(s,'wreck',o))save();
  clearRouteAttention();$('toast').classList.remove('active');
  const summary=$('sceneStage').querySelector('.discovery-summary');if(summary)summary.hidden=true;
  const options=finds.map(item=>({label:'收集：'+item.material,fn:()=>collectExplorationMaterial('wreck',item.id)}));
