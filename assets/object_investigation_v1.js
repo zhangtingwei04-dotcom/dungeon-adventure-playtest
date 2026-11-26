@@ -214,5 +214,12 @@
   const visualState=r?.removed?'removed':pending?'resource-available':r?.collected>0?'resource-taken':r?.inspected?'inspected':'normal';
   return {name:golden?'金紋兔':def.name,type:def.type,description:golden?'一隻金黃色的長耳兔停在附近，側身仍有熟悉的月牙紋路。':def.description,visualPolicy:def.visualPolicy,visualState,collectible:pending>0&&!r?.removed};
  }
- root.DungeonObjectInvestigationV1=Object.freeze({get,describe,read,visible,inspect,collect,applyWorldEvent,ids:()=>Object.keys(entries)});
+ function known(actor,scene,objects){
+  return objects.flatMap(obj=>{
+   const r=read(actor,scene,obj.id),def=get(obj.assetId);
+   if(!def||(!r?.inspected&&!r?.collected))return [];
+   return [def.name+' · '+(r.removed?(r.collected?'已採集':'已移走'):def.harvest?'可採集':def.description)];
+  });
+ }
+ root.DungeonObjectInvestigationV1=Object.freeze({get,describe,read,visible,inspect,collect,applyWorldEvent,known,ids:()=>Object.keys(entries)});
 })(window);
