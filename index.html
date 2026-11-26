@@ -4482,6 +4482,7 @@ html.stage-locked #app #battleSurface .battle-actions button{font-size:17px;min-
 <script src="./assets/adaptive_quality_v1.js?v=1"></script>
 <script src="./assets/fault_isolation_v1.js?v=1"></script>
 <script src="./assets/object_investigation_v1.js?v=3-object-harvest"></script>
+<script src="./assets/scene_dialogue_v1.js"></script>
 <script src="./assets/opening_progression_v1.js?v=2-departure"></script>
 <script src="./assets/discovery_cue_v1.js?v=1"></script>
 <script>window.DungeonRuntimeFaultsV1=window.DungeonFaultIsolationV1.create();</script>
@@ -7816,64 +7817,22 @@ function refreshSceneFraming(){
  $('view').style.objectFit=illustrated?'fill':'cover';
  $('view').style.transform='none';$('hotspots').style.transform='none';
 }
-// Lightweight opening narration, independent of existing choice-dialog modal.
-const sceneDialogueState={lines:[],index:0,open:false,purpose:null,choices:[]};
-function renderSceneDialogue(){
- const box=$('sceneDialogue');
- if(!sceneDialogueState.open||!sceneDialogueState.lines.length){
-  box.classList.add('hidden');$('app').classList.remove('scene-dialogue-active');syncDialogueInputLock();return;
- }
- const line=sceneDialogueState.lines[sceneDialogueState.index];
- const portraitCode=line.portrait||(line.speaker==='你'?'protagonist':null);
- const portraitUrl=line.image||(portraitCode==='protagonist'?window.DUNGEON_PROTAGONIST_PORTRAIT:null);
- const hasPortrait=Boolean(portraitUrl);
- const portrait=$('sceneDialoguePortrait');
- portrait.hidden=!hasPortrait;
- box.classList.toggle('has-speaker-portrait',hasPortrait);
- if(hasPortrait){
-  const pic=$('sceneDialoguePortraitImage');
-  if(pic.src!==portraitUrl)pic.src=portraitUrl;
- }
- $('sceneDialogueName').textContent=line.speaker;
- $('sceneDialogueText').textContent=line.text;$('sceneDialogueText').scrollTop=0;
- const last=sceneDialogueState.index===sceneDialogueState.lines.length-1;
- $('sceneDialogueNext').textContent=last?(sceneDialogueState.purpose==='opening-departure'?'沿車轍離開':sceneDialogueState.purpose==='route-preview'?'查看道路':'結束對話'):'點擊繼續';
- $('sceneDialogueNext').setAttribute('aria-label',last?(sceneDialogueState.purpose==='opening-departure'?'沿車轍前往林間小徑':sceneDialogueState.purpose==='route-preview'?'查看新道路':'結束場景對話'):'下一句');
- const options=$('sceneDialogueChoices');
- options.replaceChildren();
- const choices=last?sceneDialogueState.choices:[];
- options.hidden=!choices.length;
- $('sceneDialogueNext').hidden=!!choices.length;
- for(const choice of choices){
-  const button=document.createElement('button');button.type='button';button.textContent=choice.label;
-  button.onclick=()=>{closeSceneDialogue();choice.fn?.();};
-  options.appendChild(button);
- }
- box.classList.remove('hidden');
- $('app').classList.toggle('scene-dialogue-active',sceneDialogueState.purpose!=='dock-feedback');
- syncDialogueInputLock();
-}
-function openSceneDialogue(lines,purpose=null,choices=[]){
- if(!Array.isArray(lines)||!lines.length)return;
- sceneDialogueState.lines=lines.filter(line=>line&&typeof line.text==='string'&&line.text.trim()).map(line=>({
-  speaker:String(line.speaker||'旁白').slice(0,24),text:line.text,
-  portrait:line.portrait==='protagonist'?'protagonist':null,image:line.image||null
- }));
- if(!sceneDialogueState.lines.length)return;
- sceneDialogueState.index=0;sceneDialogueState.open=true;sceneDialogueState.purpose=purpose;sceneDialogueState.choices=choices;renderSceneDialogue();
-}
+const {sceneDialogueState, openSceneDialogue, closeSceneDialogue, nextSceneDialogue} =
+ window.DungeonSceneDialogueV1.create({
+  $, syncDialogueInputLock,
+  endLabels:{
+   'opening-departure':['沿車轍離開','沿車轍前往林間小徑'],
+   'route-preview':['查看道路','查看新道路']
+  },
+  onComplete(purpose){
+   if(purpose==='opening-departure'&&s.scene==='wreck')change('trail');
+   else if(purpose==='route-preview'&&attentionRoute){
+    const route=attentionRoute;attentionRoute=null;focusDiscoveredRoute(route.from,route.to);
+   }
+  }
+ });
 function showDockNarration(text){
  openSceneDialogue([{speaker:'旁白',text}],'dock-feedback');
-}
-function closeSceneDialogue(){
- sceneDialogueState.open=false;sceneDialogueState.lines=[];sceneDialogueState.index=0;sceneDialogueState.purpose=null;sceneDialogueState.choices=[];
- renderSceneDialogue();
-}
-function nextSceneDialogue(){
- if(!sceneDialogueState.open)return;
- if(sceneDialogueState.index<sceneDialogueState.lines.length-1){
-  sceneDialogueState.index++;renderSceneDialogue();
- }else if(!sceneDialogueState.choices.length){const purpose=sceneDialogueState.purpose,route=attentionRoute;closeSceneDialogue();if(purpose==='opening-departure'&&s.scene==='wreck')change('trail');else if(purpose==='route-preview'&&route){attentionRoute=null;focusDiscoveredRoute(route.from,route.to);}}
 }
 function openWreckIntroduction(){
  if(s.scene!=='wreck')return;
