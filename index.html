@@ -3984,6 +3984,20 @@ html.stage-locked #app #placeDrawer .combat-enemy-list{max-height:145px}
 .battle-test-monster img{width:100%;height:clamp(45px,17dvh,130px);object-fit:contain}
 .battle-test-monster strong{font-size:10px;text-align:center}
 .battle-test-monster[data-selected="true"] strong{outline:1px solid #dcc595;color:#ffdf9c}
+#sceneStage #battleSurface.battle-embedded-trial{display:grid;grid-template-rows:minmax(0,1fr) auto;align-items:stretch;justify-content:stretch;padding:2% 3%;gap:3px;background:linear-gradient(180deg,#10221922,transparent 42%,#102219b8)}
+#battleSurface.battle-embedded-trial .battle-test-content{display:flex;flex-direction:column;justify-content:center;padding:4px;overflow:auto}
+#battleSurface.battle-embedded-trial .battle-test-layout{display:block}
+#battleSurface.battle-embedded-trial .battle-test-scene{background:none;min-height:0}
+#battleSurface.battle-embedded-trial .battle-test-monsters{align-items:end;justify-content:center}
+#battleSurface.battle-embedded-trial .battle-test-monster img{height:clamp(60px,18dvh,150px);filter:drop-shadow(0 4px 2px #07170dcc)}
+#battleSurface.battle-embedded-trial .battle-test-main>p{margin:3px 0;text-align:center;font-size:clamp(11px,1.5vw,15px);text-shadow:0 1px 3px #000}
+#battleSurface.battle-embedded-trial .battle-test-footer{border:1px solid #a7985d88;border-radius:4px;padding:4px;gap:4px;justify-content:space-between}
+#battleSurface.battle-embedded-trial button,#battleSurface.battle-embedded-trial select,#battleSurface.battle-embedded-trial summary{color:#eee4ca;background:#294439;border:1px solid #a7985d;border-radius:4px;padding:4px 6px;font:inherit;font-size:clamp(11px,1.4vw,15px);min-height:28px}
+#battleSurface.battle-embedded-trial label{display:flex;align-items:center;gap:5px;padding:2px;background:#142b22bc;max-width:fit-content}
+#battleSurface.battle-embedded-trial .battle-test-content>p{background:#142b22dc;color:#eee4ca;padding:3px 5px;margin:3px 0}
+#app[data-opening-combat-trial="true"] #sceneStage .opening-objective,#app[data-opening-combat-trial="true"] #sceneStage .world-object,#app[data-opening-combat-trial="true"] #sceneStage .forest-v4-object[data-motion="animal"],#app[data-opening-combat-trial="true"] #sceneStage .world-vegetation{visibility:hidden}
+#placeDrawerList .combat-target-button{background:#294439;color:#eee4ca;border:1px solid #a7985d;border-radius:4px}
+
 
 .combat-status-card[data-priority="0"]{border-color:#bd7969;color:#ffbca9}
 .combat-status-card[data-priority="0"] .combat-status-fill{background:#c65d4c}
@@ -4607,7 +4621,7 @@ window.DUNGEON_FOREST_V4_LAYOUT=window.DUNGEON_WRECK_CURRENT_LAYOUT;
 <!-- Official universal arm transparency follows the developer studio policy. -->
 <script src="./assets/arm_visibility_policy_v1.js?v=live-20261124"></script>
 <script src="./assets/arm_visibility_live_v1.js?v=live-20261124"></script>
-<script src="./assets/battle_playtest_v1.js?v=multi-enemy-v1"></script>
+<script src="./assets/battle_playtest_v1.js?v=opening-combat-trial-v1"></script>
 <script>
 (()=>{'use strict';
 // Fixed design canvas: use the approved screenshot's exact 1536×707 ratio,
@@ -7185,6 +7199,7 @@ function renderSceneActionDock(host){
   if(sceneActionView)openSceneDialogue([{speaker:'旁白',text:openingExitOnly()?'天色漸暗，現在得先確認離開的道路。':'你環顧四周，看看有沒有值得留意的地方。'}],'investigation-entry');
  },'investigation');
  for(const item of actions.filter(a=>a.routeTo))add(item.title,item.fn,'route');
+ if(s.scene==='wreck'&&!s.flags.inBattle&&new URLSearchParams(location.search).get('combat-trial')==='1')add('測試多怪物戰鬥',openOpeningCombatTrial,'investigation');
 
 }
 // All visible scene-object cards reuse the exact displayed art and route to the same object interaction.
@@ -7261,6 +7276,7 @@ function renderSceneActionView(out){
  appendInvestigationCards(list,cards,append);
 }
 function renderPlaceDrawer(){
+ if($('battleSurface').dataset.embeddedTrial==='true')return;
  if(sceneActionView&&(sceneActionView.actor!==s||sceneActionView.scene!==s.scene||s.flags.inBattle))sceneActionView=null;
  updatePlaceDrawerBadge();
  const out=$('placeDrawerList');
@@ -7796,6 +7812,7 @@ function guardedAction(fn){if(activeDialogueSurface())return;const now=Date.now(
 // Capture phase protects every background control, including dynamically generated buttons.
 function dialogueInfoAllowed(target){
  if(!target?.closest)return false;
+ if($('battleSurface').dataset.embeddedTrial==='true')return !!target.closest('#placeDrawerList .combat-status-panel');
  if(target.closest('#regionMapBtn,#mapBtn,#hudCharacterBtn,#playerStatusButton,#sideInfoTabs,.location-preview-arrow,.equip-slot,.equip-bag-button,.bag-filter,.protagonist-portrait'))return true;
  if(target.closest('#placeDrawerList')){
   const control=target.closest('button,input,select,textarea,a,[role="button"]');
@@ -8193,6 +8210,7 @@ function battleStart(options={}){
 }
 function renderBattleSurface(){
  const host=$('battleSurface');
+ if(host.dataset.embeddedTrial==='true')return;
  if(!s.flags.inBattle||!$('startVeil').classList.contains('hidden')){host.classList.add('hidden');syncDialogueInputLock();return;}
  if(battleAnimating)return;
  const state=normalizeBattle();
@@ -8217,6 +8235,28 @@ const openBattlePlaytest=window.DungeonBattlePlaytestV1.mount({
  resolve:resolveBattleTurn,intents:BATTLE_INTENTS,distances:BATTLE_DISTANCES,sprite:MONSTER_CATALOG_V1.moss_spine_beast.sprite
 });
 $('battlePlaytestBtn').onclick=()=>{$('menuVeil').classList.add('hidden');openBattlePlaytest();};
+const openingCombatTrial=window.DungeonBattlePlaytestV1.mount({
+ resolve:resolveBattleTurn,intents:BATTLE_INTENTS,distances:BATTLE_DISTANCES,sprite:MONSTER_CATALOG_V1.moss_spine_beast.sprite,
+ embedded:{
+  host:$('battleSurface'),side:$('placeDrawerList'),
+  onOpen(){
+   const host=$('battleSurface');sceneActionView=null;
+   host.dataset.embeddedTrial='true';host.classList.remove('hidden');host.classList.add('battle-embedded-trial');
+   $('app').dataset.openingCombatTrial='true';
+   $('placeDrawer').dataset.combat='true';$('placeDrawerPanel').classList.remove('is-location-tab','is-character-tab','is-equipment-tab');
+   $('sidePanelTitle').textContent='戰況資訊 · 測試';$('placeDrawerPanel').setAttribute('aria-label','測試戰況資訊');$('placeDrawerList').scrollTop=0;
+   syncDialogueInputLock();
+  },
+  onRender(status){$('placeDrawerSummary').textContent=status;},
+  onClose(){
+   const host=$('battleSurface');delete host.dataset.embeddedTrial;delete $('app').dataset.openingCombatTrial;
+   host.classList.remove('battle-embedded-trial');host.classList.add('hidden');
+   syncDialogueInputLock();renderPlaceDrawer();renderBattleSurface();
+  }
+ }
+});
+function openOpeningCombatTrial(){if(s.scene==='wreck'&&!s.flags.inBattle&&!activeDialogueSurface())openingCombatTrial();}
+
 
 function battleTurn(kind){
  if(!s.flags.inBattle||battleAnimating)return;
