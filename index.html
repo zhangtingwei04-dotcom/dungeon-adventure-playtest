@@ -2992,7 +2992,13 @@ html.stage-locked #app #placeActionPanel #placePrimaryActions .side-main-action{
  justify-content:flex-start!important;text-align:left;min-height:40px!important;padding:4px 10px!important;font-size:13px!important;line-height:1.12!important;
 }
 #hotspots[inert],#hotspots[inert] *{pointer-events:none!important}
-#dialogVeil.scene-action-menu #dialogChoices{max-height:40dvh;overflow-y:auto;overscroll-behavior:contain}
+#placeDrawerList .scene-action-list{display:grid;gap:5px}
+#placeDrawerList .scene-action-list p{margin:0 0 5px;white-space:pre-line}
+#placeDrawerList .scene-action-list button{
+ min-height:34px;padding:5px 9px;text-align:left;color:#eee3c8;
+ background:#214c40;border:1px solid #a98d5b;border-radius:5px;font:inherit;
+}
+#placeDrawerList .scene-action-list button:focus-visible{outline:2px solid #efd18f}
 html.stage-locked #app #placeDrawerPanel.is-location-tab .side-current-summary.location-reference-card{
  display:block!important;margin:0 0 4px!important;min-width:0!important;
 }
@@ -5273,6 +5279,7 @@ function exploreArea(){
 
 /* Persistent discovered destinations; drawer open/closed and expanded card are only UI. */
 let placeDrawerOpen=false,placeCardExpanded=null,activeSideTab='locations';
+let sceneActionView=null,invokingSceneAction=false;
 const PLACE_SIGNS=Object.freeze({wreck:'◇',trail:'♧',clearing:'✿',ruin:'▣',gate:'▤',inn:'⌂',lobby:'⌂',street:'▥',guild:'✦',outskirts:'♧',home:'⌂'});
 function normalizePlaceCards(){
  if(!Array.isArray(s.placeCardsViewed))s.placeCardsViewed=[];
@@ -5334,7 +5341,7 @@ function setPlaceDrawer(open,expandId=null){
 function closePlaceDrawer(){}
 function setActiveSideTab(tab){
  if(!['locations','character','equipment','inventory'].includes(tab))return;
- if(!activeDialogueSurface())clearRouteAttention();activeSideTab=tab;renderPlaceDrawer();$('placeDrawerList').scrollTop=0;
+ if(!activeDialogueSurface())clearRouteAttention();sceneActionView=null;activeSideTab=tab;renderPlaceDrawer();$('placeDrawerList').scrollTop=0;
 }
 function sideInfoText(out,text,cls='side-info-line'){
  const el=document.createElement('p');el.className=cls;el.textContent=text;out.appendChild(el);
@@ -7097,27 +7104,69 @@ function renderSceneActionDock(host,preview){
  }
  if(primary)add(primary.title,primary.fn,'primary');
  add('調查／其他行動',()=>{
-  const choices=actions.filter(item=>item!==primary).map(item=>({label:item.title,fn:()=>guardedAction(item.fn)}));
-  const used=new Set(choices.map(choice=>choice.label));
-  const targets=$('hotspots').querySelectorAll('button:not(.env-leaving):not([disabled])');
-  for(const node of targets){
-   if(node.matches('.scene-route-target')||typeof node.onclick!=='function')continue;
-   const label=node.getAttribute('aria-label')||node.title;
-   if(!label||used.has(label))continue;
-   used.add(label);choices.push({label,fn:()=>node.onclick()});
-  }
-  dialog('目前地點的行動',choices.length?'選擇要調查的物件或要做的事。':'目前沒有其他可用行動。',choices,'場景操作');
+  sceneActionView=sceneActionView?null:{actor:s,scene:s.scene,detail:null};
+  renderPlaceDrawer();
  },'explore');
  if(activeSideTab==='locations'&&preview.reachable&&!preview.current){
   add(preview.special?'前往調查':'前往 '+names[preview.id][0],()=>placeDrawerTravel(preview.id),'location-preview-travel');
  }
 }
+function runSceneAction(fn){
+ invokingSceneAction=true;
+ sceneActionView.detail=null;
+ try{fn?.();}finally{invokingSceneAction=false;}
+ renderPlaceDrawer();
+}
+function showSceneActionDetail(title,text,choices){
+ if(!invokingSceneAction||sceneActionView?.actor!==s||sceneActionView.scene!==s.scene)return false;
+ sceneActionView.detail={title,text,choices};
+ return true;
+}
+function renderSceneActionView(out){
+ const view=sceneActionView,detail=view.detail;
+ const title=detail?.title||'調查／其他行動';
+ $('sidePanelTitle').textContent=title;
+ $('placeDrawerSummary').textContent='';
+ $('placeDrawerSummary').removeAttribute('aria-label');
+ $('placeDrawerPanel').setAttribute('aria-label',title);
+ const list=document.createElement('div');list.className='scene-action-list';
+ out.appendChild(list);
+ function append(label,fn){
+  const button=document.createElement('button');button.type='button';
+  button.textContent=label;button.onclick=fn;list.appendChild(button);
+ }
+ append(detail?'返回調查清單':'返回資訊',()=>{
+  if(detail)view.detail=null;else sceneActionView=null;
+  renderPlaceDrawer();
+ });
+ if(detail){
+  const text=document.createElement('p');text.textContent=detail.text;list.appendChild(text);
+  for(const choice of detail.choices)append(choice.label,()=>guardedAction(()=>runSceneAction(choice.fn)));
+  return;
+ }
+ const actions=entries();
+ const primary=actions.find(item=>item.primary)||actions[0];
+ const used=new Set();
+ for(const item of actions){
+  if(item===primary)continue;
+  used.add(item.title);
+  append(item.title,()=>guardedAction(()=>runSceneAction(item.fn)));
+ }
+ for(const node of $('hotspots').querySelectorAll('button:not(.env-leaving):not([disabled])')){
+  if(node.matches('.scene-route-target')||typeof node.onclick!=='function')continue;
+  const label=node.getAttribute('aria-label')||node.title;
+  if(!label||used.has(label))continue;
+  used.add(label);append(label,()=>runSceneAction(()=>node.onclick()));
+ }
+}
 function renderPlaceDrawer(){
+ if(sceneActionView&&(sceneActionView.actor!==s||sceneActionView.scene!==s.scene||s.flags.inBattle))sceneActionView=null;
  updatePlaceDrawerBadge();
  const cards=visiblePlaceCards(),out=$('placeDrawerList');
  // Keep location-list scroll position when a new event, item, or route causes a render.
  // Reuse the existing image element so embedded art is not decoded on every update.
- const sameContext=out.dataset.renderedTab===activeSideTab&&out.dataset.renderedScene===s.scene;
+ const shownTab=sceneActionView?(sceneActionView.detail?'investigation-detail':'investigation'):activeSideTab;
+ const sameContext=out.dataset.renderedTab===shownTab&&out.dataset.renderedScene===s.scene;
  const priorScroll=sameContext?out.scrollTop:0;
  if(locationPreviewScene!==s.scene){locationPreviewScene=s.scene;locationPreviewId=s.scene;}
  if(!cards.some(c=>c.id===locationPreviewId))locationPreviewId=s.scene;
@@ -7125,7 +7174,7 @@ function renderPlaceDrawer(){
  const previewCard=cards[previewIndex]||{id:s.scene,current:true};
  const previewId=previewCard.id;
  const retainedPreview=out.querySelector('.side-scene-preview');
- out.dataset.renderedTab=activeSideTab;
+ out.dataset.renderedTab=shownTab;
  out.dataset.renderedScene=s.scene;
  out.replaceChildren();
  const actionHost=$('placePrimaryActions');actionHost.replaceChildren();
@@ -7139,11 +7188,12 @@ function renderPlaceDrawer(){
  $('placeDrawerPanel').classList.toggle('is-character-tab',activeSideTab==='character');
  $('placeDrawerPanel').classList.toggle('is-equipment-tab',activeSideTab==='equipment');
  for(const button of $('sideInfoTabs').querySelectorAll('[data-info-tab]')){
-  const selected=button.dataset.infoTab===activeSideTab;
+  const selected=!sceneActionView&&button.dataset.infoTab===activeSideTab;
   button.classList.toggle('selected',selected);
   button.setAttribute('aria-selected',String(selected));
-  button.tabIndex=selected?0:-1;
+  button.tabIndex=selected||sceneActionView&&button.dataset.infoTab===activeSideTab?0:-1;
  }
+ if(sceneActionView){renderSceneActionView(out);out.scrollTop=priorScroll;return;}
  if(activeSideTab!=='locations'){renderSideTab(activeSideTab,out);out.scrollTop=priorScroll;return;}
  const special=Boolean(previewCard.special);
  const previewTitle=special?'林邊舊馬車殘骸':
@@ -7793,7 +7843,7 @@ function change(scene,mode='walk'){
  }
  save();render();beep(350);
 }
-function dialog(title,text,choices,kicker='途中事件',locked=false,speaker=null,emotion='neutral'){closeSceneDialogue();closePlaceDrawer();hideSceneInspection();renderDialogueActor(speaker,emotion);if(/旅店的早晨|陌生人的善意|熟悉的四張面孔|留守的兩名夥伴|冒險者公會櫃台|普通的邀請|普通的生活|附近的道路|街上的日常/.test(title))addTravel('talk','交談：'+title,'也許能更了解這裡的人。');modal={title,text,choices,locked};$('dialogVeil').classList.toggle('scene-action-menu',kicker==='場景操作');$('dialogKicker').textContent=kicker;$('dialogTitle').textContent=title;$('dialogText').textContent=text;$('dialogChoices').replaceChildren();for(const c of choices){const b=document.createElement('button');b.className='choice';b.textContent=c.label;b.addEventListener('click',()=>{if(!modal)return;modal=null;$('dialogVeil').classList.add('hidden');syncDialogueInputLock();c.fn?.();});$('dialogChoices').appendChild(b);} $('dialogClose').classList.toggle('hidden',locked);$('dialogVeil').classList.remove('hidden');syncDialogueInputLock();beep(540);}
+function dialog(title,text,choices,kicker='途中事件',locked=false,speaker=null,emotion='neutral'){if(!locked&&!speaker&&['物件調查','現場觀察','場景調查','場景採集','生態觀察','森林觀察','未知發現','特殊探索'].includes(kicker)&&showSceneActionDetail(title,text,choices))return;closeSceneDialogue();closePlaceDrawer();hideSceneInspection();renderDialogueActor(speaker,emotion);if(/旅店的早晨|陌生人的善意|熟悉的四張面孔|留守的兩名夥伴|冒險者公會櫃台|普通的邀請|普通的生活|附近的道路|街上的日常/.test(title))addTravel('talk','交談：'+title,'也許能更了解這裡的人。');modal={title,text,choices,locked};$('dialogKicker').textContent=kicker;$('dialogTitle').textContent=title;$('dialogText').textContent=text;$('dialogChoices').replaceChildren();for(const c of choices){const b=document.createElement('button');b.className='choice';b.textContent=c.label;b.addEventListener('click',()=>{if(!modal)return;modal=null;$('dialogVeil').classList.add('hidden');syncDialogueInputLock();c.fn?.();});$('dialogChoices').appendChild(b);} $('dialogClose').classList.toggle('hidden',locked);$('dialogVeil').classList.remove('hidden');syncDialogueInputLock();beep(540);}
 function closeDialog(){if(modal?.locked)return;modal=null;$('dialogVeil').classList.add('hidden');syncDialogueInputLock();renderDialogueActor(null);}
 function action(title,fn,primary=false,quick=false){return{title,fn,primary,quick};}
 function hideSceneInspection(){$('sceneInspection').classList.add('hidden');$('sceneInspection').classList.remove('route-discovery','exploration-results');syncDialogueInputLock();}
@@ -7869,6 +7919,7 @@ function beginForestEncounter(){
 }
 
 function openSceneInspection(title,description,actions){
+ if(showSceneActionDetail(title,description,actions))return;
  closePlaceDrawer();
  const box=$('sceneInspection');
  $('sceneInspectionTitle').textContent=title;
