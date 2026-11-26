@@ -4505,6 +4505,7 @@ window.DUNGEON_FOREST_V4_LAYOUT=window.DUNGEON_WRECK_CURRENT_LAYOUT;
 <script src="./assets/engine_events_save_v1.js?v=1.5-journal-time"></script>
 <script src="./assets/character_environment_v1.js?v=1.1"></script>
 <script src="./assets/weather_system_v1.js?v=25-local-environment"></script>
+<script src="./assets/lantern_world_environment_v1.js"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/scene_objects_v1.js?v=20261125-winter"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
@@ -4670,18 +4671,17 @@ function atmosphereSubtitle(scene,period){
 }
 let previewPeriod=null,previewWeather=null,previewWind=null,previewWindDir=null;
 let currentWeather=null;
+const lanternWorldEnvironment=window.LanternWorldEnvironmentV1.create(window.DungeonWeatherV1);
+function worldPreviewOptions(){return {kind:previewWeather,wind:previewWind,windDir:previewWindDir};}
 // Single shared reader: real persisted exposure is never driven by preview weather.
 function characterEnvironmentView(){
  const core=window.DungeonCharacterEnvironmentV1,weather=window.DungeonWeatherV1;
  if(!core||!weather)return null;
- return core.snapshot(s,weather.at(s.seed,s.worldMinutes,s.scene),INDOOR_SCENES.has(s.scene));
+ return lanternWorldEnvironment.character(s,core,INDOOR_SCENES.has(s.scene));
 }
 function syncWeather(){
  const engine=window.DungeonWeatherV1;if(!engine)return;
- const actual=engine.at(s.seed,s.worldMinutes,s.scene);
- currentWeather=previewWeather?{...actual,kind:previewWeather}:actual;
- if(previewWeather){const k=engine.kinds[previewWeather],climate=engine.climate(s.seed,s.worldMinutes,previewWeather),p=engine.profileFor(s.scene);Object.assign(currentWeather,k,climate,{kind:previewWeather,temperature:(previewWeather==='blizzard'?-6:previewWeather==='snow'?-2:Math.max(6,climate.temperature))+p.temp,wind:k.wind*p.wind,rain:k.rain*p.rain,snow:(k.snow||0)*p.snow,windDir:-1});}
- if(previewWind!==null)currentWeather.wind=previewWind/5;if(previewWindDir!==null)currentWeather.windDir=previewWindDir;
+ currentWeather=lanternWorldEnvironment.presentation(s,worldPreviewOptions());
  const indoor=INDOOR_SCENES.has(s.scene);const app=$('app');app.dataset.weather=currentWeather.kind;
  engine.exposure(s,indoor);app.style.setProperty('--weather-wind',String(currentWeather.wind));const windMotion=engine.windVisual(currentWeather.wind,currentWeather.windDir??1);app.style.setProperty('--weather-wind-angle',windMotion.angle.toFixed(2)+'deg');app.style.setProperty('--weather-wind-duration',windMotion.duration.toFixed(2)+'s');app.style.setProperty('--weather-wind-lean',windMotion.lean.toFixed(3));
  const label=indoor?'室內 · 外面'+currentWeather.name:currentWeather.name;
@@ -8423,10 +8423,7 @@ function forestV4Action(o){
  inspectInScene(text,options);
 }
 function forestEnvironmentActive(){return DEV_PREVIEW_MODE&&window.DUNGEON_FOREST_V4_LAYOUT?.revision==='accident-d-preview'&&new URLSearchParams(location.search).get('env')!=='off';}
-function plantSpawnWeather(){
- const engine=window.DungeonWeatherV1;if(!engine)return null;
- return previewWeather?{kind:previewWeather,snowCover:engine.environment().snowCover,wind:currentWeather?.wind||0}:engine.at(s.seed,s.worldMinutes,s.scene);
-}
+function plantSpawnWeather(){return lanternWorldEnvironment.ecology(s,worldPreviewOptions());}
 function renderForestV4(el){
  const cfg=window.DUNGEON_FOREST_V4_LAYOUT?.scenes?.wreck,assets=window.DUNGEON_FOREST_V4_ASSETS;
  if(!cfg||!assets)return;
@@ -8443,7 +8440,7 @@ function renderForestV4(el){
  if(new URLSearchParams(location.search).get('wildlife')==='bird'&&DEV_PREVIEW_MODE){const bird=cfg.find(o=>o.assetId==='forest4_bird');if(bird)live=[...live.filter(o=>o.assetId!=='forest4_bird'),{...bird,id:'preview-bird-flight',visible:true}];}
  if(new URLSearchParams(location.search).get('wildlife')==='beetle'&&DEV_PREVIEW_MODE){const beetle=cfg.find(o=>o.assetId==='forest4_beetle');if(beetle)live=[...live.filter(o=>o.assetId!=='forest4_beetle'),{...beetle,id:'preview-beetle-flight',x:60,y:70,width:3.5,z:18,visible:true}];}
  // Apply after all spawn selection, including developer wildlife previews.
- if(weather&&spawnWeather){const env={...spawnWeather,wind:previewWind!==null?previewWind/5:(currentWeather?.wind??weather.environment().behaviorWind??0),snowCover:Math.max(spawnWeather.snowCover||0,weather.environment().snowCover||0)};
+ if(weather&&spawnWeather){const env=spawnWeather;
   live=live.filter(o=>{const k=o.assetId.replace('forest4_','');return !['rabbit','bird','beetle','butterfly'].includes(k)||weather.activity(k,env);});
  }
  live=live.filter(o=>window.DungeonObjectInvestigationV1?.visible(s,'wreck',o)!==false);
