@@ -32,6 +32,8 @@
       "assets/forest_v4_integration.js",
       "assets/forest_v4_spawns.js",
       "assets/forest_v5_neutral_background.js",
+      "assets/lantern_action_core_v1.js",
+      "assets/lantern_event_flow_v1.js",
       "assets/male_approved_face_v7.js",
       "assets/male_approved_hair_v7.js",
       "assets/male_approved_v3_adapter.js",
