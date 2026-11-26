@@ -7392,6 +7392,9 @@ function renderPlaceDrawer(){
  // All secondary, non-route interactions remain accessible without a separate "look around" dialog.
  // Primary story actions and quick exploration stay at the bottom; route actions
  // already live in their discovered destination cards and are not duplicated here.
+ const actions=entries();
+ const primary=actions.find(item=>item.primary)||actions[0];
+ const quick=actions.find(item=>item.quick&&item!==primary);
  const nearby=actions.filter(a=>a!==primary&&a!==quick&&!a.routeTo&&!forestSceneActionOnCanvas(a));
  if(nearby.length){
   const section=document.createElement('section');section.className='place-nearby-actions';
