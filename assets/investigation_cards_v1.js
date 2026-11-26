@@ -85,9 +85,11 @@ function appendInvestigationCards(parent,items,append){
   const thumb=document.createElement('span');thumb.className='scene-object-thumbnail';
   let art;
   if(item.record){const src=window.DUNGEON_FOREST_V4_ASSETS?.[item.record.assetId]?.src;if(src){art=document.createElement('img');art.src=src;art.alt='';art.draggable=false;}button.classList.add('scene-object-departed');}
+  else if(item.assetId){const src=window.DUNGEON_FOREST_V4_ASSETS?.[item.assetId]?.src;if(src){art=document.createElement('img');art.src=src;art.alt='';art.draggable=false;art.onerror=()=>art.replaceWith(investigationSceneCrop(item.node));}}
   else if(item.entry)art=investigationSceneCrop(item.node);
   else art=sceneObjectThumbnail(item.node);
   if(!art)art=investigationSceneCrop(item.node);
+  if(item.status==='已拿走')button.classList.add('scene-object-taken');
   thumb.appendChild(art);button.appendChild(thumb);
   const title=document.createElement('span');title.className='scene-object-name';title.textContent=name;
   const status=document.createElement('span');status.className='scene-object-status';status.textContent=item.status;
@@ -98,5 +100,5 @@ function appendInvestigationCards(parent,items,append){
 
  return Object.freeze({investigationSceneCrop,sceneObjectThumbnail,investigationCardData,rememberDepartedAnimal,departedAnimalCards,appendInvestigationCards});
  }
- window.DungeonInvestigationCardsV1=Object.freeze({version:'1.0.0',create});
+ window.DungeonInvestigationCardsV1=Object.freeze({version:'1.1.0',create});
 })(window,document);
