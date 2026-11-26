@@ -5004,7 +5004,7 @@ function showEcologyObservation(site,spent=false){
  '陽光足以看清葉脈、土壤與石縫。';
  const actions=[];
  if(site==='clearing'&&!s.forestEcology.leafCollected){
-  actions.push({label:'採集少量潮蔭嫩葉 · 3分鐘',fn:collectShadeLeaves});
+  actions.push({label:'採集少量潮蔭嫩葉 · 3分鐘',fn:()=>sceneCollectionResult(collectShadeLeaves,null,'leaf')});
  }
  if(site==='ruin'){
   actions.push({label:'記錄可能的長耳生物活動',fn:()=>{
@@ -7545,7 +7545,7 @@ normalizeGameTime();normalizeRecovery();normalizeForestRare();normalizeBeetleCar
  engine.onTime('engine.events',(actor,event)=>window.DungeonEventsV1.emit('time.advanced',actor,event));
  window.DungeonEventsV1.on('travel.recorded','ui.travel-feed',(actor)=>{if(actor===s){save();renderFeed();}});
  window.DungeonEventsV1.on('travel.updated','ui.travel-feed',(actor)=>{if(actor===s){save();renderFeed();}});
- window.DungeonEventsV1.on('scene.collection.succeeded','ui.scene-presence',(actor,event)=>{if(actor===s)window.DungeonScenePresenceV1?.collect(actor,event);});
+ // Collection animation now runs before the successful event, not after the reward.
 })();
 if(typeof s.feedCollapsed!=='boolean')s.feedCollapsed=false;if(!['compact','expanded'].includes(s.travelHudMode))s.travelHudMode='compact';
 const moveThought={wreck:'一切似乎從這片殘骸開始。',trail:'沿著道路走，也許能遇見其他人。',clearing:'這裡比想像中安靜。',ruin:'這座古老建築還藏著多少故事？',gate:'終於看到有人生活的地方了。',inn:'至少現在能稍微休息。',lobby:'普通的早晨，也讓我感到安心。',street:'這個世界的人們也在過自己的日子。',guild:'或許能在這裡找到一些方向。',outskirts:'前方還有很多我不知道的地方。',home:'這裡承載著六個人一起生活的痕跡。'};
@@ -7722,7 +7722,7 @@ function openWreckIntroduction(){
 }
 // Shared interaction policy; applies equally to narration, choices, inspections and encounters.
 function activeDialogueSurface(){
- for(const id of ['dialogVeil','sceneDialogue','sceneInspection','encounterCue','battleSurface']){
+ for(const id of ['collectionPerformance','dialogVeil','sceneDialogue','sceneInspection','encounterCue','battleSurface']){
   if(id==='sceneDialogue'&&['dock-feedback','investigation-entry'].includes(sceneDialogueState.purpose))continue;
   const el=$(id);
   if(el&&!el.classList.contains('hidden'))return el;
@@ -7889,7 +7889,7 @@ function glance(){
  s.flags.wagonLooked=true;note('wagon','馬車在你醒來之前就已被毀壞',true);
  const taken=!!s.flags.openingClothTaken;
  inspectInScene(taken?'箱子裡剩下碎木屑與濕泥。':'碎木屑下壓著一塊尚且完整的布料，也許之後派得上用場。',[
- ...(!taken?[{label:'收起布料',fn:()=>{if(s.flags.openingClothTaken)return;s.flags.openingClothTaken=true;addUnique(s.items,'舊布片');addTravel('discovery','從倒塌貨箱中收起一塊舊布片。','也許可以留著備用。');save();render();}}]:[]),
+ ...(!taken?[{label:'收起布料',fn:()=>sceneCollectionResult(()=>{if(s.scene!=='wreck'||s.flags.openingClothTaken||wreckCleared())return;s.flags.openingClothTaken=true;addUnique(s.items,'舊布片');addTravel('discovery','從倒塌貨箱中收起一塊舊布片。','也許可以留著備用。');save();render();toast('已取得 舊布片 ×1');},{id:'v4-crate_large1'},'crate')}]:[]),
  {label:'先離開',fn:()=>{}}]);
 }
 function marks(){
@@ -8386,7 +8386,7 @@ function interactSceneObject(id){
   ],'探索相遇');return;
  }
  dialog(obj.label,'你在這裡發現可收取的普通材料：'+obj.material+'。採集會沿用原本的每日材料上限。',[
-  {label:'採集 '+obj.material+' ×1',fn:()=>sceneCollectionResult(()=>collectExplorationMaterial(site,id,obj.id))},
+  {label:'採集 '+obj.material+' ×1',fn:()=>sceneCollectionResult(()=>collectExplorationMaterial(site,id,obj.id),obj,collectionKind(obj.material))},
   {label:'先保留在原地',fn:()=>{}}
  ],'場景採集');
 }
@@ -8449,9 +8449,52 @@ function harvestForestObject(o){
  window.DungeonEventsV1.emit('scene.collection.succeeded',s,{material,target:{x:o.x,y:o.y,id:o.id}});
  toast('已採集 '+material+' ×1');
 }
-function sceneCollectionResult(fn){
- const notice=$('toast');notice.classList.remove('active');fn();
- if(!activeDialogueSurface()&&!sceneDialogueState.open&&notice.classList.contains('active'))inspectInScene(notice.textContent,[{label:'繼續',fn:()=>{}}]);
+// Shared collection performance. No resource or inventory mutation until the action completes.
+function collectionPerformanceSpec(kind){
+ return ({
+  mushroom:{ms:2400,text:'小心托住菌柄，慢慢採下蘑菇…'},
+  wood:{ms:1800,text:'彎下身，拾起散落的木料…'},
+  fiber:{ms:2500,text:'仔細解開纏住的纖維…'},
+  crate:{ms:2300,text:'撥開碎木屑，取出布料…'},
+  leaf:{ms:2300,text:'輕輕摘下幾片嫩葉…'},
+  stone:{ms:1700,text:'彎下身，拾起碎石…'}
+ })[kind]||{ms:2000,text:'仔細收取材料…'};
+}
+function collectionKind(material){
+ return /蘑菇/.test(material)?'mushroom':/木|枝/.test(material)?'wood':/繩|纖維/.test(material)?'fiber':/石/.test(material)?'stone':/葉/.test(material)?'leaf':'default';
+}
+function sceneCollectionResult(fn,target=null,kind='default'){
+ if(activeDialogueSurface()||s.flags.inBattle||encounterPending)return;
+ const actor=s,site=s.scene,spec=collectionPerformanceSpec(kind),notice=$('toast');
+ notice.classList.remove('active');
+ const stage=$('sceneStage');
+ let overlay=$('collectionPerformance');
+ if(!overlay){
+  overlay=document.createElement('div');overlay.id='collectionPerformance';overlay.className='hidden';
+  overlay.setAttribute('role','status');overlay.setAttribute('aria-live','polite');
+  overlay.style.cssText='position:absolute;left:50%;bottom:7%;transform:translateX(-50%);width:72%;z-index:11;pointer-events:auto;padding:8px 12px;border:1px solid #c8aa70;border-radius:6px;background:#142d25e8;color:#f5e6bf;text-align:center;font-size:15px;box-shadow:0 2px 7px #0006;';
+  stage.appendChild(overlay);
+ }
+ overlay.replaceChildren();
+ const label=document.createElement('div');label.textContent=spec.text;overlay.appendChild(label);
+ const track=document.createElement('div');track.style.cssText='height:4px;margin-top:7px;border-radius:3px;background:#85947b45;overflow:hidden;';
+ const bar=document.createElement('div');bar.style.cssText='height:100%;width:0;background:#c9c28a;border-radius:3px;';
+ track.appendChild(bar);overlay.appendChild(track);
+ overlay.classList.remove('hidden');syncDialogueInputLock();
+ const node=target?.id?Array.from($('hotspots').querySelectorAll('[data-object-id]')).find(el=>el.dataset.objectId===target.id):null;
+ const art=node?.querySelector('.forest-v4-art,canvas,img')||node;
+ const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+ let anim=null;
+ if(art&&!reduced&&typeof art.animate==='function'){
+  anim=art.animate([{filter:'brightness(1)'},{filter:'brightness(1.12)'},{filter:'brightness(.92)'},{filter:'brightness(1.08)'},{filter:'brightness(1)'}],{duration:spec.ms,easing:'ease-in-out'});
+ }
+ if(typeof bar.animate==='function')bar.animate([{width:'0%'},{width:'100%'}],{duration:spec.ms,fill:'forwards'});
+ setTimeout(()=>{
+  anim?.cancel();overlay.classList.add('hidden');syncDialogueInputLock();
+  if(s!==actor||s.scene!==site||s.flags.inBattle||encounterPending||activeDialogueSurface())return;
+  notice.classList.remove('active');fn();
+  if(!activeDialogueSurface()&&!sceneDialogueState.open&&notice.classList.contains('active'))inspectInScene(notice.textContent,[{label:'繼續',fn:()=>{}}]);
+ },spec.ms);
 }
 function interactForestAnimal(o,action){
  if(s.scene!=='wreck'||s.flags.inBattle)return;
@@ -8486,8 +8529,8 @@ function forestV4Action(o){
  const summary=$('sceneStage').querySelector('.discovery-summary');if(summary)summary.hidden=true;
  const options=[];
  if(!o.previewOnly&&!String(o.id).startsWith('preview-')){
-  for(const item of finds)options.push({label:'採集 '+item.material+' ×1',fn:()=>sceneCollectionResult(()=>collectExplorationMaterial('wreck',item.id,o.id))});
-  if(objectCore.get(o.assetId)?.harvest)options.unshift({label:'採集 '+info.name+' ×1',fn:()=>sceneCollectionResult(()=>harvestForestObject(o))});
+  for(const item of finds)options.push({label:'採集 '+item.material+' ×1',fn:()=>sceneCollectionResult(()=>collectExplorationMaterial('wreck',item.id,o.id),o,collectionKind(item.material))});
+  if(objectCore.get(o.assetId)?.harvest)options.unshift({label:'採集 '+info.name+' ×1',fn:()=>sceneCollectionResult(()=>harvestForestObject(o),o,collectionKind(objectCore.get(o.assetId).harvest))});
  }
  if(k==='wagon'||k==='wheel_flat')options.push({label:'仔細調查車輪與泥地',fn:marks});
  if(o.id==='v4-crate_large1')options.push({label:'檢查貨箱內部',fn:glance});
