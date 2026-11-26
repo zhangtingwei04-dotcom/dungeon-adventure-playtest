@@ -28,8 +28,8 @@
   function add(parent,tag,value,cls){
    const el=document.createElement(tag);if(cls)el.className=cls;el.textContent=value;parent.append(el);return el;
   }
-  function select(label,value,limit,callback){
-   const wrap=add(box,'label',label);
+  function select(parent,label,value,limit,callback){
+   const wrap=add(parent,'label',label);
    const field=add(wrap,'select','');
    for(let n=1;n<=limit;n++){const o=add(field,'option',String(n));o.value=n;}
    field.value=value;
@@ -77,35 +77,40 @@
    box.replaceChildren();
    const head=add(box,'header','','battle-test-header');
    add(head,'h2','測試戰鬥');head.append(button('離開',()=>box.close()));
+   const content=add(box,'div','','battle-test-content');
    if(phase==='setup'){
-    add(box,'p','測試使用獨立隊伍與體力。');
-    select('出發人數 ',total,6,n=>{total=n;front=Math.min(front,n);});
-    select('前線人數 ',front,Math.min(4,total),n=>{front=n;});
-    add(box,'p',front+' 人前線 · '+(total-front)+' 人待命');
-    box.append(button('開始戰鬥',start));return;
+    add(content,'p','測試使用獨立隊伍與體力。');
+    select(content,'出發人數 ',total,6,n=>{total=n;front=Math.min(front,n);});
+    select(content,'前線人數 ',front,Math.min(4,total),n=>{front=n;});
+    add(content,'p',front+' 人前線 · '+(total-front)+' 人待命');
+    content.append(button('開始戰鬥',start));return;
    }
-   const scene=add(box,'div','','battle-test-scene');
+   const scene=add(content,'div','','battle-test-scene');
    const monster=add(scene,'img','');monster.src=sprite;monster.alt='苔棘鬃獸';
    add(scene,'strong','苔棘鬃獸 · '+battle.enemyHp+' / '+battle.maxEnemyHp+' HP');
    const {target,cover,receive}=plan(team,battle);
    const outcomes={victory:'苔棘鬃獸已退走',retreat:'隊伍已撤離',defeat:'主角倒地'};
-   const status=add(box,'p',battle.result?outcomes[battle.result]:'第 '+(battle.turn+1)+' 回合 · '+distances[battle.distance]+'。'+intents[battle.intent]+(target?' 牠盯著'+target.name+'。':''));status.setAttribute('role','status');
-   add(box,'p',feedback);
-   const roster=add(box,'ul','','battle-test-roster');
+   const status=add(content,'p',battle.result?outcomes[battle.result]:'第 '+(battle.turn+1)+' 回合 · '+distances[battle.distance]+'。'+intents[battle.intent]+(target?' 牠盯著'+target.name+'。':''));status.className='battle-test-status';status.setAttribute('role','status');
+   add(content,'p',feedback,'battle-test-feedback');
+   const roster=add(content,'ul','','battle-test-roster');
    for(const member of team){
     const position=member.hp===0?'倒地':member.front?'前線':'後方';
     const intent=battle.result||member.hp===0?'':member===cover?'｜你一退，我就掩護。':member===receive?'｜有傷員退下，我來接應。':!member.front?(/新手/.test(member.style)?'｜我等你的指示。':'｜我守著退路。'):member.id?(/果斷|膽大/.test(member.style)?'｜有空隙我就攻擊。':'｜我會留意牠的動作。'):'';
-    add(roster,'li',member.name+' '+member.style+' · '+position+' · '+member.hp+'/'+member.maxHp+' HP'+intent);
+    const row=add(roster,'li',member.name+' '+member.style+' · '+position+' · '+member.hp+'/'+member.maxHp+' HP');
+    row.dataset.position=member.hp===0?'down':member.front?'front':'rear';
+    if(intent)add(row,'span',intent.slice(1),'battle-test-intent');
    }
-   const controls=add(box,'div','','battle-test-actions');
+   const footer=add(box,'footer','','battle-test-footer');
+   const controls=add(footer,'div','','battle-test-actions');
    if(battle.result){controls.append(button('重新配置',()=>{phase='setup';render();}));return;}
    for(const [id,label] of moves)controls.append(button(label,()=>turn(id),id==='attack'&&battle.distance!==0||id==='approach'&&battle.distance===0||id==='backstep'&&battle.distance===2));
    const ready=team.filter(m=>!m.front&&m.hp>0);
    const active=team.filter(m=>m.id&&m.front&&m.hp>0);
    if(!ready.length&&!active.length)return;
-   const details=add(box,'details','');
-   add(details,'summary','調度（消耗一回合）');
-   const options=add(details,'div','','battle-test-actions');
+   const details=add(footer,'details','','battle-test-dispatch');
+   add(details,'summary','調度');
+   const options=add(details,'div','','battle-test-actions battle-test-options');
+   add(options,'p','換人或增援消耗一回合。');
    if(active.length<3)for(const incoming of ready){
     options.append(button(incoming.name+(vacancies?'補位（不耗回合）':'增援'),()=>{
      if(!vacancies){turn('dispatch',null,incoming);return;}
