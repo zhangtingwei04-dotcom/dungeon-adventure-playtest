@@ -7507,7 +7507,20 @@ normalizeGameTime();normalizeRecovery();normalizeForestRare();normalizeBeetleCar
  ['world.objects','20261125',['engine.time','world.weather'],'DungeonSceneObjectsV1'],
  ['world.forest-life','4',['world.weather'],'DungeonForestV4Life'],
  ['character.expression','2.20',['engine.registry'],'DungeonExpressionMotion'],
- ['world.beetle-care','1',['engine.time'],null]
+ ['world.beetle-care','1',['engine.time'],null],
+ ['lantern.action','1.0',['engine.registry'],'LanternActionCoreV1'],
+ ['lantern.event-flow','1.0',['engine.registry'],'LanternEventFlowV1'],
+ ['lantern.dialogue','1.0',['lantern.action','lantern.event-flow'],'DungeonSceneDialogueV1'],
+ ['lantern.investigation','1.0',['engine.registry'],'DungeonObjectInvestigationV1'],
+ ['lantern.environment','1.0',['world.weather','engine.time'],'LanternWorldEnvironmentV1'],
+ ['lantern.location','1.0',['engine.time'],'LanternLocationCoreV1'],
+ ['lantern.scene','1.0',['engine.registry'],'LanternSceneCoreV1'],
+ ['lantern.ecology','1.0',['lantern.environment','world.weather'],'LanternEcologyCoreV1'],
+ ['lantern.creature','1.0',['world.weather'],'LanternCreatureBehaviorV1'],
+ ['lantern.resource','1.0',['engine.registry'],'LanternResourceCoreV1'],
+ ['lantern.character','1.0',['engine.registry'],'LanternCharacterCoreV1'],
+ ['lantern.appearance','1.0',['character.expression','lantern.character'],'LanternAppearanceCoreV1'],
+ ['lantern.battle','1.0',['engine.registry'],'LanternBattleCoreV1']
  ];
  for(const [id,version,requires,key] of definitions)engine.register({id,version,requires,available:()=>key?!!window[key]:true});
  engine.onTime('world.weather',(actor,event)=>window.DungeonWeatherV1.exposure(actor,INDOOR_SCENES.has(event.fromScene)));
