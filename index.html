@@ -7154,12 +7154,13 @@ const {investigationCardData,rememberDepartedAnimal,departedAnimalCards,appendIn
  $:id=>$(id),inspectInScene:(...args)=>inspectInScene(...args),runSceneAction:fn=>runSceneAction(fn),renderPlaceDrawer:()=>renderPlaceDrawer(),toast:msg=>toast(msg)
 });
 function renderWreckInvestigation(list,actions,targets,append){
- const objects=[],ecology=[],other=[],seen=new Set();
+ const objects=[],ecology=[],monsters=[],other=[],seen=new Set();
  for(const node of targets){
   if(node.dataset.sceneInvestigation==='opening-tracks')continue;
   const item=investigationCardData(node);if(!item.name)continue;
   const key=node.dataset.objectId||node.dataset.sceneInvestigation||item.name;if(seen.has(key))continue;seen.add(key);
-  if(item.kind==='mushroom'||node.dataset.motion==='plant'||node.dataset.motion==='animal')ecology.push(item);
+  if(item.kind==='creature')monsters.push({...item,status:'可調查',action:'觀察／迎戰'});
+  else if(item.kind==='mushroom'||node.dataset.motion==='plant'||node.dataset.motion==='animal')ecology.push(item);
   else if(node.dataset.objectId||node.querySelector('img,canvas'))objects.push(item);
   else other.push(item);
  }
@@ -7171,6 +7172,7 @@ function renderWreckInvestigation(list,actions,targets,append){
  const rank=item=>{const i=order.indexOf(item.kind);return i<0?order.length:i;};
  objects.sort((a,b)=>rank(a)-rank(b));
  appendInvestigationCards(list,objects,append);
+ appendInvestigationCards(list,monsters,append);
  ecology.push(...departedAnimalCards(s,ecology));
  if(ecology.length){
   const section=document.createElement('section');section.className='scene-action-ecology';
@@ -7786,8 +7788,8 @@ function change(scene,mode='walk'){
  addTravel('scene',(revisited?'再次回到 ':'來到 ')+names[scene][0]+'（'+(mode==='carriage'?'馬車':'步行')+'約'+duration+'分鐘，'+gameTime(s.worldMinutes)+'）。'+(revisited?'（到訪 '+s.visits[scene]+' 次）':''),revisited?'這條路漸漸熟悉了。':moveThought[scene]||'接下來看看四周。');
  if(scene==='wreck'){
   clearWreckOnReturn();
-  if(wreckCleared()&&!s.flags.openingMonsterResolved){
-   battleStart({opening:true,ambush:true,clearedWreck:true});return;
+  if(wreckCleared()&&!s.flags.openingMonsterResolved&&!s.flags.wreckMonsterNoted){
+   s.flags.wreckMonsterNoted=true;addTravel('discovery','馬車原先停放的位置附近出現了陌生生物。','先保持距離，觀察牠的動靜。');
   }
  }
  save();render();beep(350);
@@ -8134,7 +8136,7 @@ function battleStart(options={}){
  s.hp=Math.max(0,s.hp-hit);
  const monster=MONSTER_CATALOG_V1.moss_spine_beast,maxHp=opening?monster.openingHp:monster.forestHp;
  s.flags.inBattle=true;s.flags.monsterHp=maxHp;
- s.flags.battleV2={monsterId:monster.id,enemyHp:maxHp,maxEnemyHp:maxHp,turn:0,intent:opening?'pounce':ambush?'watch':'pounce',distance:ambush?0:1,focused:false,braced:false,result:s.hp===0?'defeat':null,source:opening?'opening':ambush?'exploration':'story',feedback:opening?(options.clearedWreck?'馬車原先停放的位置傳來低吼，苔棘鬃獸從林邊撲出！':'車架下傳來低吼，陌生生物猛然撲出！')+(hit?'受到 '+hit+' 點傷害。':'你及時退開。'):ambush?'草叢突然晃動，一隻陌生生物撲了過來！受到 '+hit+' 點傷害。':'牠警戒地盯著你。'};
+ s.flags.battleV2={monsterId:monster.id,enemyHp:maxHp,maxEnemyHp:maxHp,turn:0,intent:opening?'pounce':ambush?'watch':'pounce',distance:ambush?0:1,focused:false,braced:false,result:s.hp===0?'defeat':null,source:opening?'opening':ambush?'exploration':'story',feedback:opening&&!ambush?'苔棘鬃獸察覺你的動作，擺出警戒姿態。':opening?(options.clearedWreck?'馬車原先停放的位置傳來低吼，苔棘鬃獸從林邊撲出！':'車架下傳來低吼，陌生生物猛然撲出！')+(hit?'受到 '+hit+' 點傷害。':'你及時退開。'):ambush?'草叢突然晃動，一隻陌生生物撲了過來！受到 '+hit+' 點傷害。':'牠警戒地盯著你。'};
  if(ambush){addTravel('combat','在'+names[s.scene][0]+'探索時遭到生物突襲。'+(s.hp===0?'你體力不支。':''),'事情發生得太突然了。');}
  lastBattleAction=0;save();render();
  if(ambush){$('battleSurface').dataset.distance='1';playBattleMotion('ambush',{damage:0,hit,enemyAction:'pounce'});}
@@ -8217,7 +8219,7 @@ function finishBattle(){
 function entries(){const a={
  wreck:[routeAction('前往林間小徑','trail',()=>change('trail'),true),...(wreckCleared()?[]:[action('查看倒塌貨箱',glance),action('查看車輪痕跡',marks)])],
  trail:[routeAction('前往城鎮入口','gate',rescue,true),action(s.recovery.found?'調查舊馬車殘骸':'搜索林邊 · 12分鐘',searchForest,false,true),...(s.recovery.found?[action('留意甲蟲活動痕跡 · 8分鐘',()=>forestRareCheck('beetle'))]:[]),...(s.recovery.found&&s.beetle.questAccepted&&!s.beetle.captured?[eventAction('設置甲蟲誘捕盒 · 10分鐘',captureRustBeetle)]:[]),routeAction('進入林間空地','clearing',()=>change('clearing')),routeAction('走近舊石門','ruin',()=>change('ruin')),action('查看路旁舊石碑',inspectTrailMarker),routeAction('返回馬車','wreck',()=>change('wreck'))],
- clearing:[routeAction('返回小徑','trail',()=>change('trail'),true),action('觀察空地生態 · 6分鐘',()=>observeForestEcology('clearing'),false,true),...(!s.flags.lightTaken?[eventAction('查看樹根旁的微光',light)]:[]),eventAction('留意林間聲響',soundInForest)],
+ clearing:[routeAction('返回小徑','trail',()=>change('trail'),true),action('觀察空地生態 · 6分鐘',()=>observeForestEcology('clearing'),false,true),...(!s.flags.lightTaken?[eventAction('查看樹根旁的微光',light)]:[]),...(!window.DungeonSceneObjectsV1?.creatureVisible(s)?[eventAction('留意林間聲響',soundInForest)]:[])],
  ruin:[routeAction('返回小徑','trail',()=>change('trail'),true),action('觀察石門生態 · 6分鐘',()=>observeForestEcology('ruin'),false,true),eventAction('看看古老石門',ruinLook),action('觀察石門旁的長耳腳印 · 8分鐘',()=>forestRareCheck('rabbit'))],
  gate:[routeAction('前往旅店',s.flags.morning?'lobby':'inn',()=>change(s.flags.morning?'lobby':'inn'),true),...(s.flags.morning?[routeAction('走進城鎮街道','street',()=>change('street'))]:[]),routeAction('返回森林','trail',()=>change('trail')),action('問問冒險者',()=>dialog('四名冒險者','他們告訴你，這座城鎮有旅店、公會與來往的旅人。其他兩名夥伴今天留在住處。你們仍是剛認識的陌生人。',[{label:'道謝',fn:()=>{}}],'簡短對話'))],
  inn:[...(s.flags.morning?[routeAction('前往旅店大廳','lobby',()=>change('lobby'),true)]:[sceneAction('迎接新的早晨',morning,true)]),(s.flags.sigilSeen?action:eventAction)(s.flags.sigilSeen?'再看看鏡子':'整理衣物與鏡子',innMark),sceneAction('休息片刻',rest),routeAction('返回城鎮入口','gate',()=>change('gate'))],
@@ -8372,9 +8374,16 @@ function render(){if(!names[s.scene])s.scene='wreck';normalizeGameTime();tickBee
 if(primary){const b=document.createElement('button');b.className='action primary';setActionVisual(b,/探索|觀察/.test(primary.title)?'explore':'route',primary.title);b.title='主要行動；點擊執行';b.onclick=()=>runSceneAction(primary.fn);$('actions').appendChild(b);}
 const quick=available.find(a=>a.quick&&a!==primary);if(quick){const b=document.createElement('button');b.className='action explore';setActionVisual(b,'explore',quick.title);b.onclick=()=>runSceneAction(quick.fn);$('actions').appendChild(b);}
 /* Secondary interactions are now grouped under the right-side place drawer. */renderHotspots();renderFeed();renderPlaceDrawer();renderSceneInfoBar();renderOpeningObjective();renderBattleSurface();save();}
+function wreckMonsterPresent(actor=s){return actor.scene==='wreck'&&wreckCleared(actor)&&!actor.flags?.openingMonsterResolved&&!actor.flags?.inBattle;}
+function inspectWreckMonster(){
+ if(!wreckMonsterPresent()||activeDialogueSurface()||encounterPending)return;
+ spendSceneInteraction('observe');note('sound','在事故現場附近發現苔棘鬃獸');save();render();
+ inspectInScene('苔棘鬃獸警戒地盯著你，似乎還沒有發動攻擊的打算。',[{label:'迎戰',fn:()=>{if(wreckMonsterPresent())battleStart({opening:true,clearedWreck:true});}},{label:'保持距離',fn:()=>{}}]);
+}
 function interactSceneObject(id){
  const engine=window.DungeonSceneObjectsV1;
  if(!engine||encounterPending||modal||s.flags.inBattle||$('app').classList.contains('scene-dialogue-active')||exitOnlyAction())return;
+ if(id==='wreck-monster'){inspectWreckMonster();return;}
  const site=s.scene,obj=engine.objects(s,plantSpawnWeather()).find(x=>x.id===id);if(!obj)return;
  if(obj.kind==='wreck'){openTrailWreckActions();return;}
  if(obj.kind==='creature'){soundInForest();return;}
@@ -8697,7 +8706,9 @@ function updateForestFindCue(node,finds,k){
 }
 function renderWorldObjects(el){
  const engine=window.DungeonSceneObjectsV1;if(!engine||encounterPending||openingExitOnly())return;
- for(const obj of engine.objects(s,plantSpawnWeather())){
+ const visibleObjects=engine.objects(s,plantSpawnWeather());
+ if(wreckMonsterPresent())visibleObjects.push({id:'wreck-monster',kind:'creature',x:70,y:76,label:'苔棘鬃獸'});
+ for(const obj of visibleObjects){
   if(forestV4Active()&&obj.material&&(['碎木片','舊繩纖維'].includes(obj.material)||[...forestV4MaterialBindings().values()].some(list=>list.some(item=>item.id===obj.id))))continue;
   if(obj.decorative){
    if(forestV4Active())continue;
