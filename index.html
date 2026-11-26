@@ -4512,6 +4512,7 @@ window.DUNGEON_FOREST_V4_LAYOUT=window.DUNGEON_WRECK_CURRENT_LAYOUT;
 <script src="./assets/lantern_creature_behavior_v1.js"></script>
 <script src="./assets/lantern_resource_core_v1.js"></script>
 <script src="./assets/lantern_character_core_v1.js"></script>
+<script src="./assets/lantern_appearance_core_v1.js"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/scene_objects_v1.js?v=20261125-winter"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
@@ -5572,10 +5573,8 @@ const EQUIPMENT_VISUAL_CATALOG=Object.freeze({
  bag:Object.freeze({id:'enchanted_satchel',name:'附魔旅行側包',icon:4})
 });
 function displayEquipmentInSlot(slotId){
- const item=EQUIPMENT_VISUAL_CATALOG[slotId];
- if(!item)return null;
- if(s.equipmentV1&&s.equipmentV1[slotId]===item.id)return {item,preview:false};
- return null;
+ const item=window.LanternAppearanceCoreV1.equipped(s.equipmentV1,EQUIPMENT_VISUAL_CATALOG,slotId);
+ return item?{item,preview:false}:null;
 }
 const TRAVEL_OUTFIT_IMAGE_IDS=STARTER_OUTFIT_V2;
 // Rejected equipment graphics are no longer rendered by the live paper doll.
@@ -5832,10 +5831,7 @@ function tickPaperDollMotion(force=false){
  // Sleeping is a light visual preview: eyes closed, never an illness.
  // Unconscious black eyes override sleep and all expressions.
  const abnormalStates=currentPaperDollAbnormalStates();
- if(!abnormalStates.includes('unconscious'))
-  window.DungeonExpressionMotion.applySleepFacePriority(
-   frame,paperDollRestPreview.sleep,performance.now()-paperDollRestChangedAt);
- window.DungeonExpressionMotion.applyAbnormalFacePriority(frame,abnormalStates);
+ window.LanternAppearanceCoreV1.face(frame,{sleep:paperDollRestPreview.sleep,elapsed:performance.now()-paperDollRestChangedAt,effects:abnormalStates});
  const restAnimating=paperDollRestPreview.sleep!=='awake';
  const signature=[
   frame.status,...['brows','eyes','mouth'].map(k=>frame.parts[k]),
@@ -6740,7 +6736,7 @@ function setOwnedEquipmentEquipped(slotId,equip){
  const wasEquipped=s.equipmentV1[slotId]===item.id;
  if(wasEquipped===Boolean(equip))return;
  window.DungeonWeatherV1?.exposure(s,INDOOR_SCENES.has(s.scene));
- s.equipmentV1[slotId]=equip?item.id:null;
+ if(!window.LanternAppearanceCoreV1.change(s.equipmentV1,EQUIPMENT_VISUAL_CATALOG,slotId,equip))return;
  paperDollTryOn=false;
  save();renderPlaceDrawer();
  toast(item.name+(equip?'已裝上':'已脫下，物品仍保留'));
@@ -7387,8 +7383,7 @@ function paintActorSprite(canvas,memberId,emotion='neutral',time=performance.now
  }
  // NPCs use the same sleep-face definition as the player paper doll.
  // Only the rendering coordinates differ (NPC sprite 48x64 vs player 64x160).
- const dream=window.DungeonExpressionMotion.sleepFace(
-  emotion,Math.max(0,time-sleepEnteredAt));
+ const dream=window.LanternAppearanceCoreV1.sleepFace(emotion,time-sleepEnteredAt);
  const eye='#273334',brow=c.hair;
  if(dream){
   const happyDream=dream.phase==='dream_good'||dream.phase==='dream_smile'||
