@@ -4159,6 +4159,14 @@ html.stage-locked #app #battleSurface .battle-actions button{font-size:17px;min-
 #battleSurface[data-distance="2"] .battle-ground-shadow{top:49%;width:16%;height:3%}
 #battleSurface[data-result="true"] .battle-ground-shadow{opacity:.35}
 #sceneStage .world-object[data-kind="creature"] .forest-monster-art{display:block;width:100%;height:auto;image-rendering:pixelated;filter:var(--scene-light,brightness(1)) drop-shadow(0 3px 2px #091b15bb)}
+/* Battle art is only activated after the dedicated image decodes successfully. */
+#app[data-battle-backdrop="wreck"] #sceneStage .opening-objective{visibility:hidden}
+#app[data-battle-backdrop="wreck"] #sceneStage .forest-v4-object[data-motion="animal"],
+#app[data-battle-backdrop="wreck"] #sceneStage .forest-v4-object[data-motion="plant"],
+#app[data-battle-backdrop="wreck"] #sceneStage .world-object,
+#app[data-battle-backdrop="wreck"] #sceneStage .world-vegetation{visibility:hidden}
+#app[data-battle-backdrop="wreck"] #sceneStage .forest-v4-object:not([data-live-kind="wagon"]):not([data-live-kind="wheel"]):not([data-live-kind^="crate"]):not([data-live-kind="sack"]):not([data-live-kind="plank"]):not([data-live-kind="barrel"]){visibility:hidden}
+#app[data-battle-backdrop="wreck"] #dayTint::after{clip-path:polygon(66% 0,85% 0,87% 6%,90% 9%,85% 14%,82% 15%,79% 19%,74% 21%,70% 13%,68% 8%)}
 /* One attention target at a time. */
 #app #travelFeed,#app #placeDrawer{transition:opacity .22s ease}
 #app.scene-dialogue-active #travelFeed,#app.scene-dialogue-active #placeDrawer,#app:has(#dialogVeil:not(.hidden)) #travelFeed,#app:has(#dialogVeil:not(.hidden)) #placeDrawer{opacity:.52}
@@ -8879,9 +8887,28 @@ function guild(){rect(0,0,W,H,grad(0,0,0,H,'#444e4a','#242c2b'));poly([[0,0],[96
 function outskirts(){background('trail');poly([[312,540],[421,377],[468,332],[503,358],[621,540]],grad(460,350,480,540,'#b0a084','#655d46'));rect(0,308,200,115,'#667467');for(let i=0;i<4;i++)rect(i*53,293,34,29,'#8a9786');rect(780,292,180,125,'#697768');for(let i=0;i<4;i++)rect(790+i*49,278,34,25,'#8d9c88');line([761,331],[746,428],8,'#655743');rect(705,301,147,17,'#a6906a');rect(716,327,114,14,'#ac9774');line([797,283],[795,459],10,'#64523c');poly([[770,451],[823,451],[845,490],[747,490]],'#756043');glow(514,259,180,'rgba(215,220,172,.15)');leafTree(130,450,1,1);leafTree(915,454,.82,1);}
 function home(){rect(0,0,W,H,grad(0,0,0,H,'#756650','#2f2c28'));wallPlanks();rect(0,400,960,140,grad(0,400,0,H,'#81684e','#30291f'));poly([[0,0],[155,100],[155,390],[0,433]],'#5c4b3e');poly([[960,0],[786,90],[788,398],[960,439]],'#665542');rect(115,164,230,216,'#332d27');rect(126,177,208,187,'#7e6a51');for(let i=0;i<4;i++){rect(137+i*48,197,32,124,['#73513b','#b2916b','#7c8662','#8b6b4b'][i]);}rect(640,119,173,251,'#514233');for(let i=0;i<5;i++){line([643,168+i*42],[810,168+i*42],5,'#a4835c');rect(663,141+i*42,19,25,'#927455');rect(692,141+i*42,30,25,'#5b5541');}lantern(468,111);ellipse(467,436,278,46,'#111a17',.38);poly([[250,388],[688,388],[729,431],[214,431]],'#aa8459');poly([[279,370],[658,370],[692,394],[247,394]],'#d0a474');for(let x of [282,652])rect(x,428,17,100,'#69503a');ellipse(404,371,31,11,'#e2c99d');ellipse(520,370,26,14,'#9c8b70');rect(526,280,80,59,'#4b392e');ellipse(569,279,49,20,'#6b5843');}
 function mote(time){const r=rng(939);for(let i=0;i<29;i++){const x=(r()*960+Math.sin(time*.29+i)*19),y=(r()*540+time*(3+i%4))%540;ellipse(x,y,1+(i%3)*.65,1+(i%2),i%2?'#f0d99d':'#c4dec8',.28+(i%5)*.045);}}
+// Dedicated optional backdrop: original exploration renderer remains the fallback.
+const wreckBattleBase=new Image();
+let wreckBattleAssetRequested=false;
+function wreckBattleBackdropActive(sceneId=s.scene){
+ return sceneId==='wreck'&&s.flags.inBattle&&wreckBattleBase.complete&&wreckBattleBase.naturalWidth>0;
+}
 function sceneDraw(time,sceneId=s.scene,thumbnail=false){
  ensureSceneArt(sceneId);
  ctx.clearRect(0,0,W,H);
+ if(!thumbnail){
+  if(sceneId==='wreck'&&s.flags.inBattle&&!wreckBattleAssetRequested){
+   wreckBattleAssetRequested=true;
+   wreckBattleBase.src='./assets/battle/wreck_base_v1.webp';
+  }
+  const active=wreckBattleBackdropActive(sceneId);
+  $('app').dataset.battleBackdrop=active?'wreck':'original';
+  if(active){
+   ctx.save();ctx.imageSmoothingEnabled=true;
+   ctx.drawImage(wreckBattleBase,0,0,W,H);ctx.restore();
+   return;
+  }
+ }
  const isTrailArt=sceneId==='trail'&&trailForestReady;
  if(sceneId==='wreck'&&emptyForestReady){
   ctx.save();ctx.imageSmoothingEnabled=true;
@@ -8924,7 +8951,7 @@ function drawLocationThumbnail(ms){
  lastLocationThumb=ms;
  const g=cv.getContext('2d');if(!g)return;
  g.setTransform(cv.width/W,0,0,cv.height/H,0,0);g.clearRect(0,0,W,H);
- if(id===s.scene){
+ if(id===s.scene&&!wreckBattleBackdropActive(id)){
   // Copy the current canvas, then composite visible scene-object layers in depth order.
   g.drawImage(can,0,0,W,H);
   const bounds=can.getBoundingClientRect();
