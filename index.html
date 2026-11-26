@@ -3973,6 +3973,18 @@ html.stage-locked #app .paperdoll-stage.eyes-unconscious [data-paperdoll-slot="m
 .combat-status-meter{height:4px;background:#10241b;border-radius:3px;overflow:hidden;margin:4px 0}
 .combat-status-fill{display:block;height:100%;background:#8eae75}
 .combat-enemy-zone .combat-status-fill{background:#ad7863}
+.combat-enemy-list{display:flex;flex-direction:column;gap:4px;max-height:min(32dvh,190px);overflow-y:auto;overscroll-behavior:contain}
+html.stage-locked #app #placeDrawer .combat-enemy-list{max-height:145px}
+.combat-status-card[data-combat-enemy][data-selected="true"]{border-color:#d4b77c}
+.combat-status-card[data-combat-enemy][data-resolved="true"]{opacity:.55}
+.combat-target-button{display:block;width:100%;min-height:30px;margin-top:3px;font-size:.85em!important}
+.combat-target-button[aria-pressed="true"]{color:#e9d09a;background:#41513a}
+.battle-test-monsters{display:flex;align-items:center;justify-content:center;gap:4px;width:100%;padding:5px;box-sizing:border-box}
+.battle-test-monster{flex:1 1 0;min-width:0;display:grid;justify-items:center;gap:2px}
+.battle-test-monster img{width:100%;height:clamp(45px,17dvh,130px);object-fit:contain}
+.battle-test-monster strong{font-size:10px;text-align:center}
+.battle-test-monster[data-selected="true"] strong{outline:1px solid #dcc595;color:#ffdf9c}
+
 .combat-status-card[data-priority="0"]{border-color:#bd7969;color:#ffbca9}
 .combat-status-card[data-priority="0"] .combat-status-fill{background:#c65d4c}
 .combat-status-line{margin:2px 0!important;font-size:.9em;overflow-wrap:anywhere;color:inherit}
@@ -4595,7 +4607,7 @@ window.DUNGEON_FOREST_V4_LAYOUT=window.DUNGEON_WRECK_CURRENT_LAYOUT;
 <!-- Official universal arm transparency follows the developer studio policy. -->
 <script src="./assets/arm_visibility_policy_v1.js?v=live-20261124"></script>
 <script src="./assets/arm_visibility_live_v1.js?v=live-20261124"></script>
-<script src="./assets/battle_playtest_v1.js?v=combat-panel-v1"></script>
+<script src="./assets/battle_playtest_v1.js?v=multi-enemy-v1"></script>
 <script>
 (()=>{'use strict';
 // Fixed design canvas: use the approved screenshot's exact 1536×707 ratio,
