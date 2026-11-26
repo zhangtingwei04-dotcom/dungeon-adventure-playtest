@@ -2999,16 +2999,25 @@ html.stage-locked #app #placeDrawerPanel.is-location-tab #placeDrawerList{
 }
 /* The action panel sits outside the independently scrolling information panel. */
 html.stage-locked #app #placeDrawer{height:485px!important}
-html.stage-locked #app #placeDrawer > #placePrimaryActions{
- display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));
- grid-auto-rows:40px;gap:5px!important;flex:0 0 auto!important;
- padding:6px 8px!important;border:1px solid #baa16d!important;
- border-radius:9px;background:#0b3029!important;
+html.stage-locked #app #placeActionPanel{
+ box-sizing:border-box;display:flex;flex-direction:column;flex:0 0 151px;
+ justify-content:space-between;gap:5px;padding:6px 8px;
+ border:1px solid #baa16d;border-radius:9px;background:#0b3029;
 }
-html.stage-locked #app #placeDrawer > #placePrimaryActions .side-main-action{
+html.stage-locked #app #placeActionPanel .side-location-shortcuts{
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px!important;margin:0!important;
+}
+html.stage-locked #app #placeActionPanel .side-location-shortcuts button{
+ min-height:36px!important;width:100%!important;
+}
+html.stage-locked #app #placeActionPanel #placePrimaryActions{
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));
+ grid-auto-rows:40px;gap:5px!important;padding:0!important;border:0!important;background:transparent!important;
+}
+html.stage-locked #app #placeActionPanel #placePrimaryActions .side-main-action{
  min-height:40px!important;padding:4px 5px!important;font-size:13px!important;line-height:1.12!important;
 }
-html.stage-locked #app #placeDrawer > #placePrimaryActions .location-preview-travel{grid-column:1/-1}
+html.stage-locked #app #placeActionPanel .location-preview-travel{grid-column:1/-1}
 #hotspots[inert],#hotspots[inert] *{pointer-events:none!important}
 #dialogVeil.scene-action-menu #dialogChoices{max-height:40dvh;overflow-y:auto;overscroll-behavior:contain}
 html.stage-locked #app #placeDrawerPanel.is-location-tab .side-current-summary.location-reference-card{
@@ -4390,7 +4399,13 @@ html.stage-locked #app #battleSurface .battle-actions button{font-size:17px;min-
   <div class="place-drawer-head"><div><strong id="sidePanelTitle">地點資訊</strong><span id="placeDrawerSummary"></span></div><button id="placeDrawerClose" hidden type="button">×</button></div>
   <div id="placeDrawerList"></div>
  </section>
+ <section id="placeActionPanel" aria-label="場景操作">
+  <div class="side-location-shortcuts">
+   <button id="placeMapShortcut" type="button">區域地圖</button>
+   <button id="placeJourneyShortcut" type="button">全部旅途</button>
+  </div>
   <div id="placePrimaryActions" class="side-primary-actions" aria-label="目前地點的主要行動"></div>
+ </section>
 </aside>
 <button type="button" id="timePreviewTag" class="hidden" aria-label="結束時段預覽並恢復遊戲時間"></button>
 <section id="sceneInspection" class="hidden" role="group" aria-labelledby="sceneInspectionTitle">
@@ -7246,17 +7261,6 @@ function renderPlaceDrawer(){
  const resourceNote=document.createElement('p');resourceNote.className='location-resource-note';
  resourceNote.textContent=previewCard.current?'使用右下方的行動按鈕調查或移動。':'這只是預覽；下方行動仍在目前所在地執行。';
  resourceSection.appendChild(resourceNote);out.appendChild(resourceSection);
- const shortcuts=document.createElement('div');shortcuts.className='side-location-shortcuts';
- for(const [label,handler] of [
-  ['區域地圖',()=>journal('map')],
-  ['全部旅途',()=>journal('journey')]
- ]){
-  const btn=document.createElement('button');btn.type='button';
-  btn.textContent=label;btn.onclick=handler;
-  shortcuts.appendChild(btn);
- }
- out.appendChild(shortcuts);
- // The scrollable list now begins directly with actionable content.
  normalizeExploration();
  const queue=s.exploration.pending[s.scene]||[];
  if(queue.length){
@@ -7773,7 +7777,7 @@ function guardedAction(fn){if(activeDialogueSurface())return;const now=Date.now(
 // Capture phase protects every background control, including dynamically generated buttons.
 function dialogueInfoAllowed(target){
  if(!target?.closest)return false;
- if(target.closest('#regionMapBtn,#mapBtn,#hudCharacterBtn,#playerStatusButton,#sideInfoTabs,.location-preview-arrow,.equip-slot,.equip-bag-button,.bag-filter,.protagonist-portrait'))return true;
+ if(target.closest('#regionMapBtn,#mapBtn,#placeMapShortcut,#hudCharacterBtn,#playerStatusButton,#sideInfoTabs,.location-preview-arrow,.equip-slot,.equip-bag-button,.bag-filter,.protagonist-portrait'))return true;
  if(target.closest('#placeDrawerList')){
   const control=target.closest('button,input,select,textarea,a,[role="button"]');
   if(!control)return true;
@@ -8735,6 +8739,8 @@ $('hudCharacterBtn').onclick=()=>setActiveSideTab('character');
 $('hudSettingsBtn').onclick=()=>$('menuBtn').click();
 $('travelToggle').onclick=()=>setTravelHud(s.travelHudMode==='expanded'?'compact':'expanded');
 $('travelOpenJournal').onclick=()=>journal('journey');
+$('placeMapShortcut').onclick=()=>journal('map');
+$('placeJourneyShortcut').onclick=()=>guardedAction(()=>journal('journey'));
 $('regionMapBtn').onclick=()=>journal('map');$('journalBtn').onclick=()=>journal('journey');$('mapBtn').onclick=()=>journal('map');$('journalClose').onclick=()=>$('journalVeil').classList.add('hidden');$('hintBtn').onclick=()=>{showHints=!showHints;renderHotspots();toast(showHints?'僅顯示附近可互動位置，不影響主線':'已隱藏互動提示');};$('menuBtn').onclick=()=>{$('menuVeil').classList.remove('hidden');$('soundBtn').textContent='音效：'+(s.sound?'開啟':'關閉');};$('menuClose').onclick=()=>$('menuVeil').classList.add('hidden');$('dialogClose').onclick=closeDialog;
 for(const btn of document.querySelectorAll('[data-preview-period]'))btn.onclick=()=>selectTimePreview(btn.dataset.previewPeriod);
 $('hudWeatherBtn').onclick=()=>{ $('menuVeil').classList.remove('hidden');$('soundBtn').textContent='音效：'+(s.sound?'開啟':'關閉');requestAnimationFrame(()=>$('weatherSettingsHeading').scrollIntoView({block:'start',behavior:'auto'})); };
@@ -8802,7 +8808,7 @@ const active=activeDialogueSurface();
   if(e.key.toLowerCase()==='m'){e.preventDefault();journal('map');return;}
   if(dialogueInfoAllowed(e.target)&&['Enter',' ','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','PageUp','PageDown'].includes(e.key))return;
   if(e.key==='Tab'){
-   const controls=[...active.querySelectorAll('button:not([disabled]):not(.hidden),[href],input,select,textarea,[tabindex="0"]'),...document.querySelectorAll('#sideInfoTabs button,#regionMapBtn,#hudCharacterBtn,#placeDrawerList button')].filter(el=>el.getClientRects().length&&(active.contains(el)||dialogueInfoAllowed(el)));
+   const controls=[...active.querySelectorAll('button:not([disabled]):not(.hidden),[href],input,select,textarea,[tabindex="0"]'),...document.querySelectorAll('#sideInfoTabs button,#regionMapBtn,#placeMapShortcut,#hudCharacterBtn,#placeDrawerList button')].filter(el=>el.getClientRects().length&&(active.contains(el)||dialogueInfoAllowed(el)));
    e.preventDefault();if(controls.length){const i=controls.indexOf(document.activeElement);controls[(i<0?(e.shiftKey?controls.length-1:0):(i+(e.shiftKey?controls.length-1:1))%controls.length)].focus();}return;
   }
   if(active.id==='sceneDialogue'){
