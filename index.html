@@ -4481,7 +4481,7 @@ html.stage-locked #app #battleSurface .battle-actions button{font-size:17px;min-
 <script src="./assets/performance_monitor_v1.js?v=1"></script>
 <script src="./assets/adaptive_quality_v1.js?v=1"></script>
 <script src="./assets/fault_isolation_v1.js?v=1"></script>
-<script src="./assets/object_investigation_v1.js?v=3-object-harvest"></script>
+<script src="./assets/object_investigation_v1.js?v=4-lantern-known"></script>
 <script src="./assets/lantern_action_core_v1.js"></script>
 <script src="./assets/lantern_event_flow_v1.js"></script>
 <script src="./assets/scene_dialogue_v1.js?v=lantern-core-2"></script>
@@ -7291,12 +7291,7 @@ function renderPlaceDrawer(){
  const latest=s.exploration?.last?.[s.scene]?.observation;
  if(latest)findings.add(latest);
  const core=window.DungeonObjectInvestigationV1;
- for(const obj of window.DUNGEON_FOREST_V4_LAYOUT?.scenes?.[s.scene]||[]){
-  const record=core.read(s,s.scene,obj.id);
-  if(!record?.inspected&&!record?.collected)continue;
-  const def=core.get(obj.assetId);
-  if(def)findings.add(def.name+' · '+(record.removed?(record.collected?'已採集':'已移走'):def.harvest?'可採集':def.description));
- }
+ for(const text of core.known(s,s.scene,window.DUNGEON_FOREST_V4_LAYOUT?.scenes?.[s.scene]||[]))findings.add(text);
  if(s.scene==='wreck'&&s.flags.openingTracks)findings.add('車輪旁的泥地留有車轍。');
  const resources=document.createElement('section');resources.className='location-resource-section';
  const heading=document.createElement('div');heading.className='location-resource-heading';heading.textContent='本地調查紀錄';
@@ -7853,7 +7848,7 @@ function inspectTrailMarker(){
  ]);
 }
 function inspectInScene(text,choices){
- openSceneDialogue([{speaker:'旁白',text}],null,choices);
+ openSceneDialogue([{speaker:'旁白',text}],'investigation',choices);
 }
 function glance(){
  s.flags.wagonLooked=true;note('wagon','馬車在你醒來之前就已被毀壞',true);
