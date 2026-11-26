@@ -2,7 +2,7 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const root=path.resolve(__dirname,'..');
 const read=p=>fs.readFileSync(path.join(root,p),'utf8');
-const modules=['engine_foundation_v1','engine_events_save_v1','character_environment_v1','weather_system_v1','lantern_world_environment_v1','forest_v4_spawns','forest_v4_layout','scene_objects_v1','scene_spatial_motion_v1','scene_environment_v1','winter_surfaces_v1'];
+const modules=['engine_foundation_v1','engine_events_save_v1','character_environment_v1','weather_system_v1','lantern_ecology_core_v1','lantern_world_environment_v1','forest_v4_spawns','forest_v4_layout','scene_objects_v1','scene_spatial_motion_v1','scene_environment_v1','winter_surfaces_v1'];
 const window={};
 for(const m of modules)new Function('window',read('assets/'+m+'.js'))(window);
 const html=read('index.html');
@@ -41,7 +41,7 @@ check('Outdoor -> indoor time exposure uses previous scene, then indoor recovery
 });
 check('Production forest selection and final wildlife filter across weather, time and debug previews',()=>{
  const prefix=extract('function renderForestV4(el){',' window.DungeonSceneEnvironmentV1?.setActionMap');
- const run=new Function('window','s','location','URLSearchParams','document','forestEnvironmentActive','forestV4MaterialBindings','plantSpawnWeather','DEV_PREVIEW_MODE','previewWind','currentWeather',prefix+'return live; } return renderForestV4({querySelector:()=>null});');
+ const run=new Function('window','s','location','URLSearchParams','document','forestEnvironmentActive','forestV4MaterialBindings','plantSpawnWeather','DEV_PREVIEW_MODE','previewWind','currentWeather','const previewPeriod=null;const periodForMinutes=m=>window.DungeonGameTimeV1.parts(m).period;'+prefix+'return live; } return renderForestV4({querySelector:()=>null});');
  window.DUNGEON_FOREST_V4_ASSETS={};const doc={createElement:()=>({classList:{add(){}},children:[]})};
  let combinations=0;
  for(const minute of [330,720,1050,1320])for(const kind of ['snow','blizzard','storm'])for(const query of ['', '?wildlife=golden-rabbit','?wildlife=bird','?wildlife=beetle']){
