@@ -146,18 +146,35 @@ window.DUNGEON_FOREST_V4_SPAWNS=[
 ];
 window.DungeonForestV4Life=(function engine(){
  const animalKinds=['bird','rabbit','beetle','butterfly'];
- const periods={bird:['dawn','day','dusk'],rabbit:['dawn','dusk'],beetle:['dusk','night'],butterfly:['dawn','day','dusk']};
+ // Per-opportunity arrival, departure, relocation. Daylight species retain off-peak activity where appropriate.
+ const activityRates=Object.freeze({
+  bird:{dawn:.92,day:.88,dusk:.80,night:0},
+  rabbit:{dawn:.92,day:.65,dusk:.92,night:.35},
+  beetle:{dawn:.55,day:.60,dusk:.90,night:.88},
+  butterfly:{dawn:.70,day:.92,dusk:.55,night:0}
+ });
  const kind=o=>o.assetId.replace('forest4_','');
  function state(s){if(!s.forestV4Life||typeof s.forestV4Life!=='object'||Array.isArray(s.forestV4Life))s.forestV4Life={last:-1,animals:{}};const v=s.forestV4Life;if(!v.animals||typeof v.animals!=='object')v.animals={};return v;}
- function update(s,base,slots,phase,random=Math.random){
-  const v=state(s),count=s.exploration?.counts?.wreck||0;if(s.scene!=='wreck'||v.last===count||s.flags?.inBattle)return;
-  v.last=count;
-  for(const k of animalKinds){const options=[...base,...slots].filter(o=>o.visible&&kind(o)===k);if(!options.length)continue;
-   if(!periods[k].includes(phase)){v.animals[k]=null;continue;}
-   const old=Object.hasOwn(v.animals,k)?v.animals[k]:options[0].id;
-   const roll=random();if(old===null){v.animals[k]=roll<.5?options[Math.min(options.length-1,Math.floor(random()*options.length))].id:null;}
-   else if(roll<.25)v.animals[k]=null;else if(roll<.75){const others=options.filter(o=>o.id!==old);v.animals[k]=others.length?others[Math.min(others.length-1,Math.floor(random()*others.length))].id:old;}else v.animals[k]=old;
+ function seeded(s,key){let h=2166136261;for(const ch of String(s.seed??0)+':wildlife:'+key){h=Math.imul(h^ch.charCodeAt(0),16777619);}return ()=>{h=(h+0x6D2B79F5)|0;let t=Math.imul(h^h>>>15,1|h);t^=t+Math.imul(t^t>>>7,61|t);return ((t^t>>>14)>>>0)/4294967296;};}
+ function update(s,base,slots,phase,random){
+  const v=state(s),count=s.exploration?.counts?.wreck||0,day=Math.floor(Math.max(0,s.worldMinutes||0)/1440),visits=s.visits?.wreck||0;
+  const key=[day,phase,count,visits].join(':');
+  if(s.scene!=='wreck'||v.activityKey===key||s.flags?.inBattle)return false;
+  const roll=random||seeded(s,key);
+  v.last=count;v.activityKey=key;
+  for(const k of animalKinds){
+   const options=[...base,...slots].filter(o=>o.visible&&kind(o)===k);if(!options.length)continue;
+   const rate=activityRates[k]?.[phase]||0;
+   if(!rate){v.animals[k]=null;continue;}
+   const previous=options.find(o=>o.id===v.animals[k]);
+   const pick=list=>list[Math.min(list.length-1,Math.floor(roll()*list.length))].id;
+   if(!previous){v.animals[k]=roll()<rate?pick(options):null;continue;}
+   const chance=roll(),leave=rate>=.8?.08:rate>=.55?.12:.25;
+   if(chance<leave)v.animals[k]=null;
+   else if(chance<leave+.42){const others=options.filter(o=>o.id!==previous.id);v.animals[k]=others.length?pick(others):previous.id;}
+   else v.animals[k]=previous.id;
   }
+  return true;
  }
  // One stable roll per eligible exploration; reloads and UI renders never reroll.
  function goldenEncounter(s){
@@ -173,5 +190,5 @@ window.DungeonForestV4Life=(function engine(){
   for(const o of slots){if(!o.visible)continue;if(kind(o)==='branch'&&materialBindings.has(o.id))out.push(o);if(kind(o).startsWith('grass_')||o.plantSpawn===true){if(window.DungeonWeatherV1&&!window.DungeonWeatherV1.plantSpawnAllowed(weather,o))continue;const day=Math.floor(Math.max(0,s.worldMinutes||0)/1440);const offset=o.id==='spawn-grass-6'?0:2;const phase=(day+offset)%4;if(phase!==0)out.push({...o,width:o.width*(phase===1?.65:phase===2?1:.8)});}}
   return out;
  }
- return {update,layout,goldenEncounter};
+ return {update,layout,goldenEncounter,activityRates};
 })();
