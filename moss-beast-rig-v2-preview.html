@@ -1,12 +1,14 @@
 <!doctype html>
 <html lang="zh-Hant"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>苔棘鬃獸｜四足動態骨架試驗</title>
 <style>*{box-sizing:border-box}body{margin:0;background:#112820;color:#e6d9b7;font:15px system-ui,sans-serif;padding:12px}main{max-width:850px;margin:auto}h1{font-size:19px;margin:0 0 8px}p{line-height:1.6;margin:8px 0}canvas{width:100%;height:auto;display:block;background:#253c30;border:1px solid #9f8d60;border-radius:8px;image-rendering:pixelated}nav{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}button{background:#29483a;border:1px solid #a8915d;color:#f4e7c6;border-radius:5px;padding:9px 12px;font:inherit}button[aria-pressed=true]{background:#d3b879;color:#203126}label{display:inline-flex;align-items:center;gap:6px}small{color:#bcbea9}</style>
-<main><h1>苔棘鬃獸 V2｜四足骨架試驗</h1><p>同一張側面母圖；固定腳掌落點，關節帶動身體，非重新生成每一幀。</p><canvas id="scene" width="480" height="220" aria-label="四足動畫預覽"></canvas><nav><button data-mode="original">原圖</button><button data-mode="rest">休息</button><button data-mode="rise">起身</button><button data-mode="walk">原地步態</button><button data-mode="travel">地面行走</button><button data-mode="alert">警戒</button><button data-mode="turn">轉身</button><button data-mode="trot">小跑</button><button data-mode="run">疾跑</button><button data-mode="run-in-place">原地疾跑</button><button data-mode="jump">向前跳躍</button><button data-mode="jump-up">原地跳躍</button><label><input id="secondary" type="checkbox" checked>頭部／鬃毛／尾部連動</label><label>速度 <select id="speed"><option value=".5">半速</option><option value="1" selected>正常</option><option value="1.5">快速</option></select></label><button id="pause">暫停</button><label><input id="debug" type="checkbox">顯示骨架與足點</label></nav><p id="status" role="status">讀取 V2 母圖…</p><small>獨立研究頁：尚未接入遊戲。疾跑採前後肢分組蹬地與騰空，小跑另保留比較；轉身使用既有方向圖，尚非連續骨架旋轉。圖層切割與美術仍待驗收。</small></main>
+<main><h1>苔棘鬃獸 V2｜四足骨架試驗</h1><p>同一張側面母圖；固定腳掌落點，關節帶動身體，非重新生成每一幀。</p><canvas id="scene" width="480" height="220" aria-label="四足動畫預覽"></canvas><nav><button data-mode="original">側面母圖</button><button data-mode="front">正面母圖</button><button data-mode="quarter">斜側母圖</button><button data-mode="rest-art">休息母圖</button><button data-mode="rest">休息</button><button data-mode="rise">起身</button><button data-mode="walk">原地步態</button><button data-mode="travel">地面行走</button><button data-mode="alert">警戒</button><button data-mode="turn">轉身</button><button data-mode="trot">小跑</button><button data-mode="run">疾跑</button><button data-mode="run-in-place">原地疾跑</button><button data-mode="jump">向前跳躍</button><button data-mode="jump-up">原地跳躍</button><label><input id="secondary" type="checkbox" checked>頭部／鬃毛／尾部連動</label><label>速度 <select id="speed"><option value=".5">半速</option><option value="1" selected>正常</option><option value="1.5">快速</option></select></label><button id="pause">暫停</button><label><input id="debug" type="checkbox">顯示骨架與足點</label></nav><p id="status" role="status">讀取 V2 母圖…</p><small>獨立研究頁：尚未接入遊戲。疾跑採前後肢分組蹬地與騰空，小跑另保留比較；轉身使用既有方向圖，尚非連續骨架旋轉。圖層切割與美術仍待驗收。</small></main>
+<script src="./assets/creature_shadow_v1.js?v=1"></script>
 <script>
 'use strict';
 const $=id=>document.getElementById(id),canvas=$('scene'),ctx=canvas.getContext('2d'),img=new Image();
 let mode='original',elapsed=0,last=0,paused=false,ready=false,cleanMother,body,parts,bodyPixels,warpCanvas,warpContext,warpPixels;
-const turnArts={front:new Image(),quarter:new Image()};
+const shadowCore=window.DungeonCreatureShadowV1;
+const turnArts={front:new Image(),quarter:new Image(),rest:new Image()};turnArts.rest.src="./assets/monsters/moss_beast_v2_rest.png";
 turnArts.front.src='./assets/monsters/moss_beast_v2_front.png';turnArts.quarter.src='./assets/monsters/moss_beast_v2_three_quarter.png';
 const ground=136,period=1000,stance=.75,stride=16,travelSpeed=stride/(stance*period);
 const gaits={walk:{period,stance,stride,lift:7},trot:{period:510,stance:.58,stride:20,lift:11},run:{period:480,stance:.28,stride:26,lift:19}};
@@ -20,15 +22,8 @@ function path(g,poly){g.beginPath();poly.forEach(([x,y],i)=>i?g.lineTo(x,y):g.mo
 function layer(poly){const c=document.createElement('canvas');c.width=cleanMother.width;c.height=cleanMother.height;const g=c.getContext('2d');g.imageSmoothingEnabled=false;path(g,poly);g.clip();g.drawImage(cleanMother,0,0);return c;}
 // The original side art contains a baked-in grey ground shadow. Remove only
 // that near-neutral band before extracting body and limb textures.
-function isBakedShadow(x,y,r,g,b,a){const hi=Math.max(r,g,b),lo=Math.min(r,g,b);return a>0&&y>=129&&x>=57&&hi-lo<=22&&hi<160&&lo>=65;}
 function prepare(){
- cleanMother=document.createElement('canvas');cleanMother.width=img.naturalWidth;cleanMother.height=img.naturalHeight;
- const cg=cleanMother.getContext('2d');cg.drawImage(img,0,0);
- if(cleanMother.width===208&&cleanMother.height===143){
-  const pixels=cg.getImageData(0,0,208,143),d=pixels.data;
-  for(let y=129;y<143;y++)for(let x=57;x<208;x++){const i=(y*208+x)*4;if(isBakedShadow(x,y,d[i],d[i+1],d[i+2],d[i+3])){d[i]=d[i+1]=d[i+2]=d[i+3]=0;}}
-  cg.putImageData(pixels,0,0);
- }
+ cleanMother=shadowCore.clean(img,'side');
  body=document.createElement('canvas');body.width=cleanMother.width;body.height=cleanMother.height;const g=body.getContext('2d');g.drawImage(cleanMother,0,0);
  // Preserve the shoulders/hips for overlap while removing the moving leg silhouettes.
  g.globalCompositeOperation='destination-out';for(const l of limbs){path(g,l.lower);g.fill();path(g,l.upper.map(([x,y])=>[x,Math.max(y,l.hip[1]+8)]));g.fill();}
@@ -120,8 +115,8 @@ function turnPose(ms){
  return {view:'side',mirror:true};
 }
 function drawTurn(){
- const p=turnPose(elapsed),art=p.view==='side'?cleanMother:turnArts[p.view];
- if(!art||p.view!=='side'&&(!art.complete||!art.naturalWidth)){ctx.drawImage(cleanMother,0,0);return;}
+ const p=turnPose(elapsed),art=p.view==='side'?cleanMother:shadowCore.clean(turnArts[p.view],p.view);
+ if(!art){ctx.drawImage(cleanMother,0,0);return;}
  // Normalize height by view, rather than shrinking width through zero.
  const h=p.view==='front'?132:p.view==='quarter'?133:img.naturalHeight;
  const w=(art.naturalWidth||art.width)*h/(art.naturalHeight||art.height);
@@ -129,8 +124,7 @@ function drawTurn(){
  ctx.drawImage(art,-w/2,-h,w,h);ctx.restore();
 }
 function groundShadow(baseX,height){
- const h=Math.max(0,height||0);
- return {x:baseX+105,y:190,rx:Math.max(42,83-h*.6),ry:7,alpha:Math.max(.18,.6-h*.009)};
+ return shadowCore.calculate({x:baseX+105,y:190,height,width:166,depth:14});
 }
 function render(){
  ctx.clearRect(0,0,480,220);const bg=ctx.createLinearGradient(0,0,0,220);bg.addColorStop(0,'#203a31');bg.addColorStop(1,'#43513b');ctx.fillStyle=bg;ctx.fillRect(0,0,480,220);
@@ -139,19 +133,19 @@ function render(){
  ctx.strokeStyle='#89906b66';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0,190);ctx.lineTo(480,190);ctx.stroke();for(let x=0;x<480;x+=24){ctx.fillStyle='#9ca07866';ctx.fillRect(x,190,2,3);}
  // Draw the shadow at world-ground coordinates before applying any actor transform.
  const sh=groundShadow(baseX,jump?jump.height:running?flightLift(phase):0);
- ctx.save();ctx.fillStyle='rgba(25,41,30,'+sh.alpha+')';ctx.beginPath();ctx.ellipse(sh.x,sh.y,sh.rx,sh.ry,0,0,Math.PI*2);ctx.fill();
+ shadowCore.draw(ctx,sh);ctx.save();
  if(debug){ctx.strokeStyle='#d1b976';ctx.beginPath();ctx.arc(sh.x,sh.y,3,0,Math.PI*2);ctx.stroke();}
  ctx.restore();
  ctx.save();ctx.translate(baseX,48);ctx.imageSmoothingEnabled=false;
  if(debug){ctx.strokeStyle='#baae76';ctx.setLineDash([5,4]);ctx.beginPath();ctx.moveTo(-110,ground);ctx.lineTo(330,ground);ctx.stroke();ctx.setLineDash([]);}
- if(ready){if(mode==='original')ctx.drawImage(cleanMother,0,0);else if(mode==='turn')drawTurn();else{for(const l of parts)drawLeg(l,phase,dy,walk,true,debug,overlays,gait,pitch,jump);ctx.save();ctx.translate(105,90+dy);ctx.rotate(pitch);ctx.translate(-105,-90);ctx.drawImage(warpedBody(secondaryMotion(mode,elapsed,phase)),0,0);ctx.restore();for(const l of parts)drawLeg(l,phase,dy,walk,false,debug,overlays,gait,pitch,jump);}}
+ if(ready){if(mode==='original')ctx.drawImage(cleanMother,0,0);else if(['front','quarter','rest-art'].includes(mode)){const key=mode==='rest-art'?'rest':mode,a=shadowCore.clean(turnArts[key],key);if(a)ctx.drawImage(a,105-a.width/2,142-a.height);}else if(mode==='turn')drawTurn();else{for(const l of parts)drawLeg(l,phase,dy,walk,true,debug,overlays,gait,pitch,jump);ctx.save();ctx.translate(105,90+dy);ctx.rotate(pitch);ctx.translate(-105,-90);ctx.drawImage(warpedBody(secondaryMotion(mode,elapsed,phase)),0,0);ctx.restore();for(const l of parts)drawLeg(l,phase,dy,walk,false,debug,overlays,gait,pitch,jump);}}
  if(debug){for(const {hip,knee,foot,far,planted} of overlays){ctx.strokeStyle=far?'#7898a1':'#e2c475';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(...hip);ctx.lineTo(...knee);ctx.lineTo(...foot);ctx.stroke();for(const p of [hip,knee]){ctx.fillStyle='#f4db91';ctx.fillRect(p[0]-1.5,p[1]-1.5,3,3);}ctx.fillStyle=planted?'#a8e5a2':'#e7b880';ctx.fillRect(foot[0]-2,foot[1]-2,4,4);}}
  ctx.restore();ctx.fillStyle='#ddd1ae';ctx.font='12px system-ui';ctx.fillText(jump?jump.stage+' · 高度 '+Math.round(jump.height)+' px':running?(phase<.36?'後足蹬地':phase<.40?'轉移騰空':phase<.76?'前足接地':'騰空收腿')+' · '+Math.round(phase*100)+'%':walk?'步態相位 '+Math.round(phase*100)+'%':mode==='rise'?'起身 '+Math.round(clamp(elapsed/850,0,1)*100)+'%':mode==='rest'?'低伏':mode==='alert'?'警戒':mode==='turn'?'轉身 '+Math.round(clamp(elapsed/1250,0,1)*100)+'%':'母圖',12,18);
 }
 function tick(now){if(!paused)elapsed+=Math.min(60,last?now-last:0)*Number($('speed').value);last=now;render();requestAnimationFrame(tick);}
 for(const b of document.querySelectorAll('[data-mode]'))b.onclick=()=>{mode=b.dataset.mode;elapsed=0;paused=false;$('pause').textContent='暫停';for(const n of document.querySelectorAll('[data-mode]'))n.setAttribute('aria-pressed',String(n===b));};
 $('pause').onclick=()=>{paused=!paused;$('pause').textContent=paused?'繼續':'暫停';};
-img.onload=()=>{prepare();ready=true;$('status').textContent='母圖 '+img.naturalWidth+' × '+img.naturalHeight+'；已分離原圖灰色陰影，地面影子獨立繪製。';document.querySelector('[data-mode="original"]').click();requestAnimationFrame(tick);};
+img.onload=()=>{prepare();ready=true;$('status').textContent='母圖 '+img.naturalWidth+' × '+img.naturalHeight+'；四張母圖均使用獨立陰影清理設定，地面影子由共用核心繪製。';document.querySelector('[data-mode="original"]').click();requestAnimationFrame(tick);};
 img.onerror=()=>$('status').textContent='母圖載入失敗，未使用替代舊圖。';
 img.src='./assets/monsters/moss_beast_v2_side.png';
 </script></html>
