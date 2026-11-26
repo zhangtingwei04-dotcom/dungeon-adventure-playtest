@@ -8,4 +8,18 @@ get('sceneDialogue').hidden=false;core.sync();assert.equal(get('actions').inert,
 get('sceneDialogue').hidden=true;core.sync();assert.equal(get('actions').inert,false);
 assert.equal(core.run(()=>count++),true);assert.equal(count,2);
 now=700;assert.throws(()=>core.run(()=>{throw Error('test')}));now=1100;assert.equal(core.run(()=>count++),true);
+assert.equal(core.allow('travel'),true);
+assert.equal(core.allow('battle'),true);
+assert.equal(core.allow('travel'),false);
+core.reset('battle');assert.equal(core.allow('battle'),true);
+now+=300;assert.equal(core.allow('travel'),true);
+const start=get('startVeil'),scene=get('sceneDialogue'),map=get('journalVeil');
+start.hidden=false;scene.hidden=false;core.sync();
+assert.equal(core.active(),null);assert.equal(core.blocks(start),false);assert.equal(core.blocks(scene),true);
+assert.equal(get('actions').inert,false);
+start.hidden=true;core.sync();assert.equal(core.active(),scene);
+assert.equal(core.blocks(scene),false);assert.equal(core.blocks(start),true);
+assert.equal(core.blocks(start,{infoAllowed:()=>true}),false);
+assert.equal(core.blocks(map,{mapOpen:true}),false);assert.equal(core.blocks(scene,{mapOpen:true}),true);
+scene.hidden=true;core.sync();assert.equal(core.blocks(start),false);
 console.log('Lantern action core passed');
