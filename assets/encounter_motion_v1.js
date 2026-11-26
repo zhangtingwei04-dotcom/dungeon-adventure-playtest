@@ -18,9 +18,21 @@
  }
  function create(host){
   let generation=0,animations=[],wildlife=[],actors=[],started=false;
+  const artV2=root.DungeonMossBeastArtV2, clocks=new Map();
   const reduced=()=>root.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
   function animate(node,frames,options){if(reduced()||!node.animate)return null;const a=node.animate(frames,options);animations.push(a);return a;}
+  function stopFrames(node){const t=clocks.get(node);if(t){clearTimeout(t);clocks.delete(node);}}
+  function pose(node,name){stopFrames(node);const img=node.querySelector('img');if(!img||!artV2)return;img.src=artV2[name]||artV2.front;img.style.transform='none';}
+  function frames(node,name,duration=Infinity,flip=false,done){
+   stopFrames(node);const img=node.querySelector('img'),seq=artV2?.[name];if(!img||!seq)return;
+   img.style.transform=flip?'scaleX(-1)':'none';
+   const start=Date.now(),token=generation;let last=-1;
+   const tick=()=>{if(token!==generation||!node.isConnected){stopFrames(node);return;}const elapsed=Date.now()-start;if(elapsed>=duration){clocks.delete(node);done?.();return;}
+    const idx=name==='rise'?Math.min(seq.frames.length-1,Math.floor(elapsed*seq.fps/1000)):Math.floor(elapsed*seq.fps/1000)%seq.frames.length;
+    if(idx!==last){img.src=seq.frames[idx];last=idx;}clocks.set(node,setTimeout(tick,1000/seq.fps));};tick();
+  }
   function clear(){
+   for(const n of clocks.keys())stopFrames(n);
    generation++;for(const a of animations)a.cancel?.();animations=[];
    for(const n of wildlife){delete n.dataset.encounterFled;}
    wildlife=[];actors=[];started=false;
@@ -32,7 +44,7 @@
     const base=actors[0];if(!base)continue;
     const n=base.cloneNode(true);n.dataset.trialMonster=String(i);n.dataset.objectId=id(i);n.setAttribute('aria-label','苔棘鬃獸 '+(i+1));n.querySelector('span').textContent='苔棘鬃獸 '+(i+1);host.append(n);actors.push(n);
    }
-   for(const n of actors){const i=Number(n.dataset.trialMonster);n.hidden=i>=count;n.dataset.encounterPose='rest';delete n.dataset.encounterResolved;delete n.dataset.encounterSelected;position(n,slots[i].rest);}
+   for(const n of actors){const i=Number(n.dataset.trialMonster);n.hidden=i>=count;n.dataset.encounterPose='rest';delete n.dataset.encounterResolved;delete n.dataset.encounterSelected;position(n,slots[i].rest);if(!n.hidden&&artV2){pose(n,'rest');if(!reduced())frames(n,'idle',Infinity,i===1);}}
   }
   function flee(){
    wildlife=Array.from(host.querySelectorAll('.forest-v4-object[data-motion="animal"]')).filter(n=>!n.hidden&&!n.classList.contains('env-leaving'));
@@ -50,14 +62,27 @@
    for(const n of actors){
     const i=Number(n.dataset.trialMonster);if(i>=count)continue;
     const p=slots[i],art=n.querySelector('img');n.dataset.encounterPose='walk';
-    // Rise in place, then follow separate authored waypoints with depth scaling.
-    if(art){const a=animate(art,[{transform:'scaleY(.68)'},{transform:'scaleY(1)',offset:.24},{transform:'scaleY(.95) translateY(-2%)',offset:.38},{transform:'scaleY(1)',offset:.54},{transform:'scaleY(.95) translateY(-2%)',offset:.70},{transform:'scaleY(1)'}],{duration:1250,delay:p.delay,fill:'backwards'});if(a)jobs.push(a.finished);}
     const end=destination(i,i===0?1:2);
-    const a=animate(n,[{...frame(p.rest),offset:0},{...frame(p.rest),offset:.25},...p.via.map(q=>({...frame(q),offset:.63})),{...frame(end),offset:1}],{duration:1250,delay:p.delay,easing:'ease-in-out',fill:'backwards'});
-    position(n,end);if(a)jobs.push(a.finished);
+    if(artV2&&art&&!reduced()){
+     stopFrames(n);pose(n,'rest');
+     const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+     jobs.push((async()=>{
+      await wait(p.delay);if(token!==generation)return;
+      n.dataset.encounterPose='rise';frames(n,'rise',1000,i===1);
+      await wait(1000);if(token!==generation)return;
+      n.dataset.encounterPose='walk';frames(n,'walk',1050,i===1);
+      const a=animate(n,[frame(p.rest),...p.via.map(frame),frame(end)],{duration:1050,easing:'linear',fill:'backwards'});
+      position(n,end);if(a)await a.finished.catch(()=>{});
+      if(token===generation){pose(n,i===0?'front':'threeQuarter');n.dataset.encounterPose='ready';}
+     })());
+    }else{
+     if(artV2)pose(n,i===0?'front':'threeQuarter');
+     const a=animate(n,[frame(p.rest),...p.via.map(frame),frame(end)],{duration:1250,delay:p.delay,easing:'ease-in-out',fill:'backwards'});
+     position(n,end);if(a)jobs.push(a.finished);
+    }
    }
    await Promise.allSettled(jobs);if(token!==generation)return false;
-   for(const n of actors)n.dataset.encounterPose='ready';return true;
+   for(const n of actors){if(!n.hidden){n.dataset.encounterPose='ready';if(artV2)pose(n,Number(n.dataset.trialMonster)===0?'front':'threeQuarter');}}return true;
   }
   function sync(foes,selected){
    if(!started)return;
@@ -68,11 +93,15 @@
      if(n.dataset.encounterResolved==='true')continue;
      n.dataset.encounterResolved='true';n.dataset.encounterPose='walk';
      const from=n._ground||slots[i].fight,to=slots[i].rest;
+     if(artV2&&!reduced())frames(n,'walk',700,to.x<from.x);
      const a=animate(n,[{...frame(from),opacity:1},{...frame(to),opacity:0}],{duration:700,easing:'ease-in',fill:'forwards'});
      if(!a)n.hidden=true;continue;
     }
     const end=destination(i,m.distance),from=n._ground||end;
-    if(Math.abs(from.y-end.y)>.1||Math.abs(from.x-end.x)>.1){animate(n,[frame(from),frame(end)],{duration:320,easing:'ease-in-out'});position(n,end);}
+    if(Math.abs(from.y-end.y)>.1||Math.abs(from.x-end.x)>.1){
+     if(artV2&&!reduced())frames(n,'walk',420,end.x<from.x,()=>pose(n,i===0?'front':'threeQuarter'));
+     animate(n,[frame(from),frame(end)],{duration:420,easing:'linear'});position(n,end);
+    }else if(artV2&&!clocks.has(n))pose(n,i===0?'front':'threeQuarter');
     n.dataset.encounterPose=m.intent==='pounce'||m.intent==='heavy'?'alert':m.intent==='exposed'?'exposed':'ready';
    }
   }
