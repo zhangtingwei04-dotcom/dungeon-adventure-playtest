@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="zh-Hant"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>苔棘鬃獸｜四足動態骨架試驗</title>
 <style>*{box-sizing:border-box}body{margin:0;background:#112820;color:#e6d9b7;font:15px system-ui,sans-serif;padding:12px}main{max-width:850px;margin:auto}h1{font-size:19px;margin:0 0 8px}p{line-height:1.6;margin:8px 0}canvas{width:100%;height:auto;display:block;background:#253c30;border:1px solid #9f8d60;border-radius:8px;image-rendering:pixelated}nav{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}button{background:#29483a;border:1px solid #a8915d;color:#f4e7c6;border-radius:5px;padding:9px 12px;font:inherit}button[aria-pressed=true]{background:#d3b879;color:#203126}label{display:inline-flex;align-items:center;gap:6px}small{color:#bcbea9}</style>
-<main><h1>苔棘鬃獸 V2｜四足骨架試驗</h1><p>同一張側面母圖；固定腳掌落點，關節帶動身體，非重新生成每一幀。</p><canvas id="scene" width="480" height="220" aria-label="四足動畫預覽"></canvas><nav><button data-mode="original">側面母圖</button><button data-mode="front">正面母圖</button><button data-mode="quarter">斜側母圖</button><button data-mode="rest-art">休息母圖</button><button data-mode="rest">休息</button><button data-mode="rise">起身</button><button data-mode="walk">原地步態</button><button data-mode="travel">地面行走</button><button data-mode="alert">警戒</button><button data-mode="turn">轉身</button><button data-mode="trot">小跑</button><button data-mode="run">疾跑</button><button data-mode="run-in-place">原地疾跑</button><button data-mode="jump">向前跳躍</button><button data-mode="jump-up">原地跳躍</button><label><input id="secondary" type="checkbox" checked>頭部／鬃毛／尾部連動</label><label>速度 <select id="speed"><option value=".5">半速</option><option value="1" selected>正常</option><option value="1.5">快速</option></select></label><button id="pause">暫停</button><label><input id="debug" type="checkbox">顯示骨架與足點</label><label><input id="body-only" type="checkbox">檢查軀幹殘留</label></nav><p id="status" role="status">讀取 V2 母圖…</p><small>獨立研究頁：尚未接入遊戲。疾跑採前後肢分組蹬地與騰空，小跑另保留比較；轉身使用既有方向圖，尚非連續骨架旋轉。圖層切割與美術仍待驗收。</small></main>
+<main><h1>苔棘鬃獸 V12｜前腿連續蒙皮試驗</h1><p>同一張側面母圖；固定腳掌落點，關節帶動身體，非重新生成每一幀。</p><canvas id="scene" width="480" height="220" aria-label="四足動畫預覽"></canvas><nav><button data-mode="original">側面母圖</button><button data-mode="front">正面母圖</button><button data-mode="quarter">斜側母圖</button><button data-mode="rest-art">休息母圖</button><button data-mode="rest">休息</button><button data-mode="rise">起身</button><button data-mode="walk">原地步態</button><button data-mode="travel">地面行走</button><button data-mode="alert">警戒</button><button data-mode="turn">轉身</button><button data-mode="trot">小跑</button><button data-mode="run">疾跑</button><button data-mode="run-in-place">原地疾跑</button><button data-mode="jump">向前跳躍</button><button data-mode="jump-up">原地跳躍</button><label><input id="secondary" type="checkbox" checked>頭部／鬃毛／尾部連動</label><label>速度 <select id="speed"><option value=".5">半速</option><option value="1" selected>正常</option><option value="1.5">快速</option></select></label><button id="pause">暫停</button><label><input id="debug" type="checkbox">顯示骨架與足點</label><label><input id="body-only" type="checkbox">檢查軀幹殘留</label></nav><p id="status" role="status">讀取 V2 母圖…</p><small>獨立研究頁：尚未接入遊戲。疾跑採前後肢分組蹬地與騰空，小跑另保留比較；轉身使用既有方向圖，尚非連續骨架旋轉。圖層切割與美術仍待驗收。</small></main>
 <script src="./assets/creature_shadow_v1.js?v=1"></script>
 <script>
 'use strict';
@@ -13,6 +13,8 @@ turnArts.front.src='./assets/monsters/moss_beast_v2_front.png';turnArts.quarter.
 const ground=136,period=1000,stance=.75,stride=16,travelSpeed=stride/(stance*period);
 const gaits={walk:{period,stance,stride,lift:7},trot:{period:510,stance:.58,stride:20,lift:11},run:{period:480,stance:.28,stride:26,lift:19}};
 const speedOf=g=>g.stride/(g.stance*g.period);
+const frontContour=[[54,78],[93,78],[103,91],[103,101],[98,112],[92,122],[87,131],[74,138],[63,143],[20,143],[20,126],[43,121],[51,111],[59,99],[56,91]];
+const frontErase=[[53,94],[99,94],[106,107],[117,108],[117,143],[0,143],[0,108],[48,108]];
 const limbs=[
  {id:'front',hip:[75,87],knee:[65,112],foot:[42,136],ankle:[52,126],paw:[[23,126],[45,122],[58,123],[65,130],[62,142],[22,142]],bend:-1,upper:[[57,75],[89,75],[98,91],[99,104],[88,115],[55,112],[51,98]],lower:[[54,103],[91,104],[102,111],[94,125],[84,135],[68,143],[20,143],[20,126],[48,120]],phase:0},
  {id:'rear',hip:[151,93],knee:[147,116],foot:[161,136],ankle:[160,126],paw:[[138,124],[155,120],[173,123],[178,140],[138,142]],bend:1,upper:[[135,77],[164,78],[178,100],[164,122],[140,122],[131,109]],lower:[[135,109],[170,108],[180,118],[183,143],[136,143],[136,127],[145,118]],phase:.25}
@@ -26,11 +28,11 @@ function prepare(){
  cleanMother=shadowCore.clean(img,'side');
  body=document.createElement('canvas');body.width=cleanMother.width;body.height=cleanMother.height;const g=body.getContext('2d');g.drawImage(cleanMother,0,0);
  // Preserve the shoulders/hips for overlap while removing the moving leg silhouettes.
- g.globalCompositeOperation='destination-out';for(const l of limbs){path(g,l.lower);g.fill();path(g,l.paw);g.fill();path(g,l.upper.map(([x,y])=>[x,Math.max(y,l.hip[1]+8)]));g.fill();}
+ g.globalCompositeOperation='destination-out';for(const l of limbs){if(l.id==='front')continue;path(g,l.lower);g.fill();path(g,l.paw);g.fill();path(g,l.upper.map(([x,y])=>[x,Math.max(y,l.hip[1]+8)]));g.fill();}
  // Clear the original front/rear foot silhouettes completely, including the narrow diagonal strip outside the old masks.
- path(g,[[57,96],[96,96],[105,108],[124,108],[124,143],[0,143],[0,108],[52,108]]);g.fill();
+ path(g,frontErase);g.fill();
  g.fillRect(124,116,63,27);g.fillRect(0,140,body.width,body.height-140);
- parts=limbs.map(l=>({...l,a:len(l.hip,l.knee),b:len(l.knee,l.ankle),u:layer(l.upper,l.paw),v:layer(l.lower,l.paw),p:layer(l.paw)}));
+ parts=limbs.map(l=>({...l,a:len(l.hip,l.knee),b:len(l.knee,l.ankle),u:layer(l.upper,l.paw),v:layer(l.lower,l.paw),p:layer(l.paw),skin:l.id==='front'?layer(frontContour):null}));
  bodyPixels=g.getImageData(0,0,body.width,body.height);warpCanvas=document.createElement('canvas');warpCanvas.width=body.width;warpCanvas.height=body.height;warpContext=warpCanvas.getContext('2d');warpPixels=warpContext.createImageData(body.width,body.height);
 }
 // Soft, bounded secondary motion in mother-image coordinates. No new silhouettes.
@@ -103,10 +105,27 @@ function support(l,phase,far,g=gaits.walk){return limbPhase(l,phase,far,g)<g.sta
 function segment(bitmap,fromA,fromB,toA,toB){ctx.save();ctx.translate(...toA);ctx.rotate(angle(toA,toB)-angle(fromA,fromB));ctx.translate(-fromA[0],-fromA[1]);ctx.drawImage(bitmap,0,0);ctx.restore();}
 // The paw has its own rigid texture and ground-facing orientation. Only the shin rotates.
 function pawPose(l,foot){return {ankle:[foot[0]+l.ankle[0]-l.foot[0],foot[1]+l.ankle[1]-l.foot[1]],angle:0};}
+// The front leg is one continuous skin, not three rigid cutouts. Map
+// horizontal texture strips between ordered joint heights; fur cannot rotate
+// under the paw or appear as a second detached flap.
+function frontSkinRows(l,hip,knee,ankle,foot){
+ const hx=hip[0]-l.hip[0],hy=hip[1]-l.hip[1],ax=ankle[0]-l.ankle[0],ay=ankle[1]-l.ankle[1];
+ const top=78+hy,bottom=126+ay,span=Math.max(12,bottom-top);
+ const mid=clamp(knee[1],top+span*.30,bottom-span*.16);
+ const kx=clamp(knee[0]-l.knee[0],Math.min(hx,ax)-9,Math.max(hx,ax)+9);
+ return [{y:78,t:top,dx:hx},{y:94,t:top+(mid-top)*16/34,dx:hx+(kx-hx)*.30},{y:112,t:mid,dx:kx},{y:126,t:bottom,dx:ax},{y:143,t:143+ay,dx:ax}];
+}
+function drawFrontSkin(l,hip,knee,ankle,foot){
+ const rows=frontSkinRows(l,hip,knee,ankle,foot);
+ for(let i=0;i<rows.length-1;i++){
+  const a=rows[i],b=rows[i+1],n=b.y-a.y;
+  for(let j=0;j<n;j++){const u=j/n,v=(j+1)/n,x=a.dx+(b.dx-a.dx)*(u+v)/2,y=a.t+(b.t-a.t)*u,h=(b.t-a.t)/n;
+   if(h>0)ctx.drawImage(l.skin,0,a.y+j,l.skin.width,1,x,y,l.skin.width,h+.10);}
+ }
+}
 function drawLeg(l,phase,dy,walk,far,debug,overlays,gait,pitch=0,jump=null){
  const hip=bodyPoint(l.hip[0]+(far?5:0),l.hip[1]-(far?3:0),dy,pitch),foot=jump?jumpFoot(l,far,jump):footAt(l,phase,walk,far,gait),paw=pawPose(l,foot),ankle=paw.ankle,knee=solve(hip,ankle,l.a,l.b,l.bend);
- ctx.save();if(far)ctx.filter='brightness(.65)';segment(l.u,l.hip,l.knee,hip,knee);segment(l.v,l.knee,l.ankle,knee,ankle);
- ctx.save();ctx.translate(foot[0]-l.foot[0],foot[1]-l.foot[1]);ctx.drawImage(l.p,0,0);ctx.restore();ctx.restore();
+ ctx.save();if(far)ctx.filter='brightness(.65)';if(l.id==='front'){drawFrontSkin(l,hip,knee,ankle,foot);}else{segment(l.u,l.hip,l.knee,hip,knee);segment(l.v,l.knee,l.ankle,knee,ankle);ctx.save();ctx.translate(foot[0]-l.foot[0],foot[1]-l.foot[1]);ctx.drawImage(l.p,0,0);ctx.restore();}ctx.restore();
  if(debug)overlays.push({hip,knee,ankle,foot,far,planted:jump?Math.abs(foot[1]-(ground-(far?3:0)))<.01:!walk||support(l,phase,far,gait)});
 }
 // Directional turn study: approved side, quarter and front drawings are
