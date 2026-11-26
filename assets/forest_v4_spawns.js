@@ -176,6 +176,27 @@ window.DungeonForestV4Life=(function engine(){
   }
   return true;
  }
+ // Quiet collection creates one extra opportunity for an absent animal to return.
+ // It never removes or relocates animals already present, or rerolls the rare variant.
+ function duringCollection(s,base,slots,phase,weather,random){
+  if(s.scene!=='wreck'||s.flags?.inBattle)return null;
+  const v=state(s),engine=window.DungeonWeatherV1;
+  v.collectionChecks=(Number.isSafeInteger(v.collectionChecks)&&v.collectionChecks>=0?v.collectionChecks:0)+1;
+  const roll=random||seeded(s,'collect:'+v.collectionChecks);
+  const candidates=[];
+  for(const k of animalKinds){
+   const rate=activityRates[k]?.[phase]||0;
+   if(!rate||v.animals[k]||engine&&!engine.activity(k,weather))continue;
+   const options=[...base,...slots].filter(o=>o.visible&&kind(o)===k);
+   if(options.length)candidates.push({k,rate,options});
+  }
+  if(!candidates.length)return null;
+  const candidate=candidates[Math.min(candidates.length-1,Math.floor(roll()*candidates.length))];
+  if(roll()>=candidate.rate*.45)return null;
+  const target=candidate.options[Math.min(candidate.options.length-1,Math.floor(roll()*candidate.options.length))];
+  v.animals[candidate.k]=target.id;
+  return {kind:candidate.k,id:target.id};
+ }
  // One stable roll per eligible exploration; reloads and UI renders never reroll.
  function goldenEncounter(s){
   const minute=Math.max(0,Math.floor(Number(s.worldMinutes)||0)),hour=minute%1440/60;
@@ -190,5 +211,5 @@ window.DungeonForestV4Life=(function engine(){
   for(const o of slots){if(!o.visible)continue;if(kind(o)==='branch'&&materialBindings.has(o.id))out.push(o);if(kind(o).startsWith('grass_')||o.plantSpawn===true){if(window.DungeonWeatherV1&&!window.DungeonWeatherV1.plantSpawnAllowed(weather,o))continue;const day=Math.floor(Math.max(0,s.worldMinutes||0)/1440);const offset=o.id==='spawn-grass-6'?0:2;const phase=(day+offset)%4;if(phase!==0)out.push({...o,width:o.width*(phase===1?.65:phase===2?1:.8)});}}
   return out;
  }
- return {update,layout,goldenEncounter,activityRates};
+ return {update,layout,goldenEncounter,activityRates,duringCollection};
 })();
