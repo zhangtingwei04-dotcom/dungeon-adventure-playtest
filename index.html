@@ -4496,6 +4496,7 @@ html.stage-locked #app #battleSurface .battle-actions button{font-size:17px;min-
 <script src="./assets/fault_isolation_v1.js?v=1"></script>
 <script src="./assets/object_investigation_v1.js?v=5-species-interactions"></script>
 <script src="./assets/investigation_cards_v1.js?v=1.0.0"></script>
+<script src="./assets/creature_capture_v1.js?v=1"></script>
 <script src="./assets/scene_dialogue_v1.js"></script>
 <script src="./assets/opening_progression_v1.js?v=2-departure"></script>
 <script src="./assets/discovery_cue_v1.js?v=1"></script>
@@ -7521,6 +7522,7 @@ normalizeGameTime();normalizeRecovery();normalizeForestRare();normalizeBeetleCar
  ['world.winter-surfaces','8',['world.weather'],'DungeonWinterV1'],
  ['world.objects','20261125',['engine.time','world.weather'],'DungeonSceneObjectsV1'],
  ['ui.investigation-cards','1.0.0',['world.objects'],'DungeonInvestigationCardsV1'],
+ ['world.creature-capture','1.0.0',['world.forest-life','ui.investigation-cards'],'DungeonCreatureCaptureV1'],
  ['world.forest-life','6',['world.weather'],'DungeonForestV4Life'],
  ['character.expression','2.20',['engine.registry'],'DungeonExpressionMotion'],
  ['world.scene-presence','1.0.0',['engine.events','world.weather'],'DungeonScenePresenceV1'],
@@ -8450,9 +8452,9 @@ function collectionPerformanceSpec(kind){
 function collectionKind(material){
  return /蘑菇/.test(material)?'mushroom':/木|枝/.test(material)?'wood':/繩|纖維/.test(material)?'fiber':/石/.test(material)?'stone':/葉/.test(material)?'leaf':'default';
 }
-function sceneCollectionResult(fn,target=null,kind='default'){
+function sceneCollectionResult(fn,target=null,kind='default',performance=null){
  if(activeDialogueSurface()||s.flags.inBattle||encounterPending)return;
- const actor=s,site=s.scene,spec=collectionPerformanceSpec(kind),notice=$('toast');
+ const actor=s,site=s.scene,spec=performance||collectionPerformanceSpec(kind),notice=$('toast');
  notice.classList.remove('active');
  const stage=$('sceneStage');
  let overlay=$('collectionPerformance');
@@ -8464,6 +8466,8 @@ function sceneCollectionResult(fn,target=null,kind='default'){
  }
  overlay.replaceChildren();
  const label=document.createElement('div');label.textContent=spec.text;overlay.appendChild(label);
+ let countdown=null;
+ if(performance?.countdown){const started=Date.now();const tick=()=>{label.textContent=spec.text+' '+Math.max(0,(spec.ms-(Date.now()-started))/1000).toFixed(1)+' 秒';};tick();countdown=setInterval(tick,100);}
  const track=document.createElement('div');track.style.cssText='height:4px;margin-top:7px;border-radius:3px;background:#85947b45;overflow:hidden;';
  const bar=document.createElement('div');bar.style.cssText='height:100%;width:0;background:#c9c28a;border-radius:3px;';
  track.appendChild(bar);overlay.appendChild(track);
@@ -8477,7 +8481,7 @@ function sceneCollectionResult(fn,target=null,kind='default'){
  }
  if(typeof bar.animate==='function')bar.animate([{width:'0%'},{width:'100%'}],{duration:spec.ms,fill:'forwards'});
  // During the performance, allow a quiet wildlife encounter without interrupting collection.
- if(site==='wreck'&&forestV4Active()&&target?.id)setTimeout(()=>{
+ if(!performance&&site==='wreck'&&forestV4Active()&&target?.id)setTimeout(()=>{
   if(s!==actor||s.scene!==site||s.flags.inBattle||encounterPending||overlay.classList.contains('hidden')||!forestV4Active())return;
   const sourceStillPresent=Array.from($('hotspots').querySelectorAll('[data-object-id]:not(.env-leaving):not([disabled])')).some(el=>el.dataset.objectId===target.id);
   if(!sourceStillPresent||(kind==='crate'?s.flags.openingClothTaken||wreckCleared():explorationDaily(site).collected>=2))return;
@@ -8488,11 +8492,33 @@ function sceneCollectionResult(fn,target=null,kind='default'){
   if(arrival){renderHotspots();renderPlaceDrawer();syncDialogueInputLock();}
  },Math.round(spec.ms*.55));
  setTimeout(()=>{
+  if(countdown!==null)clearInterval(countdown);
   anim?.cancel();overlay.classList.add('hidden');syncDialogueInputLock();
   if(s!==actor||s.scene!==site||s.flags.inBattle||encounterPending||activeDialogueSurface())return;
   notice.classList.remove('active');fn();
   if(!activeDialogueSurface()&&!sceneDialogueState.open&&notice.classList.contains('active'))inspectInScene(notice.textContent,[{label:'繼續',fn:()=>{}}]);
  },spec.ms);
+}
+function tryBarehandCapture(o){
+ if(s.scene!=='wreck'||!forestV4Active()||o.previewOnly||String(o.id).startsWith('preview-'))return;
+ const core=window.DungeonCreatureCaptureV1,objectCore=window.DungeonObjectInvestigationV1;
+ const kind=o.assetId.replace('forest4_',''),type=o.rabbitVariant==='golden'?'goldenRabbit':kind;
+ const info=objectCore.describe(o,[],s,'wreck'),policy=core.policy(s,type);
+ if(!policy?.allowed){inspectInScene('你的身體狀況不足以嘗試捕捉。',[{label:'離開',fn:()=>{}}]);return;}
+ const present=()=>Array.from($('hotspots').querySelectorAll('button[data-object-id]:not(.env-leaving):not([disabled])')).some(node=>node.dataset.objectId===o.id&&(node.dataset.rabbitVariant||'')===(o.rabbitVariant||''));
+ if(!present())return;
+ sceneCollectionResult(()=>{
+  if(!present()){inspectInScene('牠已離開，沒能抓住牠。',[{label:'繼續',fn:()=>{}}]);return;}
+  const success=core.resolve(s,type);
+  const life=s.forestV4Life;
+  if(life?.animals)life.animals[kind]=null;
+  const text=success?'你成功抓住了'+info.name+'。':'牠察覺你的動作，迅速逃離。';
+  rememberDepartedAnimal(s,o,info,success?'你曾成功徒手捕捉牠，隨後放生。':text);
+  addTravel('discovery',success?'徒手捕捉成功：'+info.name+'。':'徒手捕捉未成功：'+info.name+'。','');
+  save();render();
+  if(success)inspectInScene(text+' 目前尚未準備適合的安置容器。',[{label:'放生',fn:()=>{addTravel('daily','將'+info.name+'放回林間。','');save();render();}}]);
+  else inspectInScene(text,[{label:'繼續',fn:()=>{}}]);
+ },o,'capture',{ms:policy.ms,text:'嘗試徒手捕捉…',countdown:true});
 }
 function interactForestAnimal(o,action){
  if(s.scene!=='wreck'||s.flags.inBattle)return;
@@ -8536,6 +8562,7 @@ function forestV4Action(o){
  if(info.type==='living'&&objectCore.animalInteraction(o.assetId)){
   options.push({label:'安靜觀察',fn:()=>interactForestAnimal(o,'observe')});
   options.push({label:k==='beetle'?'俯身查看':'慢慢靠近',fn:()=>interactForestAnimal(o,'approach')});
+  if(!o.previewOnly&&!String(o.id).startsWith('preview-'))options.push({label:'徒手捕捉',fn:()=>tryBarehandCapture(o)});
  }
  options.push({label:info.type==='living'?'不打擾牠':'先離開',fn:()=>{}});
  const text=info.description;
