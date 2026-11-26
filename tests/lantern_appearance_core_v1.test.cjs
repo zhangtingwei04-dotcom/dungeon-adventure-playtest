@@ -1,0 +1,17 @@
+const assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs'),path=require('node:path');
+const window={};vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../assets/lantern_appearance_core_v1.js'),'utf8'),{window});
+const core=window.LanternAppearanceCoreV1,catalog={outer:{id:'cloak'},bag:{id:'satchel'}},eq={owned:['cloak'],outer:'cloak',bag:null};
+assert.equal(core.equipped(eq,catalog,'outer').id,'cloak');
+assert.equal(core.change(eq,catalog,'outer',false),true);
+assert.equal(core.equipped(eq,catalog,'outer'),null);
+assert.equal(eq.owned[0],'cloak');
+assert.equal(core.change(eq,catalog,'bag',true),false);
+assert.equal(core.change(eq,catalog,'outer',true),true);
+assert.equal(core.change(eq,catalog,'outer',true),false);
+const calls=[],motion={applySleepFacePriority:()=>calls.push('sleep'),applyAbnormalFacePriority:()=>calls.push('abnormal'),sleepFace:(s,t)=>t};
+core.face({}, {sleep:'sleep',effects:[]},motion);
+assert.deepEqual(calls,['sleep','abnormal']);
+calls.length=0;core.face({}, {sleep:'sleep',effects:['unconscious']},motion);
+assert.deepEqual(calls,['abnormal']);
+assert.equal(core.sleepFace('awake',-1,motion),0);
+console.log('Lantern appearance core passed');
