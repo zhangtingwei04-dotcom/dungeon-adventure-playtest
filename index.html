@@ -7874,9 +7874,12 @@ function glance(){
 }
 function marks(){
  const known=routeKnown('wreck','trail');note('scratches','車板上有不明的深刻痕跡',true);
- if(!known){s.flags.openingTracks=true;save();render();}
  inspectInScene(known?'泥地上的車轍延伸到已發現的小徑。':'你蹲下查看破裂的車輪。泥地上有兩道被壓深的車轍，一路延伸到樹叢深處。',[
- {label:known?'前往林間小徑':'循著車轍',fn:()=>{if(known)routeGo('trail');else followOpeningClue();}},
+ {label:known?'前往林間小徑':'循著車轍',fn:()=>{
+  if(known){routeGo('trail');return;}
+  s.flags.openingTracks=true;
+  followOpeningClue();
+ }},
  {label:'留在原地',fn:()=>{}}
  ]);
 }
