@@ -5,7 +5,7 @@
 <script>
 'use strict';
 const $=id=>document.getElementById(id),canvas=$('scene'),ctx=canvas.getContext('2d'),img=new Image();
-let mode='original',elapsed=0,last=0,paused=false,ready=false,body,parts,bodyPixels,warpCanvas,warpContext,warpPixels;
+let mode='original',elapsed=0,last=0,paused=false,ready=false,cleanMother,body,parts,bodyPixels,warpCanvas,warpContext,warpPixels;
 const turnArts={front:new Image(),quarter:new Image()};
 turnArts.front.src='./assets/monsters/moss_beast_v2_front.png';turnArts.quarter.src='./assets/monsters/moss_beast_v2_three_quarter.png';
 const ground=136,period=1000,stance=.75,stride=16,travelSpeed=stride/(stance*period);
@@ -17,9 +17,19 @@ const limbs=[
 ];
 const clamp=(n,l,h)=>Math.max(l,Math.min(h,n)),len=(a,b)=>Math.hypot(b[0]-a[0],b[1]-a[1]),angle=(a,b)=>Math.atan2(b[1]-a[1],b[0]-a[0]),ease=t=>{t=clamp(t,0,1);return t*t*(3-2*t)};
 function path(g,poly){g.beginPath();poly.forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));g.closePath();}
-function layer(poly){const c=document.createElement('canvas');c.width=img.naturalWidth;c.height=img.naturalHeight;const g=c.getContext('2d');g.imageSmoothingEnabled=false;path(g,poly);g.clip();g.drawImage(img,0,0);return c;}
+function layer(poly){const c=document.createElement('canvas');c.width=cleanMother.width;c.height=cleanMother.height;const g=c.getContext('2d');g.imageSmoothingEnabled=false;path(g,poly);g.clip();g.drawImage(cleanMother,0,0);return c;}
+// The original side art contains a baked-in grey ground shadow. Remove only
+// that near-neutral band before extracting body and limb textures.
+function isBakedShadow(x,y,r,g,b,a){const hi=Math.max(r,g,b),lo=Math.min(r,g,b);return a>0&&y>=129&&x>=57&&hi-lo<=22&&hi<160&&lo>=65;}
 function prepare(){
- body=document.createElement('canvas');body.width=img.naturalWidth;body.height=img.naturalHeight;const g=body.getContext('2d');g.drawImage(img,0,0);
+ cleanMother=document.createElement('canvas');cleanMother.width=img.naturalWidth;cleanMother.height=img.naturalHeight;
+ const cg=cleanMother.getContext('2d');cg.drawImage(img,0,0);
+ if(cleanMother.width===208&&cleanMother.height===143){
+  const pixels=cg.getImageData(0,0,208,143),d=pixels.data;
+  for(let y=129;y<143;y++)for(let x=57;x<208;x++){const i=(y*208+x)*4;if(isBakedShadow(x,y,d[i],d[i+1],d[i+2],d[i+3])){d[i]=d[i+1]=d[i+2]=d[i+3]=0;}}
+  cg.putImageData(pixels,0,0);
+ }
+ body=document.createElement('canvas');body.width=cleanMother.width;body.height=cleanMother.height;const g=body.getContext('2d');g.drawImage(cleanMother,0,0);
  // Preserve the shoulders/hips for overlap while removing the moving leg silhouettes.
  g.globalCompositeOperation='destination-out';for(const l of limbs){path(g,l.lower);g.fill();path(g,l.upper.map(([x,y])=>[x,Math.max(y,l.hip[1]+8)]));g.fill();}
  g.fillRect(0,140,body.width,body.height-140);
@@ -110,30 +120,38 @@ function turnPose(ms){
  return {view:'side',mirror:true};
 }
 function drawTurn(){
- const p=turnPose(elapsed),art=p.view==='side'?img:turnArts[p.view];
- if(!art.complete||!art.naturalWidth){ctx.drawImage(img,0,0);return;}
+ const p=turnPose(elapsed),art=p.view==='side'?cleanMother:turnArts[p.view];
+ if(!art||p.view!=='side'&&(!art.complete||!art.naturalWidth)){ctx.drawImage(cleanMother,0,0);return;}
  // Normalize height by view, rather than shrinking width through zero.
  const h=p.view==='front'?132:p.view==='quarter'?133:img.naturalHeight;
- const w=art.naturalWidth*h/art.naturalHeight;
+ const w=(art.naturalWidth||art.width)*h/(art.naturalHeight||art.height);
  ctx.save();ctx.translate(105,ground+5);if(p.mirror)ctx.scale(-1,1);
  ctx.drawImage(art,-w/2,-h,w,h);ctx.restore();
+}
+function groundShadow(baseX,height){
+ const h=Math.max(0,height||0);
+ return {x:baseX+105,y:190,rx:Math.max(42,83-h*.6),ry:7,alpha:Math.max(.18,.6-h*.009)};
 }
 function render(){
  ctx.clearRect(0,0,480,220);const bg=ctx.createLinearGradient(0,0,0,220);bg.addColorStop(0,'#203a31');bg.addColorStop(1,'#43513b');ctx.fillStyle=bg;ctx.fillRect(0,0,480,220);
  const running=mode==='run'||mode==='run-in-place',trotting=mode==='trot',walk=mode==='walk'||mode==='travel'||running||trotting,gait=running?gaits.run:trotting?gaits.trot:gaits.walk,phase=(elapsed/gait.period)%1,jump=mode==='jump'||mode==='jump-up'?jumpState(elapsed):null,bodyState=jump|| (running?gallopBody(phase):null),dy=bodyState?bodyState.dy:mode==='rest'?17:mode==='rise'?5+12*(1-ease(elapsed/850)):trotting?7+1.1*Math.cos(phase*4*Math.PI):walk?5+.9*Math.cos(phase*8*Math.PI):5,pitch=bodyState?.pitch||0;
  const debug=$('debug').checked,overlays=[];const baseX=jump?(mode==='jump'?185+jump.dx:130):mode==='travel'||mode==='run'||trotting?490-((240+elapsed*speedOf(gait))%710):130;
  ctx.strokeStyle='#89906b66';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0,190);ctx.lineTo(480,190);ctx.stroke();for(let x=0;x<480;x+=24){ctx.fillStyle='#9ca07866';ctx.fillRect(x,190,2,3);}
+ // Draw the shadow at world-ground coordinates before applying any actor transform.
+ const sh=groundShadow(baseX,jump?jump.height:running?flightLift(phase):0);
+ ctx.save();ctx.fillStyle='rgba(25,41,30,'+sh.alpha+')';ctx.beginPath();ctx.ellipse(sh.x,sh.y,sh.rx,sh.ry,0,0,Math.PI*2);ctx.fill();
+ if(debug){ctx.strokeStyle='#d1b976';ctx.beginPath();ctx.arc(sh.x,sh.y,3,0,Math.PI*2);ctx.stroke();}
+ ctx.restore();
  ctx.save();ctx.translate(baseX,48);ctx.imageSmoothingEnabled=false;
- const shadowHeight=jump?jump.height:running?flightLift(phase):0;ctx.fillStyle='rgba(25,41,30,'+Math.max(.18,.6-shadowHeight*.009)+')';ctx.beginPath();ctx.ellipse(105,ground+4,83-shadowHeight*.6,7,0,0,Math.PI*2);ctx.fill();
  if(debug){ctx.strokeStyle='#baae76';ctx.setLineDash([5,4]);ctx.beginPath();ctx.moveTo(-110,ground);ctx.lineTo(330,ground);ctx.stroke();ctx.setLineDash([]);}
- if(ready){if(mode==='original')ctx.drawImage(img,0,0);else if(mode==='turn')drawTurn();else{for(const l of parts)drawLeg(l,phase,dy,walk,true,debug,overlays,gait,pitch,jump);ctx.save();ctx.translate(105,90+dy);ctx.rotate(pitch);ctx.translate(-105,-90);ctx.drawImage(warpedBody(secondaryMotion(mode,elapsed,phase)),0,0);ctx.restore();for(const l of parts)drawLeg(l,phase,dy,walk,false,debug,overlays,gait,pitch,jump);}}
+ if(ready){if(mode==='original')ctx.drawImage(cleanMother,0,0);else if(mode==='turn')drawTurn();else{for(const l of parts)drawLeg(l,phase,dy,walk,true,debug,overlays,gait,pitch,jump);ctx.save();ctx.translate(105,90+dy);ctx.rotate(pitch);ctx.translate(-105,-90);ctx.drawImage(warpedBody(secondaryMotion(mode,elapsed,phase)),0,0);ctx.restore();for(const l of parts)drawLeg(l,phase,dy,walk,false,debug,overlays,gait,pitch,jump);}}
  if(debug){for(const {hip,knee,foot,far,planted} of overlays){ctx.strokeStyle=far?'#7898a1':'#e2c475';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(...hip);ctx.lineTo(...knee);ctx.lineTo(...foot);ctx.stroke();for(const p of [hip,knee]){ctx.fillStyle='#f4db91';ctx.fillRect(p[0]-1.5,p[1]-1.5,3,3);}ctx.fillStyle=planted?'#a8e5a2':'#e7b880';ctx.fillRect(foot[0]-2,foot[1]-2,4,4);}}
  ctx.restore();ctx.fillStyle='#ddd1ae';ctx.font='12px system-ui';ctx.fillText(jump?jump.stage+' · 高度 '+Math.round(jump.height)+' px':running?(phase<.36?'後足蹬地':phase<.40?'轉移騰空':phase<.76?'前足接地':'騰空收腿')+' · '+Math.round(phase*100)+'%':walk?'步態相位 '+Math.round(phase*100)+'%':mode==='rise'?'起身 '+Math.round(clamp(elapsed/850,0,1)*100)+'%':mode==='rest'?'低伏':mode==='alert'?'警戒':mode==='turn'?'轉身 '+Math.round(clamp(elapsed/1250,0,1)*100)+'%':'母圖',12,18);
 }
 function tick(now){if(!paused)elapsed+=Math.min(60,last?now-last:0)*Number($('speed').value);last=now;render();requestAnimationFrame(tick);}
 for(const b of document.querySelectorAll('[data-mode]'))b.onclick=()=>{mode=b.dataset.mode;elapsed=0;paused=false;$('pause').textContent='暫停';for(const n of document.querySelectorAll('[data-mode]'))n.setAttribute('aria-pressed',String(n===b));};
 $('pause').onclick=()=>{paused=!paused;$('pause').textContent=paused?'繼續':'暫停';};
-img.onload=()=>{prepare();ready=true;$('status').textContent='母圖 '+img.naturalWidth+' × '+img.naturalHeight+'；四拍步態、三足支撐；頭部、棘鬃與尾部使用同一母圖的小幅形變。';document.querySelector('[data-mode="original"]').click();requestAnimationFrame(tick);};
+img.onload=()=>{prepare();ready=true;$('status').textContent='母圖 '+img.naturalWidth+' × '+img.naturalHeight+'；已分離原圖灰色陰影，地面影子獨立繪製。';document.querySelector('[data-mode="original"]').click();requestAnimationFrame(tick);};
 img.onerror=()=>$('status').textContent='母圖載入失敗，未使用替代舊圖。';
 img.src='./assets/monsters/moss_beast_v2_side.png';
 </script></html>
