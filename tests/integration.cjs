@@ -2,7 +2,7 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const root=path.resolve(__dirname,'..');
 const read=p=>fs.readFileSync(path.join(root,p),'utf8');
-const modules=['engine_foundation_v1','engine_events_save_v1','character_environment_v1','weather_system_v1','lantern_ecology_core_v1','lantern_world_environment_v1','forest_v4_spawns','forest_v4_layout','scene_objects_v1','scene_spatial_motion_v1','scene_environment_v1','winter_surfaces_v1'];
+const modules=['engine_foundation_v1','engine_events_save_v1','character_environment_v1','weather_system_v1','lantern_ecology_core_v1','lantern_world_environment_v1','forest_v4_spawns','forest_v4_layout','scene_objects_v1','scene_spatial_motion_v1','lantern_creature_behavior_v1','scene_environment_v1','winter_surfaces_v1'];
 const window={};
 for(const m of modules)new Function('window',read('assets/'+m+'.js'))(window);
 const html=read('index.html');
