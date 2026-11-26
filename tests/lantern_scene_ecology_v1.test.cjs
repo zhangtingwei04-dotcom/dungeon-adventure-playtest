@@ -1,0 +1,18 @@
+const assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs'),path=require('node:path');
+const window={};for(const name of ['weather_system_v1','lantern_scene_core_v1','lantern_ecology_core_v1'])vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../assets/'+name+'.js'),'utf8'),{window});
+const scene=window.LanternSceneCoreV1,eco=window.LanternEcologyCoreV1;
+assert.equal(scene.select('wreck',{inBattle:true,battleReady:true,emptyForestReady:true}),'battle');
+assert.equal(scene.select('wreck',{thumbnail:true,inBattle:true,battleReady:true,emptyForestReady:true}),'empty-forest');
+assert.equal(scene.select('wreck',{cleared:true,approvedWreckReady:true}),'cleared');
+assert.equal(scene.select('trail',{trailForestReady:true,wreckPanoramaReady:true}),'trail-illustration');
+assert.equal(scene.select('inn',{}),'procedural');
+assert.equal(scene.byDepth([{z:8},{z:2}])[0].z,2);
+const clear={kind:'clear',wind:0,snowCover:0};
+assert.equal(eco.visible('rabbit','day',clear),false);
+assert.equal(eco.visible('rabbit','dusk',clear),true);
+assert.equal(eco.visible('rabbit','day',clear,{preview:true}),true);
+assert.equal(eco.visible('rabbit','dusk',{kind:'snow',wind:0,snowCover:.2},{preview:true}),false);
+assert.equal(eco.visible('bird','night',clear),false);
+assert.equal(eco.visible('beetle','night',clear),true);
+assert.equal(eco.visible('butterfly','day',{kind:'rain',wind:0}),false);
+console.log('Lantern scene and ecology passed');
