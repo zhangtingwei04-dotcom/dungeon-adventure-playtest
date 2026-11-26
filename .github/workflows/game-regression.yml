@@ -33,6 +33,7 @@ jobs:
           node tests/lantern_investigation_v1.test.cjs
           node tests/lantern_world_environment_v1.test.cjs
           node tests/lantern_location_core_v1.test.cjs
+          node tests/lantern_scene_ecology_v1.test.cjs
       - name: Check approved art baselines and consumers
         run: node tests/art-lifecycle.cjs
       - name: Run cross-module integration and long simulation
