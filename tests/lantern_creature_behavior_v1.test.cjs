@@ -1,0 +1,12 @@
+const assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs'),path=require('node:path');
+const window={};for(const name of ['weather_system_v1','lantern_creature_behavior_v1'])vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../assets/'+name+'.js'),'utf8'),{window});
+const core=window.LanternCreatureBehaviorV1;
+const fresh=()=>({mode:'graze',hunger:.5,energy:.5,alert:.5,comfort:.5,age:0});
+let b=fresh();core.rabbitNeeds(b,.1);assert(b.hunger<.5);
+b=fresh();core.rabbitNeeds(b,.1,{spatial:true,foodAvailable:false});assert(b.hunger>.5);
+b=fresh();b.mode='rest';core.rabbitNeeds(b,.1);assert(b.energy>.5);
+b=fresh();core.rabbitNeeds(b,.1,{bad:true});assert(b.alert>.5&&b.comfort<.5);
+assert.equal(core.rabbitEnvironment({kind:'blizzard'}).bad,true);
+assert.equal(core.rabbitEnvironment({kind:'snow',snowCover:.3}).foodAllowed,false);
+for(let i=0;i<10000;i++)core.rabbitNeeds(b,.1,{bad:true});for(const k of ['hunger','energy','alert','comfort'])assert(b[k]>=0&&b[k]<=1);
+console.log('Lantern creature behavior passed');
