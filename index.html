@@ -4497,6 +4497,7 @@ html.stage-locked #app #battleSurface .battle-actions button{font-size:17px;min-
 <script src="./assets/object_investigation_v1.js?v=5-species-interactions"></script>
 <script src="./assets/investigation_cards_v1.js?v=1.0.0"></script>
 <script src="./assets/creature_capture_v1.js?v=1"></script>
+<script src="./assets/scene_action_time_v1.js?v=1"></script>
 <script src="./assets/scene_dialogue_v1.js"></script>
 <script src="./assets/opening_progression_v1.js?v=2-departure"></script>
 <script src="./assets/discovery_cue_v1.js?v=1"></script>
@@ -5196,6 +5197,9 @@ function explorationToast(site,last,newMaterials){
 }
 function openingView(){return window.DungeonOpeningProgressionV1.view(s,travelTimeFor('wreck','trail'));}
 function openingAdventure(){return !s.flags.rescued&&['wreck','trail'].includes(s.scene);}
+function openingExitOnly(){return window.DungeonSceneActionTimeV1.openingExitOnly(s,openingView());}
+function exitOnlyAction(){if(!openingExitOnly())return false;if(routeKnown('wreck','trail')){inspectInScene('車轍指向林間小徑。',[{label:routeDestinationLabel('trail'),fn:()=>change('trail')},{label:'留在原地',fn:()=>{}}]);}else openingDepartureCue();return true;}
+function spendSceneInteraction(kind){recoveryTime(window.DungeonSceneActionTimeV1.cost(kind));}
 function renderOpeningObjective(){
  const stage=$('sceneStage');let el=stage.querySelector('.opening-objective');
  $('app').dataset.openingAdventure=String(openingAdventure());
@@ -5247,8 +5251,7 @@ function openingDepartureCue(){
   addTravel('scene','事故現場已大致查看完畢，車轍延伸向林間小徑。','天色即將轉暗，得趁還看得清道路時離開。');
   save();render();
  }
- const late=s.worldMinutes>=window.DungeonOpeningProgressionV1.FIRST_DUSK;
- openSceneDialogue([{speaker:'旁白',text:late?'天色已經轉暗，車轍仍指向林間小徑。':'林間的光線開始轉弱，車轍沿著小徑伸向遠方。'},{speaker:'你',text:'「不能再耽擱了，沿著道路找人吧。」'}], 'opening-departure');
+ inspectInScene('你已辨認出通往林間小徑的道路。',[{label:routeDestinationLabel('trail'),fn:()=>change('trail')},{label:'留在原地',fn:()=>{}}]);
  return true;
 }
 // Exploration encounters are separate from the one-time story creature.
@@ -5272,7 +5275,8 @@ function exploreArea(){
  if(openingAdventure()&&s.scene!=='wreck'&&!routeKnown(s.scene,'gate')){observeOpening();return;}
  clearRouteAttention();$('toast').classList.remove('active');
  const oldSummary=$('sceneStage').querySelector('.discovery-summary');if(oldSummary)oldSummary.hidden=true;
- if(!openingView().canExplore){if(!openingDepartureCue())toast('事故現場已探索完畢，仍可調查物件或前往林間小徑。');return;}
+ if(exitOnlyAction())return;
+ if(!openingView().canExplore)return;
  normalizeExploration();normalizeRouteDiscovery();normalizeRecovery();
  const site=s.scene,area=EXPLORATION_AREAS[site],e=s.exploration;
  window.DungeonSceneObjectsV1?.normalize(s);
@@ -5280,6 +5284,8 @@ function exploreArea(){
  const timeCost=10;
  recoveryTime(timeCost);
  const count=(e.counts[site]||0)+1;e.counts[site]=count;
+ // Once the opening budget is exhausted, this search reveals only the exit.
+ if(openingExitOnly()){save();render();exitOnlyAction();return;}
  // Interrupt the search before rolling materials/routes. No overlapping discovery dialogs.
  const actualWeather=window.DungeonWeatherV1?.at(s.seed,s.worldMinutes,site)||{};
  if(hostileEncounterCheck(s,actualWeather)){
@@ -7136,7 +7142,7 @@ function renderSceneActionDock(host){
  add(sceneActionView?'返回資訊':'調查／其他行動',()=>{
   sceneActionView=sceneActionView?null:{actor:s,scene:s.scene};
   renderPlaceDrawer();
-  if(sceneActionView)openSceneDialogue([{speaker:'旁白',text:'你環顧四周，看看有沒有值得留意的地方。'}],'investigation-entry');
+  if(sceneActionView)openSceneDialogue([{speaker:'旁白',text:openingExitOnly()?'天色漸暗，現在得先確認離開的道路。':'你環顧四周，看看有沒有值得留意的地方。'}],'investigation-entry');
  },'investigation');
  for(const item of actions.filter(a=>a.routeTo))add(item.title,item.fn,'route');
 
@@ -7189,6 +7195,7 @@ function renderSceneActionView(out){
   button.textContent=label;button.onclick=fn;parent.appendChild(button);
   return button;
  }
+ if(openingExitOnly()){append(routeKnown('wreck','trail')?'查看林間小徑的位置':'尋找出口',()=>runSceneAction(exitOnlyAction));return;}
  const actions=splitSceneActions(entries()).detail;
  const targets=Array.from($('hotspots').querySelectorAll('button:not(.env-leaving):not([disabled])'))
   .filter(node=>!node.matches('.scene-route-target')&&typeof node.onclick==='function'&&!['opening-tracks','opening-steps','light','sound','door'].includes(node.dataset.sceneInvestigation));
@@ -7522,6 +7529,7 @@ normalizeGameTime();normalizeRecovery();normalizeForestRare();normalizeBeetleCar
  ['world.winter-surfaces','8',['world.weather'],'DungeonWinterV1'],
  ['world.objects','20261125',['engine.time','world.weather'],'DungeonSceneObjectsV1'],
  ['ui.investigation-cards','1.0.0',['world.objects'],'DungeonInvestigationCardsV1'],
+ ['world.scene-action-time','1.0.0',['engine.time'],'DungeonSceneActionTimeV1'],
  ['world.creature-capture','1.0.0',['world.forest-life','ui.investigation-cards'],'DungeonCreatureCaptureV1'],
  ['world.forest-life','6',['world.weather'],'DungeonForestV4Life'],
  ['character.expression','2.20',['engine.registry'],'DungeonExpressionMotion'],
@@ -7875,6 +7883,8 @@ function inspectInScene(text,choices){
  openSceneDialogue([{speaker:'旁白',text}],null,choices);
 }
 function glance(){
+ if(exitOnlyAction())return;
+ spendSceneInteraction('inspect');
  s.flags.wagonLooked=true;note('wagon','馬車在你醒來之前就已被毀壞',true);
  const taken=!!s.flags.openingClothTaken;
  inspectInScene(taken?'箱子裡剩下碎木屑與濕泥。':'碎木屑下壓著一塊尚且完整的布料，也許之後派得上用場。',[
@@ -7882,6 +7892,8 @@ function glance(){
  {label:'先離開',fn:()=>{}}]);
 }
 function marks(){
+ if(exitOnlyAction())return;
+ spendSceneInteraction('inspect');
  const known=routeKnown('wreck','trail');note('scratches','車板上有不明的深刻痕跡',true);
  inspectInScene(known?'泥地上的車轍延伸到已發現的小徑。':'你蹲下查看破裂的車輪。泥地上有兩道被壓深的車轍，一路延伸到樹叢深處。',[
  {label:known?'前往林間小徑':'循著車轍',fn:()=>{
@@ -8209,6 +8221,7 @@ function entries(){const a={
  outskirts:[routeAction('返回城鎮街道','street',()=>offerOutskirtsTransport('street'),true),action('看看路口的舊路標',roadsideSign),action('眺望遠處的林地',countryside)],
  home:[routeAction('回到城鎮街道','street',()=>change('street'),true),(s.flags.homeMet?action:eventAction)('與昨天留守的兩人聊天',meetHome),action('看看公共空間',()=>dialog('一起生活的地方','牆邊掛著修補過的旅行斗篷，桌上則是輪流採買的清單。這裡是六位冒險者自己生活的地方，並不是主角自動入住的房間。',[{label:'不打擾了',fn:()=>{}}],'生活角落'))]
 };
+ if(openingExitOnly())return routeKnown('wreck','trail')?[routeAction('前往林間小徑','trail',()=>change('trail'),true)]:[eventAction('尋找出口',exitOnlyAction,true)];
  const filtered=(a[s.scene]||[]).filter(x=>!x.routeTo||routeKnown(s.scene,x.routeTo));
  const primary=!filtered.some(x=>x.primary);
  const opening=openingView();
@@ -8295,7 +8308,7 @@ function renderSceneInfoBar(){
  const localWeather=!INDOOR_SCENES.has(s.scene)?weatherNotes[currentWeather?.kind]:null;
  const defaultScene=localWeather||SCENE_SENSE_NOTES[s.scene]||{text:names[s.scene]?.[1]||'',senses:[]};
  const last=s.exploration?.last?.[s.scene];
- $('sceneObservationText').textContent=openingView().exhausted?'已大致查看事故現場；車轍指向林間小徑。可以繼續調查現有物件，或沿路尋找他人。':!localWeather&&typeof last?.observation==='string'&&last.observation?
+ $('sceneObservationText').textContent=openingView().exhausted?'已大致查看事故現場；車轍指向林間小徑。請確認林間小徑的位置，準備離開。':!localWeather&&typeof last?.observation==='string'&&last.observation?
   last.observation:defaultScene.text;
  const senseRoot=$('sceneSenses');
  senseRoot.replaceChildren();
@@ -8355,7 +8368,7 @@ const quick=available.find(a=>a.quick&&a!==primary);if(quick){const b=document.c
 /* Secondary interactions are now grouped under the right-side place drawer. */renderHotspots();renderFeed();renderPlaceDrawer();renderSceneInfoBar();renderOpeningObjective();renderBattleSurface();save();}
 function interactSceneObject(id){
  const engine=window.DungeonSceneObjectsV1;
- if(!engine||encounterPending||modal||s.flags.inBattle||$('app').classList.contains('scene-dialogue-active'))return;
+ if(!engine||encounterPending||modal||s.flags.inBattle||$('app').classList.contains('scene-dialogue-active')||exitOnlyAction())return;
  const site=s.scene,obj=engine.objects(s,plantSpawnWeather()).find(x=>x.id===id);if(!obj)return;
  if(obj.kind==='wreck'){openTrailWreckActions();return;}
  if(obj.kind==='creature'){soundInForest();return;}
@@ -8374,6 +8387,7 @@ function interactSceneObject(id){
    {label:'先不打擾',fn:()=>{}}
   ],'探索相遇');return;
  }
+ spendSceneInteraction('inspect');save();renderPlaceDrawer();renderOpeningObjective();
  dialog(obj.label,'你在這裡發現可收取的普通材料：'+obj.material+'。採集會沿用原本的每日材料上限。',[
   {label:'採集 '+obj.material+' ×1',fn:()=>sceneCollectionResult(()=>collectExplorationMaterial(site,id,obj.id),obj,collectionKind(obj.material))},
   {label:'先保留在原地',fn:()=>{}}
@@ -8454,6 +8468,7 @@ function collectionKind(material){
 }
 function sceneCollectionResult(fn,target=null,kind='default',performance=null){
  if(activeDialogueSurface()||s.flags.inBattle||encounterPending)return;
+ if(exitOnlyAction())return;
  const actor=s,site=s.scene,spec=performance||collectionPerformanceSpec(kind),notice=$('toast');
  notice.classList.remove('active');
  const stage=$('sceneStage');
@@ -8495,7 +8510,10 @@ function sceneCollectionResult(fn,target=null,kind='default',performance=null){
   if(countdown!==null)clearInterval(countdown);
   anim?.cancel();overlay.classList.add('hidden');syncDialogueInputLock();
   if(s!==actor||s.scene!==site||s.flags.inBattle||encounterPending||activeDialogueSurface())return;
-  notice.classList.remove('active');fn();
+  notice.classList.remove('active');
+  // Leaf collection already spends three minutes in its original handler.
+  if(kind!=='leaf'||site!=='clearing')spendSceneInteraction(kind);
+  fn();save();renderPlaceDrawer();renderOpeningObjective();
   if(!activeDialogueSurface()&&!sceneDialogueState.open&&notice.classList.contains('active'))inspectInScene(notice.textContent,[{label:'繼續',fn:()=>{}}]);
  },spec.ms);
 }
@@ -8521,12 +8539,13 @@ function tryBarehandCapture(o){
  },o,'capture',{ms:policy.ms,text:'嘗試徒手捕捉…',countdown:true});
 }
 function interactForestAnimal(o,action){
- if(s.scene!=='wreck'||s.flags.inBattle)return;
+ if(s.scene!=='wreck'||s.flags.inBattle||exitOnlyAction())return;
  const core=window.DungeonObjectInvestigationV1,behavior=core.animalInteraction(o.assetId);
  if(!behavior)return;
  const preview=o.previewOnly||String(o.id).startsWith('preview-');
  const kind=o.assetId.replace('forest4_',''),info=core.describe(o,[],s,'wreck');
  if(!preview){
+  spendSceneInteraction(action==='observe'?'observe':'approach');
   const key='observed-wreck-'+(o.rabbitVariant==='golden'?'goldenRabbit':o.assetId);
   if(action==='observe'){
    if(o.rabbitVariant==='golden'){normalizeForestRare();s.forestRare.sighted.goldenRabbit=true;}
@@ -8543,13 +8562,13 @@ function interactForestAnimal(o,action){
  inspectInScene(preview&&action==='approach'?'這是生物外觀預覽。':behavior[action],[{label:'繼續',fn:()=>{}}]);
 }
 function forestV4Action(o){
- if(encounterPending||modal||s.flags.inBattle||$('app').classList.contains('scene-dialogue-active'))return;
+ if(encounterPending||modal||s.flags.inBattle||$('app').classList.contains('scene-dialogue-active')||exitOnlyAction())return;
  const k=o.assetId.replace('forest4_',''),finds=forestV4MaterialBindings().get(o.id)||[];
  const objectCore=window.DungeonObjectInvestigationV1;
  if(!objectCore.visible(s,'wreck',o))return;
  const info=objectCore.describe(o,finds,s,'wreck');
  if(!info)return;
- if(info.type!=='living'&&objectCore.inspect(s,'wreck',o))save();
+ if(info.type!=='living'&&!o.previewOnly&&!String(o.id).startsWith('preview-')){spendSceneInteraction('inspect');objectCore.inspect(s,'wreck',o);save();renderPlaceDrawer();renderOpeningObjective();}
  clearRouteAttention();$('toast').classList.remove('active');
  const summary=$('sceneStage').querySelector('.discovery-summary');if(summary)summary.hidden=true;
  const options=[];
