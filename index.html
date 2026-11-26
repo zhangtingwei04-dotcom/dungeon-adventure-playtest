@@ -7099,7 +7099,8 @@ function focusDiscoveredRoute(from,to){
 function presentDiscoveredRoute(from,to){
  inspectInScene(
   from==='wreck'&&to==='trail'?'你順著泥地上的車轍望去，樹影間露出一條可以通行的小徑。':'你辨認出一條新的道路：'+routeCardTitle(from,to)+'。',
-  [{label:'查看道路',fn:()=>focusDiscoveredRoute(from,to)}]
+  [{label:from==='trail'&&to==='gate'&&!s.flags.rescued?'走向腳步聲':'前往'+routeCardTitle(from,to),fn:()=>placeDrawerTravel(to)},
+   {label:'留在原地',fn:()=>{}}]
  );
 }
 function moveLocationPreview(step){
@@ -7149,12 +7150,11 @@ function renderSceneActionDock(host,preview){
   host.appendChild(button);
  }
  if(primary)add(primary.title,primary.fn,'primary');
- add('調查／其他行動',()=>{
+ add(sceneActionView?'返回資訊':'調查',()=>{
   sceneActionView=sceneActionView?null:{actor:s,scene:s.scene};
   renderPlaceDrawer();
-  if(sceneActionView)showDockNarration('你環顧四周，開始查看附近可以調查的物件。');
  },'explore');
- if(activeSideTab==='locations'&&preview.reachable&&!preview.current){
+ if(!sceneActionView&&activeSideTab==='locations'&&preview.reachable&&!preview.current&&preview.id!==primary?.routeTo){
   add(preview.special?'前往調查':'前往 '+names[preview.id][0],()=>placeDrawerTravel(preview.id),'location-preview-travel');
  }
 }
@@ -7229,8 +7229,6 @@ function renderSceneActionView(out){
   const button=document.createElement('button');button.type='button';
   button.textContent=label;button.onclick=fn;parent.appendChild(button);return button;
  }
- const back=append('返回資訊',()=>{sceneActionView=null;renderPlaceDrawer();});
- back.className='scene-action-back';
  const actions=entries();
  const primary=actions.find(item=>item.primary)||actions[0];
  const targets=Array.from($('hotspots').querySelectorAll('button:not(.env-leaving):not([disabled])'))
@@ -8017,8 +8015,8 @@ function marks(){
  const known=routeKnown('wreck','trail');note('scratches','車板上有不明的深刻痕跡',true);
  if(!known){s.flags.openingTracks=true;save();render();}
  inspectInScene(known?'泥地上的車轍延伸到已發現的小徑。':'你蹲下查看破裂的車輪。泥地上有兩道被壓深的車轍，一路延伸到樹叢深處。',[
- {label:known?'查看已發現的道路':'看看車轍指向哪裡',fn:()=>{if(known)focusDiscoveredRoute('wreck','trail');else{renderOpeningObjective();renderHotspots();}}},
- {label:'先看看其他物品',fn:()=>{}}
+ {label:known?'前往林間小徑':'循著車轍',fn:()=>{if(known)routeGo('trail');else followOpeningClue();}},
+ {label:'留在原地',fn:()=>{}}
  ]);
 }
 function light(){s.flags.lightSeen=true;note('light','空地的樹根旁有微光');dialog('樹根間的微光','你發現一件形狀奇怪的東西。它沒有立即展現任何用途，也無法確定是否安全。',[{label:'記下位置',fn:()=>note('lightMark','已在日誌記下微光所在位置')},{label:'收起碎片',fn:()=>{addUnique(s.items,'不明的微光碎片（測試物品）');s.flags.lightTaken=true;note('lightTake','取得一件來源不明的微光碎片');render();}},{label:'先不碰它',fn:()=>{}}],'未知發現');}
