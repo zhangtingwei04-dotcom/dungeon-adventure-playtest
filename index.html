@@ -3020,14 +3020,15 @@ html.stage-locked #app #placeActionPanel #placePrimaryActions .side-main-action{
 #placeDrawerList .scene-action-tiles .scene-action-mushroom{width:42px;height:32px}
 #placeDrawerList .scene-action-ecology{flex-basis:100%;border-top:1px solid #ad91594d;padding-top:4px}
 #placeDrawerList .scene-action-ecology h3{margin:0;padding:4px 0;color:#c9dbc3;font-size:13px}
-#placeDrawerList .scene-object-card-grid{width:100%;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
-#placeDrawerList .scene-object-card-grid .scene-object-card{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:2px;min-width:0;width:100%;padding:5px 3px;background:#173e33;border:1px solid #9f8b61;border-radius:6px;overflow:hidden}
-#placeDrawerList .scene-object-thumbnail{display:flex;width:100%;height:43px;align-items:center;justify-content:center;background:#102c2380;border-radius:3px;overflow:hidden}
-#placeDrawerList .scene-object-thumbnail img,#placeDrawerList .scene-object-thumbnail canvas{width:92%;height:100%;object-fit:contain;image-rendering:pixelated;display:block}
+#placeDrawerList .scene-object-card-grid{width:100%;grid-template-columns:repeat(auto-fit,minmax(68px,1fr));gap:5px}
+#placeDrawerList .scene-object-card-grid .scene-object-card{display:flex;position:relative;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:0;width:100%;min-height:34px;padding:4px;background:#173e33;border:1px solid #9f8b61;border-radius:5px;overflow:hidden}
+#placeDrawerList .scene-object-thumbnail{display:flex;width:100%;height:28px;align-items:center;justify-content:center;overflow:hidden}
+#placeDrawerList .scene-object-thumbnail img,#placeDrawerList .scene-object-thumbnail canvas{width:34px;height:28px;max-width:100%;object-fit:contain;image-rendering:pixelated;display:block}
 #placeDrawerList .scene-object-thumbnail.thumbnail-unavailable{display:none}
 #placeDrawerList .scene-object-name{font-size:12px;color:#f4e9cd;line-height:1.2;overflow-wrap:anywhere;text-align:center}
-#placeDrawerList .scene-object-status{font-size:10px;color:#b9cca9;line-height:1.15}
-#placeDrawerList .scene-object-verb{font-size:11px;color:#dcc28a;line-height:1.15}
+#placeDrawerList .scene-object-status{display:none}
+#placeDrawerList .scene-object-card.scene-object-departed .scene-object-status{display:block;font-size:10px;line-height:1.1}
+#placeDrawerList .scene-object-verb{display:none}
 #placeDrawerList .scene-object-card.scene-object-departed{background:#22352e;border-color:#777c68}
 #placeDrawerList .scene-object-departed .scene-object-thumbnail{opacity:.65}
 #placeDrawerList .scene-object-departed .scene-object-status{color:#c3bba5}
@@ -7184,7 +7185,7 @@ function appendInvestigationCards(parent,items,append){
    const live=id?Array.from($('hotspots').querySelectorAll('button[data-object-id]:not(.env-leaving):not([disabled])')).find(el=>el.dataset.objectId===id):node.isConnected?node:null;
    if(live)live.onclick?.();else{renderPlaceDrawer();toast('物件已不在目前場景。');}
   },grid);
-  button.classList.add('scene-object-card');button.setAttribute('aria-label',name+'，'+item.status+'，'+item.action);
+  button.classList.add('scene-object-card');button.title=name+' · '+item.status+' · '+item.action;button.setAttribute('aria-label',name+'，'+item.status+'，'+item.action);
   const thumb=document.createElement('span');thumb.className='scene-object-thumbnail';
   let art;
   if(item.record){const src=window.DUNGEON_FOREST_V4_ASSETS?.[item.record.assetId]?.src;if(src){art=document.createElement('img');art.src=src;art.alt='';art.draggable=false;}button.classList.add('scene-object-departed');}
