@@ -176,13 +176,13 @@ window.DungeonSceneEnvironmentV1=(function(){
   return {q:0,face:-1,mode:'sniff',age:0,duration:1.4,from:0,to:0,hunger:.48,energy:.85,alert:.25,comfort:1,serial:Math.floor(seed*997),golden};
  }
  function rabbitDecision(b,env={}){
-  const kind=env.kind||'clear',rain=env.rain||0,snow=env.snowCover||0;
-  const wind=window.DungeonWeatherV1?.wildlifeWindMode('rabbit',env.behaviorWind??env.wind??0),dangerous=kind==='storm'||kind==='blizzard'||wind==='shelter'||wind==='hide',wet=dangerous||kind==='rain'||rain>.65;
+  const {wind,dangerous,foodAllowed}=window.LanternCreatureBehaviorV1.rabbitEnvironment(env);
+  const wet=dangerous||env.kind==='rain'||(env.rain||0)>.65;
   if(wet)return b.q<.98?{mode:'shelter-hop',to:1}:{mode:'shelter',duration:3.8};
   if(b.mode==='shelter'&&b.q>.02)return {mode:'hop',to:0};
   if(b.energy<.35)return {mode:'rest',duration:4.5};
   if(b.alert>.6||wind==='alert')return {mode:'alert',duration:2.1};
-  if(b.hunger>.52&&snow<.15&&kind!=='snow')return {mode:'graze',duration:3.1};
+  if(b.hunger>.52&&foodAllowed)return {mode:'graze',duration:3.1};
   b.serial=(Math.imul(b.serial,1664525)+1013904223)>>>0;const roll=b.serial/4294967296;
   if(roll<.37)return {mode:'hop',to:b.q>.5?0:1};
   if(roll<.58)return {mode:'sniff',duration:1.8};
@@ -190,12 +190,8 @@ window.DungeonSceneEnvironmentV1=(function(){
   return {mode:'rest',duration:2.4+(b.golden?.8:0)};
  }
  function rabbitTick(b,dt,env={}){
-  dt=clamp(dt,0,.12);const wind=window.DungeonWeatherV1?.wildlifeWindMode('rabbit',env.behaviorWind??env.wind??0),bad=env.kind==='storm'||env.kind==='blizzard'||env.kind==='rain'||wind==='shelter'||wind==='hide';
-  b.hunger=clamp(b.hunger+dt*(b.mode==='graze'?-.11:.014),0,1);
-  b.energy=clamp(b.energy+dt*(b.mode==='rest'||b.mode==='shelter'?.09:b.mode.includes('hop')?-.045:-.008),0,1);
-  b.alert=clamp(b.alert+dt*(bad?.16:-.12),0,1);
-  b.comfort=clamp(b.comfort+dt*(bad&&b.mode!=='shelter'?-.08:.05),0,1);
-  b.age+=dt;
+  dt=clamp(dt,0,.12);const {bad}=window.LanternCreatureBehaviorV1.rabbitEnvironment(env);
+  window.LanternCreatureBehaviorV1.rabbitNeeds(b,dt,{bad});
   const moving=b.mode==='hop'||b.mode==='shelter-hop';
   // Finish a hop before responding to weather; never teleport on a weather change.
   if(b.age>=b.duration||(bad&&!moving&&b.mode!=='shelter')){
@@ -219,13 +215,9 @@ window.DungeonSceneEnvironmentV1=(function(){
  function rabbitPointTick(b,dt,env,anchor,map){
   const nav=window.DungeonSpatialMotion;dt=clamp(dt,0,.12);
   if(!b.position){b.position={x:anchor.x,y:anchor.y,z:anchor.z};b.age=b.duration;}
-  const wind=window.DungeonWeatherV1?.wildlifeWindMode('rabbit',env.behaviorWind??env.wind??0),bad=['rain','storm','blizzard'].includes(env.kind)||(env.rain||0)>.65||wind==='shelter'||wind==='hide';
-  const foodAvailable=b.point?.type==='food'&&map.food.some(o=>o.id===b.point.sourceId)&&(env.snowCover||0)<.15&&env.kind!=='snow'&&!bad;
-  b.hunger=clamp(b.hunger+dt*(b.mode==='graze'&&foodAvailable?-.11:.014),0,1);
-  b.energy=clamp(b.energy+dt*(['rest','shelter','hunker'].includes(b.mode)?.09:b.mode==='point-hop'?-.045:-.008),0,1);
-  b.alert=clamp(b.alert+dt*(bad?.16:-.12),0,1);
-  b.comfort=clamp(b.comfort+dt*(bad&&b.mode!=='shelter'?-.08:.05),0,1);
-  b.age+=dt;
+  const {wind,bad,foodAllowed}=window.LanternCreatureBehaviorV1.rabbitEnvironment(env,true);
+  const foodAvailable=b.point?.type==='food'&&map.food.some(o=>o.id===b.point.sourceId)&&foodAllowed&&!bad;
+  window.LanternCreatureBehaviorV1.rabbitNeeds(b,dt,{bad,spatial:true,foodAvailable});
   if(b.mode==='point-hop'&&b.age>=b.duration){b.position={...b.point};b.mode='arrived';b.age=0;}
   if(b.mode==='point-hop'&&!nav.segmentClear(b.position,b.point,map,anchor)){
    b.mode='sniff';b.age=0;b.duration=.4;b.point=null;
@@ -295,7 +287,7 @@ window.DungeonSceneEnvironmentV1=(function(){
    if(!node.isConnected){wildlife.delete(node);continue;}
    if(a.start===null)a.start=ms;
    const elapsed=(ms-a.start)/1000+a.phase;
-   const environment=window.DungeonWeatherV1?.environment?.()||{},windMode=window.DungeonWeatherV1?.wildlifeWindMode(a.kind,environment.behaviorWind??environment.wind??0)||'normal';
+   const environment=window.DungeonWeatherV1?.environment?.()||{},windMode=window.LanternCreatureBehaviorV1.windMode(a.kind,environment);
    const dt=a.lastTick==null?0:clamp((ms-a.lastTick)/1000,0,.12);a.lastTick=ms;
    if(a.kind==='bird'){
     // Let an airborne bird finish its current route before holding at its perch.
