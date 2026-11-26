@@ -4508,6 +4508,7 @@ window.DUNGEON_FOREST_V4_LAYOUT=window.DUNGEON_WRECK_CURRENT_LAYOUT;
 <script src="./assets/lantern_world_environment_v1.js"></script>
 <script src="./assets/lantern_location_core_v1.js"></script>
 <script src="./assets/lantern_scene_core_v1.js"></script>
+<script src="./assets/lantern_ecology_core_v1.js"></script>
 <script src="./assets/trail_forest_v1.js"></script>
 <script src="./assets/scene_objects_v1.js?v=20261125-winter"></script>
 <script src="./assets/protagonist_portrait_v1.js?v=f50854a6"></script>
@@ -8430,7 +8431,7 @@ function renderForestV4(el){
  if(new URLSearchParams(location.search).get('wildlife')==='beetle'&&DEV_PREVIEW_MODE){const beetle=cfg.find(o=>o.assetId==='forest4_beetle');if(beetle)live=[...live.filter(o=>o.assetId!=='forest4_beetle'),{...beetle,id:'preview-beetle-flight',x:60,y:70,width:3.5,z:18,visible:true}];}
  // Apply after all spawn selection, including developer wildlife previews.
  if(weather&&spawnWeather){const env=spawnWeather;
-  live=live.filter(o=>{const k=o.assetId.replace('forest4_','');return !['rabbit','bird','beetle','butterfly'].includes(k)||weather.activity(k,env);});
+  live=live.filter(o=>{const k=o.assetId.replace('forest4_','');return window.LanternEcologyCoreV1.visible(k,previewPeriod||periodForMinutes(s.worldMinutes),env,{preview:!!o.previewOnly||String(o.id).startsWith('preview-')});});
  }
  live=live.filter(o=>window.DungeonObjectInvestigationV1?.visible(s,'wreck',o)!==false);
  window.DungeonSceneEnvironmentV1?.setActionMap(live.filter(o=>o.visible&&assets[o.assetId]?.src));
