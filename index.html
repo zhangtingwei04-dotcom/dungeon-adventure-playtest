@@ -3268,6 +3268,9 @@ html.stage-locked #app #sceneStage #sceneDialogueNext{
  font:700 15px/1.3 "Noto Serif TC",serif!important;text-shadow:0 1px 2px #001a12;
  cursor:pointer;padding:4px 7px!important;touch-action:manipulation;
 }
+#sceneStage #sceneDialogueChoices:not([hidden]){display:flex;flex-wrap:wrap;justify-content:flex-end;gap:4px;margin-top:4px}
+#sceneStage #sceneDialogueChoices button{min-height:28px;padding:3px 8px;color:#f1d28a;background:#173d32b8;border:1px solid #c4a96988;border-radius:5px;font:inherit;font-size:15px;cursor:pointer}
+html.stage-locked #app #sceneStage #sceneDialogueNext[hidden]{display:none!important}
 html.stage-locked #app #sceneStage #sceneDialogueNext:focus-visible{
  outline:2px solid #ffe3a5;border-radius:5px;outline-offset:1px;
 }
@@ -4312,7 +4315,7 @@ html.stage-locked #app #battleSurface .battle-actions button{font-size:17px;min-
  <path d="M8 45C15 32 30 35 30 21S41 8 51 14C56 17 53 24 48 23C45 22 46 19 49 19" fill="none" stroke="#b99359" stroke-width="2" stroke-linecap="round"/>
  <path d="M17 33Q8 31 8 23Q19 23 20 31M26 26Q31 12 41 15Q37 25 26 26M14 46Q23 37 31 43Q24 49 14 46" fill="#5a8558" stroke="#b5b079" stroke-width="1.1"/>
  <circle cx="31" cy="20" r="1.5" fill="#f2d99e"/>
- </svg><canvas id="view" aria-label="第一人稱冒險場景"></canvas><div id="dayTint" aria-hidden="true"></div><div id="shade"></div><canvas id="weatherOverlay" aria-hidden="true" hidden></canvas><div id="hotspots" inert></div><div id="sceneActors" aria-hidden="true"></div><section id="battleSurface" class="hidden" role="group" aria-label="遭遇戰"></section><div id="encounterCue" class="hidden" role="status" aria-live="polite"></div><div id="sceneDialogue" class="hidden" role="group" aria-label="場景對話，點擊繼續" tabindex="0"><div id="sceneDialoguePortrait" hidden aria-hidden="true"><img id="sceneDialoguePortraitImage" alt="" loading="eager" decoding="async"></div><div id="sceneDialogueName">旁白</div><p id="sceneDialogueText" aria-live="polite"></p><button id="sceneDialogueNext" type="button" aria-label="下一句">點擊繼續 ▸</button></div></section>
+ </svg><canvas id="view" aria-label="第一人稱冒險場景"></canvas><div id="dayTint" aria-hidden="true"></div><div id="shade"></div><canvas id="weatherOverlay" aria-hidden="true" hidden></canvas><div id="hotspots" inert></div><div id="sceneActors" aria-hidden="true"></div><section id="battleSurface" class="hidden" role="group" aria-label="遭遇戰"></section><div id="encounterCue" class="hidden" role="status" aria-live="polite"></div><div id="sceneDialogue" class="hidden" role="group" aria-label="場景對話，點擊繼續" tabindex="0"><div id="sceneDialoguePortrait" hidden aria-hidden="true"><img id="sceneDialoguePortraitImage" alt="" loading="eager" decoding="async"></div><div id="sceneDialogueName">旁白</div><p id="sceneDialogueText" aria-live="polite"></p><div id="sceneDialogueChoices" hidden></div><button id="sceneDialogueNext" type="button" aria-label="下一句">點擊繼續 ▸</button></div></section>
 <section id="sceneFuturePanel" aria-label="場景觀察、同行夥伴及探索紀錄">
  <div class="scene-info-column" aria-label="場景觀察">
   <div class="scene-info-heading">
@@ -7814,7 +7817,7 @@ function refreshSceneFraming(){
  $('view').style.transform='none';$('hotspots').style.transform='none';
 }
 // Lightweight opening narration, independent of existing choice-dialog modal.
-const sceneDialogueState={lines:[],index:0,open:false,purpose:null};
+const sceneDialogueState={lines:[],index:0,open:false,purpose:null,choices:[]};
 function renderSceneDialogue(){
  const box=$('sceneDialogue');
  if(!sceneDialogueState.open||!sceneDialogueState.lines.length){
@@ -7836,26 +7839,36 @@ function renderSceneDialogue(){
  const last=sceneDialogueState.index===sceneDialogueState.lines.length-1;
  $('sceneDialogueNext').textContent=last?(sceneDialogueState.purpose==='opening-departure'?'沿車轍離開':sceneDialogueState.purpose==='route-preview'?'查看道路':'結束對話'):'點擊繼續';
  $('sceneDialogueNext').setAttribute('aria-label',last?(sceneDialogueState.purpose==='opening-departure'?'沿車轍前往林間小徑':sceneDialogueState.purpose==='route-preview'?'查看新道路':'結束場景對話'):'下一句');
+ const options=$('sceneDialogueChoices');
+ options.replaceChildren();
+ const choices=last?sceneDialogueState.choices:[];
+ options.hidden=!choices.length;
+ $('sceneDialogueNext').hidden=!!choices.length;
+ for(const choice of choices){
+  const button=document.createElement('button');button.type='button';button.textContent=choice.label;
+  button.onclick=()=>{closeSceneDialogue();choice.fn?.();};
+  options.appendChild(button);
+ }
  box.classList.remove('hidden');$('app').classList.add('scene-dialogue-active');syncDialogueInputLock();
 }
-function openSceneDialogue(lines,purpose=null){
+function openSceneDialogue(lines,purpose=null,choices=[]){
  if(!Array.isArray(lines)||!lines.length)return;
  sceneDialogueState.lines=lines.filter(line=>line&&typeof line.text==='string'&&line.text.trim()).map(line=>({
   speaker:String(line.speaker||'旁白').slice(0,24),text:line.text,
   portrait:line.portrait==='protagonist'?'protagonist':null
  }));
  if(!sceneDialogueState.lines.length)return;
- sceneDialogueState.index=0;sceneDialogueState.open=true;sceneDialogueState.purpose=purpose;renderSceneDialogue();
+ sceneDialogueState.index=0;sceneDialogueState.open=true;sceneDialogueState.purpose=purpose;sceneDialogueState.choices=choices;renderSceneDialogue();
 }
 function closeSceneDialogue(){
- sceneDialogueState.open=false;sceneDialogueState.lines=[];sceneDialogueState.index=0;sceneDialogueState.purpose=null;
+ sceneDialogueState.open=false;sceneDialogueState.lines=[];sceneDialogueState.index=0;sceneDialogueState.purpose=null;sceneDialogueState.choices=[];
  renderSceneDialogue();
 }
 function nextSceneDialogue(){
  if(!sceneDialogueState.open)return;
  if(sceneDialogueState.index<sceneDialogueState.lines.length-1){
   sceneDialogueState.index++;renderSceneDialogue();
- }else {const purpose=sceneDialogueState.purpose,route=attentionRoute;closeSceneDialogue();if(purpose==='opening-departure'&&s.scene==='wreck')change('trail');else if(purpose==='route-preview'&&route){attentionRoute=null;focusDiscoveredRoute(route.from,route.to);}}
+ }else if(!sceneDialogueState.choices.length){const purpose=sceneDialogueState.purpose,route=attentionRoute;closeSceneDialogue();if(purpose==='opening-departure'&&s.scene==='wreck')change('trail');else if(purpose==='route-preview'&&route){attentionRoute=null;focusDiscoveredRoute(route.from,route.to);}}
 }
 function openWreckIntroduction(){
  if(s.scene!=='wreck')return;
@@ -8034,20 +8047,23 @@ function inspectTrailMarker(){
   {label:'先不調查',fn:()=>{},secondary:true}
  ]);
 }
+function inspectInScene(text,choices){
+ openSceneDialogue([{speaker:'旁白',text}],null,choices);
+}
 function glance(){
  s.flags.wagonLooked=true;note('wagon','馬車在你醒來之前就已被毀壞',true);
  const taken=!!s.flags.openingClothTaken;
- dialog('傾斜的貨箱',taken?'箱子裡剩下碎木屑與濕泥。':'碎木屑下壓著一塊尚且完整的布料，也許之後派得上用場。',[
+ inspectInScene(taken?'箱子裡剩下碎木屑與濕泥。':'碎木屑下壓著一塊尚且完整的布料，也許之後派得上用場。',[
  ...(!taken?[{label:'收起布料',fn:()=>{if(s.flags.openingClothTaken)return;s.flags.openingClothTaken=true;addUnique(s.items,'舊布片');addTravel('discovery','從倒塌貨箱中收起一塊舊布片。','也許可以留著備用。');save();render();}}]:[]),
- {label:'先離開',fn:()=>{}}],'物件調查');
+ {label:'先離開',fn:()=>{}}]);
 }
 function marks(){
  const known=routeKnown('wreck','trail');note('scratches','車板上有不明的深刻痕跡',true);
  if(!known){s.flags.openingTracks=true;save();render();}
- dialog('破裂的車輪',known?'泥地上的車轍延伸到已發現的小徑。':'你蹲下查看破裂的車輪。泥地上有兩道被壓深的車轍，一路延伸到樹叢深處。',[
+ inspectInScene(known?'泥地上的車轍延伸到已發現的小徑。':'你蹲下查看破裂的車輪。泥地上有兩道被壓深的車轍，一路延伸到樹叢深處。',[
  {label:known?'查看已發現的道路':'看看車轍指向哪裡',fn:()=>{if(known)focusDiscoveredRoute('wreck','trail');else{renderOpeningObjective();renderHotspots();}}},
  {label:'先看看其他物品',fn:()=>{}}
- ],'現場觀察');
+ ]);
 }
 function light(){s.flags.lightSeen=true;note('light','空地的樹根旁有微光');dialog('樹根間的微光','你發現一件形狀奇怪的東西。它沒有立即展現任何用途，也無法確定是否安全。',[{label:'記下位置',fn:()=>note('lightMark','已在日誌記下微光所在位置')},{label:'收起碎片',fn:()=>{addUnique(s.items,'不明的微光碎片（測試物品）');s.flags.lightTaken=true;note('lightTake','取得一件來源不明的微光碎片');render();}},{label:'先不碰它',fn:()=>{}}],'未知發現');}
 function soundInForest(){if(!s.flags.creatureResolved&&(s.exploration?.counts?.clearing||0)>0&&window.DungeonSceneObjectsV1&&!window.DungeonSceneObjectsV1.creatureVisible(s)){dialog('林間暫時安靜','剛才的生物已離開這一帶。繼續探索，也許還會遇見牠。',[{label:'繼續觀察',fn:()=>{}}],'森林觀察');return;}if(s.flags.creatureResolved){dialog('寂靜再次降臨','那陣聲響沒有再出現。遠處的森林仍有許多你不認識的生物。',[{label:'離開',fn:()=>{}}]);return;}note('sound','林間傳來陌生生物的動靜');dialog('樹叢正在晃動','一隻陌生的林地生物從草葉後露出身影。它沒有立刻攻擊，只是警戒地注視著你。',[{label:'保持距離',fn:()=>{s.flags.creatureResolved=true;note('avoid','你選擇避開陌生生物');render();}},{label:'嘗試繞過',fn:()=>{s.flags.creatureResolved=true;note('avoid','你沒有和陌生生物發生衝突');render();}},{label:'迎戰',fn:()=>battleStart()}],'未知遭遇');}
@@ -8606,7 +8622,9 @@ function forestV4Action(o){
  if(k.startsWith('crate'))options.push({label:'檢查貨箱',fn:glance});
  if(o.rabbitVariant==='golden')options.push({label:'安靜觀察並記錄',fn:()=>{if(!o.previewOnly){normalizeForestRare();s.forestRare.sighted.goldenRabbit=true;note('goldenRabbit','在林間目擊稀有的金紋兔');renderHotspots();}else toast('金紋兔外觀預覽');}});
  options.push({label:info.type==='living'?'不打擾牠':'先離開',fn:()=>{}});
- dialog(info.name,info.description+(finds.length?'\n\n附近有探索時發現的可收集材料。':''),options,info.type==='living'?'生態觀察':'物件調查');
+ const text=info.description+(finds.length?'\n\n附近有探索時發現的可收集材料。':'');
+ if(invokingSceneAction)dialog(info.name,text,options,info.type==='living'?'生態觀察':'物件調查');
+ else inspectInScene(text,options);
 }
 function forestEnvironmentActive(){return DEV_PREVIEW_MODE&&window.DUNGEON_FOREST_V4_LAYOUT?.revision==='accident-d-preview'&&new URLSearchParams(location.search).get('env')!=='off';}
 function plantSpawnWeather(){
@@ -8935,6 +8953,7 @@ const active=activeDialogueSurface();
    e.preventDefault();if(controls.length){const i=controls.indexOf(document.activeElement);controls[(i<0?(e.shiftKey?controls.length-1:0):(i+(e.shiftKey?controls.length-1:1))%controls.length)].focus();}return;
   }
   if(active.id==='sceneDialogue'){
+   if((e.key==='Enter'||e.key===' ')&&e.target.closest?.('#sceneDialogueChoices button'))return;
    if(e.key==='Enter'||e.key===' '||e.key==='ArrowRight'){e.preventDefault();nextSceneDialogue();}
    else if(e.key==='Escape'){e.preventDefault();if(sceneDialogueState.purpose!=='opening-departure')closeSceneDialogue();}
    return;
