@@ -14,7 +14,7 @@ function create({detect=65,lose=88,attackRange=32,retreatHP=.25,alertMs=850,cool
    if(!best||score>best.score)best={direction:d,score};}
   return best?.direction??null;
  }
- function step({dt,pos,angle,target=null,hp=1,busy=false,sweep,perception=null,stimulus=null,environment={},needs=null,lifestyle=null}){
+ function step({dt,pos,angle,target=null,hp=1,busy=false,sweep,perception=null,stimulus=null,environment={},needs=null,lifestyle=null,attackReady=true}){
   if(!Number.isFinite(dt)||dt<0)throw Error('invalid dt');
   age+=dt;cooldown=Math.max(0,cooldown-dt);avoidAge=Math.max(0,avoidAge-dt);
   const actual=target;if(perception)target=perception.memory;const d=target?dist(pos,target):Infinity;const visible=perception?!!target&&perception.confirmed:!!target&&d<=(seen?lose:detect);
@@ -43,13 +43,13 @@ function create({detect=65,lose=88,attackRange=32,retreatHP=.25,alertMs=850,cool
   if(state==='rest'&&age>=restMs/Math.max(.1,(environment.activity??1)*(drive?.roamFactor??1))){enter('roam');roamDir=wrap(roamDir+3);}
   if(state==='roam'&&age>=roamMs*Math.max(.1,(environment.activity??1)*(drive?.roamFactor??1)))enter('rest');
   const desired=target?heading(pos,target):angle;
-  if(state==='track'&&d<=attackRange&&cooldown===0&&angle===desired&&(!perception||perception.attackAllowed)&&(!drive||drive.attack)){
+  if(state==='track'&&d<=attackRange&&cooldown===0&&attackReady&&angle===desired&&(!perception||perception.attackAllowed)&&(!drive||drive.attack)){
    const length=Math.max(0,d-14),q=sweep(pos,desired,length);
    if(!q.hit&&q.distance>=length-1e-7){enter('attack');return {state,mode:'pounce',direction:desired,attackDistance:length};}
   }
   if(state==='rest'||state==='alert'||state==='recover')return {state,mode:state==='rest'?'rest':'alert',direction:visible?desired:angle};
   if(state==='track'&&perception?.investigate&&d<=10){return {state:'search',mode:'alert',direction:wrap(desired+Math.floor(age/600)%3-1)};}
-  if(state==='track'&&d<=attackRange&&(cooldown>0||(drive&&!drive.attack))&&!perception?.investigate)return {state,mode:'alert',direction:desired};
+  if(state==='track'&&d<=attackRange&&!perception?.investigate)return {state,mode:'alert',direction:desired};
   const want=state==='roam'?roamDir:state==='retreat'?wrap(desired+4):desired;
   let dir=avoidAge>0&&avoidDir!==null&&sweep(pos,avoidDir,12).distance>=8?avoidDir:choose(pos,want,sweep,state==='track'?target:null,angle);
   if(dir===null)return {state:'blocked',mode:'alert',direction:angle};

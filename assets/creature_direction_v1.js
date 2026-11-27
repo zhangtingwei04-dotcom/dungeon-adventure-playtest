@@ -17,5 +17,15 @@ function mixPose(neutral,step,w){
  const lerp=(a,b)=>a+(b-a)*w,point=(a,b)=>a.map((v,i)=>lerp(v,b[i]));
  return {...step,mode:'turn-step',dx:0,height:lerp(neutral.height,step.height),dy:lerp(neutral.dy,step.dy),pitch:lerp(neutral.pitch,step.pitch),legs:neutral.legs.map((a,i)=>{const b=step.legs[i];if(!b||a.key!==b.key||a.rows.length!==b.rows.length)throw Error('pose mismatch');return {...b,hip:point(a.hip,b.hip),knee:point(a.knee,b.knee),ankle:point(a.ankle,b.ankle),foot:point(a.foot,b.foot),rows:a.rows.map((r,j)=>({y:r.y,t:lerp(r.t,b.rows[j].t),dx:lerp(r.dx,b.rows[j].dx)}))};})};
 }
-root.DungeonCreatureDirectionV1=Object.freeze({plan,sample,mixPose,speeds});
+// Resolve a single locomotion transition. Never launch an attack before braking and turning finish.
+function transition({mode,desiredMode,angle,desiredDirection,turning=false,stopping=false}){
+ const moving=['walk','trot','run'].includes(mode),wantsMove=['walk','trot','run'].includes(desiredMode);
+ if(turning){if(moving&&!wantsMove&&!stopping)return {kind:'brake'};return {kind:'wait'};}
+ if(moving&&!wantsMove)return {kind:stopping?'wait':'brake'};
+ if(moving&&stopping)return {kind:'wait'};
+ if(angle!==desiredDirection)return {kind:'turn',direction:desiredDirection};
+ if(mode!==desiredMode)return {kind:'set',mode:desiredMode};
+ return {kind:'wait'};
+}
+root.DungeonCreatureDirectionV1=Object.freeze({plan,sample,mixPose,speeds,transition});
 })(typeof window==='undefined'?globalThis:window);
