@@ -72,7 +72,10 @@ window.DungeonBirdMotion=(function(){
  const feetPoly=[[58,70],[98,70],[103,95],[57,95]];
  function render(node,v,t,ms){
   const r=rigs.get(node);if(!r||ms-r.last<32)return;r.last=ms;
-  const {ctx,img}=r;ctx.clearRect(0,0,CW,CH);ctx.save();ctx.translate(P,P);
+  const {ctx,img}=r;ctx.clearRect(0,0,CW,CH);ctx.save();ctx.translate(P,P);paintFrame(ctx,img,v,t);ctx.restore();
+ }
+ // Local 119×95 sprite painter, reusable by Canvas scene renderers.
+ function paintFrame(ctx,img,v,t){ctx.save();
   const pose=wingPose(t,v.open,v.brake);
   const active=v.open>.01||v.hop>0||v.crouch>0||v.peck>.09;
   if(!active){ctx.drawImage(img,0,0,W,H);ctx.restore();return;}
@@ -85,5 +88,5 @@ window.DungeonBirdMotion=(function(){
   if(v.open>.01){ctx.save();ctx.globalAlpha=Math.min(1,v.open*2);paintWing(ctx,pose,false);ctx.restore();}
   ctx.restore();
  }
- return {sample,attach,render,routes,wingPose};
+ return {sample,attach,render,routes,wingPose,paintFrame};
 })();
