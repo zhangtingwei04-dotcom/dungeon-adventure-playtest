@@ -1,16 +1,29 @@
-/* 燈火核心：場景互動刺激 V1.0。事件座標是物件，不是玩家位置。 */
+/* 燈火核心：場景互動刺激 V1.1。物件聲響、氣味殘留與風向。 */
 (function(root){'use strict';
-const profiles=Object.freeze({herb:{noise:.18,duration:320},mushroom:{noise:.24,duration:400},branch:{noise:.56,duration:650},stone:{noise:.72,duration:800},crate:{noise:.87,duration:1050},carriage:{noise:1,duration:1200}});
-function create({hearingRange=48,memoryMs=7200,occluded=()=>false}={}){
+const profiles=Object.freeze({herb:{noise:.18,duration:320,scent:.72,scentMs:14000},mushroom:{noise:.24,duration:400,scent:.85,scentMs:16000},branch:{noise:.56,duration:650,scent:.42,scentMs:10000},stone:{noise:.72,duration:800,scent:.12,scentMs:5000},crate:{noise:.87,duration:1050,scent:.35,scentMs:11000},carriage:{noise:1,duration:1200,scent:.28,scentMs:9000}});
+const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+function scentAt(e,pos,clock,wind,range){
+ const life=e.scentUntil-e.at,age=clock-e.at;if(life<=0||age>=life||e.scent<=0)return 0;
+ const strength=e.scent*(1-age/life),dx=pos.x-e.position.x,dz=pos.z-e.position.z,d=Math.hypot(dx,dz),speed=clamp(wind?.speed||0,0,1),a=(wind?.direction||0)*Math.PI/4;
+ const along=dx*Math.sin(a)+dz*Math.cos(a),cross=Math.abs(dx*Math.cos(a)-dz*Math.sin(a)),radius=range*strength;
+ const travel=radius*(1+1.1*speed),back=radius*(1-.72*speed),width=radius*(1-.45*speed);
+ const u=Math.hypot(along/(along>=0?travel:back),cross/width);if(u>=1)return 0;
+ return strength*(1-.8*u);
+}
+function create({hearingRange=48,scentRange=34,memoryMs=7200,occluded=()=>false}={}){
  let clock=0,serial=0,events=[],memory=null;
  function reset(){clock=0;events=[];memory=null;}
- function emit({kind,position,objectId=null,noise,duration}){const p=profiles[kind];if(!p||![position?.x,position?.z].every(Number.isFinite))throw Error('invalid stimulus');const strength=Math.max(0,Math.min(1,noise??p.noise)),life=duration??p.duration;if(!Number.isFinite(strength)||!Number.isFinite(life)||life<=0)throw Error('invalid intensity');const e={id:++serial,objectId,kind,position:{...position},strength,until:clock+life};events.push(e);if(events.length>32)events.shift();return e.id;}
- function step({dt,pos,obstacles=[]}){if(!Number.isFinite(dt)||dt<0)throw Error('invalid dt');clock+=dt;events=events.filter(e=>e.until>=clock);if(memory&&clock-memory.at>memoryMs)memory=null;
- let best=null;for(const e of events){const hidden=occluded(pos,e.position,obstacles),d=Math.hypot(pos.x-e.position.x,pos.z-e.position.z),range=hearingRange*e.strength*(hidden?.65:1);if(d>range||range<=0)continue;const score=e.strength*(1-.55*d/range)*(hidden?.8:1);if(!best||score>best.score)best={...e,score,hidden};}
- if(best&&(!memory||best.id===memory.id||best.score>=memory.score||clock-memory.at>1000)){memory={id:best.id,kind:best.kind,position:{...best.position},score:best.score,hidden:best.hidden,at:clock,investigate:best.score>=.32};}
- return memory?{...memory,position:{...memory.position},age:clock-memory.at,heard:!!best,attackAllowed:false}:null;
+ function emit({kind,position,objectId=null,noise,duration,scent,scentMs}){const p=profiles[kind];if(!p||![position?.x,position?.z].every(Number.isFinite))throw Error('invalid stimulus');const strength=clamp(noise??p.noise,0,1),life=duration??p.duration,odor=clamp(scent??p.scent,0,1),odorLife=scentMs??p.scentMs;if(![strength,life,odor,odorLife].every(Number.isFinite)||life<=0||odorLife<0)throw Error('invalid intensity');const e={id:++serial,objectId,kind,position:{...position},strength,until:clock+life,scent:odor,scentUntil:clock+odorLife,at:clock};events.push(e);if(events.length>32)events.shift();return e.id;}
+ function step({dt,pos,obstacles=[],wind={direction:0,speed:0}}){if(!Number.isFinite(dt)||dt<0)throw Error('invalid dt');clock+=dt;events=events.filter(e=>Math.max(e.until,e.scentUntil)>=clock);if(memory&&clock-memory.at>memoryMs)memory=null;
+ let best=null;for(const e of events){const hidden=occluded(pos,e.position,obstacles),d=Math.hypot(pos.x-e.position.x,pos.z-e.position.z),range=hearingRange*e.strength*(hidden?.65:1);
+ const sound=clock<=e.until&&range>0&&d<=range?e.strength*(1-.55*d/range)*(hidden?.8:1):0;
+ const scent=scentAt(e,pos,clock,wind,scentRange)*(hidden?.85:1);
+ const score=Math.max(sound,scent);if(score<.08)continue;const source=sound>=scent?'sound':'scent';
+ if(!best||score>best.score)best={...e,score,hidden,source,sound,scent};}
+ if(best&&(!memory||best.id===memory.id||best.score>=memory.score||clock-memory.at>1000)){memory={id:best.id,kind:best.kind,position:{...best.position},score:best.score,hidden:best.hidden,at:clock,source:best.source,investigate:best.score>=.32||(memory?.id===best.id&&memory.investigate)};}
+ return memory?{...memory,position:{...memory.position},age:clock-memory.at,heard:!!best&&best.sound>=.08,smelled:!!best&&best.scent>=.08,attackAllowed:false}:null;
  }
  return Object.freeze({emit,step,reset});
 }
-root.DungeonCreatureStimulusV1=Object.freeze({create,profiles});
+root.DungeonCreatureStimulusV1=Object.freeze({create,profiles,scentAt});
 })(typeof window==='undefined'?globalThis:window);
