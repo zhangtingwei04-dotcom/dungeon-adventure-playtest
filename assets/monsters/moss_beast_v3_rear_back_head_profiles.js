@@ -1,0 +1,2 @@
+/* V3.17 rear-quarter head pitch and back-visible crest projection. */
+(function(root){root.DungeonMossBeastV3RearHeadProfile={"pivot":[75,89],"rigidX":58,"fixedX":94,"taperY":106,"fixedY":122,"maxAngle":4};root.DungeonMossBeastV3BackHeadProfile={"projection":"frontal","centerX":112,"rigidRadius":16,"fixedRadius":49,"upperFixed":8,"upperRigid":23,"taperY":56,"fixedY":89,"maxAngle":4,"shift":2};})(typeof window==='undefined'?globalThis:window);

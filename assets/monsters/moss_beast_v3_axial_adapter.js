@@ -1,7 +1,8 @@
 /* Candidate V3 presentation adapter. Uses shared V1 motion and rig math. */
 (function(root){'use strict';
 function create(P){const R=root.DungeonCreatureRigV1,M=root.DungeonCreatureMotionV1.create(P.motion);const mouth=P.id==='moss-beast-v3-front-000'&&root.DungeonCreatureMouthV1&&root.DungeonMossBeastV3FrontMouthProfile?root.DungeonCreatureMouthV1.create(root.DungeonMossBeastV3FrontMouthProfile):null;
-const head=P.id==='moss-beast-v3-front-000'&&root.DungeonCreatureHeadV1&&root.DungeonMossBeastV3FrontHeadProfile?root.DungeonCreatureHeadV1.create(root.DungeonMossBeastV3FrontHeadProfile):null;
+const headProfile=P.id==='moss-beast-v3-front-000'?root.DungeonMossBeastV3FrontHeadProfile:root.DungeonMossBeastV3BackHeadProfile;
+const head=root.DungeonCreatureHeadV1&&headProfile?root.DungeonCreatureHeadV1.create(headProfile):null;
 function sample(mode,ms){
  const running=mode==='run',g=mode==='run'?M.gaits.run:mode==='trot'?M.gaits.trot:M.gaits.walk,phase=(ms/g.period)%1,walk=['walk','trot','run'].includes(mode);
  const j=['jump','jump-up'].includes(mode)?M.jumpState(ms):['charge','pounce','slam'].includes(mode)?M.attackState(mode,ms):M.reactionModes.includes(mode)?M.reactionState(mode,ms):null;
