@@ -8,19 +8,21 @@ function contact(previous,{guard=false,cost=0,damage=0}={}){
  return {gp:s.gp-spent,balance:clamp(s.balance+(broken?45+damage*2:blocked?5:damage>0?8+damage*2:0)),spent,broken,blocked};
 }
 function recover(previous,{gp=12,balance=12}={}){const s=normalize(previous);return {gp:clamp(s.gp+gp),balance:clamp(s.balance-balance)};}
-function resolve(previous,hp,action,ground={}){
+function resolve(previous,hp,action,ground={},technique=null){
  const R=root.DungeonBattleRulesV1,hero=normalize(previous.heroDefense),enemy=normalize(previous.enemyDefense);
  const valid=!previous.result&&['attack','guard','dodge','observe','approach','backstep','retreat'].includes(action)&&!(action==='attack'&&previous.distance!==0);
  if(!valid)return R.resolve(previous,hp,action,ground);
- const raw=action==='attack'?(previous.intent==='exposed'?6:3)+(previous.focused?2:0):0;
+ const baseRaw=action==='attack'?(previous.intent==='exposed'?6:3)+(previous.focused?2:0):0;
+ const raw=baseRaw?Math.max(1,baseRaw+(technique?.damageDelta||0)):0;
  // Watch is the candidate's defensive stance; no extra action or RNG.
  const enemyGuard=raw>0&&previous.intent==='watch'&&enemy.gp>0&&enemy.balance<75;
- const enemyCost=raw*5+8,enemyCanBlock=enemyGuard&&enemy.gp>enemyCost;
+ const enemyCost=raw*5+8+(technique?.guardBonus||0),enemyCanBlock=enemyGuard&&enemy.gp>enemyCost;
  const mitigation=enemyCanBlock?Math.floor(raw*.5):0;
- const result=R.resolve({...previous,enemyHp:previous.enemyHp+mitigation},hp,action,ground);
+ const result=R.resolve({...previous,enemyHp:previous.enemyHp+baseRaw-raw+mitigation},hp,action,ground);
  if(result.skipped)return result;
- result.damage=Math.max(0,result.damage-mitigation);
+ result.damage=Math.max(0,raw-mitigation);
  const enemyContact=result.damage>0?contact(enemy,{guard:enemyGuard,cost:enemyCost,damage:result.damage}):null;
+ if(enemyContact&&technique)enemyContact.balance=clamp(enemyContact.balance+Math.round((technique.balanceBonus||0)*(enemyContact.blocked?.35:1)));
  const guardCost=result.enemyAction==='heavy'?34:result.enemyAction==='pounce'?24:0;
  const heroGuard=action==='guard'&&result.hit>0&&guardCost>0;
  const heroBreak=heroGuard&&hero.gp<=guardCost;
@@ -35,6 +37,7 @@ function resolve(previous,hp,action,ground={}){
  else if(heroContact?.blocked)message+=' 你成功格擋。';
  if(enemyContact?.broken)message+=' 牠的格擋被擊破。';
  else if(enemyContact?.blocked)message+=' 牠擋下部分攻擊。';
+ if(technique&&result.damage)message='你使出'+technique.name+'。 '+message;
  if(result.damage)message+=' 造成 '+result.damage+' 點傷害。';
  if(result.hit)message+=' 受到 '+result.hit+' 點傷害。';
  result.state.feedback=message;
