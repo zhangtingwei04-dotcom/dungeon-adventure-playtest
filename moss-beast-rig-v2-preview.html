@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="zh-Hant"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>苔棘鬃獸｜四足動態骨架試驗</title>
 <style>*{box-sizing:border-box}body{margin:0;background:#112820;color:#e6d9b7;font:15px system-ui,sans-serif;padding:12px}main{max-width:850px;margin:auto}h1{font-size:19px;margin:0 0 8px}p{line-height:1.6;margin:8px 0}canvas{width:100%;height:auto;display:block;background:#253c30;border:1px solid #9f8d60;border-radius:8px;image-rendering:pixelated}nav{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}button{background:#29483a;border:1px solid #a8915d;color:#f4e7c6;border-radius:5px;padding:9px 12px;font:inherit}button[aria-pressed=true]{background:#d3b879;color:#203126}label{display:inline-flex;align-items:center;gap:6px}small{color:#bcbea9}</style>
-<main><h1>苔棘鬃獸 V13｜四肢連續蒙皮試驗</h1><p>同一張側面母圖；固定腳掌落點，關節帶動身體，非重新生成每一幀。</p><canvas id="scene" width="480" height="220" aria-label="四足動畫預覽"></canvas><nav><button data-mode="original">側面母圖</button><button data-mode="front">正面母圖</button><button data-mode="quarter">斜側母圖</button><button data-mode="rest-art">休息母圖</button><button data-mode="rest">休息</button><button data-mode="rise">起身</button><button data-mode="walk">原地步態</button><button data-mode="travel">地面行走</button><button data-mode="alert">警戒</button><button data-mode="turn">轉身</button><button data-mode="trot">小跑</button><button data-mode="run">疾跑</button><button data-mode="run-in-place">原地疾跑</button><button data-mode="jump">向前跳躍</button><button data-mode="jump-up">原地跳躍</button><label><input id="secondary" type="checkbox" checked>頭部／鬃毛／尾部連動</label><label>速度 <select id="speed"><option value=".5">半速</option><option value="1" selected>正常</option><option value="1.5">快速</option></select></label><button id="pause">暫停</button><label><input id="debug" type="checkbox">顯示骨架與足點</label><label><input id="body-only" type="checkbox">檢查軀幹殘留</label></nav><p id="status" role="status">讀取 V2 母圖…</p><small>獨立研究頁：尚未接入遊戲。疾跑採前後肢分組蹬地與騰空，小跑另保留比較；轉身使用既有方向圖，尚非連續骨架旋轉。圖層切割與美術仍待驗收。</small></main>
+<main><h1>苔棘鬃獸 V14｜蓄力與撲擊</h1><p>同一張側面母圖；固定腳掌落點，關節帶動身體，非重新生成每一幀。</p><canvas id="scene" width="480" height="220" aria-label="四足動畫預覽"></canvas><nav><button data-mode="original">側面母圖</button><button data-mode="front">正面母圖</button><button data-mode="quarter">斜側母圖</button><button data-mode="rest-art">休息母圖</button><button data-mode="rest">休息</button><button data-mode="rise">起身</button><button data-mode="walk">原地步態</button><button data-mode="travel">地面行走</button><button data-mode="alert">警戒</button><button data-mode="turn">轉身</button><button data-mode="trot">小跑</button><button data-mode="run">疾跑</button><button data-mode="run-in-place">原地疾跑</button><button data-mode="jump">向前跳躍</button><button data-mode="jump-up">原地跳躍</button><button data-mode="charge">蓄力警戒</button><button data-mode="pounce">向前撲擊</button><button data-mode="slam">落地重擊</button><label><input id="secondary" type="checkbox" checked>頭部／鬃毛／尾部連動</label><label>速度 <select id="speed"><option value=".5">半速</option><option value="1" selected>正常</option><option value="1.5">快速</option></select></label><button id="pause">暫停</button><label><input id="debug" type="checkbox">顯示骨架與足點</label><label><input id="body-only" type="checkbox">檢查軀幹殘留</label></nav><p id="status" role="status">讀取 V2 母圖…</p><small>獨立研究頁：尚未接入遊戲，撲擊與落地重擊僅為動畫預覽，未計算傷害。疾跑採前後肢分組蹬地與騰空，小跑另保留比較；轉身使用既有方向圖，尚非連續骨架旋轉。圖層切割與美術仍待驗收。</small></main>
 <script src="./assets/creature_shadow_v1.js?v=1"></script>
 <script>
 'use strict';
@@ -43,6 +43,7 @@ function secondaryMotion(mode,elapsed,phase){
  if(mode==='run'||mode==='run-in-place')return {head:1.8*Math.sin(cycle-.4),mane:1.5*Math.sin(cycle-1.1),tail:2.8*Math.sin(cycle-1),alert:0};
  if(mode==='trot')return {head:1.3*Math.sin(2*cycle-.4),mane:1.1*Math.sin(2*cycle-1.1),tail:2.2*Math.sin(cycle-1),alert:0};
  if(mode==='walk'||mode==='travel')return {head:.85*Math.sin(2*cycle-.4),mane:.65*Math.sin(2*cycle-1.1),tail:1.7*Math.sin(cycle-1.0),alert:0};
+ if(mode==='charge'||mode==='pounce'||mode==='slam'){const j=attackState(mode,elapsed),p=ease(elapsed/440),shock=j.impact?Math.sin(j.impactAge/180*Math.PI)*1.1:0;return {head:.9*p-1.8*Math.sin(Math.PI*j.air)+shock,mane:1.3*Math.sin(2*Math.PI*j.air)-shock,tail:2.2*Math.sin(Math.PI*j.air),alert:p};}
  if(mode==='jump'||mode==='jump-up'){const j=jumpState(elapsed);return {head:-1.3*Math.sin(Math.PI*j.air),mane:.9*Math.sin(2*Math.PI*j.air),tail:1.8*Math.sin(Math.PI*j.air),alert:0};}
  if(mode==='rise'){const p=ease(elapsed/850);return {head:-1.5*p*(1-p)*4,mane:.45*Math.sin(Math.PI*p),tail:.8*Math.sin(Math.PI*p),alert:0};}
  if(mode==='alert'){const p=ease(elapsed/500);return {head:-1.8*p,mane:.6*p+.15*breath,tail:-1.3*p+.3*breath,alert:p};}
@@ -88,6 +89,19 @@ function jumpState(ms){
  if(t<j.airEnd){const u=(t-j.push)/(j.airEnd-j.push),height=4*j.apex*u*(1-u);return {stage:u<.5?'上升騰空':'下降準備落地',height,dx:-j.distance*u,dy:5-height,pitch:.06*Math.cos(Math.PI*u),frontLift:9*(1-u)+9*Math.sin(Math.PI*u),rearLift:9*u+10*Math.sin(Math.PI*u),air:u};}
  if(t<j.rearDown){const p=ease((t-j.airEnd)/(j.rearDown-j.airEnd));return {stage:'前足落地緩衝',height:0,dx:-j.distance,dy:5+9*p,pitch:-.06*(1-p),frontLift:0,rearLift:9*(1-p),air:1};}
  const p=ease((t-j.rearDown)/(j.end-j.rearDown));return {stage:p===1?'落地完成':'後足接地・恢復',height:0,dx:-j.distance,dy:14-9*p,pitch:0,frontLift:0,rearLift:0,air:1};
+}
+// Combat movement uses the approved V13 skin and ground plane, not new art.
+const attackProfiles=Object.freeze({pounce:{windup:440,push:580,airEnd:1050,rearDown:1170,end:1580,apex:26,distance:130},slam:{windup:510,push:670,airEnd:1320,rearDown:1450,end:1900,apex:48,distance:0}});
+function attackState(mode,ms){
+ const j=attackProfiles[mode]||attackProfiles.pounce;
+ const t=clamp(ms,0,j.end),base={height:0,dx:0,dy:5,pitch:0,frontLift:0,rearLift:0,air:0,attack:true,impact:false,impactAge:Infinity};
+ if(mode==='charge'){const p=ease(ms/440);return {...base,stage:'蓄力警戒',dy:5+12*p,pitch:-.035*p};}
+ if(t<j.windup){const p=ease(t/j.windup);return {...base,stage:'屈腿蓄力',dy:5+12*p,pitch:-.035*p};}
+ if(t<j.push){const p=ease((t-j.windup)/(j.push-j.windup));return {...base,stage:'後足爆發蹬地',dy:17-12*p,pitch:-.035+.095*p,frontLift:9*p};}
+ if(t<j.airEnd){const u=(t-j.push)/(j.airEnd-j.push),height=4*j.apex*u*(1-u);return {...base,stage:u<.5?'騰空撲出':'伸出前肢準備落地',height,dx:-j.distance*u,dy:5-height,pitch:.06*Math.cos(Math.PI*u),frontLift:9*(1-u)+9*Math.sin(Math.PI*u),rearLift:9*u+10*Math.sin(Math.PI*u),air:u};}
+ const age=t-j.airEnd;
+ if(t<j.rearDown){const p=ease(age/(j.rearDown-j.airEnd));return {...base,stage:'前足著地・衝擊',dx:-j.distance,dy:5+9*p,pitch:-.06*(1-p),rearLift:9*(1-p),air:1,impact:true,impactAge:age};}
+ const p=ease((t-j.rearDown)/(j.end-j.rearDown));return {...base,stage:p===1?'恢復完成':'後足接地・恢復',dx:-j.distance,dy:14-9*p,air:1,impactAge:age,impact:age<180};
 }
 function jumpFoot(l,far,state){
  const front=l.id==='front',u=state.air,tuck=Math.sin(Math.PI*u);
@@ -160,12 +174,15 @@ function groundShadow(baseX,height){
 }
 function render(){
  ctx.clearRect(0,0,480,220);const bg=ctx.createLinearGradient(0,0,0,220);bg.addColorStop(0,'#203a31');bg.addColorStop(1,'#43513b');ctx.fillStyle=bg;ctx.fillRect(0,0,480,220);
- const running=mode==='run'||mode==='run-in-place',trotting=mode==='trot',walk=mode==='walk'||mode==='travel'||running||trotting,gait=running?gaits.run:trotting?gaits.trot:gaits.walk,phase=(elapsed/gait.period)%1,jump=mode==='jump'||mode==='jump-up'?jumpState(elapsed):null,bodyState=jump|| (running?gallopBody(phase):null),dy=bodyState?bodyState.dy:mode==='rest'?17:mode==='rise'?5+12*(1-ease(elapsed/850)):trotting?7+1.1*Math.cos(phase*4*Math.PI):walk?5+.9*Math.cos(phase*8*Math.PI):5,pitch=bodyState?.pitch||0;
- const debug=$('debug').checked,overlays=[];const baseX=jump?(mode==='jump'?185+jump.dx:130):mode==='travel'||mode==='run'||trotting?490-((240+elapsed*speedOf(gait))%710):130;
+ const running=mode==='run'||mode==='run-in-place',trotting=mode==='trot',walk=mode==='walk'||mode==='travel'||running||trotting,gait=running?gaits.run:trotting?gaits.trot:gaits.walk,phase=(elapsed/gait.period)%1,attack=['charge','pounce','slam'].includes(mode),jump=attack?attackState(mode,elapsed):mode==='jump'||mode==='jump-up'?jumpState(elapsed):null,bodyState=jump|| (running?gallopBody(phase):null),dy=bodyState?bodyState.dy:mode==='rest'?17:mode==='rise'?5+12*(1-ease(elapsed/850)):trotting?7+1.1*Math.cos(phase*4*Math.PI):walk?5+.9*Math.cos(phase*8*Math.PI):5,pitch=bodyState?.pitch||0;
+ const debug=$('debug').checked,overlays=[];const baseX=jump?(['jump','pounce'].includes(mode)?185+jump.dx:130):mode==='travel'||mode==='run'||trotting?490-((240+elapsed*speedOf(gait))%710):130;
  ctx.strokeStyle='#89906b66';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0,190);ctx.lineTo(480,190);ctx.stroke();for(let x=0;x<480;x+=24){ctx.fillStyle='#9ca07866';ctx.fillRect(x,190,2,3);}
  // Draw the shadow at world-ground coordinates before applying any actor transform.
  const sh=groundShadow(baseX,jump?jump.height:running?flightLift(phase):0);
- shadowCore.draw(ctx,sh);ctx.save();
+ shadowCore.draw(ctx,sh);
+ // Landing dust only begins at contact and stays on the world ground layer.
+ if(attack&&jump.impactAge>=0&&jump.impactAge<260){const u=jump.impactAge/260,cx=baseX+47;ctx.save();ctx.globalAlpha=(1-u)*.6;ctx.fillStyle='#b4a280';for(let i=0;i<7;i++){const a=(i-3)/3,x=cx+a*(8+26*u),y=184-Math.sin(Math.PI*u)*(3+(i%3)*3);ctx.fillRect(Math.round(x),Math.round(y),3-(i%2),2);}ctx.restore();}
+ ctx.save();
  if(debug){ctx.strokeStyle='#d1b976';ctx.beginPath();ctx.arc(sh.x,sh.y,3,0,Math.PI*2);ctx.stroke();}
  ctx.restore();
  ctx.save();ctx.translate(baseX,48);ctx.imageSmoothingEnabled=false;
