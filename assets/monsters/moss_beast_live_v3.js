@@ -20,7 +20,7 @@ function draw(canvas,dir,mode,age,variant='basic',side='left'){
  if(mode==='claw'&&key==='front'){const sw=root.DungeonBattleImpactV1.swipe(age,C.timings.claw.impact),leg=pose.legs.find(l=>l.key===side);if(sw&&leg){g.save();g.globalAlpha=sw.opacity;g.strokeStyle='#fff0cb';g.lineWidth=2;const d=side==='left'?1:-1,x=leg.foot[0]+16,y=leg.foot[1]+21;for(let i=0;i<3;i++){g.beginPath();g.moveTo(x-d*(25+i*4),y-15-i*3);g.quadraticCurveTo(x-d*3,y-5,x+d*12,y+2-i*3);g.stroke();}g.restore();}}
 }
 function mount(img,state){load().then(c=>{if(!c||!img.isConnected||img.closest('#battleSurface')?.dataset.v3Animating==='true')return;const canvas=document.createElement('canvas');canvas.width=256;canvas.height=208;canvas.className='battle-creature v3-rig';canvas.setAttribute('role','img');canvas.setAttribute('aria-label',img.alt);draw(canvas,0,state.intent==='heavy'?'charge':state.intent==='pounce'?'alert':'stand',0);img.replaceWith(canvas);});}
-function animate(canvas,duration,paint){return new Promise(resolve=>{let start=null;const frame=now=>{if(!canvas.isConnected){resolve();return;}if(start===null)start=now;const t=Math.min(duration,now-start);paint(t);if(t<duration)root.requestAnimationFrame(frame);else resolve();};root.requestAnimationFrame(frame);});}
+function animate(canvas,duration,paint){return new Promise((resolve,reject)=>{let start=null;const frame=now=>{if(!canvas.isConnected){resolve();return;}if(start===null)start=now;const t=Math.min(duration,now-start);try{paint(t);}catch(e){reject(e);return;}if(t<duration)root.requestAnimationFrame(frame);else resolve();};root.requestAnimationFrame(frame);});}
 async function play(canvas,host,kind,result,{rest=null}={}){
  const C=root.DungeonCreatureCloseAttackV1,P=root.DungeonPlayerAttackV1,M=root.DungeonCreatureMotionV1.create(),D=root.DungeonCreatureDirectionV1,E=root.DungeonBattleExitV1;
  if(!cache||reduce()||!canvas?.classList.contains('v3-rig'))return false;
@@ -37,7 +37,7 @@ async function play(canvas,host,kind,result,{rest=null}={}){
  const type=E.classify(result,{action:kind});
  if(type==='flee'){const target=rest||{x:72,y:47,w:13},startX=50,startY=current.top;const dir=(Math.round(Math.atan2(target.x-startX,startY-target.y)/(Math.PI/4))+8)%8;const route=D.plan(0,dir,{speed:'fast'});if(route.duration)await animate(canvas,route.duration,t=>{const q=D.sample(route,t);draw(canvas,q.direction,'walk',q.stepTime);});
  await animate(canvas,900,t=>{const u=E.returnProgress(t,900);canvas.style.left=(startX+(target.x-startX)*u)+'%';position(interpolate(current,{top:target.y,w:target.w,h:target.w*1.12},u));draw(canvas,dir,'run',t);});await animate(canvas,180,t=>draw(canvas,dir,'stand',0));await animate(canvas,650,t=>{canvas.style.opacity=String(1-ease(t/650));});
- }else if(type==='player-retreat'){await animate(canvas,450,t=>{canvas.style.opacity=String(1-ease(t/450));draw(canvas,0,'stand',0);});}
+ }else if(type==='player-retreat'){await animate(canvas,350,t=>draw(canvas,0,'stand',0));}
  return true;
 }
 root.DungeonMossBeastLiveV3=Object.freeze({urls,load,mount,play});
