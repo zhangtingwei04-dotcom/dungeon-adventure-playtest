@@ -4577,7 +4577,7 @@ html.stage-locked #app #battleSurface .battle-actions button{font-size:17px;min-
 <script src="./assets/scene_action_time_v1.js?v=1"></script>
 <script src="./assets/scene_hourly_v1.js?v=1"></script>
 <script src="./assets/scene_dialogue_v1.js"></script>
-<script src="./assets/opening_progression_v1.js?v=2-departure"></script>
+<script src="./assets/opening_progression_v1.js?v=3-real-clock"></script>
 <script src="./assets/discovery_cue_v1.js?v=1"></script>
 <script>window.DungeonRuntimeFaultsV1=window.DungeonFaultIsolationV1.create();</script>
 <script>
@@ -5290,7 +5290,7 @@ function collectExplorationMaterial(site,id,objectId){
  window.DungeonEventsV1.emit('scene.collection.succeeded',s,{material:find.material,target:presenceTarget?{x:presenceTarget.x,y:presenceTarget.y,id:presenceTarget.id}:null});
  toast('已收取 '+find.material+' ×1');
 }
-function openingView(){return window.DungeonOpeningProgressionV1.view(s,travelTimeFor('wreck','trail'));}
+function openingView(){normalizeRouteDiscovery();return window.DungeonOpeningProgressionV1.view(s,travelTimeFor('wreck','trail'));}
 function openingAdventure(){return !s.flags.rescued&&['wreck','trail'].includes(s.scene);}
 function openingExitOnly(){return window.DungeonSceneActionTimeV1.openingExitOnly(s,openingView());}
 function exitOnlyAction(){if(!openingExitOnly())return false;if(routeKnown('wreck','trail')){inspectInScene('車轍指向林間小徑。',[{label:routeDestinationLabel('trail'),fn:()=>change('trail')},{label:'留在原地',fn:()=>{}}]);}else if(s.flags.openingTracks)followOpeningClue();else marks();return true;}
@@ -5300,7 +5300,8 @@ function renderOpeningObjective(){
  $('app').dataset.openingAdventure=String(openingAdventure());
  if(!openingAdventure()){el?.remove();return;}
  if(!el){el=document.createElement('div');el.className='opening-objective';stage.appendChild(el);}
- el.textContent=s.scene==='wreck'?(routeKnown('wreck','trail')?routeDestinationLabel('trail'):s.flags.openingTracks?'循著泥地上的車轍':'看看馬車，尋找離開的線索'):(routeKnown('trail','gate')?routeDestinationLabel('gate'):'留意道路前方的動靜');
+ const v=openingView();
+ el.textContent=s.scene==='wreck'?((v.deadline?'天色漸暗 · ':'')+(v.routeKnown?routeDestinationLabel('trail'):v.tracksKnown?'循著泥地上的車轍':'看看馬車，尋找離開的線索')):(routeKnown('trail','gate')?routeDestinationLabel('gate'):'留意道路前方的動靜');
 }
 function observeOpening(){
  if(s.scene==='wreck'){
@@ -5330,7 +5331,7 @@ function followOpeningClue(){
  const from=s.scene,to=from==='wreck'?'trail':'gate';
  if(from==='wreck'&&!s.flags.openingTracks)return;
  if(routeKnown(from,to)){focusDiscoveredRoute(from,to);return;}
- recoveryTime(from==='wreck'?10:5);
+ recoveryTime(from==='wreck'?window.DungeonOpeningProgressionV1.FOLLOW_TRACK_MINUTES:5);
  if(!discoverRoute(from,to))return;
  addTravel('discovery',from==='wreck'?'循著車轍找到了林間小徑。':'道路前方有腳步聲，似乎有人經過。',from==='wreck'?'終於有離開的方向了。':'也許可以找到幫助。');
  save();render();
@@ -5342,7 +5343,7 @@ function openingDepartureCue(){
  // Deadline only supplies a hint. It must never unlock the route itself.
  if(!routeKnown('wreck','trail')){inspectInScene('天色漸暗，得先查看馬車附近留下的道路線索。',[{label:'查看車輪與泥地',fn:marks},{label:'先離開',fn:()=>{}}]);return true;}
  if(window.DungeonOpeningProgressionV1.markCue(s,travelTimeFor('wreck','trail'))){
-  addTravel('scene','事故現場已大致查看完畢，車轍延伸向林間小徑。','天色即將轉暗，得趁還看得清道路時離開。');
+  addTravel('scene','天色漸暗，車轍延伸向已辨認出的林間小徑。','天色即將轉暗，得趁還看得清道路時離開。');
   save();render();
  }
  inspectInScene('你已辨認出通往林間小徑的道路。',[{label:routeDestinationLabel('trail'),fn:()=>change('trail')},{label:'留在原地',fn:()=>{}}]);
@@ -7941,12 +7942,12 @@ function glance(){
  {label:'先離開',fn:()=>{}}]);
 }
 function marks(){
- spendSceneInteraction('inspect');
- const known=routeKnown('wreck','trail');note('scratches','車板上有不明的深刻痕跡',true);
+ const known=routeKnown('wreck','trail');
+ // Once seen, the tracks remain remembered; opening clues do not charge twice.
+ if(!known&&!s.flags.openingTracks){spendSceneInteraction('inspect');s.flags.openingTracks=true;note('scratches','車輪旁的泥地留下兩道車轍',true);save();render();}
  inspectInScene(known?'泥地上的車轍延伸到已發現的小徑。':'你蹲下查看破裂的車輪。泥地上有兩道被壓深的車轍，一路延伸到樹叢深處。',[
  {label:known?'前往林間小徑':'循著車轍',fn:()=>{
   if(known){routeGo('trail');return;}
-  s.flags.openingTracks=true;save();
   followOpeningClue();
  }},
  {label:'留在原地',fn:()=>{}}
@@ -8388,7 +8389,7 @@ function renderSceneInfoBar(){
  const localWeather=!INDOOR_SCENES.has(s.scene)?weatherNotes[currentWeather?.kind]:null;
  const defaultScene=localWeather||SCENE_SENSE_NOTES[s.scene]||{text:names[s.scene]?.[1]||'',senses:[]};
  const last=s.exploration?.last?.[s.scene];
- $('sceneObservationText').textContent=openingView().exhausted?'已大致查看事故現場；車轍指向林間小徑。請確認林間小徑的位置，準備離開。':!localWeather&&typeof last?.observation==='string'&&last.observation?
+ $('sceneObservationText').textContent=openingView().exhausted?'天色漸暗，現在應優先確認道路並準備離開事故現場。':!localWeather&&typeof last?.observation==='string'&&last.observation?
   last.observation:defaultScene.text;
  const senseRoot=$('sceneSenses');
  senseRoot.replaceChildren();
@@ -8431,7 +8432,7 @@ function renderSceneInfoBar(){
 }
 
 function render(){if(!names[s.scene])s.scene='wreck';normalizeGameTime();tickBeetleCare();$('place').textContent=names[s.scene][0];$('hudPlace').textContent=names[s.scene][0];$('hudChapter').textContent=s.flags.morning?'CHAPTER 02':'CHAPTER 01';syncTimeAtmosphere();$('partyChip').textContent=s.flags.rescued?'與冒險者相遇':'獨自探索';$('hpChip').textContent=`體力 ${s.hp}/${s.maxHp}`;renderPlayerStatus();$('chapterChip').textContent=s.flags.morning?'第二章 · 清晨':s.flags.chapterDone?'第一章片段完成':'第一章';const texts={
- wreck:openingView().exhausted?'事故現場已大致探索完畢。車轍延伸向林間小徑，沿道路找人或許更有希望。':'你從毀壞的車篷下爬出來，泥土的涼意讓你逐漸清醒。',
+ wreck:openingView().exhausted?'天色漸暗。循著車輪旁的車轍找到道路，或許能找到其他人。':'你從毀壞的車篷下爬出來，泥土的涼意讓你逐漸清醒。',
  trail:s.flags.rescued?'你沿著車轍走到林道，遠方的城鎮逐漸清晰。可以回望事故現場，也可以繼續前進。':'樹影遮住前方道路。你可以搜索林邊的舊物與生物痕跡，或花一點時間辨認道路，將發現的岔路逐一記入地圖。',
  clearing:'陌生的風聲、樹根間的微光。你可以接近，也可以完全不理會。',
  ruin:'古老石門默默矗立。它像是某個故事的開始，但你現在可以直接離開。',
