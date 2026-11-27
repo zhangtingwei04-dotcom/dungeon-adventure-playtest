@@ -1,4 +1,4 @@
-/* 燈火玩家普通攻擊演出 V1.1：第一人稱、無武器假設；傷害值由外部判定傳入。 */
+/* 燈火玩家普通攻擊演出 V1.1：第一人稱、無武器假設、不顯示傷害浮字。 */
 (function(root){'use strict';
 const timing=Object.freeze({duration:820,impact:280,hold:65});
 const clamp=n=>Math.max(0,Math.min(1,n)),ease=u=>u*u*(3-2*u);
@@ -6,8 +6,8 @@ function sample(age){const t=Math.max(0,Math.min(timing.duration,age)),r=Math.ma
  const hit=t>=timing.impact,flash=hit?1-clamp(r/135):0,number=hit&&r<540?1-ease(clamp((r-340)/200)):0;
  const recoil=hit?ease(clamp(r/80))*(1-ease(clamp((r-80)/300))):0;
  return {swing:ease(swing),trail:t>=115&&t<420?Math.sin(Math.PI*clamp((t-115)/305)):0,contact:flash,number,numberRise:hit?20*ease(clamp(r/540)):0,recoil,reactionAge:r,done:t>=timing.duration};}
-function draw(ctx,age,{x,y,scale=1,damage=0}){
- const p=sample(age);if(!p.trail&&!p.contact&&!p.number)return;
+function draw(ctx,age,{x,y,scale=1}){
+ const p=sample(age);if(!p.trail&&!p.contact)return;
  const w=Math.max(43,Math.min(86,88*scale)),h=w*.69;
  ctx.save();ctx.translate(x,y);ctx.lineCap='round';ctx.lineJoin='round';
  if(p.trail){const a=-2.0+3.8*p.swing,rotation=-.53;
@@ -20,7 +20,7 @@ function draw(ctx,age,{x,y,scale=1,damage=0}){
   ctx.fillStyle='#fff9e7';ctx.fillRect(-4,-4,8,8);
   ctx.strokeStyle='#fff0ba';ctx.lineWidth=2;for(let i=0;i<6;i++){const a=i*Math.PI/3+.25,dist=9+16*(1-p.contact);ctx.beginPath();ctx.moveTo(Math.cos(a)*dist,Math.sin(a)*dist);ctx.lineTo(Math.cos(a)*(dist+8*p.contact),Math.sin(a)*(dist+8*p.contact));ctx.stroke();}
  }
- if(p.number&&Number.isFinite(damage)&&damage>0){ctx.globalAlpha=p.number;ctx.font='bold 18px monospace';ctx.textAlign='center';ctx.textBaseline='middle';ctx.lineWidth=3;ctx.strokeStyle='#29251e';ctx.fillStyle='#fff0c3';const label='-'+damage;ctx.strokeText(label,0,-25-p.numberRise);ctx.fillText(label,0,-25-p.numberRise);}
+
  ctx.restore();
 }
 root.DungeonPlayerAttackV1=Object.freeze({timing,sample,draw});
