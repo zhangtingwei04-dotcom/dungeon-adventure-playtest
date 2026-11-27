@@ -14,7 +14,7 @@ function create({detect=65,lose=88,attackRange=32,retreatHP=.25,alertMs=850,cool
    if(!best||score>best.score)best={direction:d,score};}
   return best?.direction??null;
  }
- function step({dt,pos,angle,target=null,hp=1,busy=false,sweep,perception=null,stimulus=null}){
+ function step({dt,pos,angle,target=null,hp=1,busy=false,sweep,perception=null,stimulus=null,environment={}}){
   if(!Number.isFinite(dt)||dt<0)throw Error('invalid dt');
   age+=dt;cooldown=Math.max(0,cooldown-dt);avoidAge=Math.max(0,avoidAge-dt);
   const actual=target;if(perception)target=perception.memory;const d=target?dist(pos,target):Infinity;const visible=perception?!!target&&perception.confirmed:!!target&&d<=(seen?lose:detect);
@@ -33,8 +33,8 @@ function create({detect=65,lose=88,attackRange=32,retreatHP=.25,alertMs=850,cool
   else if(!seen||state==='retreat'){seen=true;enter('alert');}
   else if(state==='alert'&&age>=alertMs)enter('track');
   else if(state==='recover'&&age>=450)enter('track');
-  if(state==='rest'&&age>=restMs){enter('roam');roamDir=wrap(roamDir+3);}
-  if(state==='roam'&&age>=roamMs)enter('rest');
+  if(state==='rest'&&age>=restMs/Math.max(.1,environment.activity??1)){enter('roam');roamDir=wrap(roamDir+3);}
+  if(state==='roam'&&age>=roamMs*Math.max(.1,environment.activity??1))enter('rest');
   const desired=target?heading(pos,target):angle;
   if(state==='track'&&d<=attackRange&&cooldown===0&&angle===desired&&(!perception||perception.attackAllowed)){
    const length=Math.max(0,d-14),q=sweep(pos,desired,length);

@@ -5,10 +5,10 @@ function occluded(a,b,obstacles){const dx=b.x-a.x,dz=b.z-a.z,len=dx*dx+dz*dz;if(
 function create({visionRange=65,fov=120,hearingRange=48,memoryMs=4200,visualGain=1.9,hearingGain=.95,decay=.32,threshold=.65}={}){
  let suspicion=0,last=null,age=Infinity,confirmed=false;
  function reset(){suspicion=0;last=null;age=Infinity;confirmed=false;}
- function step({dt,pos,angle,target=null,noise=0,obstacles=[]}){if(!Number.isFinite(dt)||dt<0)throw Error('invalid dt');
+ function step({dt,pos,angle,target=null,noise=0,obstacles=[],environment={}}){if(!Number.isFinite(dt)||dt<0)throw Error('invalid dt');
  const d=target?distance(pos,target):Infinity,rad=angle*Math.PI/4,dot=d>1e-8&&target?((target.x-pos.x)*Math.sin(rad)+(target.z-pos.z)*Math.cos(rad))/d:1;
- const hidden=!!target&&occluded(pos,target,obstacles),visible=!!target&&!hidden&&d<=visionRange&&dot>=Math.cos(fov*Math.PI/360)-1e-9;
- const loud=clamp(Number(noise)||0,0,1),heard=!!target&&loud>0&&d<=hearingRange*loud*(hidden?.65:1);
+ const hidden=!!target&&occluded(pos,target,obstacles),visible=!!target&&!hidden&&d<=visionRange*(environment.vision??1)&&dot>=Math.cos(fov*Math.PI/360)-1e-9;
+ const loud=clamp(Number(noise)||0,0,1),heard=!!target&&loud>0&&d<=hearingRange*(environment.hearing??1)*loud*(hidden?.65:1);
  const dtS=dt/1000;
  suspicion=clamp(suspicion+dtS*(visible?visualGain:heard?hearingGain:-decay),0,1);
  if(visible||heard){last={x:target.x,z:target.z};age=0;}else age+=dt;
