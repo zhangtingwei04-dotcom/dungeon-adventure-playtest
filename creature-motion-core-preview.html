@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="zh-Hant"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>苔棘鬃獸｜四足動態骨架試驗</title>
+<style>*{box-sizing:border-box}body{margin:0;background:#112820;color:#e6d9b7;font:15px system-ui,sans-serif;padding:12px}main{max-width:850px;margin:auto}h1{font-size:19px;margin:0 0 8px}p{line-height:1.6;margin:8px 0}canvas{width:100%;height:auto;display:block;background:#253c30;border:1px solid #9f8d60;border-radius:8px;image-rendering:pixelated}nav{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}button{background:#29483a;border:1px solid #a8915d;color:#f4e7c6;border-radius:5px;padding:9px 12px;font:inherit}button[aria-pressed=true]{background:#d3b879;color:#203126}label{display:inline-flex;align-items:center;gap:6px}small{color:#bcbea9}</style>
+<main><h1>燈火核心 V1｜苔棘鬃獸 V2 模組化驗證</h1><p>同一張側面母圖；固定腳掌落點，關節帶動身體，非重新生成每一幀。</p><canvas id="scene" width="480" height="220" aria-label="四足動畫預覽"></canvas><nav><button data-mode="original">側面母圖</button><button data-mode="front">正面母圖</button><button data-mode="quarter">斜側母圖</button><button data-mode="rest-art">休息母圖</button><button id="sequence">連續動作試驗</button><button data-mode="rest">休息</button><button data-mode="rise">起身</button><button data-mode="walk">原地步態</button><button data-mode="travel">地面行走</button><button data-mode="alert">警戒</button><button data-mode="turn-slow">緩慢轉身</button><button data-mode="turn">警戒轉身</button><button data-mode="turn-fast">快速轉身</button><button data-mode="trot">小跑</button><button data-mode="run">疾跑</button><button data-mode="run-in-place">原地疾跑</button><button data-mode="jump">向前跳躍</button><button data-mode="jump-up">原地跳躍</button><button data-mode="charge">蓄力警戒</button><button data-mode="pounce">向前撲擊</button><button data-mode="slam">落地重擊</button><button data-mode="hit">輕傷受擊</button><button data-mode="heavy-hit">重擊失衡</button><button data-mode="down">倒地</button><button data-mode="recover">倒地起身</button><button data-mode="flee">轉身逃跑</button><label><input id="secondary" type="checkbox" checked>頭部／鬃毛／尾部連動</label><label>速度 <select id="speed"><option value=".5">半速</option><option value="1" selected>正常</option><option value="1.5">快速</option></select></label><button id="pause">暫停</button><button id="turn-prev">上一方向</button><button id="turn-next">下一方向</button><label>轉身進度 <input id="turn-scrub" type="range" min="0" max="100" step="1" value="0"></label><label><input id="debug" type="checkbox">顯示骨架與足點</label><label><input id="body-only" type="checkbox">檢查軀幹殘留</label></nav><p id="turn-review" role="status">多角度規格：0°／30°／60°／90°／120°／150°／180°。待製：30°、精確60°、120°、150°。</p><p id="status" role="status">讀取 V2 母圖…</p><small>獨立研究頁：尚未接入遊戲，撲擊、落地重擊及受擊／撤退僅為動畫預覽，未計算傷害或改變存檔。倒地為低伏失去支撐試驗，尚非側翻。疾跑採前後肢分組蹬地與騰空，小跑另保留比較；轉身已移除逐列變形；使用原始方向圖與側面骨架踏步銜接。中間角度仍為分段切換，尚非完整三維骨架旋轉。圖層切割與美術仍待驗收。</small></main>
+<script src="./assets/creature_shadow_v1.js?v=1"></script>
+<script src="./assets/creature_rig_math_v1.js?v=1"></script>
+<script src="./assets/creature_motion_core_v1.js?v=1"></script>
+<script src="./assets/monsters/moss_beast_v2_profile.js?v=1"></script>
+<script src="./assets/creature_state_v1.js?v=1"></script>
+<script>
+'use strict';
+const $=id=>document.getElementById(id),canvas=$('scene'),ctx=canvas.getContext('2d'),img=new Image();
+let mode='original',elapsed=0,last=0,paused=false,ready=false,cleanMother,body,parts,bodyPixels,warpCanvas,warpContext,warpPixels;
+const shadowCore=window.DungeonCreatureShadowV1;
+const turnArts={front:new Image(),quarter:new Image(),rest:new Image()};turnArts.rest.src="./assets/monsters/moss_beast_v2_rest.png";
+turnArts.front.src='./assets/monsters/moss_beast_v2_front.png';turnArts.quarter.src='./assets/monsters/moss_beast_v2_three_quarter.png';
+const rigCore=window.DungeonCreatureRigV1,profile=window.DungeonMossBeastV2Profile,motion=window.DungeonCreatureMotionV1.create(profile.motion);
+const {ground,gaits,speedOf,flightLift,gallopBody,jumpState,attackState,reactionModes,reactionState,fleeState,jumpFoot,footAt,support,secondaryMotion,turnDuration}=motion;
+const {clamp,ease,len,angle,solve,pawPose}=rigCore;
+const bodyPoint=(x,y,dy,pitch=0)=>rigCore.bodyPoint(x,y,dy,pitch,profile.rig.pivot);
+let sequence=null;
+const frontContour=[[54,78],[93,78],[103,91],[103,101],[98,112],[92,122],[87,131],[74,138],[63,143],[20,143],[20,126],[43,121],[51,111],[59,99],[56,91]];
+const frontErase=[[53,94],[99,94],[106,107],[117,108],[117,143],[0,143],[0,108],[48,108]];
+const rearContour=[[135,78],[156,77],[171,86],[178,101],[176,112],[174,122],[178,134],[178,141],[136,143],[135,132],[144,119],[133,109],[130,96]];
+const limbs=[
+ {id:'front',hip:[75,87],knee:[65,112],foot:[42,136],ankle:[52,126],paw:[[23,126],[45,122],[58,123],[65,130],[62,142],[22,142]],bend:-1,upper:[[57,75],[89,75],[98,91],[99,104],[88,115],[55,112],[51,98]],lower:[[54,103],[91,104],[102,111],[94,125],[84,135],[68,143],[20,143],[20,126],[48,120]],phase:0},
+ {id:'rear',hip:[151,93],knee:[147,116],foot:[161,136],ankle:[160,126],paw:[[138,124],[155,120],[173,123],[178,140],[138,142]],bend:1,upper:[[135,77],[164,78],[178,100],[164,122],[140,122],[131,109]],lower:[[135,109],[170,108],[180,118],[183,143],[136,143],[136,127],[145,118]],phase:.25}
+];
+function path(g,poly){g.beginPath();poly.forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));g.closePath();}
+function layer(poly,exclude){const c=document.createElement('canvas');c.width=cleanMother.width;c.height=cleanMother.height;const g=c.getContext('2d');g.imageSmoothingEnabled=false;g.save();path(g,poly);g.clip();g.drawImage(cleanMother,0,0);g.restore();if(exclude){g.globalCompositeOperation='destination-out';path(g,exclude);g.fill();}return c;}
+// The original side art contains a baked-in grey ground shadow. Remove only
+// that near-neutral band before extracting body and limb textures.
+function prepare(){
+ cleanMother=shadowCore.clean(img,'side');
+ body=document.createElement('canvas');body.width=cleanMother.width;body.height=cleanMother.height;const g=body.getContext('2d');g.drawImage(cleanMother,0,0);
+ // Preserve the shoulders/hips for overlap while removing the moving leg silhouettes.
+ g.globalCompositeOperation='destination-out';for(const l of limbs){if(l.id==='front')continue;path(g,l.lower);g.fill();path(g,l.paw);g.fill();path(g,l.upper.map(([x,y])=>[x,Math.max(y,l.hip[1]+8)]));g.fill();}
+ // Clear the original front/rear foot silhouettes completely, including the narrow diagonal strip outside the old masks.
+ path(g,frontErase);g.fill();
+ g.fillRect(124,116,63,27);g.fillRect(0,140,body.width,body.height-140);
+ parts=limbs.map(l=>({...l,a:len(l.hip,l.knee),b:len(l.knee,l.ankle),u:layer(l.upper,l.paw),v:layer(l.lower,l.paw),p:layer(l.paw),skin:layer(l.id==='front'?frontContour:rearContour)}));
+ bodyPixels=g.getImageData(0,0,body.width,body.height);warpCanvas=document.createElement('canvas');warpCanvas.width=body.width;warpCanvas.height=body.height;warpContext=warpCanvas.getContext('2d');warpPixels=warpContext.createImageData(body.width,body.height);
+}
+// Soft, bounded secondary motion in mother-image coordinates. No new silhouettes.
+// The hip/shoulder attachment bands remain fixed so the leg rig is unaffected.
+function displacement(x,y,m){
+ const head=(1-ease((x-26)/48))*ease((y-22)/34)*(1-ease((y-92)/17));
+ const mane=ease((x-45)/25)*(1-ease((x-145)/25))*(1-ease((y-30)/44));
+ const tail=ease((x-164)/35)*ease((y-45)/27);
+ // Attenuate displacement near the two fixed leg attachment points.
+ const anchor=(cx,cy)=>ease(Math.hypot(x-cx,y-cy)/22);
+ const fixed=anchor(75,87)*anchor(151,93);
+ return [fixed*(m.head*.18*head+m.mane*.5*mane-m.tail*.27*tail),fixed*(m.head*head+m.mane*mane+m.tail*tail)];
+}
+function warpedBody(m){
+ if(!bodyPixels||!$('secondary').checked)return body;
+ const w=body.width,h=body.height,src=bodyPixels.data,dst=warpPixels.data;
+ for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+  const [dx,dy]=displacement(x,y,m),sx=Math.round(x-dx),sy=Math.round(y-dy),out=4*(y*w+x);
+  if(sx<0||sx>=w||sy<0||sy>=h){dst[out]=dst[out+1]=dst[out+2]=dst[out+3]=0;continue;}
+  const i=4*(sy*w+sx);dst[out]=src[i];dst[out+1]=src[i+1];dst[out+2]=src[i+2];dst[out+3]=src[i+3];
+ }
+ warpContext.putImageData(warpPixels,0,0);return warpCanvas;
+}
+function segment(bitmap,fromA,fromB,toA,toB){ctx.save();ctx.translate(...toA);ctx.rotate(angle(toA,toB)-angle(fromA,fromB));ctx.translate(-fromA[0],-fromA[1]);ctx.drawImage(bitmap,0,0);ctx.restore();}
+// The paw has its own rigid texture and ground-facing orientation. Only the shin rotates.
+// The front leg is one continuous skin, not three rigid cutouts. Map
+// horizontal texture strips between ordered joint heights; fur cannot rotate
+// under the paw or appear as a second detached flap.
+function drawLegSkin(l,hip,knee,ankle,foot){rigCore.drawSkin(ctx,l.skin,rigCore.skinRows(l,hip,knee,ankle,foot,profile.rig.skin[l.id]));}
+function drawLeg(l,phase,dy,walk,far,debug,overlays,gait,pitch=0,jump=null){
+ const hip=bodyPoint(l.hip[0]+(far?5:0),l.hip[1]-(far?3:0),dy,pitch),foot=jump?jumpFoot(l,far,jump):footAt(l,phase,walk,far,gait),paw=pawPose(l,foot),ankle=paw.ankle,knee=solve(hip,ankle,l.a,l.b,l.bend);
+ ctx.save();if(far)ctx.filter='brightness(.65)';drawLegSkin(l,hip,knee,ankle,foot);ctx.restore();
+ if(debug)overlays.push({hip,knee,ankle,foot,far,planted:jump?Math.abs(foot[1]-(ground-(far?3:0)))<.01:!walk||support(l,phase,far,gait)});
+}
+// Discrete directional art only. Never blend facial pixels across views.
+const turnModes=['turn','turn-slow','turn-fast'];
+
+function turnProgress(ms,m){return clamp(ms/turnDuration(m),0,1);}
+// Only existing reviewed directional art is playable. New angles remain a separate production list.
+const turnStops=[
+ {at:0,end:.20,angle:0,view:'side',mirror:false,stage:'前腳調整方向'},
+ {at:.20,end:.40,angle:60,view:'quarter',mirror:false,stage:'斜向轉身'},
+ {at:.40,end:.58,angle:90,view:'front',mirror:false,stage:'正向轉身'},
+ {at:.58,end:.78,angle:120,view:'quarter',mirror:true,stage:'後腳跟進（暫用鏡像）'},
+ {at:.78,end:1,angle:180,view:'side',mirror:true,stage:'重新站穩'}
+];
+function turnPose(ms,m){
+ const p=turnProgress(ms,m),z=turnStops.find(z=>p<z.end)||turnStops[4],u=clamp((p-z.at)/(z.end-z.at),0,1);
+ return {...z,step:ease(u),stage:p===1?'轉身完成':z.stage};
+}
+function drawSideTurn(p,debug,overlays){
+ const u=p.step,entry=!p.mirror;
+ // A brief step from the actual side rig. No change to the accepted limb skin.
+ const lift=4*Math.sin(Math.PI*u)**2;
+ const j={height:0,dx:0,dy:5+1.2*Math.sin(Math.PI*u),pitch:0,frontLift:entry?lift:0,rearLift:entry?0:lift,air:0};
+ if(p.mirror){ctx.translate(210,0);ctx.scale(-1,1);}
+ if(!$('body-only').checked)for(const l of parts)drawLeg(l,0,j.dy,false,true,debug,overlays,gaits.walk,0,j);
+ ctx.drawImage(body,0,j.dy);
+ if(!$('body-only').checked)for(const l of parts)drawLeg(l,0,j.dy,false,false,debug,overlays,gaits.walk,0,j);
+}
+function drawTurn(debug,overlays){
+ const p=turnPose(elapsed,mode);
+ ctx.save();
+ if(p.view==='side'){drawSideTurn(p,debug,overlays);ctx.restore();return;}
+ const art=shadowCore.clean(turnArts[p.view],p.view);
+ if(art){
+  // Preserve exact native proportions and colors, anchor at ground baseline.
+  ctx.translate(105,142);if(p.mirror)ctx.scale(-1,1);
+  ctx.drawImage(art,-art.width/2,-art.height);
+ }else ctx.drawImage(cleanMother,0,0);
+ ctx.restore();
+}
+function groundShadow(baseX,height){
+ return shadowCore.calculate({x:baseX+105,y:190,height,width:166,depth:14});
+}
+function render(){
+ ctx.clearRect(0,0,480,220);const bg=ctx.createLinearGradient(0,0,0,220);bg.addColorStop(0,'#203a31');bg.addColorStop(1,'#43513b');ctx.fillStyle=bg;ctx.fillRect(0,0,480,220);
+ const flee=mode==='flee'?fleeState(elapsed):null,running=mode==='run'||mode==='run-in-place'||!!(flee&&!flee.turn),trotting=mode==='trot',walk=mode==='walk'||mode==='travel'||running||trotting,gait=running?gaits.run:trotting?gaits.trot:gaits.walk,phase=flee?flee.phase:(elapsed/gait.period)%1,reaction=reactionModes.includes(mode),attack=['charge','pounce','slam'].includes(mode),jump=reaction?reactionState(mode,elapsed):attack?attackState(mode,elapsed):mode==='jump'||mode==='jump-up'?jumpState(elapsed):null,bodyState=jump|| (running?gallopBody(phase):null),dy=bodyState?bodyState.dy:mode==='rest'?17:mode==='rise'?5+12*(1-ease(elapsed/850)):trotting?7+1.1*Math.cos(phase*4*Math.PI):walk?5+.9*Math.cos(phase*8*Math.PI):5,pitch=bodyState?.pitch||0;
+ const debug=$('debug').checked,overlays=[];const baseX=flee?130+flee.distance:jump?(['jump','pounce'].includes(mode)?185+jump.dx:130):mode==='travel'||mode==='run'||trotting?490-((240+elapsed*speedOf(gait))%710):130;
+ ctx.strokeStyle='#89906b66';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0,190);ctx.lineTo(480,190);ctx.stroke();for(let x=0;x<480;x+=24){ctx.fillStyle='#9ca07866';ctx.fillRect(x,190,2,3);}
+ // Draw the shadow at world-ground coordinates before applying any actor transform.
+ const sh=groundShadow(baseX,jump?jump.height:running?flightLift(phase):0);
+ shadowCore.draw(ctx,sh);
+ // Landing dust only begins at contact and stays on the world ground layer.
+ if(attack&&jump.impactAge>=0&&jump.impactAge<260){const u=jump.impactAge/260,cx=baseX+47;ctx.save();ctx.globalAlpha=(1-u)*.6;ctx.fillStyle='#b4a280';for(let i=0;i<7;i++){const a=(i-3)/3,x=cx+a*(8+26*u),y=184-Math.sin(Math.PI*u)*(3+(i%3)*3);ctx.fillRect(Math.round(x),Math.round(y),3-(i%2),2);}ctx.restore();}
+ ctx.save();
+ if(debug){ctx.strokeStyle='#d1b976';ctx.beginPath();ctx.arc(sh.x,sh.y,3,0,Math.PI*2);ctx.stroke();}
+ ctx.restore();
+ ctx.save();ctx.translate(baseX,48);if(flee&&!flee.turn){ctx.translate(210,0);ctx.scale(-1,1);}ctx.imageSmoothingEnabled=false;
+ if(debug){ctx.strokeStyle='#baae76';ctx.setLineDash([5,4]);ctx.beginPath();ctx.moveTo(-110,ground);ctx.lineTo(330,ground);ctx.stroke();ctx.setLineDash([]);}
+ if(ready){if(mode==='original')ctx.drawImage(cleanMother,0,0);else if(['front','quarter','rest-art'].includes(mode)){const key=mode==='rest-art'?'rest':mode,a=shadowCore.clean(turnArts[key],key);if(a)ctx.drawImage(a,105-a.width/2,142-a.height);}else if(turnModes.includes(mode)||(flee&&flee.turn))drawTurn(debug,overlays);else{if(!$('body-only').checked)for(const l of parts)drawLeg(l,phase,dy,walk,true,debug,overlays,gait,pitch,jump);ctx.save();ctx.translate(105,90+dy);ctx.rotate(pitch);ctx.translate(-105,-90);ctx.drawImage(warpedBody(secondaryMotion(mode,elapsed,phase)),0,0);ctx.restore();if(!$('body-only').checked)for(const l of parts)drawLeg(l,phase,dy,walk,false,debug,overlays,gait,pitch,jump);}}
+ if(debug){for(const {hip,knee,ankle,foot,far,planted} of overlays){ctx.strokeStyle=far?'#7898a1':'#e2c475';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(...hip);ctx.lineTo(...knee);ctx.lineTo(...ankle);ctx.lineTo(...foot);ctx.stroke();for(const p of [hip,knee]){ctx.fillStyle='#f4db91';ctx.fillRect(p[0]-1.5,p[1]-1.5,3,3);}ctx.fillStyle=planted?'#a8e5a2':'#e7b880';ctx.fillRect(foot[0]-2,foot[1]-2,4,4);}}
+ ctx.restore();ctx.fillStyle='#ddd1ae';ctx.font='12px system-ui';if(turnModes.includes(mode)){const tp=turnPose(elapsed,mode);$('turn-scrub').value=Math.round(turnProgress(elapsed,mode)*100);$('turn-review').textContent='目前 '+tp.angle+'° · '+tp.stage+'；待製：30°、精確60°、120°、150°。';}
+ ctx.fillText(flee?(flee.turn?'轉身撤退':flee.done?'已逃離':'疾跑離開'):reaction?jump.stage:jump?jump.stage+' · 高度 '+Math.round(jump.height)+' px':running?(phase<.36?'後足蹬地':phase<.40?'轉移騰空':phase<.76?'前足接地':'騰空收腿')+' · '+Math.round(phase*100)+'%':walk?'步態相位 '+Math.round(phase*100)+'%':mode==='rise'?'起身 '+Math.round(clamp(elapsed/850,0,1)*100)+'%':mode==='rest'?'低伏':mode==='alert'?'警戒':turnModes.includes(mode)?'轉身 '+Math.round(turnProgress(elapsed,mode)*100)+'%':'母圖',12,18);
+}
+function tick(now){if(!paused){const dt=Math.min(60,last?now-last:0)*Number($('speed').value);if(sequence){const q=sequence.advance(dt);mode=q.mode;elapsed=q.elapsed;if(q.done){sequence=null;paused=true;$('pause').textContent='繼續';}}else elapsed+=dt;}last=now;render();requestAnimationFrame(tick);}
+for(const b of document.querySelectorAll('[data-mode]'))b.onclick=()=>{sequence=null;mode=b.dataset.mode;elapsed=0;paused=false;$('pause').textContent='暫停';for(const n of document.querySelectorAll('[data-mode]'))n.setAttribute('aria-pressed',String(n===b));};
+$('sequence').onclick=()=>{sequence=window.DungeonCreatureStateV1.createSequence([{mode:'rest',duration:700},{mode:'rise',duration:850},{mode:'alert',duration:600},{mode:'slam',duration:1900},{mode:'alert',duration:700}]);mode='rest';elapsed=0;paused=false;$('pause').textContent='暫停';for(const n of document.querySelectorAll('[data-mode]'))n.setAttribute('aria-pressed','false');};
+$('pause').onclick=()=>{paused=!paused;$('pause').textContent=paused?'繼續':'暫停';};
+function seekTurn(p){sequence=null;if(!turnModes.includes(mode)){document.querySelector('[data-mode="turn-slow"]').click();}elapsed=clamp(p,0,1)*turnDuration(mode);paused=true;$('pause').textContent='繼續';render();}
+$('turn-scrub').oninput=()=>seekTurn(Number($('turn-scrub').value)/100);
+function stepTurn(d){const marks=[0,.30,.49,.68,1],p=turnModes.includes(mode)?turnProgress(elapsed,mode):0;let i=marks.reduce((best,x,k)=>Math.abs(x-p)<Math.abs(marks[best]-p)?k:best,0);seekTurn(marks[clamp(i+d,0,marks.length-1)]);}
+$('turn-prev').onclick=()=>stepTurn(-1);$('turn-next').onclick=()=>stepTurn(1);
+img.onload=()=>{prepare();ready=true;$('status').textContent='母圖 '+img.naturalWidth+' × '+img.naturalHeight+'；四張母圖均使用獨立陰影清理設定，地面影子由共用核心繪製。';document.querySelector('[data-mode="original"]').click();requestAnimationFrame(tick);};
+img.onerror=()=>$('status').textContent='母圖載入失敗，未使用替代舊圖。';
+img.src='./assets/monsters/moss_beast_v2_side.png';
+</script></html>
