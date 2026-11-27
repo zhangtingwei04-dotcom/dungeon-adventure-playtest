@@ -4288,6 +4288,8 @@ html.stage-locked #app #battleSurface .battle-actions button{font-size:17px;min-
 #battleSurface[data-distance="1"] .battle-ground-shadow{top:59%;width:26%;height:4.5%}
 #battleSurface[data-distance="2"] .battle-ground-shadow{top:49%;width:16%;height:3%}
 #battleSurface[data-result="true"] .battle-ground-shadow{opacity:.35}
+#sceneStage #battleSurface .battle-creature.v3-rig{transform:translate(-50%,-50%);transition:none;object-fit:contain;}
+#sceneStage #battleSurface[data-result="true"] .battle-creature.v3-rig{opacity:1;}
 #sceneStage .world-object[data-kind="creature"] .forest-monster-art{display:block;width:100%;height:auto;image-rendering:pixelated;filter:var(--scene-light,brightness(1)) drop-shadow(0 3px 2px #091b15bb)}
 /* Battle art is only activated after the dedicated image decodes successfully. */
 #app[data-battle-backdrop="wreck"] #sceneStage .opening-objective{visibility:hidden}
@@ -4640,6 +4642,34 @@ window.DUNGEON_FOREST_V4_LAYOUT=window.DUNGEON_WRECK_CURRENT_LAYOUT;
 <script src="./assets/arm_visibility_policy_v1.js?v=live-20261124"></script>
 <script src="./assets/arm_visibility_live_v1.js?v=live-20261124"></script>
 <script src="./assets/monsters/moss_beast_art_v2.js?v=2-direct-png"></script>
+<script src="./assets/creature_rig_math_v1.js?v=1"></script>
+<script src="./assets/creature_motion_core_v1.js?v=1"></script>
+<script src="./assets/monsters/moss_beast_v3_profile.js?v=2"></script>
+<script src="./assets/creature_mouth_v1.js?v=3"></script>
+<script src="./assets/monsters/moss_beast_v3_mouth_profile.js?v=2"></script>
+<script src="./assets/creature_head_v1.js?v=3"></script>
+<script src="./assets/monsters/moss_beast_v3_head_profile.js?v=1"></script>
+<script src="./assets/monsters/moss_beast_v3_front_quarter_head_profiles.js?v=1"></script>
+<script src="./assets/monsters/moss_beast_v3_rear_back_head_profiles.js?v=1"></script>
+<script src="./assets/creature_secondary_v1.js?v=2"></script>
+<script src="./assets/monsters/moss_beast_v3_secondary_profile.js?v=1"></script>
+<script src="./assets/monsters/moss_beast_v3_directional_secondary_profiles.js?v=1"></script>
+<script src="./assets/monsters/moss_beast_v3_adapter.js?v=6"></script>
+<script src="./assets/monsters/moss_beast_v3_quarter_profile.js?v=1"></script>
+<script src="./assets/monsters/moss_beast_v3_quarter_mouth_profile.js?v=2"></script>
+<script src="./assets/monsters/moss_beast_v3_quarter_adapter.js?v=5"></script>
+<script src="./assets/monsters/moss_beast_v3_axial_profiles.js?v=1"></script>
+<script src="./assets/monsters/moss_beast_v3_front_mouth_profile.js?v=1"></script>
+<script src="./assets/monsters/moss_beast_v3_axial_adapter.js?v=6"></script>
+<script src="./assets/monsters/moss_beast_v3_rear_profile.js?v=1"></script>
+<script src="./assets/monsters/moss_beast_v3_rear_mouth_profile.js?v=1"></script>
+<script src="./assets/monsters/moss_beast_v3_rear_adapter.js?v=5"></script>
+<script src="./assets/creature_direction_v1.js?v=3"></script>
+<script src="./assets/battle_exit_v1.js?v=3"></script>
+<script src="./assets/creature_close_attack_v1.js?v=2"></script>
+<script src="./assets/battle_impact_v1.js?v=1"></script>
+<script src="./assets/player_attack_v1.js?v=4"></script>
+<script src="./assets/monsters/moss_beast_live_v3.js?v=1"></script>
 <script src="./assets/encounter_motion_v1.js?v=4-body-scale"></script>
 <script src="./assets/battle_playtest_v1.js?v=encounter-motion-v1"></script>
 <script>
@@ -8160,7 +8190,7 @@ function countryside(){dialog('遠處的森林','視線越過路口，遠方樹�
 function rest(){s.hp=s.maxHp;advanceGameTime(20,'rest');clearTimePreview();addTravel('daily','短暫休息約20分鐘，體力恢復了（'+gameTime(s.worldMinutes)+'）。','現在感覺好多了。');save();toast('短暫休息後，體力恢復了。');render();}
 // Pure turn resolution shared by the scene UI and future combatants.
 const MONSTER_CATALOG_V1=Object.freeze({
- moss_spine_beast:Object.freeze({id:'moss_spine_beast',name:'苔棘鬃獸',sprite:'./assets/monsters/moss_spine_beast_front.png',openingHp:8,forestHp:12,habitat:'潮濕森林及廢棄馬車附近'})
+ moss_spine_beast:Object.freeze({id:'moss_spine_beast',name:'苔棘鬃獸',sprite:'./assets/monsters/v3/moss_beast_v3_000.png',openingHp:8,forestHp:12,habitat:'潮濕森林及廢棄馬車附近'})
 });
 function battleMonster(state){return MONSTER_CATALOG_V1[state?.monsterId]||MONSTER_CATALOG_V1.moss_spine_beast;}
 const BATTLE_INTENTS=Object.freeze({
@@ -8245,7 +8275,7 @@ function renderBattleSurface(){
  const monster=battleMonster(state);
  const head=document.createElement('div');head.className='battle-head';head.textContent=monster.name+' · '+(state.result?'遭遇結束':'第 '+(state.turn+1)+' 回合');
  const meter=document.createElement('div');meter.className='battle-meter';meter.setAttribute('aria-label','對手狀態');const fill=document.createElement('span');fill.style.width=state.enemyHp/(state.maxEnemyHp||12)*100+'%';meter.appendChild(fill);head.appendChild(meter);const range=document.createElement('div');range.className='battle-range';range.textContent='距離：'+BATTLE_DISTANCES[state.distance];head.appendChild(range);
- const sprite=document.createElement('img');sprite.className='battle-creature';sprite.src=monster.sprite;sprite.alt=monster.name;sprite.draggable=false;
+ const sprite=document.createElement('img');sprite.className='battle-creature';sprite.src=monster.sprite;sprite.alt=monster.name;sprite.draggable=false;sprite.onerror=()=>{sprite.onerror=null;sprite.src='./assets/monsters/moss_spine_beast_front.png';};
  const shadow=document.createElement('div');shadow.className='battle-ground-shadow';shadow.setAttribute('aria-hidden','true');
  const controls=document.createElement('div');controls.className='battle-controls';
  const intent=document.createElement('p');intent.className='battle-intent';
@@ -8254,7 +8284,7 @@ function renderBattleSurface(){
  const choices=document.createElement('div');choices.className='battle-actions';
  const buttons=state.result?[['finish',state.result==='defeat'?'稍後醒來':'繼續探索']]:[['attack','攻擊'],['guard','防禦'],['dodge','閃避'],['observe','觀察'],['approach','靠近'],['backstep','拉開'],['retreat','撤離']];
  for(const [id,label] of buttons){if((id==='attack'&&state.distance>0)||(id==='approach'&&state.distance===0)||(id==='backstep'&&state.distance===2))continue;const button=document.createElement('button');button.type='button';button.textContent=label;button.onclick=()=>id==='finish'?finishBattle():battleTurn(id);choices.appendChild(button);}
- controls.append(intent,feedback,choices);host.append(head,shadow,sprite,controls);syncDialogueInputLock();
+ controls.append(intent,feedback,choices);host.append(head,shadow,sprite,controls);if(state.result==='victory'){sprite.style.visibility='hidden';shadow.style.visibility='hidden';}else window.DungeonMossBeastLiveV3?.mount(sprite,state);syncDialogueInputLock();
 }
 function battleDialog(){renderBattleSurface();}
 const openBattlePlaytest=window.DungeonBattlePlaytestV1.mount({
@@ -8307,8 +8337,14 @@ function battleTurn(kind){
 }
 function playBattleMotion(kind,result){
  const host=$('battleSurface'),sprite=host.querySelector('.battle-creature'),view=$('view');
+ if(sprite?.classList.contains('v3-rig')&&!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches){
+  battleAnimating=true;host.dataset.v3Animating='true';for(const button of host.querySelectorAll('button'))button.disabled=true;
+  const rest=s.scene==='wreck'?window.DungeonEncounterMotionV1.slots[0].rest:null;
+  const finish=()=>{if(!battleAnimating)return;battleAnimating=false;delete host.dataset.v3Animating;renderBattleSurface();};
+  window.DungeonMossBeastLiveV3.play(sprite,host,kind,{...result,state:result.state||normalizeBattle()},{rest}).then(finish,finish);return;
+ }
  if(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches||!sprite?.animate){renderBattleSurface();return;}
- battleAnimating=true;for(const button of host.querySelectorAll('button'))button.disabled=true;
+ battleAnimating=true;host.dataset.v3Animating='true';for(const button of host.querySelectorAll('button'))button.disabled=true;
  const fx=document.createElement('div');fx.className='battle-fx';fx.setAttribute('aria-hidden','true');
  const right=document.createElement('div');right.className='battle-fx-hand';const left=document.createElement('div');left.className='battle-fx-hand left';const flash=document.createElement('div');flash.className='battle-fx-flash';fx.append(right,left,flash);host.appendChild(fx);
  const motions=[];const anim=(el,frames,options)=>{if(el?.animate){const a=el.animate(frames,options);motions.push(a);}};
@@ -8323,7 +8359,7 @@ function playBattleMotion(kind,result){
   anim(sprite,[{scale:1},{scale:lunge,translate:result.enemyAction==='withdraw'?'18% -16%':'0 8%',offset:.55},{scale:1,translate:'0 0'}],{...base,duration:390,delay:kind==='attack'?190:0});
  }
  if(result.hit){anim(flash,[{opacity:0},{opacity:.72,offset:.28},{opacity:0}],{...base,duration:280,delay:240});anim(view,[{translate:'0 0'},{translate:'1.2% -.6%',offset:.2},{translate:'-1% .5%',offset:.55},{translate:'0 0'}],{...base,duration:220,delay:260});}
- const finish=()=>{if(!battleAnimating)return;battleAnimating=false;fx.remove();renderBattleSurface();};
+ const finish=()=>{if(!battleAnimating)return;battleAnimating=false;delete host.dataset.v3Animating;fx.remove();renderBattleSurface();};
  Promise.allSettled(motions.map(a=>a.finished)).then(finish);setTimeout(finish,900);
 }
 function finishBattle(){
@@ -8843,7 +8879,7 @@ function renderWorldObjects(el){
    const canvas=document.createElement('canvas');engine.sprite(canvas,obj.kind,obj.stage);patch.appendChild(canvas);el.appendChild(patch);continue;
   }
   const b=document.createElement('button');b.type='button';b.className='world-object';b.dataset.kind=obj.kind;b.dataset.objectId=obj.id;if(obj.material)b.dataset.material=obj.material;b.style.left=obj.x+'%';b.style.top=obj.y+'%';b.setAttribute('aria-label',obj.label+(obj.material?'：'+obj.material:''));
-  const cv=document.createElement(obj.kind==='creature'?'img':'canvas');cv.setAttribute('aria-hidden','true');if(obj.kind==='creature'){cv.src=Number.isInteger(obj.trialIndex)?'./assets/monsters/moss_beast_v2_rest.png':MONSTER_CATALOG_V1.moss_spine_beast.sprite;cv.alt='';cv.className='forest-monster-art';b.setAttribute('aria-label',obj.label);}else engine.sprite(cv,obj.kind);
+  const cv=document.createElement(obj.kind==='creature'?'img':'canvas');cv.setAttribute('aria-hidden','true');if(obj.kind==='creature'){cv.src=Number.isInteger(obj.trialIndex)?'./assets/monsters/moss_beast_v2_rest.png':'./assets/monsters/v3/moss_beast_v3_315.png';cv.alt='';cv.className='forest-monster-art';cv.onerror=()=>{cv.onerror=null;cv.src='./assets/monsters/moss_spine_beast_front.png';};b.setAttribute('aria-label',obj.label);}else engine.sprite(cv,obj.kind);
   const caption=document.createElement('span');caption.textContent=obj.label;b.append(cv,caption);
   if(Number.isInteger(obj.trialIndex)){b.dataset.trialMonster=String(obj.trialIndex);b.dataset.encounterPose='rest';b.style.width=obj.width+'%';b.style.zIndex=String(10+Math.round(obj.y));b.dataset.monsterArt='v2';cv.onerror=()=>{b.dataset.monsterArt='load-error';cv.alt='V2 素材載入失敗';};if(obj.trialIndex===1)cv.style.transform='scaleX(-1)';}
   applyDiscoveryCue(b,window.DungeonDiscoveryCueV1.object({pending:obj.material?1:0,clue:obj.kind==='wreck',observed:!!s.flags.trailWreckInspected||!!s.recovery.looted}));
