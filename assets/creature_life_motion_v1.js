@@ -11,11 +11,12 @@ function sample(mode,ms){const t=Math.max(0,ms),w=ease(t/420);let head=0,jaw=0,m
  case 'rest':head=-.20+.10*Math.sin(t/700);mane=.12*Math.sin(t/700);tail=.06*Math.sin(t/900);rest=(.94+.06*wave(t,2300))*w;break;
  }return {head:head*w,jaw:jaw*w,mane:mane*w,tail:tail*w,rest};
 }
-function create({blendMs=280}={}){let mode=null,age=0,elapsed=blendMs,from=sample(null,0),current=from;
- function reset(){mode=null;age=0;elapsed=blendMs;from=sample(null,0);current=from;}
- function step(next,dt){if(!Number.isFinite(dt)||dt<0)throw Error('invalid dt');next=modes.includes(next)?next:null;if(next!==mode){from={...current};elapsed=0;age=0;mode=next;}age+=dt;elapsed+=dt;const target=sample(mode,age),a=ease(elapsed/blendMs);current=Object.fromEntries(Object.keys(target).map(k=>[k,from[k]+(target[k]-from[k])*a]));return {...current,mode};}
+function create({blendMs=280,riseMs=650}={}){if(!(blendMs>0&&riseMs>0))throw Error('invalid blend time');let mode=null,age=0,elapsed=blendMs,duration=blendMs,from=sample(null,0),current=from;
+ function reset(){mode=null;age=0;elapsed=blendMs;duration=blendMs;from=sample(null,0);current=from;}
+ function step(next,dt){if(!Number.isFinite(dt)||dt<0)throw Error('invalid dt');next=modes.includes(next)?next:null;if(next!==mode){from={...current};duration=next===null&&current.rest>.001?riseMs:blendMs;elapsed=0;age=0;mode=next;}age+=dt;elapsed+=dt;const target=sample(mode,age),a=ease(elapsed/duration);current=Object.fromEntries(Object.keys(target).map(k=>[k,from[k]+(target[k]-from[k])*a]));return {...current,mode};}
  return Object.freeze({step,reset,state:()=>({...current,mode})});
 }
 function apply(pose,values,limits){if(!pose)return pose;return {...pose,head:clamp((pose.head||0)+values.head*(limits.head||0),-(limits.head||0),limits.head||0),jaw:clamp((pose.jaw||0)+values.jaw*(limits.jaw||0),0,limits.jaw||0),mane:clamp((pose.mane||0)+values.mane*(limits.mane||0),-(limits.mane||0),limits.mane||0),tail:clamp((pose.tail||0)+values.tail*(limits.tail||0),-(limits.tail||0),limits.tail||0)};}
-root.DungeonCreatureLifeMotionV1=Object.freeze({modes,sample,create,apply});
+function blendRest(stand,rest,weight,mix){const w=clamp(weight,0,1),out=mix(stand,rest,w);return {...out,mode:w>0?'rest-blend':'stand',stage:w>0?'休息姿勢過渡':'站立',dx:0,...Object.fromEntries(['head','jaw','mane','tail'].map(k=>[k,(stand[k]||0)*(1-w)+(rest[k]||0)*w]))};}
+root.DungeonCreatureLifeMotionV1=Object.freeze({modes,sample,create,apply,blendRest});
 })(typeof window==='undefined'?globalThis:window);
