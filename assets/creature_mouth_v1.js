@@ -16,8 +16,8 @@ function create(profile){const cache=new WeakMap(),max=profile.maxAngle;
  function canvas(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;return c;}
  function frame(source,deg){const angle=clamp(Math.round(deg||0),0,max);if(!angle)return source;let store=cache.get(source);if(!store){store=new Map();cache.set(source,store);}if(store.has(angle))return store.get(angle);
  const c=canvas(source.width,source.height),g=c.getContext('2d');g.imageSmoothingEnabled=false;g.drawImage(source,0,0);
- if(profile.projection==='frontal'){
-  const f=angle/max;for(const l of profile.layers)poly(g,l.points.map(([x,y,dy])=>[Math.round(x),Math.round(y+dy*f)]),l.color);
+ if(profile.projection==='frontal'||profile.projection==='oblique'){
+  const f=angle/max;for(const l of profile.layers)poly(g,l.points.map(([x,y,dy,dx=0])=>[Math.round(x+dx*f),Math.round(y+dy*f*(profile.verticalScale??1))]),l.color);
   for(const p of profile.upperPolygons){g.save();g.beginPath();p.forEach((v,i)=>i?g.lineTo(...v):g.moveTo(...v));g.closePath();g.clip();g.drawImage(source,0,0);g.restore();}
   store.set(angle,c);return c;
  }
