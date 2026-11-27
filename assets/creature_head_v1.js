@@ -32,12 +32,12 @@ function sourcePoint(x,y,deg,p){
 }
 function create(p){
  const maps=new Map(),pixels=new WeakMap();let output=null,ctx=null;
- function frame(source,deg){
+ function frame(source,deg,volatile=false){
  const a=clamp(Math.round(deg||0),-p.maxAngle,p.maxAngle);if(!a)return source;
  const w=source.width,h=source.height,key=w+'x'+h+':'+a;
  if(!output||output.width!==w||output.height!==h){output=document.createElement('canvas');output.width=w;output.height=h;ctx=output.getContext('2d');}
  let map=maps.get(key);if(!map){map=new Int32Array(w*h);for(let y=0;y<h;y++)for(let x=0;x<w;x++){const [sx,sy]=sourcePoint(x+.5,y+.5,a,p),ix=Math.floor(sx),iy=Math.floor(sy);map[y*w+x]=ix>=0&&ix<w&&iy>=0&&iy<h?(iy*w+ix)*4:-1;}maps.set(key,map);}
- let src=pixels.get(source);if(!src){src=source.getContext('2d').getImageData(0,0,w,h).data;pixels.set(source,src);}
+ let src=volatile?null:pixels.get(source);if(!src){src=source.getContext('2d').getImageData(0,0,w,h).data;if(!volatile)pixels.set(source,src);}
  const out=ctx.createImageData(w,h),d=out.data;for(let i=0;i<map.length;i++){const j=map[i];if(j<0)continue;const k=i*4;d[k]=src[j];d[k+1]=src[j+1];d[k+2]=src[j+2];d[k+3]=src[j+3];}ctx.putImageData(out,0,0);return output;
  }return Object.freeze({frame,maxAngle:p.maxAngle});
 }
