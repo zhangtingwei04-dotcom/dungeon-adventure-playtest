@@ -11,16 +11,17 @@ function classify(result,{action,disposition=null}={}){
  if(s.result==='victory'||s.result==='retreat')return 'flee';
  return 'none';
 }
-function plan(type,{route=[]}={}){
+function plan(type,{route=[],arrivalFade=false}={}){
  if(!types.includes(type))throw Error('invalid exit type');
  if(type==='death')return [{mode:'down',duration:650},{mode:'corpse-hold',duration:450},{mode:'corpse-fade',duration:900}];
- if(type==='flee'){if(!route.length)throw Error('missing escape route');return route.map(p=>{if(![p.x,p.y,p.scale].every(Number.isFinite)||p.scale<=0||!Number.isInteger(p.dir)||p.dir<0||p.dir>7||!['walk','run','trot'].includes(p.mode))throw Error('invalid escape waypoint');return {mode:p.mode,dir:p.dir,to:{x:p.x,y:p.y,scale:p.scale}};});}
+ if(type==='flee'){if(!route.length)throw Error('missing escape route');const phases=route.map(p=>{if(![p.x,p.y,p.scale].every(Number.isFinite)||p.scale<=0||!Number.isInteger(p.dir)||p.dir<0||p.dir>7||!['walk','run','trot'].includes(p.mode))throw Error('invalid escape waypoint');return {mode:p.mode,dir:p.dir,to:{x:p.x,y:p.y,scale:p.scale}};});if(arrivalFade)phases.push({mode:'flee-hold',duration:180},{mode:'flee-fade',duration:850});return phases;}
  if(type==='player-retreat')return [{mode:'player-fade',duration:650}];
  return [];
 }
 function visual(mode,age,duration){
  const p=duration>0?clamp(age/duration):1;
  if(mode==='corpse-hold'||mode==='corpse-fade')return {pose:'down',time:650,opacity:mode==='corpse-fade'?1-p:1,sceneOpacity:1};
+ if(mode==='flee-hold'||mode==='flee-fade')return {pose:'stand',time:0,opacity:mode==='flee-fade'?1-p*p*(3-2*p):1,sceneOpacity:1};
  if(mode==='player-fade')return {pose:'alert',time:0,opacity:1,sceneOpacity:1-p};
  return {pose:mode,time:age,opacity:1,sceneOpacity:1};
 }
@@ -34,5 +35,13 @@ function sprintProgress(age,duration){
  const u=clamp(age/duration),r=.2;
  return u<r?u*u/(2*r*(1-r/2)):(u-r/2)/(1-r/2);
 }
-root.DungeonBattleExitV1=Object.freeze({types,classify,plan,visual,sprintDuration,sprintProgress});
+// Return to a known rest point: accelerate, cruise, and brake on arrival.
+function returnProgress(age,duration){
+ if(!Number.isFinite(age)||!Number.isFinite(duration)||duration<=0)throw Error('invalid return progress');
+ const u=clamp(age/duration),r=.18,total=1-r;
+ if(u<r)return u*u/(2*r*total);
+ if(u>1-r)return 1-(1-u)*(1-u)/(2*r*total);
+ return (u-r/2)/total;
+}
+root.DungeonBattleExitV1=Object.freeze({types,classify,plan,visual,sprintDuration,sprintProgress,returnProgress});
 })(typeof window==='undefined'?globalThis:window);
