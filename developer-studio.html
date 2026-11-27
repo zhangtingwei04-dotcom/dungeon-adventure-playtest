@@ -88,12 +88,13 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 <script src="./assets/female_bald_candidate_v1.js?v=2"></script>
 </head>
 <body>
-<header><div class="head"><div><h1>迷宮盡頭的燈火 · 開發者總台</h1><div class="micro">實際遊戲預覽 · 角色裝備庫 · 身形測量 · 圖層定位 · 參數匯出</div></div><span class="pill">獨立測試存檔｜不直接更新遊戲</span></div>
+<header><div class="head"><div><h1>迷宮盡頭的燈火 · 開發者總台</h1><div class="micro">實際遊戲預覽 · 角色裝備庫 · 怪物與戰鬥 · 身形測量 · 參數匯出</div></div><span class="pill">獨立測試存檔｜不直接更新遊戲</span></div>
 <div class="tabs" role="tablist" aria-label="工作台功能">
 <button role="tab" id="tab-game" data-tab="game" aria-selected="true">遊戲預覽</button>
 <button role="tab" id="tab-library" data-tab="library" aria-selected="false">角色裝備庫</button>
 <button role="tab" id="tab-export" data-tab="export" aria-selected="false">數據與備份</button>
 <button role="tab" id="tab-measure" data-tab="measure" aria-selected="false">身形測量</button>
+<button role="tab" id="tab-monsters" data-tab="monsters" aria-selected="false">怪物與戰鬥</button>
 <a href="./quality-center.html" style="display:flex;align-items:center;white-space:nowrap;flex:none;border:1px solid #8f805f;border-radius:20px;padding:8px 11px;text-decoration:none;font-size:13px">品質管理中心</a>
 <a href="./scene-object-workbench.html?v=1" style="display:flex;align-items:center;white-space:nowrap;flex:none;border:1px solid #8f805f;border-radius:20px;padding:8px 11px;text-decoration:none;font-size:13px">場景物件編輯器</a>
 </div></header>
@@ -228,6 +229,22 @@ footer{color:#9eaf9f;text-align:center;font-size:11px;padding:18px}
 <div class="toolbar"><button id="resetLayer">重設此圖層（已確認位置）</button><button id="copySelected" class="primary">複製目前素材數據</button></div>
 <div class="hint assetInfo" id="assetMeta">請先選擇素材。</div>
 </div></div>
+</section>
+<section id="page-monsters" data-page="monsters" hidden>
+<div class="panel"><h2>怪物與戰鬥｜苔棘鬃獸 V3</h2>
+<p>在同一張破損馬車場景內驗收休息、起身、轉向、移動、戰鬥、返回休息地點。獨立候選戰鬥含格擋、失衡與徒手戰技，不改正式存檔。</p>
+<div class="toolbar"><button class="primary" id="openEncounterFull">全頁開啟休息點與戰鬥（手機推薦）</button><button id="reloadEncounter">重置內嵌測試</button></div>
+<div class="hint">預設從休息錨點開始。點「開始遭遇｜起身走來」，抵達後才解鎖戰鬥按鈕。可勾選顯示路線，再用逃跑演出檢查是否回到原休息點。每次重置都不影響遊戲存檔。</div>
+<iframe id="encounterFrame" title="單隻苔棘鬃獸完整遭遇測試" loading="lazy" style="width:100%;height:min(1000px,85dvh);min-height:320px;display:block;background:#102b24;border:1px solid #7a7656;border-radius:12px;margin-top:12px" src="about:blank"></iframe>
+</div>
+<div class="panel"><h2>其他怪物驗收工具</h2>
+<div class="toolbar">
+<a href="./moss-beast-v3-rig-preview.html?v=3" target="_blank" rel="noopener">八方向骨架與動作</a>
+<a href="./wreck-scene-integration-preview.html?v=3" target="_blank" rel="noopener">場景移動、感知與採集刺激</a>
+<a href="./creature-performance-preview.html?v=1" target="_blank" rel="noopener">多生物效能</a>
+<a href="./?dev-preview=1&amp;combat-trial=1&amp;v=monster-studio-v1" target="_blank" rel="noopener">多人遭遇舊版測試</a>
+<a href="./?dev-preview=1&amp;v=concealment-v1" target="_blank" rel="noopener">正式場景藏匿與遊戲預覽</a>
+</div><p>多人遭遇目前仍使用舊版怪物動態；藏匿生物暫以文字互動。新單隻路線為預設中繼點，仍待實機確認遮擋與地形碰撞。</p></div>
 </section>
 <section id="page-measure" data-page="measure" hidden>
 <div class="panel"><h2>通用身形測量｜自動掃描＋手動微調</h2>
@@ -1405,7 +1422,10 @@ function scaleGame(){
  host.style.height=(707*scale+2)+'px';host.style.aspectRatio='auto';
 }
 function openUrl(path){window.open(path,'_blank','noopener')}
+const encounterUrl='./wreck-battle-integration-preview.html?v=15&start=rest';
 function setTab(id){
+ if(id==='monsters'&&$('encounterFrame').getAttribute('src')==='about:blank')$('encounterFrame').src=encounterUrl;
+ if(id!=='monsters'&&$('encounterFrame').getAttribute('src')!=='about:blank')$('encounterFrame').src='about:blank';
  for(const btn of document.querySelectorAll('[data-tab]'))btn.setAttribute('aria-selected',String(btn.dataset.tab===id));
  for(const page of document.querySelectorAll('[data-page]'))page.hidden=page.dataset.page!==id;
  if(id==='game')requestAnimationFrame(scaleGame);
@@ -1416,6 +1436,8 @@ function setTab(id){
  }
 }
 for(const b of document.querySelectorAll('[data-tab]'))b.onclick=()=>setTab(b.dataset.tab);
+$('openEncounterFull').onclick=()=>openUrl(encounterUrl);
+$('reloadEncounter').onclick=()=>{$('encounterFrame').src=encounterUrl+'&reload='+Date.now();};
 $('openBodyMeasure').onclick=()=>openUrl('./body-measure-studio.html?v=3');
 $('openLegacyArmScan').onclick=()=>openUrl('./arm-horizontal-scan.html?v=1');
 $('openManualArm').onclick=()=>openUrl('./arm-manual-measure.html?v=2');
