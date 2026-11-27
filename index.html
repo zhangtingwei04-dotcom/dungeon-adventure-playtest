@@ -4669,7 +4669,7 @@ window.DUNGEON_FOREST_V4_LAYOUT=window.DUNGEON_WRECK_CURRENT_LAYOUT;
 <script src="./assets/creature_close_attack_v1.js?v=2"></script>
 <script src="./assets/battle_impact_v1.js?v=1"></script>
 <script src="./assets/player_attack_v1.js?v=4"></script>
-<script src="./assets/monsters/moss_beast_live_v3.js?v=1"></script>
+<script src="./assets/monsters/moss_beast_live_v3.js?v=2"></script>
 <script src="./assets/encounter_motion_v1.js?v=4-body-scale"></script>
 <script src="./assets/battle_playtest_v1.js?v=encounter-motion-v1"></script>
 <script>
@@ -8284,7 +8284,7 @@ function renderBattleSurface(){
  const choices=document.createElement('div');choices.className='battle-actions';
  const buttons=state.result?[['finish',state.result==='defeat'?'稍後醒來':'繼續探索']]:[['attack','攻擊'],['guard','防禦'],['dodge','閃避'],['observe','觀察'],['approach','靠近'],['backstep','拉開'],['retreat','撤離']];
  for(const [id,label] of buttons){if((id==='attack'&&state.distance>0)||(id==='approach'&&state.distance===0)||(id==='backstep'&&state.distance===2))continue;const button=document.createElement('button');button.type='button';button.textContent=label;button.onclick=()=>id==='finish'?finishBattle():battleTurn(id);choices.appendChild(button);}
- controls.append(intent,feedback,choices);host.append(head,shadow,sprite,controls);if(state.result==='victory'){sprite.style.visibility='hidden';shadow.style.visibility='hidden';}else window.DungeonMossBeastLiveV3?.mount(sprite,state);syncDialogueInputLock();
+ controls.append(intent,feedback,choices);host.append(head,shadow,sprite,controls);if(state.result==='victory'||(state.result==='retreat'&&state.source==='opening'&&state.feedback?.includes('牠轉身逃進森林'))){sprite.style.visibility='hidden';shadow.style.visibility='hidden';}else window.DungeonMossBeastLiveV3?.mount(sprite,state);syncDialogueInputLock();
 }
 function battleDialog(){renderBattleSurface();}
 const openBattlePlaytest=window.DungeonBattlePlaytestV1.mount({
