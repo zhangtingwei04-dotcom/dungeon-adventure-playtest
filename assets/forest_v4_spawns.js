@@ -157,8 +157,10 @@ window.DungeonForestV4Life=(function engine(){
  function state(s){if(!s.forestV4Life||typeof s.forestV4Life!=='object'||Array.isArray(s.forestV4Life))s.forestV4Life={last:-1,animals:{}};const v=s.forestV4Life;if(!v.animals||typeof v.animals!=='object')v.animals={};return v;}
  function seeded(s,key){let h=2166136261;for(const ch of String(s.seed??0)+':wildlife:'+key){h=Math.imul(h^ch.charCodeAt(0),16777619);}return ()=>{h=(h+0x6D2B79F5)|0;let t=Math.imul(h^h>>>15,1|h);t^=t+Math.imul(t^t>>>7,61|t);return ((t^t>>>14)>>>0)/4294967296;};}
  function update(s,base,slots,phase,random){
-  const v=state(s),count=s.exploration?.counts?.wreck||0,day=Math.floor(Math.max(0,s.worldMinutes||0)/1440),visits=s.visits?.wreck||0;
-  const key=[day,Math.floor(Math.max(0,s.worldMinutes||0)/60),phase,count,visits].join(':');
+  const v=state(s),count=s.exploration?.counts?.wreck||0,hour=Math.floor(Math.max(0,s.worldMinutes||0)/60);
+  const key='hour:'+hour;
+  // Migrate an existing same-hour activity key without rerolling the current animals.
+  if(typeof v.activityKey==='string'&&!v.activityKey.startsWith('hour:')&&Number(v.activityKey.split(':')[1])===hour){v.activityKey=key;return false;}
   if(s.scene!=='wreck'||v.activityKey===key||s.flags?.inBattle)return false;
   const roll=random||seeded(s,key);
   v.last=count;v.activityKey=key;
@@ -201,8 +203,8 @@ window.DungeonForestV4Life=(function engine(){
  function goldenEncounter(s){
   const minute=Math.max(0,Math.floor(Number(s.worldMinutes)||0)),hour=minute%1440/60;
   if(!(hour>=5&&hour<8||hour>=17&&hour<20))return false;
-  const day=Math.floor(minute/1440),count=s.exploration?.counts?.wreck||0;
-  let h=2166136261;for(const ch of String(s.seed??0)+':gold-rabbit:'+day+':'+count){h=Math.imul(h^ch.charCodeAt(0),16777619);}h^=h>>>16;h=Math.imul(h,0x7feb352d);h^=h>>>15;
+  const hourKey=Math.floor(minute/60);
+  let h=2166136261;for(const ch of String(s.seed??0)+':gold-rabbit:'+hourKey){h=Math.imul(h^ch.charCodeAt(0),16777619);}h^=h>>>16;h=Math.imul(h,0x7feb352d);h^=h>>>15;
   return (h>>>0)/4294967296<.01;
  }
  function layout(s,base,slots,materialBindings,weather=window.DungeonWeatherV1?.at(s.seed,s.worldMinutes)){ 
