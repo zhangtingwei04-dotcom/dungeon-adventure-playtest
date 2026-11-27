@@ -14,7 +14,7 @@ function create({detect=65,lose=88,attackRange=32,retreatHP=.25,alertMs=850,cool
    if(!best||score>best.score)best={direction:d,score};}
   return best?.direction??null;
  }
- function step({dt,pos,angle,target=null,hp=1,busy=false,sweep,perception=null,stimulus=null,environment={},needs=null}){
+ function step({dt,pos,angle,target=null,hp=1,busy=false,sweep,perception=null,stimulus=null,environment={},needs=null,lifestyle=null}){
   if(!Number.isFinite(dt)||dt<0)throw Error('invalid dt');
   age+=dt;cooldown=Math.max(0,cooldown-dt);avoidAge=Math.max(0,avoidAge-dt);
   const actual=target;if(perception)target=perception.memory;const d=target?dist(pos,target):Infinity;const visible=perception?!!target&&perception.confirmed:!!target&&d<=(seen?lose:detect);
@@ -23,7 +23,7 @@ function create({detect=65,lose=88,attackRange=32,retreatHP=.25,alertMs=850,cool
   if(state==='attack'){enter('recover');cooldown=cooldownMs;}
   // A scene disturbance is a point of interest, never an attackable target.
   if(drive?.ignore)stimulus=null;
-  if(drive?.rest&&!visible&&!stimulus&&!target&&state!=='recover'){seen=false;enter('rest');return {state:'tired',mode:'rest',direction:angle};}
+  if(drive?.rest&&!visible&&!stimulus&&!target&&!lifestyle?.point&&state!=='recover'){seen=false;enter('rest');return {state:'tired',mode:'rest',direction:angle};}
   if(stimulus&&!visible&&state!=='recover'){if(stimulusId!==stimulus.id){stimulusId=stimulus.id;stimulusAge=0;}else stimulusAge+=dt;const point=stimulus.position,distance=dist(pos,point),desired=distance>1?heading(pos,point):angle;seen=false;enter('disturbance');
    if(stimulusAge<700||!(drive?drive.investigate:stimulus.investigate)||distance<=8)return {state:'disturbance',mode:'alert',direction:desired};
    if(hp<=retreatHP)return {state:'retreat',mode:'alert',direction:desired};
@@ -31,6 +31,7 @@ function create({detect=65,lose=88,attackRange=32,retreatHP=.25,alertMs=850,cool
   }
   if(!stimulus)stimulusId=null;
   if(perception&&!visible&&target){seen=false;enter('alert');return {state:'suspect',mode:'alert',direction:heading(pos,target)};}
+  if(!visible&&!stimulus&&!target&&lifestyle?.point&&state!=='recover'){seen=false;enter('lifestyle');const point=lifestyle.point,distance=dist(pos,point);if(distance<=7)return {state:lifestyle.kind,mode:lifestyle.kind==='shelter-rest'?'rest':'stand',direction:angle};const dir=choose(pos,heading(pos,point),sweep,point,angle);return {state:dir===null?'blocked':lifestyle.kind,mode:dir===null?'alert':'walk',direction:dir??angle};}
   if(!visible){seen=false;if(!['rest','roam'].includes(state))enter('rest');}
   else if(hp<=retreatHP||drive?.retreat){seen=true;enter('retreat');}
   else if(!seen||state==='retreat'){seen=true;enter('alert');}
