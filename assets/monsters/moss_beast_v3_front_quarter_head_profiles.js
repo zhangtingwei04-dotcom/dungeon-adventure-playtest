@@ -1,0 +1,2 @@
+/* V3.16 front and oblique head-neck profiles. */
+(function(root){root.DungeonMossBeastV3FrontHeadProfile={"projection":"frontal","centerX":112,"rigidRadius":19,"fixedRadius":43,"upperFixed":57,"upperRigid":86,"taperY":123,"fixedY":139,"maxAngle":5,"shift":3};root.DungeonMossBeastV3QuarterHeadProfile={"pivot":[96,104],"rigidX":80,"fixedX":117,"taperY":126,"fixedY":141,"maxAngle":5};})(typeof window==='undefined'?globalThis:window);

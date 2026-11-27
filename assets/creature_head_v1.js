@@ -17,6 +17,12 @@ function sample(mode,ms,secondary=0,attack={windup:440,push:580,airEnd:1050,end:
  return clamp(Number.isFinite(v)?v:0,-max,max);
 }
 function sourcePoint(x,y,deg,p){
+ if(p.projection==='frontal'){
+  // Frontal pitch is a symmetric projected vertical motion, never image-plane roll.
+  let sy=y;const wx=1-ease((Math.abs(x-p.centerX)-p.rigidRadius)/(p.fixedRadius-p.rigidRadius));
+  for(let i=0;i<5;i++){const wy=ease((sy-p.upperFixed)/(p.upperRigid-p.upperFixed))*(1-ease((sy-p.taperY)/(p.fixedY-p.taperY)));sy=y+deg/p.maxAngle*p.shift*wx*wy;}
+  return [x,sy];
+ }
  let sx=x,sy=y;const [px,py]=p.pivot;
  for(let i=0;i<5;i++){
  const w=(1-ease((sx-p.rigidX)/(p.fixedX-p.rigidX)))*(1-ease((sy-p.taperY)/(p.fixedY-p.taperY)));
