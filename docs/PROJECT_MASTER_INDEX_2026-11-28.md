@@ -1,0 +1,64 @@
+# 《迷宮盡頭的燈火》｜專案總索引 V1.0
+日期：2026-11-28（台灣時間）。僅此遊戲，不混入歐姆計劃。
+目的：統一查找最新決策、已接入系統、獨立預覽、待實作及驗收問題。本次只建立索引，不重構或刪除歷史檔案、不改遊戲或存檔。
+查核基準：main，整理前 commit 96dcfe8f7f948a843b28355f63932dd0e531cf82；index.html blob 5858af3516e01afe50703899fb00c38e3114edca。主頁 HTML 標題仍為「殘車之後｜第一章與城鎮 V0.5.1」，屬舊試玩標題，正式專案名稱為《迷宮盡頭的燈火》；本次不擅自改名或宣告新遊戲版本。
+
+## 1. 使用規則
+- 最新使用者確認決策優先於舊提案；區分設定定案、候選假說、正式頁已引用模組、獨立預覽、尚未實作、已驗收。文件記載測試不代表本次重跑；主頁引用也不代表所有功能均可玩。
+- 2026-11-28 世界觀以 [燈火錨點與職業](design/lantern-anchor-worldbuilding-v1-2026-11-28.md) 和 [世界認知與異常調查 V1.1](design/anomaly-investigation-v1-2026-11-28.md) 為準；後者的世界認知定義及會員門檻優先。舊 [四職業](design/hunter-four-schools-and-skills.md) 僅供歷史參考。舊 README 大量歷史版說明不能覆蓋新規則。
+- 對尚未實作的內容不宣稱上線；不複製同一份物品、時間或事件資料。新增功能先查核心與相依，再逐步接入，保護舊存檔與已核准素材。
+
+## 2. 遊戲方向與世界
+固定第一人稱2D像素場景、手機橫式優先、場景點擊、對話選擇與回合制冒險；生活、生態、研究和戰鬥並重。主角是本世界的人且失憶，可不追查身世；不強制找回過去。[主角設定](design/protagonist-origin-and-optional-past.md)。
+「燈火是自己的錨點，照亮出自己的模樣。」心靈、意志、認知與存在為核心；世界認知扭曲形成異常，群體認知可能影響現實，傳說可能具現。燈火法是正常修習法；燈火會為特殊組織型異常，獨立於普通冒險者，秘密處理異常、設置地域燈火以降低異常及穩定認知。迷宮是已知最大異常；其他難以解決的異常存在。原初世界假說是內部研究方向，歷史覆寫、迷宮殘存、自穩、神明與傳說成因仍為假說。《世界的第一場夢》是傳說，不是已證實歷史。恆異、定界燈等暫名待定。傳奇人物與遺物、燈獸依錨點文件，不另增屬性。永夜人物稱號以錨點文件當前記錄「永夜伯爵」列索引；若後續確認改稱永夜爵，需同步修正文檔，爵位與職業不可混同。
+
+## 3. 職業定案（設計，非完整實作）
+12屬性，每屬性3方向，共36職業；衍生均以燈為基礎，不是上下位。
+| 屬性 | 職業 |
+|---|---|
+| 燈 | 燼武者、守夜人、觀心衛 |
+| 界 | 術環師、渡界客、空庭主 |
+| 衍 | 萬象使、噬能魔、魔導士 |
+| 煉 | 鍊金士、魔偶師、灰魔女 |
+| 響 | 藏鋒客、奏律家、餘燼魔 |
+| 影 | 獵痕影、無影狩、鏡中人 |
+| 憶 | 靈燭侍、觀古士、傳薪者 |
+| 息 | 白祭司、德魯伊、無相魔 |
+| 夢 | 織夢家、夢魘魔、眠語者 |
+| 寂 | 黑執事、獵魔人、無燭僧 |
+| 契 | 司夜官、御獸使、共同體 |
+| 源 | 原初徒、鑑識官、萬理生 |
+權能界線、遺物相容、隱藏職業見錨點文件。晉升七階、技能數值、多職業上限與相容性、部分性別限制尚待確認。
+
+## 4. 正式頁現況與索引
+- 主頁 [index.html](../index.html)；固定場景、三欄、旅途紀錄、角色/裝備與地點資訊，主要行動右下、細部調查右上、中央共用對話，保留直接點擊。[場景操作分層](scene-interaction-scope-v1.md)、[調查卡片](investigation-cards-core-v1.md)（34×28小格，文件記錄11地點接入）。
+- 開場破損馬車、林間小徑、城鎮等既有故事與場景；森林獨立物件及素材。[V4核准配置](design/forest-v4-approved-layout-2026-11-25.md)是歷史座標基準，正式頁已另引用 neutral background V5、wreck_current_layout，不能把V4全當最新畫面。[場景物件](design/scene-object-exploration-v1-2026-11-24.md)、[生態決策](design/living-scene-ecology-decisions-2026-11-24.md)。
+- 正式頁引用 opening_progression_v1（實際遊戲時計，首日黃昏前引導發現離開路徑，不以探索次數為門檻）、scene_hourly_v1（每地每遊戲小時一次更新，不另扣時間）、scene_action_time_v1（調查、採集等共用耗時）、object_investigation_v1、investigation_cards_v1、scene_dialogue_v1、wreck_components_v1、scene_concealment_v1、discovery_cue_v1。需實機核對整合、超時後操作與路徑。
+- 生態：天氣、日夜、風雨、積雪/地表、水流、場景生成與兔、甲蟲、鳥等動態模組已有正式引用；徒手捕捉策略 creature_capture_v1 目前依HP比例調整成功率與讀秒，完整體質後續擴充，不能把暫定值當正式平衡。詳細規則需逐案核對。
+- 角色：64×160紙娃娃、分層臉部、眼嘴表情、狀態特效、裝備；正式頁引用自然垂放長衣V13、褲裝V2、靴V4、手套V1、披風V2、手臂保護；側包下方露於披風外的分層預設啟用（bagSplit=off可關閉視覺）。[裝備核對](EQUIPMENT_SHIRT_MODES_BAG_QA_2026-11-24.md)，早期試裝紀錄不等於當前預設。三種穿法設計不等於皆有正式素材。
+- 錢包、背包：已有基礎欄位與介面；附魔旅行側包24格、16kg、減重50%為確認規格，不能稱容量負重已啟用。[錢袋背包](design/wallet-and-backpack-v1.md)。經濟、幣值、完整交易、物品重量待做。
+- 角色環境核心有濕度、舒適與裝備防護；文件明示正式HP/SP連動、真正體溫及NPC接入未啟用。[角色環境](character-environment-core-v1.md)。
+- 戰鬥：主頁引用 battle_playtest、battle_exit、battle_impact、player_attack、creature_close_attack 及 moss_beast_live_v3，既有戰鬥測試背景與苔棘鬃獸動態；不可宣稱完整36職業戰鬥或所有V3.41預覽特性已接入正式遊戲。
+- 苔棘鬃獸與生物共用研究：八方向骨架、嘴與頭部、次級動作、感知刺激、需求行為、足部鎖定、地形、移動/撲擊、渲染快取等有獨立模組及預覽。最新 [V3.41](creature-render-performance-v341.md) 是效能驗收頁，不改正式遊戲；[V3.36](creature-integration-audit-v336.md) 與 [V3.37](creature-motion-integration-v337.md) 為邏輯取樣，未實機驗收。
+
+## 5. 共用核心與工具
+- [引擎路線](shared-game-engine-roadmap.md)；[基礎時間與模組註冊](engine-foundation-v1.md)、[事件與存檔](engine-events-save-v1.md)已接入，worldMinutes為統一時間、事件序列與旅途紀錄、舊本機存檔及匯入匯出。舊文件的CI尚未啟用說法已過時；當前確有CI配置。雲端未確認接入。
+- 主頁另引用 render_resources、performance_monitor、adaptive_quality、fault_isolation；正式效果待測。開發者總台 developer-studio.html、場景工具 scene-object-workbench.html、品質中心 quality-center.html、獨立骨架/效能預覽。預覽不改正式存檔。
+- 遊戲入口：https://zhangtingwei04-dotcom.github.io/dungeon-adventure-playtest/
+- 開發者總台：https://zhangtingwei04-dotcom.github.io/dungeon-adventure-playtest/developer-studio.html
+- 品質中心：https://zhangtingwei04-dotcom.github.io/dungeon-adventure-playtest/quality-center.html
+
+## 6. 異常調查（已定方向，未實作）
+只有正式加入燈火會才解鎖異常調查、檔案、上報及正式處理。入會前保持正常探索、普通調查與一般線索；不劇透機密、不強迫加入。耗用遊戲時間→本次發現→記錄/補充→上報或自行處理/擱置；上報與處理另有成立條件。異常資料與玩家已知資料分離，同一事件去重，觀測、推測、未確認分開。加入條件、退出規則、舊線索回顧、耗時、事件數值、處理獎勵未定。不能把提燈示例加入正式開場當作已核准劇情。[完整設計](design/anomaly-investigation-v1-2026-11-28.md)。
+
+## 7. 最新品質查核（本次查詢 GitHub Actions，不是重新跑測試）
+- 2026-11-28 台灣時間約06:00，整理前 commit 96dcfe8 的 Pages build/deployment 成功：[部署紀錄](https://github.com/zhangtingwei04-dotcom/dungeon-adventure-playtest/actions/runs/46073922976)。
+- 同一 commit 的 [Game regression](https://github.com/zhangtingwei04-dotcom/dungeon-adventure-playtest/actions/runs/46073923308) 失敗。Chromium及WebKit皆停在 Check approved art baselines and consumers；其後跨模組整合、Playwright安裝及瀏覽器回歸均跳過。尚未定位具體失敗原因，不宣稱其他測試通過或所有遊戲壞掉。
+- .github/workflows/game-regression.yml 已配置 main推送、PR、手動與每日排程；包括美術基準、整合模擬、兩瀏覽器及報告保存。真實iPhone Safari畫面、觸控、完整流程仍需驗收。
+
+## 8. 建議後續次序（非新授權）
+1. 先定位並修正美術基準CI失敗，不為了綠燈擅改核准美術或放寬測試；再確認整合和瀏覽器回歸。
+2. 完成既有開場到離開馬車的最小可玩流程驗收：對話、普通調查、物件採集、時間、路徑、天氣和存檔。
+3. 規劃燈火會正式入會條件，之後以單一異常案例建立共用核心、會員門檻、紀錄與處理狀態。
+4. 依序擴充角色生理、職業與技能、經濟、異常值及迷宮內容，不一次全面重寫。
+本索引不是全部素材逐一審核或新測試報告。保留原歷史檔，後續決策更新相應來源與索引。
