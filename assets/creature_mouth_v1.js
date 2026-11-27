@@ -15,7 +15,13 @@ function create(profile){const cache=new WeakMap(),max=profile.maxAngle;
  function poly(g,points,color){g.fillStyle=color;g.beginPath();points.forEach((p,i)=>i?g.lineTo(...p):g.moveTo(...p));g.closePath();g.fill();}
  function canvas(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;return c;}
  function frame(source,deg){const angle=clamp(Math.round(deg||0),0,max);if(!angle)return source;let store=cache.get(source);if(!store){store=new Map();cache.set(source,store);}if(store.has(angle))return store.get(angle);
- const c=canvas(source.width,source.height),g=c.getContext('2d');g.imageSmoothingEnabled=false;g.drawImage(source,0,0);g.globalCompositeOperation='destination-out';poly(g,profile.cut,'#000');g.globalCompositeOperation='source-over';
+ const c=canvas(source.width,source.height),g=c.getContext('2d');g.imageSmoothingEnabled=false;g.drawImage(source,0,0);
+ if(profile.projection==='frontal'){
+  const f=angle/max;for(const l of profile.layers)poly(g,l.points.map(([x,y,dy])=>[Math.round(x),Math.round(y+dy*f)]),l.color);
+  for(const p of profile.upperPolygons){g.save();g.beginPath();p.forEach((v,i)=>i?g.lineTo(...v):g.moveTo(...v));g.closePath();g.clip();g.drawImage(source,0,0);g.restore();}
+  store.set(angle,c);return c;
+ }
+ g.globalCompositeOperation='destination-out';poly(g,profile.cut,'#000');g.globalCompositeOperation='source-over';
  const rot=p=>rotate(p,profile.pivot,angle);
  poly(g,[[32,112],[43,110],[53,109],rot([53,113]),rot([43,114]),rot([33,114])],'#352223');
  poly(g,[[37,113],[46,111],rot([46,113]),rot([39,114])],'#643735');
