@@ -21,15 +21,18 @@ function create({detect=65,lose=88,attackRange=32,retreatHP=.25,alertMs=850,cool
   const drive=needs?root.DungeonCreatureNeedsV1.assess(needs,{target:visible?target:null,hp,stimulus}):null;
   if(busy)return {state,mode:'pounce',direction:angle,busy:true};
   if(state==='attack'){enter('recover');cooldown=cooldownMs;}
+  if(state==='recover'&&age<450)return {state:'recover',mode:'alert',direction:angle};
+  if(state==='recover'&&age>=450&&!visible)enter('rest');
   // A scene disturbance is a point of interest, never an attackable target.
   if(drive?.ignore)stimulus=null;
   if(drive?.rest&&!visible&&!stimulus&&!target&&!lifestyle?.point&&state!=='recover'){seen=false;enter('rest');return {state:'tired',mode:'rest',direction:angle};}
   if(stimulus&&!visible&&state!=='recover'){if(stimulusId!==stimulus.id){stimulusId=stimulus.id;stimulusAge=0;}else stimulusAge+=dt;const point=stimulus.position,distance=dist(pos,point),desired=distance>1?heading(pos,point):angle;seen=false;enter('disturbance');
-   if(stimulusAge<700||!(drive?drive.investigate:stimulus.investigate)||distance<=8)return {state:'disturbance',mode:'alert',direction:desired};
-   if(hp<=retreatHP)return {state:'retreat',mode:'alert',direction:desired};
-   const dir=choose(pos,desired,sweep,point,angle);return {state:dir===null?'blocked':dir===desired?'investigate':'avoid',mode:dir===null?'alert':'walk',direction:dir??angle};
+   if(stimulusAge>=1400&&(drive?.rest||(!stimulus.heard&&!stimulus.smelled&&distance<=8))){stimulus=null;}
+   else if(stimulusAge<700||!(drive?drive.investigate:stimulus.investigate)||distance<=8)return {state:'disturbance',mode:'alert',direction:desired};
+   if(stimulus){if(hp<=retreatHP)return {state:'retreat',mode:'alert',direction:desired};
+   const dir=choose(pos,desired,sweep,point,angle);return {state:dir===null?'blocked':dir===desired?'investigate':'avoid',mode:dir===null?'alert':'walk',direction:dir??angle};}
   }
-  if(!stimulus)stimulusId=null;
+  if(!stimulus&&stimulusId!==null&&!(drive?.rest))stimulusId=null;
   if(perception&&!visible&&target){seen=false;enter('alert');return {state:'suspect',mode:'alert',direction:heading(pos,target)};}
   if(!visible&&!stimulus&&!target&&lifestyle?.point&&state!=='recover'){seen=false;enter('lifestyle');const point=lifestyle.point,distance=dist(pos,point);if(distance<=7)return {state:lifestyle.kind,mode:lifestyle.kind==='shelter-rest'?'rest':'stand',direction:angle};const dir=choose(pos,heading(pos,point),sweep,point,angle);return {state:dir===null?'blocked':lifestyle.kind,mode:dir===null?'alert':'walk',direction:dir??angle};}
   if(!visible){seen=false;if(!['rest','roam'].includes(state))enter('rest');}

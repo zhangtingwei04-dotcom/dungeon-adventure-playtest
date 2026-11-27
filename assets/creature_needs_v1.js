@@ -8,7 +8,7 @@ function profile(options={}){
  for(const k of ['territoryRadius','hungerRate','restRecovery'])if(!Number.isFinite(p[k])||p[k]<0)throw Error('invalid needs '+k);
  return Object.freeze(p);
 }
-const fatigueRates=Object.freeze({rest:0,stand:0,alert:.005,walk:.012,trot:.028,run:.065,pounce:.09,jump:.07,'jump-up':.05,slam:.08,'turn-step':.008,charge:.025,hit:.012,'heavy-hit':.018,rise:.012});
+const fatigueRates=Object.freeze({rest:0,stand:0,alert:.005,look:.005,sniff:.004,eat:0,drink:0,walk:.012,trot:.028,run:.065,pounce:.09,jump:.07,'jump-up':.05,slam:.08,'turn-step':.008,charge:.025,hit:.012,'heavy-hit':.018,rise:.012});
 function create(species=profile(),initial={}){
  let hunger=0,fatigue=0,restNeeded=false,home={x:0,z:0};
  function reset(values=initial){hunger=clamp(values.hunger??.25);fatigue=clamp(values.fatigue??.15);home={...(values.home??{x:0,z:0})};restNeeded=fatigue>=.82;}
@@ -23,7 +23,7 @@ function create(species=profile(),initial={}){
 function assess(needs,{target=null,hp=1,stimulus=null}={}){
  if(!needs)return null;const s=needs.species,h=needs.hunger,f=needs.fatigue,inside=!!target&&Math.hypot(target.x-needs.home.x,target.z-needs.home.z)<=s.territoryRadius;
  const drive=clamp(s.aggression*.6+s.courage*.18+h*.16+(inside?s.territoriality*.32:0)-f*.35);
- return Object.freeze({inside,drive,retreat:!!target&&(hp<=.25||s.courage<.24||f>=.92),attack:drive>=.45&&f<.78,rest:needs.restNeeded,roamFactor:clamp(1+h*.7-f*.55,.35,1.7),investigate:!!stimulus&&stimulus.investigate&&stimulus.score>=clamp(.64-s.curiosity*.48-f*.12+h*.03,.12,.75)&&!needs.restNeeded,ignore:!!stimulus&&stimulus.score<.08+(1-s.curiosity)*.24,retreatMode:f>=.8?'trot':'run'});
+ return Object.freeze({inside,drive,retreat:!!target&&(hp<=.25||s.courage<.24||f>=.92),attack:drive>=.45&&f<.78,rest:needs.restNeeded,roamFactor:clamp(1+h*.7-f*.55,.35,1.7),investigate:!!stimulus&&stimulus.investigate&&stimulus.score>=clamp(.64-s.curiosity*.48+f*.12+h*.03,.12,.75)&&!needs.restNeeded,ignore:!!stimulus&&stimulus.score<.08+(1-s.curiosity)*.24,retreatMode:f>=.8?'trot':'run'});
 }
 root.DungeonCreatureNeedsV1=Object.freeze({profile,create,assess});
 })(typeof window==='undefined'?globalThis:window);

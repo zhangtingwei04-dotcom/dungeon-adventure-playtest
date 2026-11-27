@@ -8,12 +8,13 @@ function createResources(entries=[]){const map=new Map();function register(r){if
  function use(id,amount){const r=map.get(id);if(!r||!Number.isFinite(amount)||amount<0)return 0;const used=Math.min(r.amount,amount);if(r.type==='food')r.amount-=used;return used;}
  return Object.freeze({register,list,use});}
 function create(species=profile(),resources=createResources(),initial={}){
- let thirst=clamp(initial.thirst??.25),goal=null,actionTime=0;
+ let thirst=clamp(initial.thirst??.25),goal=null,actionTime=0,needKind=null;
  function adjust(v){if(!Number.isFinite(v))throw Error('invalid thirst');thirst=clamp(v);}
- function reset(){thirst=clamp(initial.thirst??.25);goal=null;actionTime=0;}
+ function reset(){thirst=clamp(initial.thirst??.25);goal=null;actionTime=0;needKind=null;}
  function step({dt,pos,mode,needs,environment={},habitat='forest',interrupted=false,settled=false,allowedToAct=false}){if(!Number.isFinite(dt)||dt<0)throw Error('invalid dt');const sec=dt/1000;
  thirst=clamp(thirst+sec*species.thirstRate*(mode==='run'?2:mode==='trot'?1.5:1));const activity=(species.activity[environment.time??'day']??1)*(species.habitats.includes(habitat)?1:.65);
- const all=resources.list().filter(r=>r.amount>0);const want=needs.fatigue>=.82?'shelter':thirst>=species.waterThreshold?'water':needs.hunger>=species.foodThreshold?'food':activity<.4?'shelter':null;
+ const all=resources.list().filter(r=>r.amount>0);const tired=needs.restNeeded??needs.fatigue>=.82;const want=tired?'shelter':thirst>=(needKind==='water'?species.waterThreshold*.55:species.waterThreshold)?'water':needs.hunger>=(needKind==='food'?species.foodThreshold*.55:species.foodThreshold)?'food':activity<.4?'shelter':null;
+ if(want!==needKind){goal=null;actionTime=0;needKind=want;}
  if(interrupted||!want){goal=null;actionTime=0;return {thirst,activity,intent:null,hungerRelief:0};}
  const valid=r=>r.type===want&&(want!=='food'||species.diet.includes(r.foodKind))&&dist(pos,r)<=species.searchRange;
  let r=all.find(r=>r.id===goal&&valid(r));if(!r){r=all.filter(valid).sort((a,b)=>dist(pos,a)-dist(pos,b)||a.id.localeCompare(b.id))[0];goal=r?.id??null;actionTime=0;}
@@ -23,7 +24,7 @@ function create(species=profile(),resources=createResources(),initial={}){
  else actionTime=0;
  return {thirst,activity,intent:{kind:close?(want==='food'?'eat':want==='water'?'drink':'shelter-rest'):'seek-'+want,point:{x:r.x,z:r.z},id:r.id},hungerRelief:relief};
  }
- return Object.freeze({step,adjust,reset,state:()=>({thirst,goal}),species});
+ return Object.freeze({step,adjust,reset,state:()=>({thirst,goal,needKind}),species});
 }
 root.DungeonCreatureLifestyleV1=Object.freeze({profile,createResources,create});
 })(typeof window==='undefined'?globalThis:window);

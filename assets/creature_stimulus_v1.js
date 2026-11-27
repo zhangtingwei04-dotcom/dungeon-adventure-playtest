@@ -3,7 +3,7 @@
 const registry=root.DungeonObjectStimulusCatalogV1?.registry;if(!registry)throw Error('load object stimulus catalog first');
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 function scentAt(e,pos,clock,wind,range){
- const life=e.scentUntil-e.at,age=clock-e.at+(e.washAge||0);if(life<=0||age>=life||e.scent<=0)return 0;
+ const life=e.scentUntil-e.at,age=clock-e.at+(e.washAge||0);if(life<=0||age>=life||e.scent<=0||range<=0)return 0;
  const strength=e.scent*(1-age/life),dx=pos.x-e.position.x,dz=pos.z-e.position.z,d=Math.hypot(dx,dz),speed=clamp(wind?.speed||0,0,1),a=(wind?.direction||0)*Math.PI/4;
  const along=dx*Math.sin(a)+dz*Math.cos(a),cross=Math.abs(dx*Math.cos(a)-dz*Math.sin(a)),radius=range*strength;
  const travel=radius*(1+1.1*speed),back=radius*(1-.72*speed),width=radius*(1-.45*speed);
@@ -21,7 +21,7 @@ function create({hearingRange=48,scentRange=34,memoryMs=7200,occluded=()=>false,
  const score=Math.max(sound,scent);if(score<.08)continue;const source=sound>=scent?'sound':'scent';
  if(!best||score>best.score)best={...e,score,hidden,source,sound,scent};}
  if(best&&(!memory||best.id===memory.id||best.score>=memory.score||clock-memory.at>1000)){memory={id:best.id,kind:best.kind,position:{...best.position},score:best.score,hidden:best.hidden,at:clock,source:best.source,investigate:best.score>=.32||(memory?.id===best.id&&memory.investigate)};}
- return memory?{...memory,position:{...memory.position},age:clock-memory.at,heard:!!best&&best.sound>=.08,smelled:!!best&&best.scent>=.08,attackAllowed:false}:null;
+ return memory?{...memory,position:{...memory.position},age:clock-memory.at,heard:!!best&&best.id===memory.id&&best.sound>=.08,smelled:!!best&&best.id===memory.id&&best.scent>=.08,attackAllowed:false}:null;
  }
  return Object.freeze({emit,step,reset});
 }
