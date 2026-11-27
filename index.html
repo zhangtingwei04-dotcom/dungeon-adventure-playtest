@@ -4575,6 +4575,7 @@ html.stage-locked #app #battleSurface .battle-actions button{font-size:17px;min-
 <script src="./assets/wreck_components_v1.js?v=1.1"></script>
 <script src="./assets/creature_capture_v1.js?v=1"></script>
 <script src="./assets/scene_action_time_v1.js?v=1"></script>
+<script src="./assets/scene_hourly_v1.js?v=1"></script>
 <script src="./assets/scene_dialogue_v1.js"></script>
 <script src="./assets/opening_progression_v1.js?v=2-departure"></script>
 <script src="./assets/discovery_cue_v1.js?v=1"></script>
@@ -4584,7 +4585,7 @@ html.stage-locked #app #battleSurface .battle-actions button{font-size:17px;min-
 window.DUNGEON_FOREST_V4_LAYOUT=window.DUNGEON_WRECK_CURRENT_LAYOUT;
 (function(){if(!/(?:^|[?&])layout=d(?:&|$)/.test(location.search))return;const base=window.DUNGEON_WRECK_CURRENT_LAYOUT;const patch={"v4-wagon0":{"id":"v4-wagon0","assetId":"forest4_wagon","name":"破損馬車（無燈組裝測試）","x":31,"y":69.5,"width":32,"z":5,"visible":true,"flip":false,"rotation":8},"v4-crate_large1":{"id":"v4-crate_large1","assetId":"forest4_crate_large","name":"大型貨箱","x":54,"y":78,"width":7.5,"z":21,"visible":true,"flip":false,"rotation":-9},"v4-crate_small2":{"id":"v4-crate_small2","assetId":"forest4_crate_small","name":"小型貨箱","x":14.7,"y":73.6,"width":3.5,"z":17,"visible":true,"flip":false,"rotation":-5,"contactGrass":true},"v4-barrel4":{"id":"v4-barrel4","assetId":"forest4_barrel","name":"木桶","x":52.5,"y":63.5,"width":6.2,"z":1,"visible":false,"flip":false,"rotation":0},"v4-crate_open5":{"id":"v4-crate_open5","assetId":"forest4_crate_open","name":"翻倒貨箱","x":43.1,"y":73,"width":7.6,"z":12,"visible":true,"flip":false,"rotation":-10},"v4-sack6":{"id":"v4-sack6","assetId":"forest4_sack","name":"布袋","x":49.5,"y":70,"width":4.2,"z":13,"visible":true,"flip":false,"rotation":12},"v4-wheel_flat7":{"id":"v4-wheel_flat7","assetId":"forest4_wheel_flat","name":"掉落車輪","x":30,"y":82,"width":10.6,"z":24,"visible":true,"flip":false,"rotation":10},"v4-plank8":{"id":"v4-plank8","assetId":"forest4_plank","name":"木板","x":39.9,"y":83,"width":6.8,"z":11,"visible":true,"flip":false,"rotation":-18},"v4-plank_lean9":{"id":"v4-plank_lean9","assetId":"forest4_plank_lean","name":"斜木板","x":39.6,"y":71.5,"width":4.5,"z":4,"visible":true,"flip":false,"rotation":-14},"v4-grass_a10":{"id":"v4-grass_a10","assetId":"forest4_grass_a","name":"草叢 A","x":22.8,"y":69,"width":8,"z":8,"visible":true,"flip":false,"rotation":0},"v4-grass_b11":{"id":"v4-grass_b11","assetId":"forest4_grass_b","name":"草叢 B","x":32,"y":70.5,"width":7.4,"z":8,"visible":true,"flip":false,"rotation":0},"v4-rabbit16":{"id":"v4-rabbit16","assetId":"forest4_rabbit","name":"月紋兔","x":84.8,"y":68.2,"width":3.8,"z":7,"visible":true,"flip":false,"rotation":0},"object-mwuv250p-uzdjf7":{"id":"object-mwuv250p-uzdjf7","assetId":"forest4_rock_group","name":"苔石群","x":28.7,"y":58.6,"width":7.6,"z":1,"visible":true,"flip":false,"rotation":0},"object-mwuv5puk-q16xf6":{"id":"object-mwuv5puk-q16xf6","assetId":"forest4_log","name":"苔木","x":38.1,"y":54.7,"width":11.7,"z":2,"visible":true,"flip":false,"rotation":0},"object-mwuv6tcc-adz1cv":{"id":"object-mwuv6tcc-adz1cv","assetId":"forest4_branch","name":"樹枝","x":25.4,"y":59.7,"width":3.5,"z":-3,"visible":true,"flip":false,"rotation":0},"object-mwuv6uwa-1hi1e7":{"id":"object-mwuv6uwa-1hi1e7","assetId":"forest4_branch","name":"樹枝","x":66.3,"y":92.3,"width":5.1,"z":15,"visible":true,"flip":false,"rotation":0},"object-mwuv87s2-2i2kr9":{"id":"object-mwuv87s2-2i2kr9","assetId":"forest4_branch","name":"樹枝","x":53,"y":59.1,"width":2.6,"z":-2,"visible":true,"flip":false,"rotation":0},"object-mwuw8uyw-i6ihju":{"id":"object-mwuw8uyw-i6ihju","assetId":"forest4_rock_small","name":"小石群","x":66.9,"y":75,"width":10,"z":26,"visible":true,"flip":false,"rotation":0},"v4-d-chassis-support":{"id":"v4-d-chassis-support","assetId":"forest4_chassis","name":"斷裂底盤","x":40,"y":72.2,"width":13,"z":3,"visible":true,"flip":false,"rotation":6}};const ids=["v4-wagon0","v4-crate_large1","v4-crate_small2","v4-barrel4","v4-crate_open5","v4-sack6","v4-wheel_flat7","v4-plank8","v4-plank_lean9","v4-grass_a10","v4-grass_b11","v4-grass_a12","v4-purple_flower13","v4-white_flower14","v4-bird15","v4-rabbit16","v4-beetle17","v4-butterfly18","object-mwuv250p-uzdjf7","object-mwuv41ra-3crtm8","object-mwuv5puk-q16xf6","object-mwuv6tcc-adz1cv","object-mwuv6uwa-1hi1e7","object-mwuv87s2-2i2kr9","object-mwuvaclp-i4mdga","object-mwuvbpl0-9guy03","object-mwuw6sgr-1t7yrd","object-mwuw8uyw-i6ihju","object-mwuw9q2c-21p53e","object-mwuwarnj-dt352z","object-mwuwebj3-hpxaa4","object-mwuwepu6-3s6vnf","v4-d-chassis-support"];const originals=new Map(base.scenes.wreck.map(o=>[o.id,o]));window.DUNGEON_FOREST_V4_LAYOUT={...base,revision:'accident-d-preview',scenes:{...base.scenes,wreck:ids.map(id=>patch[id]||originals.get(id))}};})();
 </script>
-<script src="./assets/forest_v4_spawns.js?v=7-hourly"></script>
+<script src="./assets/forest_v4_spawns.js?v=8-clock-only"></script>
 <script src="./assets/forest_v4_integration.js?v=8-grass"></script>
 <script src="./assets/rabbit_articulation_live_v1.js?v=3-behavior"></script>
 <script src="./assets/beetle_articulation_live_v1.js?v=2-flight"></script>
@@ -5228,7 +5229,7 @@ function routeGo(destination){
  if(destination==='home'&&!s.flags.houseInvite){toast('尚未取得拜訪的邀請。');return;}
  change(destination);
 }
-function discoverNearbyRoute(){exploreArea();}
+function discoverNearbyRoute(){searchNearbyRoute();}
 function routeDestinationLabel(to){return '前往'+(names[to]?.[0]||to);}
 function routeAction(label,to,fn,primary=false){
  const a=sceneAction(routeDestinationLabel(to),fn,primary);
@@ -5289,18 +5290,6 @@ function collectExplorationMaterial(site,id,objectId){
  window.DungeonEventsV1.emit('scene.collection.succeeded',s,{material:find.material,target:presenceTarget?{x:presenceTarget.x,y:presenceTarget.y,id:presenceTarget.id}:null});
  toast('已收取 '+find.material+' ×1');
 }
-// Exploring is an ambient action: never open an inspection/result popup.
-// The travel log records the full event; the right drawer holds places and materials.
-function explorationToast(site,last,newMaterials){
- const notices=[];
- if(last.route)notices.push('找到新路線');
- if(last.wreckFound)notices.push('發現舊馬車殘骸');
- if(newMaterials>0)notices.push('材料 '+newMaterials+' 份');
- if(last.routeProgress&&!last.route)notices.push('發現道路線索');
- if(!notices.length)notices.push('記下環境變化');
- const suffix=(last.route||last.wreckFound||newMaterials>0)?' · 查看右側「地點」':'';
- return '探索完成 · '+notices.join('、')+suffix;
-}
 function openingView(){return window.DungeonOpeningProgressionV1.view(s,travelTimeFor('wreck','trail'));}
 function openingAdventure(){return !s.flags.rescued&&['wreck','trail'].includes(s.scene);}
 function openingExitOnly(){return window.DungeonSceneActionTimeV1.openingExitOnly(s,openingView());}
@@ -5359,90 +5348,16 @@ function openingDepartureCue(){
  inspectInScene('你已辨認出通往林間小徑的道路。',[{label:routeDestinationLabel('trail'),fn:()=>change('trail')},{label:'留在原地',fn:()=>{}}]);
  return true;
 }
-// Exploration encounters are separate from the one-time story creature.
-const HOSTILE_EXPLORATION=Object.freeze({clearing:.30,trail:.12,ruin:.18});
-function hostileEncounterCheck(actor,weather={},roll=Math.random()){
- const site=actor.scene,base=HOSTILE_EXPLORATION[site];
- if(!base||!actor.flags?.rescued||actor.flags.inBattle||actor.hp<=0)return false;
- if(['blizzard','storm','thunderstorm'].includes(weather.kind)||Number(weather.wind)>=.85)return false;
- const history=actor.flags.explorationEncountersV1||(actor.flags.explorationEncountersV1={});
- const record=history[site]||(history[site]={misses:0,last:-10000,total:0});
- if(actor.worldMinutes-record.last<40)return false;
- const hour=Math.floor((actor.worldMinutes%1440)/60);
- const probability=base*((hour<6||hour>=19)?1.25:1);
- const forced=site==='clearing'&&record.total===0&&record.misses>=2;
- if(!forced&&roll>=probability){record.misses++;return false;}
- record.misses=0;record.last=actor.worldMinutes;record.total++;
- return true;
-}
-function exploreArea(){
- if(activeDialogueSurface()||encounterPending||modal||sceneDialogueState.open||!EXPLORATION_AREAS[s.scene])return;
- if(openingAdventure()&&s.scene!=='wreck'&&!routeKnown(s.scene,'gate')){observeOpening();return;}
- clearRouteAttention();$('toast').classList.remove('active');
- const oldSummary=$('sceneStage').querySelector('.discovery-summary');if(oldSummary)oldSummary.hidden=true;
+// Route investigation remains deliberate; the world no longer advances through a generic search loop.
+function searchNearbyRoute(){
+ if(activeDialogueSurface()||encounterPending||modal||sceneDialogueState.open||s.flags.inBattle)return;
+ if(openingAdventure()){observeOpening();return;}
  if(exitOnlyAction())return;
- if(!openingView().canExplore)return;
- normalizeExploration();normalizeRouteDiscovery();normalizeRecovery();
- const site=s.scene,area=EXPLORATION_AREAS[site],e=s.exploration;
- window.DungeonSceneObjectsV1?.normalize(s);
- let newMaterials=0;
- const timeCost=10;
- recoveryTime(timeCost);
- const count=(e.counts[site]||0)+1;e.counts[site]=count;
- // Once the opening budget is exhausted, this search reveals only the exit.
- if(openingExitOnly()){save();render();exitOnlyAction();return;}
- // Interrupt the search before rolling materials/routes. No overlapping discovery dialogs.
- const actualWeather=window.DungeonWeatherV1?.at(s.seed,s.worldMinutes,site)||{};
- if(hostileEncounterCheck(s,actualWeather)){
-  e.last[site]={route:null,routeProgress:false,wreckFound:false,observation:'探索時遭到陌生生物襲擊。'};
-  battleStart({ambush:true});return;
- }
- const latest={route:null,routeProgress:false,wreckFound:false};
- const next=openingAdventure()&&site==='wreck'?null:nextHiddenRoute(site);
- if(next){
-  e.routeProgress[site]=(e.routeProgress[site]||0)+1;
-  const mustFind=site==='wreck'||e.routeProgress[site]>=2;
-  if(mustFind||Math.random()<.3){
-   discoverRoute(site,next);latest.route=next;e.routeProgress[site]=0;
-  }else latest.routeProgress=true;
- }
- if(site==='trail'&&!s.recovery.found&&(count>=2||Math.random()<.45)){
-  s.recovery.found=true;latest.wreckFound=true;
-  note('forestWreck','在林邊搜尋時，發現另一處舊馬車殘骸',true);
- }
- latest.observation=site==='wreck'&&wreckCleared()?'空地上還留著車輪壓過的泥痕。':area.events[(count-1)%area.events.length];
- if(area.materials.length){
-  const daily=explorationDaily(site);
-  if(!Array.isArray(e.pending[site]))e.pending[site]=[];
-  if(e.pending[site].length<3&&!(site==='wreck'&&forestV4Active())&&Math.random()<.7){
-   e.pending[site].push({id:site+'-'+count,material:area.materials[(count-1)%area.materials.length]});
-   daily.spawned++;newMaterials++;
-  }
- }
- e.last[site]=latest;
- const wildlifeBefore=JSON.stringify(s.forestV4Life?.animals||{});
- const sceneFinds=window.DungeonSceneObjectsV1?.afterExplore(s)||[];
- if(site==='wreck'&&forestV4Active())window.DungeonForestV4Life?.update(s,window.DUNGEON_FOREST_V4_LAYOUT.scenes.wreck,window.DUNGEON_FOREST_V4_SPAWNS||[],periodForMinutes(s.worldMinutes));
- for(const label of sceneFinds)addTravel('discovery','在'+names[site][0]+'發現'+label+'。',label==='路過的旅人'?'可以直接在場景中上前交談。':'先觀察牠的動靜，再決定是否接近。');
- const feature=latest.route?'並找到新的路線卡':latest.wreckFound?'，還發現林邊舊馬車殘骸':'，留意到新的環境細節';
- if(site==='wreck'&&forestEnvironmentActive()){
-  const day=Math.floor(s.worldMinutes/1440)+1,ordinary=!latest.route&&!latest.wreckFound&&!newMaterials&&!sceneFinds.length;
-  const lastLog=s.travelLog?.[s.travelLog.length-1];
-  const key='wreck-'+day;
-  if(ordinary&&lastLog?.exploreGroup===key){
-   const total=(lastLog.exploreCount||1)+1;
-   window.DungeonEventsV1.updateTravel(s,{exploreCount:total,message:'在'+names[site][0]+'連續探索 '+total+' 次（約'+total*10+'分鐘，截至 '+gameTime(s.worldMinutes)+'），留意到環境細節。',thought:'周圍暫時沒有新的發現。',time:Date.now()});
-  }else{
-   addTravel('daily','在'+names[site][0]+'進行第'+count+'次探索（約10分鐘，'+gameTime(s.worldMinutes)+'）'+feature+(newMaterials?'，發現可收集材料':'')+'。',ordinary?'周圍暫時沒有新的發現。':'我留意到了新的線索。');
-   if(ordinary&&s.travelLog?.length)Object.assign(s.travelLog[s.travelLog.length-1],{exploreGroup:key,exploreCount:1});
-  }
- }else addTravel('daily','在'+names[site][0]+'進行第'+count+'次探索（約10分鐘，'+gameTime(s.worldMinutes)+'）'+feature+'。','這裡還有許多可以慢慢觀察的東西。');
- save();render();
- if(site==='wreck'&&openingDepartureCue())return;
- if(latest.route){presentDiscoveredRoute(site,latest.route);return;}
- const wildlifeChanged=site==='wreck'&&wildlifeBefore!==JSON.stringify(s.forestV4Life?.animals||{});
- const text=latest.wreckFound?'樹叢深處似乎藏著一處舊殘骸。':newMaterials?'附近似乎有些可以利用的東西。':sceneFinds.length||wildlifeChanged?'你留意到周圍的動靜有了些變化。':'你在附近走了一圈，暫時沒有特別的發現。';
- inspectInScene(text,[{label:'繼續',fn:()=>{}}]);
+ const site=s.scene,to=nextHiddenRoute(site);if(!to)return;
+ spendSceneInteraction('inspect');
+ if(s.scene!==site||!routeAllowedToSearch(site,to)||!discoverRoute(site,to))return;
+ addTravel('discovery','辨認出通往'+names[to][0]+'的道路。','我記下了方向。');
+ save();render();presentDiscoveredRoute(site,to);
 }
 
 /* Persistent discovered destinations; drawer open/closed and expanded card are only UI. */
@@ -7243,7 +7158,7 @@ function renderSceneActionDock(host){
   host.appendChild(button);
  }
  for(const item of actions.filter(a=>a.scope==='event'))add(item.title,item.fn,'event');
- for(const item of actions.filter(a=>a.scope!=='event'&&!a.routeTo))add(item.title,item.fn,item.fn===exploreArea?'explore':'primary');
+ for(const item of actions.filter(a=>a.scope!=='event'&&!a.routeTo))add(item.title,item.fn,item.fn===searchNearbyRoute?'explore':'primary');
  add(sceneActionView?'返回資訊':'調查／其他行動',()=>{
   sceneActionView=sceneActionView?null:{actor:s,scene:s.scene};
   renderPlaceDrawer();
@@ -7662,6 +7577,7 @@ normalizeGameTime();normalizeRecovery();normalizeForestRare();normalizeBeetleCar
  ['ui.investigation-cards','1.1.0',['world.objects'],'DungeonInvestigationCardsV1'],
  ['world.wreck-components','1.1.0',['ui.investigation-cards'],'DungeonWreckComponentsV1'],
  ['world.scene-action-time','1.0.0',['engine.time'],'DungeonSceneActionTimeV1'],
+ ['world.hourly-environment','1.0.0',['engine.time','world.objects'],'DungeonSceneHourlyV1'],
  ['world.creature-capture','1.0.0',['world.forest-life','ui.investigation-cards'],'DungeonCreatureCaptureV1'],
  ['world.forest-life','7',['world.weather'],'DungeonForestV4Life'],
  ['character.expression','2.20',['engine.registry'],'DungeonExpressionMotion'],
@@ -7896,7 +7812,7 @@ function change(scene,mode='walk'){
  if(s.flags.inBattle||activeDialogueSurface()||encounterPending||!names[scene]||scene===s.scene)return;
  clearRouteAttention();closeSceneDialogue();
  closePlaceDrawer();
- if((s.scene==='wreck'&&!travelRoute('wreck',scene))||(travelRoute(s.scene,scene)&&!routeKnown(s.scene,scene))){toast('尚未發現這條道路，請先探索周圍。');return;}
+ if((s.scene==='wreck'&&!travelRoute('wreck',scene))||(travelRoute(s.scene,scene)&&!routeKnown(s.scene,scene))){toast('尚未發現這條道路，請先調查道路線索。');return;}
  const openingTrailArrival=s.scene==='wreck'&&scene==='trail'&&!s.visits.trail;
  const duration=travelTimeFor(s.scene,scene,mode);
  if(duration===null){toast('此路線目前無法使用馬車，請選擇步行。');return;}
@@ -8392,9 +8308,8 @@ function entries(){const a={
  const opening=openingView();
  if(openingAdventure()&&!routeKnown(s.scene,s.scene==='wreck'?'trail':'gate')){
   filtered.unshift(eventAction(s.scene==='wreck'?(s.flags.openingTracks?'循著車轍':'觀察馬車'):'留意前方動靜',observeOpening,true));
- }else if(opening.canExplore&&!openingAdventure())filtered.unshift(sceneAction('探索周遭 · 10分鐘',exploreArea,primary,!primary));
+ }else if(!openingAdventure()&&nextHiddenRoute(s.scene))filtered.unshift(eventAction('尋找附近道路',searchNearbyRoute,primary));
  else if(opening.needsCue)filtered.unshift(eventAction('辨認離開方向',openingDepartureCue,primary,!primary));
- if(openingAdventure()&&s.scene==='wreck'&&opening.canExplore)filtered.push(sceneAction('探索周遭 · 10分鐘',exploreArea));
  return filtered;
 }
 const ACTION_GLYPHS=Object.freeze({
@@ -8527,7 +8442,7 @@ function render(){if(!names[s.scene])s.scene='wreck';normalizeGameTime();tickBee
  guild:'公告板寫著普通的工作與路況情報。你不必立即登記或接受委託。',
  outskirts:'城牆外的風帶著草木氣味。你可以看看風景、記下路標，或直接回城。',
  home:'六人的公共起居室裡有生活的痕跡。你只是受邀來訪，還不是固定房客。'
-};$('narrative').textContent=texts[s.scene];$('actions').replaceChildren();const available=splitSceneActions(entries()).scene.filter(a=>a.fn!==exploreArea);const primary=available.find(a=>a.primary)||available[0];
+};$('narrative').textContent=texts[s.scene];$('actions').replaceChildren();const available=splitSceneActions(entries()).scene;const primary=available.find(a=>a.primary)||available[0];
 if(primary){const b=document.createElement('button');b.className='action primary';setActionVisual(b,/探索|觀察/.test(primary.title)?'explore':'route',primary.title);b.title='主要行動；點擊執行';b.onclick=()=>runSceneAction(primary.fn);$('actions').appendChild(b);}
 const quick=available.find(a=>a.quick&&a!==primary);if(quick){const b=document.createElement('button');b.className='action explore';setActionVisual(b,'explore',quick.title);b.onclick=()=>runSceneAction(quick.fn);$('actions').appendChild(b);}
 /* Secondary interactions are now grouped under the right-side place drawer. */renderHotspots();renderFeed();renderPlaceDrawer();renderSceneInfoBar();renderOpeningObjective();renderBattleSurface();save();}
@@ -8958,18 +8873,15 @@ function openTrailWreckActions(){
  choices.push({label:'先離開',fn:()=>{}});
  dialog('林邊舊馬車殘骸','你可以檢查殘骸，或留意附近生物活動留下的痕跡。',choices,'場景調查');
 }
-// A game-hour refresh is idempotent per scene and never spends additional game time.
+// A game-hour refresh is idempotent and never spends additional game time.
 function refreshHourlySceneResources(){
- const site=s.scene,area=EXPLORATION_AREAS[site];if(!area?.materials.length||openingExitOnly()||s.flags.inBattle)return;
- normalizeExploration();const e=s.exploration;
- if(!e.hourlyResourceRefresh||typeof e.hourlyResourceRefresh!=='object'||Array.isArray(e.hourlyResourceRefresh))e.hourlyResourceRefresh={};
- const hour=Math.floor(s.worldMinutes/60),previous=e.hourlyResourceRefresh[site];
- if(previous===hour)return;e.hourlyResourceRefresh[site]=hour;
- if(!Number.isFinite(previous)||previous>hour||site==='wreck'&&forestV4Active())return;
- const queue=e.pending[site]||(e.pending[site]=[]);
- if(queue.length>=3)return;
- const material=area.materials[hour%area.materials.length],id=site+'-hour-'+hour;
- if(!queue.some(item=>item.id===id))queue.push({id,material});
+ const site=s.scene,area=EXPLORATION_AREAS[site];if(!area||openingExitOnly()||s.flags.inBattle)return;
+ normalizeExploration();
+ window.DungeonSceneObjectsV1?.normalize(s);
+ const result=window.DungeonSceneHourlyV1.step(s,site,{materials:area.materials,nativeStock:site==='wreck'&&forestV4Active(),after:window.DungeonSceneObjectsV1?.afterExplore});
+ if(!result)return;
+ if(site==='wreck'&&forestV4Active())window.DungeonForestV4Life?.update(s,window.DUNGEON_FOREST_V4_LAYOUT.scenes.wreck,window.DUNGEON_FOREST_V4_SPAWNS||[],periodForMinutes(s.worldMinutes));
+ save();
 }
 function renderHotspots(){
  if($('battleSurface').dataset.embeddedTrial==='true')return;
@@ -8980,7 +8892,7 @@ function renderHotspots(){
  if(stable){for(const child of Array.from(el.children))if(!child.classList.contains('forest-v4-layer'))child.remove();}
  else el.replaceChildren();
  if(forestV4Active()){renderForestV4(el);renderWorldObjects(el);}else if(!(DEV_PREVIEW_MODE&&s.scene==='wreck'&&editorForestSrc)){renderOpeningWagonTrial(el);renderWorldObjects(el);}
- const per={wreck:[['散落貨箱',.36,.71,glance],['車輪痕跡',.45,.53,marks],['離開的林道',.85,.57,()=>change('trail'),'trail'],['探索周遭',.73,.65,exploreArea,null]],trail:[['沿小徑前進',.55,.48,rescue,'gate'],['石拱遺跡',.79,.49,()=>change('ruin'),'ruin'],['路旁舊石碑',.13,.49,inspectTrailMarker],['林間草木',.29,.59,()=>change('clearing'),'clearing'],['返回馬車',.45,.62,()=>change('wreck'),'wreck'],['探索周遭',.7,.62,exploreArea,null]],clearing:[['微光',59,69,light],['聲音',75,46,soundInForest]],ruin:[['石門',51,45,ruinLook]],inn:[['鏡子',73,43,innMark]],guild:[['公告板',69,49,guildBoard]],outskirts:[['舊路標',67,49,roadsideSign]],home:[['留守夥伴',48,59,meetHome]]};
+ const per={wreck:[['散落貨箱',.36,.71,glance],['車輪痕跡',.45,.53,marks],['離開的林道',.85,.57,()=>change('trail'),'trail']],trail:[['沿小徑前進',.55,.48,rescue,'gate'],['石拱遺跡',.79,.49,()=>change('ruin'),'ruin'],['路旁舊石碑',.13,.49,inspectTrailMarker],['林間草木',.29,.59,()=>change('clearing'),'clearing'],['返回馬車',.45,.62,()=>change('wreck'),'wreck']],clearing:[['微光',59,69,light],['聲音',75,46,soundInForest]],ruin:[['石門',51,45,ruinLook]],inn:[['鏡子',73,43,innMark]],guild:[['公告板',69,49,guildBoard]],outskirts:[['舊路標',67,49,roadsideSign]],home:[['留守夥伴',48,59,meetHome]]};
  // Direct targets remain available even when optional hint markers are off.
  for(const o of forestSceneTargets()){
   const button=document.createElement('button');button.type='button';
@@ -8999,7 +8911,7 @@ function renderHotspots(){
   if(to&&!routeKnown(s.scene,to))continue;
   if(!showHints&&!to)continue;
   if(['wreck','trail','clearing','ruin'].includes(s.scene)&&!to)continue;
-  /* The exploration hotspot stays usable after all routes are known. */
+  /* Only concrete scene and route targets remain. */
   let screenX=panorama?100*(x*panorama.width-panorama.sourceX)/panorama.cropWidth:x;
   let screenY=panorama?100*(panorama.destY+(y*panorama.height-panorama.sourceY)/panorama.cropHeight*panorama.destHeight)/H:y;
   if(panorama&&(screenX<0||screenX>100))continue;
@@ -9016,7 +8928,7 @@ function renderRouteMap(out){
  const right=document.createElement('span');right.textContent=gameTime(s.worldMinutes);
  clock.append(left,right);out.appendChild(clock);
  const note=document.createElement('p');note.className='map-note';
- note.textContent='探索周遭可反覆執行，每次10分鐘；新路線只需發現一次，普通材料依物件存量及每小時的環境刷新取得。地圖只提供方向，不會瞬間傳送或跳過劇情。';
+ note.textContent='環境隨遊戲時間每小時更新；調查、採集、移動與休息仍消耗各自的時間。新路線須調查辨認，材料依物件存量補充。地圖不會瞬間傳送或跳過劇情。';
  out.appendChild(note);
  const nearby=document.createElement('div');nearby.className='map-section';
  nearby.textContent='從這裡可前往的地點';out.appendChild(nearby);
@@ -9049,7 +8961,7 @@ function renderRouteMap(out){
   const empty=document.createElement('p');empty.textContent='附近道路尚未標記。';routes.appendChild(empty);
  }
  out.appendChild(routes);
- if(nextHiddenRoute(s.scene)){const u=document.createElement('p');u.className='map-undiscovered';u.textContent='附近還有未確認的道路。使用常駐「探索周遭」行動，便可能逐步發現新地點卡。';out.appendChild(u);}
+ if(nextHiddenRoute(s.scene)){const u=document.createElement('p');u.className='map-undiscovered';u.textContent='附近還有未確認的道路。選擇「尋找附近道路」或調查初始劇情線索，便能辨認新地點。';out.appendChild(u);}
  if(s.recovery.found){const p=document.createElement('p');p.className='map-note';p.textContent='已發現探索點：林邊舊馬車殘骸（'+(s.recovery.looted?'已搜集':'待搜集')+'）。這不是開場的事故馬車。';out.appendChild(p);}
  normalizeForestRare();
  if(s.forestRare.hints.beetle||s.forestRare.sighted.beetle||s.beetle.questAccepted){const p=document.createElement('p');p.className='map-note';p.textContent='林邊殘骸：鏽殼甲蟲可能在黃昏與夜間活動；雜貨商委託提供安全誘捕盒。';out.appendChild(p);}
