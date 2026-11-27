@@ -1,0 +1,76 @@
+{
+  "schema": 1,
+  "project": "迷宮盡頭的燈火",
+  "creature": "moss-beast-v2",
+  "coordinateConvention": "0=左側面,90=正面,180=右側面",
+  "groundAnchor": "bottom-center",
+  "canvas": {
+    "width": 224,
+    "height": 160,
+    "groundY": 153
+  },
+  "frames": [
+    {
+      "angle": 0,
+      "key": "side",
+      "file": "assets/monsters/moss_beast_v2_side.png",
+      "state": "existing",
+      "mirror": false
+    },
+    {
+      "angle": 30,
+      "key": "turn_030",
+      "file": "assets/monsters/moss_beast_turn_030_v1.png",
+      "state": "pending"
+    },
+    {
+      "angle": 60,
+      "key": "quarter",
+      "file": "assets/monsters/moss_beast_v2_three_quarter.png",
+      "state": "existing-approximate",
+      "mirror": false
+    },
+    {
+      "angle": 90,
+      "key": "front",
+      "file": "assets/monsters/moss_beast_v2_front.png",
+      "state": "existing",
+      "mirror": false
+    },
+    {
+      "angle": 120,
+      "key": "turn_120",
+      "file": "assets/monsters/moss_beast_turn_120_v1.png",
+      "state": "pending"
+    },
+    {
+      "angle": 150,
+      "key": "turn_150",
+      "file": "assets/monsters/moss_beast_turn_150_v1.png",
+      "state": "pending"
+    },
+    {
+      "angle": 180,
+      "key": "side",
+      "file": "assets/monsters/moss_beast_v2_side.png",
+      "state": "existing-mirrored",
+      "mirror": true
+    }
+  ],
+  "additional": [
+    {
+      "angle": 120,
+      "key": "quarter-mirror",
+      "file": "assets/monsters/moss_beast_v2_three_quarter.png",
+      "state": "temporary-mirrored"
+    },
+    {
+      "angle": 60,
+      "key": "turn_060",
+      "file": "assets/monsters/moss_beast_turn_060_v1.png",
+      "state": "pending",
+      "note": "精確角度與踏步姿勢替換現有斜側圖"
+    }
+  ],
+  "rule": "Pending artwork never loaded automatically; replace only after human visual approval."
+}
