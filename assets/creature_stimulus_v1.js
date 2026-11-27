@@ -1,6 +1,6 @@
 /* 燈火核心：場景互動刺激 V1.1。物件聲響、氣味殘留與風向。 */
 (function(root){'use strict';
-const profiles=Object.freeze({herb:{noise:.18,duration:320,scent:.72,scentMs:14000},mushroom:{noise:.24,duration:400,scent:.85,scentMs:16000},branch:{noise:.56,duration:650,scent:.42,scentMs:10000},stone:{noise:.72,duration:800,scent:.12,scentMs:5000},crate:{noise:.87,duration:1050,scent:.35,scentMs:11000},carriage:{noise:1,duration:1200,scent:.28,scentMs:9000}});
+const registry=root.DungeonObjectStimulusCatalogV1?.registry;if(!registry)throw Error('load object stimulus catalog first');
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 function scentAt(e,pos,clock,wind,range){
  const life=e.scentUntil-e.at,age=clock-e.at;if(life<=0||age>=life||e.scent<=0)return 0;
@@ -10,10 +10,10 @@ function scentAt(e,pos,clock,wind,range){
  const u=Math.hypot(along/(along>=0?travel:back),cross/width);if(u>=1)return 0;
  return strength*(1-.8*u);
 }
-function create({hearingRange=48,scentRange=34,memoryMs=7200,occluded=()=>false}={}){
+function create({hearingRange=48,scentRange=34,memoryMs=7200,occluded=()=>false,catalog=registry}={}){
  let clock=0,serial=0,events=[],memory=null;
  function reset(){clock=0;events=[];memory=null;}
- function emit({kind,position,objectId=null,noise,duration,scent,scentMs}){const p=profiles[kind];if(!p||![position?.x,position?.z].every(Number.isFinite))throw Error('invalid stimulus');const strength=clamp(noise??p.noise,0,1),life=duration??p.duration,odor=clamp(scent??p.scent,0,1),odorLife=scentMs??p.scentMs;if(![strength,life,odor,odorLife].every(Number.isFinite)||life<=0||odorLife<0)throw Error('invalid intensity');const e={id:++serial,objectId,kind,position:{...position},strength,until:clock+life,scent:odor,scentUntil:clock+odorLife,at:clock};events.push(e);if(events.length>32)events.shift();return e.id;}
+ function emit({kind,position,objectId=null,noise,duration,scent,scentMs}){const p=catalog.get(kind);if(!p||![position?.x,position?.z].every(Number.isFinite))throw Error('invalid stimulus');const strength=clamp(noise??p.noise,0,1),life=duration??p.duration,odor=clamp(scent??p.scent,0,1),odorLife=scentMs??p.scentMs;if(![strength,life,odor,odorLife].every(Number.isFinite)||life<=0||odorLife<0)throw Error('invalid intensity');const e={id:++serial,objectId,kind,position:{...position},strength,until:clock+life,scent:odor,scentUntil:clock+odorLife,at:clock};events.push(e);if(events.length>32)events.shift();return e.id;}
  function step({dt,pos,obstacles=[],wind={direction:0,speed:0}}){if(!Number.isFinite(dt)||dt<0)throw Error('invalid dt');clock+=dt;events=events.filter(e=>Math.max(e.until,e.scentUntil)>=clock);if(memory&&clock-memory.at>memoryMs)memory=null;
  let best=null;for(const e of events){const hidden=occluded(pos,e.position,obstacles),d=Math.hypot(pos.x-e.position.x,pos.z-e.position.z),range=hearingRange*e.strength*(hidden?.65:1);
  const sound=clock<=e.until&&range>0&&d<=range?e.strength*(1-.55*d/range)*(hidden?.8:1):0;
@@ -25,5 +25,5 @@ function create({hearingRange=48,scentRange=34,memoryMs=7200,occluded=()=>false}
  }
  return Object.freeze({emit,step,reset});
 }
-root.DungeonCreatureStimulusV1=Object.freeze({create,profiles,scentAt});
+root.DungeonCreatureStimulusV1=Object.freeze({create,get profiles(){return registry.snapshot();},scentAt});
 })(typeof window==='undefined'?globalThis:window);
