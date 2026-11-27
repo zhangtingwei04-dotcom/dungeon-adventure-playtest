@@ -4570,6 +4570,7 @@ html.stage-locked #app #battleSurface .battle-actions button{font-size:17px;min-
 <script src="./assets/adaptive_quality_v1.js?v=1"></script>
 <script src="./assets/fault_isolation_v1.js?v=1"></script>
 <script src="./assets/object_investigation_v1.js?v=6-resource-stock"></script>
+<script src="./assets/scene_concealment_v1.js?v=1"></script>
 <script src="./assets/investigation_cards_v1.js?v=1.1.0"></script>
 <script src="./assets/wreck_components_v1.js?v=1.1"></script>
 <script src="./assets/creature_capture_v1.js?v=1"></script>
@@ -8762,6 +8763,36 @@ function inspectWreckComponent(id){
   },{id},kind,spec);
  }},{label:'先離開',fn:()=>{}}]);
 }
+// Concealed contents share the existing object identity, game clock and inventory.
+function coverPresent(o){
+ return s.scene==='wreck'&&forestV4Active()&&!s.flags.inBattle&&!openingExitOnly()&&window.DungeonSceneConcealmentV1.supports(o)&&window.DungeonObjectInvestigationV1.visible(s,'wreck',o)&&Array.from($('hotspots').querySelectorAll('button[data-object-id]:not(.env-leaving):not([disabled])')).some(n=>n.dataset.objectId===o.id);
+}
+function searchCover(o){
+ if(!coverPresent(o))return;
+ const core=window.DungeonSceneConcealmentV1,before=core.view(s,'wreck',o);
+ if(before.stage==='hidden')spendSceneInteraction('inspect');
+ if(!coverPresent(o)){save();render();return;}
+ const v=core.reveal(s,'wreck',o);save();renderHotspots();renderPlaceDrawer();renderOpeningObjective();
+ const options=[];
+ const finish=(verb)=>{
+  if(!coverPresent(o))return;
+  const found=core.resolve(s,'wreck',o,v.id,v.cycle);if(!found)return;
+  if(found.kind==='coin'){normalizeWallet();s.wallet.copper+=1;}
+  else if(found.kind==='material'){normalizeRecovery();s.recovery.parts[found.name]=(s.recovery.parts[found.name]||0)+1;}
+  const collect=found.kind==='coin'||found.kind==='material';
+  addTravel('discovery',collect?'在藏匿處取得'+found.name+' ×1。':verb+'：'+found.name+'。',collect?'先收好。':'');
+  save();render();
+  toast(collect?'已取得 '+found.name+' ×1':found.kind==='animal'?'已觀察，牠悄悄離開了。':'已記錄痕跡。');
+  if(collect)window.DungeonEventsV1.emit('scene.collection.succeeded',s,{material:found.name,target:{x:o.x,y:o.y,id:o.id}});
+ };
+ if(v.stage==='revealed'){
+  if(v.kind==='material'||v.kind==='coin')options.push({label:'收取 '+v.name+' ×1',fn:()=>sceneCollectionResult(()=>finish('取得'),o,collectionKind(v.name))});
+  if(v.kind==='trace')options.push({label:'記錄痕跡',fn:()=>finish('記錄藏匿處痕跡')});
+  if(v.kind==='animal')options.push({label:'安靜觀察，讓牠離開',fn:()=>finish('觀察藏匿生物')});
+ }
+ options.push({label:'先離開',fn:()=>{}});
+ inspectInScene(v.stage==='resolved'&&before.stage==='resolved'?'這裡暫時沒有新的發現。':v.detail,options);
+}
 function forestV4Action(o){
  if(encounterPending||modal||s.flags.inBattle||$('app').classList.contains('scene-dialogue-active'))return;
  if(openingExitOnly()){const p=window.DungeonWreckComponentsV1.get(o.id);if(p)inspectWreckComponent(p.id);else exitOnlyAction();return;}
@@ -8788,7 +8819,9 @@ function forestV4Action(o){
   if(!o.previewOnly&&!String(o.id).startsWith('preview-'))options.push({label:'徒手捕捉',fn:()=>tryBarehandCapture(o)});
  }
  options.push({label:info.type==='living'?'不打擾牠':'先離開',fn:()=>{}});
- const text=info.description;
+ const cover=window.DungeonSceneConcealmentV1.view(s,'wreck',o);
+ if(cover){options.unshift({label:cover.stage==='revealed'?'查看已發現的內容':'仔細查看藏匿處',fn:()=>searchCover(o)});}
+ const text=info.description+(cover?(cover.stage==='resolved'?' 這裡暫時沒有新的發現。':cover.stage==='revealed'?' 你先前已發現其中的內容。':' '+cover.clue):'');
  inspectInScene(text,options);
 }
 function forestEnvironmentActive(){return DEV_PREVIEW_MODE&&window.DUNGEON_FOREST_V4_LAYOUT?.revision==='accident-d-preview'&&new URLSearchParams(location.search).get('env')!=='off';}
@@ -8818,6 +8851,7 @@ function renderForestV4(el){
   live=live.filter(o=>{const k=o.assetId.replace('forest4_','');return !['rabbit','bird','beetle','butterfly'].includes(k)||weather.activity(k,env);});
  }
  live=live.filter(o=>window.DungeonObjectInvestigationV1?.visible(s,'wreck',o)!==false);
+ if(!openingExitOnly())window.DungeonSceneConcealmentV1.initialize(s,'wreck',live);
  if(openingExitOnly())live=live.filter(o=>!!window.DungeonWreckComponentsV1.get(o.id)&&!(o.id==='v4-plank8'&&window.DungeonWreckComponentsV1.taken(s,o.id)));
  live=live.map(o=>({...o,width:o.width*window.DungeonObjectInvestigationV1.resourceScale(s,'wreck',o)}));
  window.DungeonSceneEnvironmentV1?.setActionMap(live.filter(o=>o.visible&&assets[o.assetId]?.src));
