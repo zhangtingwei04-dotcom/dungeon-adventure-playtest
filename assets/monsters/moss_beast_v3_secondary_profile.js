@@ -1,0 +1,2 @@
+/* V3.18 side visible mane and short tail contour. */
+(function(root){root.DungeonMossBeastV3SecondaryProfile={"maneMax":2,"tailMax":4,"mane":{"x":[63,99,147,181],"rigidY":59,"fixedY":94},"tail":{"rootX":172,"tipX":199,"y":[85,113,141,155]}};})(typeof window==='undefined'?globalThis:window);
