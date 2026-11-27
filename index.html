@@ -4563,7 +4563,7 @@ html.stage-locked #app #battleSurface .battle-actions button{font-size:17px;min-
 <script src="./assets/forest_v4_assets_3.js?v=1"></script>
 <script src="./assets/forest_v4_assets_4.js?v=1"></script>
 <script src="./assets/wreck_current_layout_v1.js?v=1"></script>
-<script src="./assets/render_resources_v1.js?v=1"></script>
+<script src="./assets/render_resources_v1.js?v=2"></script>
 <script src="./assets/performance_monitor_v1.js?v=1"></script>
 <script src="./assets/adaptive_quality_v1.js?v=1"></script>
 <script src="./assets/fault_isolation_v1.js?v=1"></script>
@@ -7620,6 +7620,8 @@ normalizeGameTime();normalizeRecovery();normalizeForestRare();normalizeBeetleCar
 (function registerLiveModules(){
  const engine=window.DungeonEngineV1;
  const definitions=[
+ ['engine.render-resources','1.1.0',['engine.registry'],'DungeonRenderResourcesV1'],
+ ['engine.render-shared-frames','1.0.0',['engine.render-resources'],null],
  ['character.environment','1.1',['engine.time'],'DungeonCharacterEnvironmentV1'],
  ['world.weather','25',['engine.time','character.environment'],'DungeonWeatherV1'],
  ['world.spatial','3',['engine.registry'],'DungeonSpatialMotion'],
@@ -7635,7 +7637,7 @@ normalizeGameTime();normalizeRecovery();normalizeForestRare();normalizeBeetleCar
  ['world.scene-presence','1.0.0',['engine.events','world.weather'],'DungeonScenePresenceV1'],
  ['world.beetle-care','1',['engine.time'],null]
  ];
- for(const [id,version,requires,key] of definitions)engine.register({id,version,requires,available:()=>key?!!window[key]:true});
+ for(const [id,version,requires,key] of definitions)engine.register({id,version,requires,available:()=>id==='engine.render-shared-frames'?typeof window.DungeonRenderResourcesV1?.sharedFrames==='function':key?!!window[key]:true});
  engine.onTime('world.weather',(actor,event)=>window.DungeonWeatherV1.exposure(actor,INDOOR_SCENES.has(event.fromScene)));
  engine.onTime('world.beetle-care',(actor,event)=>{if(actor===s&&event.daysCrossed>0)tickBeetleCare(false);});
  engine.onTime('engine.events',(actor,event)=>window.DungeonEventsV1.emit('time.advanced',actor,event));
