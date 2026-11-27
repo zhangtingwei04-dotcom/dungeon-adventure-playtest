@@ -17,8 +17,10 @@ function create(config={}){
   allowed=Math.max(0,allowed);return {start,v,distance:allowed,requested:distance,push,airEnd,end};
  }
  function sampleJump(j,ms){if(!Number.isFinite(ms))throw Error('invalid elapsed');const u=clamp((ms-j.push)/(j.airEnd-j.push),0,1),p=position(j.start.x+j.v.x*j.distance*u,j.start.z+j.v.z*j.distance*u);return {...p,progress:u,done:ms>=j.end,limited:j.distance+1e-8<j.requested};}
- function project(pos){const p=position(pos.x,pos.z),u=(p.z-bounds.minZ)/(bounds.maxZ-bounds.minZ),scale=camera.farScale+(camera.nearScale-camera.farScale)*u;return {x:camera.cx+p.x*scale,y:camera.groundY+p.z*camera.depthSlope,scale,depth:p.z};}
- return Object.freeze({vector,position,advance,planJump,sampleJump,project,bounds:Object.freeze(bounds),speed:Object.freeze(speed)});
+ function projectGround(p){const u=clamp((p.z-bounds.minZ)/(bounds.maxZ-bounds.minZ),0,1),scale=camera.farScale+(camera.nearScale-camera.farScale)*u;return {x:camera.cx+p.x*scale,y:camera.groundY+p.z*camera.depthSlope,scale,depth:p.z};}
+ function project(pos){return projectGround(position(pos.x,pos.z));}
+ function unprojectGround(x,y){if(!Number.isFinite(x)||!Number.isFinite(y)||!camera.depthSlope)throw Error('invalid ground projection');const z=(y-camera.groundY)/camera.depthSlope,scale=projectGround({x:0,z}).scale;return {x:(x-camera.cx)/scale,z};}
+ return Object.freeze({vector,position,advance,planJump,sampleJump,project,projectGround,unprojectGround,bounds:Object.freeze(bounds),speed:Object.freeze(speed)});
 }
 root.DungeonCreatureWorldMotionV1=Object.freeze({create});
 })(typeof window==='undefined'?globalThis:window);
