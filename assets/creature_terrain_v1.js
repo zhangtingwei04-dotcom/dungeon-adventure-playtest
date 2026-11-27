@@ -20,10 +20,10 @@ function create(world,{radius=18,obstacles=[],height=()=>0}={}){
  }
  function planJump(start,direction,opts){const q=sweep(start,direction,opts.distance);return {...world.planJump(start,direction,{...opts,distance:q.distance}),requested:opts.distance,obstacle:q.obstacle};}
  function project(pos){const p=world.project(pos);return {...p,y:p.y-heightAt(pos)*p.scale};}
- function footPose(pose,profile,pos,flat,mirror,rig=root.DungeonCreatureRigV1){
- const center=heightAt(pos),sign=mirror?-1:1;let corrected=0,limited=0;
- const legs=pose.legs.map(l=>{const def=profile.legs.find(d=>d.key===l.key);const ground=world.unprojectGround(flat.x+sign*(l.foot[0]-112)*flat.scale,flat.y+(def.foot[1]-153)*flat.scale);
- const delta=center-heightAt(ground);if(Math.abs(delta)<1e-8)return l;
+ function footPose(pose,profile,pos,flat,mirror,rig=root.DungeonCreatureRigV1,lockedKeys=[]){
+ const center=heightAt(pos),sign=mirror?-1:1,locked=new Set(lockedKeys);let corrected=0,limited=0;
+ const legs=pose.legs.map(l=>{if(locked.has(l.key))return l;const def=profile.legs.find(d=>d.key===l.key);const ground=world.unprojectGround(flat.x+sign*(l.foot[0]-112)*flat.scale,flat.y+(def.foot[1]-153)*flat.scale);
+ const delta=center-heightAt(ground)*world.projectGround(ground).scale/flat.scale;if(Math.abs(delta)<1e-8)return l;
  const a=rig.len(def.hip,def.knee),b=rig.len(def.knee,def.ankle);
  for(const f of [1,.75,.5,.25]){const foot=[l.foot[0],l.foot[1]+delta*f],ankle=rig.pawPose(def,foot).ankle,d=rig.len(l.hip,ankle);if(d>=a+b-.015||d<=Math.abs(a-b)+.015)continue;
  const knee=rig.solve(l.hip,ankle,a,b,def.bend),rows=rig.skinRows(def,l.hip,knee,ankle,foot,def.skin);if(rows.some((r,i)=>i&&r.t<=rows[i-1].t))continue;
