@@ -24,5 +24,15 @@ function visual(mode,age,duration){
  if(mode==='player-fade')return {pose:'alert',time:0,opacity:1,sceneOpacity:1-p};
  return {pose:mode,time:age,opacity:1,sceneOpacity:1};
 }
-root.DungeonBattleExitV1=Object.freeze({types,classify,plan,visual});
+// Quick lateral RPG exit: accelerate during the first fifth, then keep running.
+function sprintDuration(distance,{speed=205,min=450,max=1400}={}){
+ if(![distance,speed,min,max].every(Number.isFinite)||distance<0||speed<=0||min<=0||max<min)throw Error('invalid sprint timing');
+ return Math.round(Math.max(min,Math.min(max,distance/speed*1000/.9)));
+}
+function sprintProgress(age,duration){
+ if(!Number.isFinite(age)||!Number.isFinite(duration)||duration<=0)throw Error('invalid sprint progress');
+ const u=clamp(age/duration),r=.2;
+ return u<r?u*u/(2*r*(1-r/2)):(u-r/2)/(1-r/2);
+}
+root.DungeonBattleExitV1=Object.freeze({types,classify,plan,visual,sprintDuration,sprintProgress});
 })(typeof window==='undefined'?globalThis:window);
