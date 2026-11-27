@@ -8,8 +8,17 @@ function create(config={}){
  function vector(direction){if(!Number.isFinite(direction))throw Error('invalid direction');const rad=direction*Math.PI/4;const clean=n=>Math.abs(n)<1e-10?0:n;return {x:clean(Math.sin(rad)),z:clean(Math.cos(rad))};}
  function position(x=0,z=0){if(!Number.isFinite(x)||!Number.isFinite(z))throw Error('invalid position');return {x:clamp(x,bounds.minX,bounds.maxX),z:clamp(z,bounds.minZ,bounds.maxZ)};}
  function advance(pos,direction,mode,dt){if(!Number.isFinite(dt)||dt<0)throw Error('invalid dt');const v=vector(direction),d=(speed[mode]??0)*dt/1000,raw={x:pos.x+v.x*d,z:pos.z+v.z*d},next=position(raw.x,raw.z),hit=raw.x!==next.x||raw.z!==next.z;return {...next,hit,distance:Math.hypot(next.x-pos.x,next.z-pos.z)};}
+ // Fixed takeoff and landing anchors. Clip travel along the heading, not independently by axis.
+ function planJump(pos,direction,{distance=60,push=470,airEnd=1030,end=1500}={}){
+  if(![distance,push,airEnd,end].every(Number.isFinite)||distance<0||push<0||airEnd<=push||end<airEnd)throw Error('invalid jump timing');
+  const start=position(pos.x,pos.z),v=vector(direction);let allowed=distance;
+  if(v.x>0)allowed=Math.min(allowed,(bounds.maxX-start.x)/v.x);if(v.x<0)allowed=Math.min(allowed,(bounds.minX-start.x)/v.x);
+  if(v.z>0)allowed=Math.min(allowed,(bounds.maxZ-start.z)/v.z);if(v.z<0)allowed=Math.min(allowed,(bounds.minZ-start.z)/v.z);
+  allowed=Math.max(0,allowed);return {start,v,distance:allowed,requested:distance,push,airEnd,end};
+ }
+ function sampleJump(j,ms){if(!Number.isFinite(ms))throw Error('invalid elapsed');const u=clamp((ms-j.push)/(j.airEnd-j.push),0,1),p=position(j.start.x+j.v.x*j.distance*u,j.start.z+j.v.z*j.distance*u);return {...p,progress:u,done:ms>=j.end,limited:j.distance+1e-8<j.requested};}
  function project(pos){const p=position(pos.x,pos.z),u=(p.z-bounds.minZ)/(bounds.maxZ-bounds.minZ),scale=camera.farScale+(camera.nearScale-camera.farScale)*u;return {x:camera.cx+p.x*scale,y:camera.groundY+p.z*camera.depthSlope,scale,depth:p.z};}
- return Object.freeze({vector,position,advance,project,bounds:Object.freeze(bounds),speed:Object.freeze(speed)});
+ return Object.freeze({vector,position,advance,planJump,sampleJump,project,bounds:Object.freeze(bounds),speed:Object.freeze(speed)});
 }
 root.DungeonCreatureWorldMotionV1=Object.freeze({create});
 })(typeof window==='undefined'?globalThis:window);
