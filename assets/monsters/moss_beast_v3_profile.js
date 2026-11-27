@@ -1,4 +1,4 @@
-/* V3 candidate; art-specific separate near/far limb masks. */
+/* V3 candidate v2: corrected forepaw/rearpaw mask remnants and rear knee bend. */
 (function(root){root.DungeonMossBeastV3Profile={
   "id": "moss-beast-v3-candidate",
   "canvas": [
@@ -81,11 +81,11 @@
         ],
         [
           72,
-          145
+          149
         ],
         [
           49,
-          147
+          149
         ],
         [
           48,
@@ -101,7 +101,7 @@
         "joinY": 124,
         "kneeY": 132,
         "ankleY": 140,
-        "endY": 148,
+        "endY": 149,
         "xLimit": 6,
         "minSpan": 10
       }
@@ -127,7 +127,7 @@
         124,
         146
       ],
-      "bend": 1,
+      "bend": -1,
       "polygon": [
         [
           128,
@@ -143,11 +143,11 @@
         ],
         [
           140,
-          147
+          149
         ],
         [
           114,
-          148
+          149
         ],
         [
           113,
@@ -209,11 +209,11 @@
         ],
         [
           96,
-          153
+          155
         ],
         [
           65,
-          154
+          155
         ],
         [
           65,
@@ -259,7 +259,7 @@
         161,
         152
       ],
-      "bend": 1,
+      "bend": -1,
       "polygon": [
         [
           141,
@@ -290,11 +290,11 @@
           140
         ],
         [
-          157,
+          148,
           132
         ],
         [
-          151,
+          148,
           125
         ],
         [
