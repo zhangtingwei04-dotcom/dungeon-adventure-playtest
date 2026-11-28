@@ -132,7 +132,30 @@ a{color:#e3c88f}
 .furniture[data-item=chest][aria-pressed=true]:not(:focus-visible):not(.is-editing){outline:none}
 @media(prefers-reduced-motion:reduce){.furniture .chest-open-image{transition:none}}
 .furniture[data-item=mirror] img{transform:skewY(7deg);transform-origin:center}
-</style></head><body><header><strong>迷宮盡頭的燈火</strong><span id="clock"></span><span class="muted">城鎮開場 V0.5</span></header><main><aside class="side"><h2>旅途紀錄</h2><div id="log" class="log"></div></aside><div class="center"><div id="scene" class="scene" data-scene="rental-room">
+
+/* Dedicated live layout workspace: the scene stays in view while only controls scroll. */
+#layoutQuick{min-height:24px;padding:2px 8px;white-space:nowrap}
+body:has(#layoutEditor[open]:not([hidden])){height:100dvh;overflow:hidden}
+main:has(#layoutEditor[open]:not([hidden])){height:calc(100dvh - 37px);max-width:none;grid-template-columns:minmax(0,1fr) clamp(215px,31vw,320px);grid-template-rows:minmax(0,1fr);align-items:center;overflow:hidden}
+main:has(#layoutEditor[open]:not([hidden]))>.side,
+main:has(#layoutEditor[open]:not([hidden]))>.center>.dialog:not(#layoutEditor){display:none}
+main:has(#layoutEditor[open]:not([hidden]))>.center{display:contents}
+main:has(#layoutEditor[open]:not([hidden])) #scene{grid-column:1;grid-row:1;width:min(100%,calc((100dvh - 49px)*16/9));max-height:none;justify-self:center;margin:0}
+#layoutEditor[open]:not([hidden]){grid-column:2;grid-row:1;align-self:stretch;margin:0;min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;padding:6px}
+#layoutEditor[open]>summary{position:sticky;top:0;z-index:2;background:#1d2e26;padding:4px 0;font-weight:bold}
+#layoutEditor[open] #layoutFields{display:grid;grid-template-columns:minmax(0,1fr);gap:5px}
+#layoutEditor[open] #layoutFields label{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:3px;font-size:11px}
+#layoutEditor[open] #layoutFields input{width:4.1em;min-width:0;text-align:center;font:inherit}
+#layoutEditor[open] #layoutFields button{min-height:30px;min-width:29px;touch-action:manipulation}
+#layoutEditor[open] #layoutFields select{max-width:110px;font:inherit}
+#layoutEditor[open] #layoutItem{max-width:100%;font:inherit}
+main:has(#layoutEditor[open]:not([hidden])) .furniture.is-editing,
+main:has(#layoutEditor[open]:not([hidden])) .furniture[aria-pressed=true]{outline:none}
+@media(orientation:landscape) and (max-height:450px){
+ main:has(#layoutEditor[open]:not([hidden])){height:calc(100dvh - 30px)}
+ main:has(#layoutEditor[open]:not([hidden])) #scene{width:min(100%,calc((100dvh - 38px)*16/9))}
+}
+</style></head><body><header><strong>迷宮盡頭的燈火</strong><span id="clock"></span><button id="layoutQuick" type="button" aria-controls="layoutEditor" aria-expanded="false">家具調整</button><span class="muted">城鎮開場 V0.6</span></header><main><aside class="side"><h2>旅途紀錄</h2><div id="log" class="log"></div></aside><div class="center"><div id="scene" class="scene" data-scene="rental-room">
 <div id="room"><img class="room-base" src="assets/interiors/rental-room/empty.png" alt="城鎮出租屋室內"><div id="furniture"></div></div>
 <svg id="street" viewBox="0 0 960 540" xmlns="http://www.w3.org/2000/svg" aria-label="城鎮街道配置草圖" shape-rendering="crispEdges"><rect width="960" height="540" fill="#bdc8ac"/><rect y="290" width="960" height="250" fill="#8c846d"/><path d="M355 540L447 280H522L669 540Z" fill="#a49b84"/><path d="M0 130L170 70L330 130V390H0Z" fill="#a68e6e"/><path d="M0 130L170 70L330 130L320 151L170 97L0 155Z" fill="#484a3e"/><path d="M30 160H110V245H30ZM215 160H288V245H215Z" fill="#435344"/><rect x="126" y="235" width="85" height="155" fill="#504334"/><path d="M960 145L782 83L632 145V392H960Z" fill="#8a866e"/><path d="M632 145L782 83L960 145V165L782 110L632 165Z" fill="#4a5046"/><rect x="688" y="175" width="84" height="90" fill="#445c52"/><rect x="814" y="245" width="90" height="147" fill="#534537"/><path d="M337 225L392 182L448 225V322H337ZM523 216L580 175L625 216V320H523Z" fill="#817d64"/><path d="M0 460H960M0 500H960M420 360L390 540M530 360L578 540" stroke="#756d5a" stroke-width="4"/><path d="M20 402H250M710 402H930" stroke="#c0b096" stroke-width="6"/></svg>
 <div id="targets"></div></div><section class="dialog"><h2 id="dialogTitle">清晨</h2><p id="dialogText">窗外傳來街坊的聲音。這是你在城鎮租下的小房間。</p><div id="choices" class="choices"></div><p id="status" class="status" role="status"></p></section><details id="layoutEditor" class="dialog"><summary>家具配置</summary><div id="layoutControls"><label>物件 <select id="layoutItem"></select></label><div id="layoutFields"></div><div class="choices"><button id="layoutSave" type="button">儲存配置</button><button id="layoutReset" type="button">恢復預設</button></div><p id="layoutStatus" class="status" role="status"></p></div></details></div><aside class="side"><h2 id="place">出租屋</h2><p id="description">城鎮住宅區・私人房間</p><h2>目前衣著</h2><p id="clothes"></p><h2>今日事項</h2><p id="notice"></p><div id="roomWeather"><label for="windowWeather">窗外天氣</label><p><select id="windowWeather"><option value="auto">自然天氣</option></select></p><p id="windowWeatherStatus" aria-live="polite"></p><button type="button" id="windowThunder" aria-pressed="false">雷聲已關閉</button></div><div class="choices"><button id="reset">重新開始</button><a href="./">返回原試玩</a></div></aside></main>
@@ -141,5 +164,22 @@ a{color:#e3c88f}
 <script src="assets/weather_system_v1.js?v=window-5"></script>
 <script src="assets/rental_window_sky_v1.js?v=4"></script>
 <script src="assets/city_opening_view_v1.js?v=20"></script>
+<script>
+(function(){
+ const panel=document.getElementById('layoutEditor'), quick=document.getElementById('layoutQuick');
+ const scene=document.getElementById('scene');
+ function sync(){
+  const room=scene.dataset.scene==='rental-room';
+  quick.hidden=!room;
+  if(!room) panel.open=false;
+  quick.textContent=panel.open?'結束調整':'家具調整';
+  quick.setAttribute('aria-expanded',String(panel.open));
+ }
+ quick.onclick=()=>{if(!panel.hidden){panel.open=!panel.open;window.scrollTo(0,0);sync();}};
+ panel.addEventListener('toggle',()=>{sync();if(panel.open)window.scrollTo(0,0);});
+ new MutationObserver(sync).observe(scene,{attributes:true,attributeFilter:['data-scene']});
+ sync();
+})();
+</script>
 <div class="orientation"><div><strong>請將手機轉為橫向</strong><p>城鎮住宅以橫式畫面呈現。</p></div></div>
 </body></html>
