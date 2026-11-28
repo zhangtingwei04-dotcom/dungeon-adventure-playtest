@@ -4,7 +4,17 @@
 const clamp=(n,min=0,max=1)=>Math.max(min,Math.min(max,n));
 const transmission=Object.freeze({open:1,half:.5,closed:.16});
 const kinds=Object.freeze({natural:'natural',artificial:'artificial',magic:'magic',biological:'biological'});
-function sample({exterior,curtain='open',lamp=false,deskLamp=false,windowX=.475,lampX=.5,lampY=.13,deskX=.805,deskY=.49}){
+// Shared adjacent-space light sampling. No light crosses a closed portal.
+function adjacent({exterior,naturalReach=.48,lamps=[]}){
+ const daylight=clamp((exterior.outsideBrightness-.10)/.98);
+ const natural=daylight*naturalReach;
+ const active=lamps.filter(v=>v.on);
+ const artificial=active.reduce((sum,v)=>sum+clamp(v.strength),0);
+ const total=natural+artificial;
+ const color=total>0?exterior.color.map((n,i)=>Math.round((n*natural+active.reduce((sum,v)=>sum+v.color[i]*clamp(v.strength),0))/total)):[55,48,43];
+ return {strength:clamp(.035+total),natural,artificial,color};
+}
+function sample({exterior,curtain='open',lamp=false,deskLamp=false,windowX=.475,lampX=.5,lampY=.13,deskX=.805,deskY=.49,portal=null,doorOpen=false,doorX=.96,doorY=.68}){
  const t=transmission[curtain]??1;
  const daylight=clamp((exterior.outsideBrightness-.10)/.98);
  const natural=clamp((.055+daylight*.88)*t);
@@ -12,7 +22,8 @@ function sample({exterior,curtain='open',lamp=false,deskLamp=false,windowX=.475,
  const sources=[
   {id:'window',kind:kinds.natural,x:windowX,y:.47,rx:.40,ry:.67,strength:natural*.77,color:exterior.color},
   {id:'ceiling',kind:kinds.artificial,x:lampX,y:lampY+.19,rx:.62,ry:.83,strength:lamp?.85:0,color:[255,204,133]},
-  {id:'desk',kind:kinds.artificial,x:deskX,y:deskY,rx:.205,ry:.34,strength:deskLamp?.85:0,color:[255,190,108]}
+  {id:'desk',kind:kinds.artificial,x:deskX,y:deskY,rx:.205,ry:.34,strength:deskLamp?.85:0,color:[255,190,108]},
+  {id:'adjacent-door',kind:kinds.artificial,x:doorX,y:doorY,rx:.12,ry:.36,strength:doorOpen&&portal?portal.strength*.68:0,color:portal?.color??[55,48,43]}
  ];
  return {base,natural,transmission:t,beam:clamp(daylight*t*.18),beamWidth:curtain==='closed'?.12:curtain==='half'?.52:1,beamColor:exterior.color,sources};
 }
@@ -43,5 +54,5 @@ function paint(canvas,state){
   ctx.fillStyle=g;ctx.fillRect(-1,-1,2,2);ctx.restore();
  }
 }
-root.DungeonLightingV1=Object.freeze({version:'1.0.1',kinds,transmission,sample,interpolate,paint});
+root.DungeonLightingV1=Object.freeze({version:'1.1.0',kinds,transmission,adjacent,sample,interpolate,paint});
 })(window);

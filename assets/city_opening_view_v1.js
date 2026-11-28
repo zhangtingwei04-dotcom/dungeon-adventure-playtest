@@ -15,6 +15,7 @@
   const exterior = window.DungeonCityExteriorV1;
   const lighting=window.DungeonLightingV1;
   const lightPreview=get('lightingPreview');
+  const corridorPreview=get('corridorLightingPreview');
   const lightCanvas=get('roomLighting');
   const lightBeam=get('windowLightBeam');
   let lightState=null,lightTarget=null,lightFrame=0;
@@ -414,13 +415,28 @@
   }
 
   // Ambient daylight uses the game clock, not the device clock.
-  function renderDoorAmbient() {
+  function corridorLighting(light,minute) {
+    // Provisional public-hall schedule; the preview never changes world time.
+    const hour=((minute%1440+1440)%1440)/60;
+    const lampOn=corridorPreview.value==='on'||(corridorPreview.value==='auto'&&(hour>=18||hour<6));
+    const result=lighting.adjacent({exterior:light,naturalReach:.48,lamps:[{on:lampOn,strength:.52,color:[244,185,112]}]});
+    return {...result,lampOn};
+  }
+  function renderDoorAmbient(portal) {
     const door=furniture.get('door');
     if(!door)return;
-    // A sheltered corridor is not a direct source of sunlight or outdoor weather.
-    const lampOn=city.isOpen(game,'lamp');
-    door.style.setProperty('--door-light-strength',lampOn?'.12':'.04');
-    door.style.setProperty('--door-light-core','#b78c60');
+    const rgb=portal.color;
+    const shade=(base,mult)=>'rgb('+base.map((v,i)=>Math.round(v+rgb[i]*portal.strength*mult)).join(',')+')';
+    door.style.setProperty('--portal-dark',shade([21,17,14],.16));
+    door.style.setProperty('--portal-mid',shade([34,26,20],.27));
+    door.style.setProperty('--portal-edge',shade([43,32,23],.38));
+    door.style.setProperty('--door-light-core','rgb('+rgb.join(',')+')');
+    door.style.setProperty('--door-light-strength',String(portal.strength*.34));
+    const hall=get('corridor');
+    hall.dataset.lamp=portal.lampOn?'on':'off';
+    hall.style.setProperty('--corridor-brightness',String(.28+portal.strength*.86));
+    hall.style.setProperty('--corridor-window-shade',String(Math.min(.9,1-portal.natural/.48)));
+    get('corridorLightingStatus').textContent=(portal.lampOn?'走廊壁燈亮著':'走廊壁燈熄滅')+'・'+(portal.natural>.12?'有自然光':'自然光微弱');
   }
 
   function paintRoomLight(state) {
@@ -430,7 +446,7 @@
     lightBeam.style.setProperty('--beam-width',String(state.beamWidth));
     lightBeam.style.setProperty('--beam-color','rgb('+state.beamColor.map(Math.round).join(',')+')');
   }
-  function renderRoomLighting(light) {
+  function renderRoomLighting(light,portal) {
     const windowPlacement=placements.find(p=>p.id==='window'),lampPlacement=placements.find(p=>p.id==='lamp');
     const deskPlacement=placements.find(p=>p.id==='desk');
     // Sprite coordinates: lantern flame (293,60) on the 341×269 desk asset.
@@ -440,7 +456,8 @@
     const a=deskPlacement.angle*Math.PI/180;
     const deskX=deskPlacement.x/100+dx*Math.cos(a)-dy*9/16*Math.sin(a);
     const deskY=deskPlacement.y/100+dx*16/9*Math.sin(a)+dy*Math.cos(a);
-    const state=lighting.sample({exterior:light,curtain:city.curtainState(game),lamp:city.isOpen(game,'lamp'),deskLamp:city.isOpen(game,'desk-lamp'),windowX:windowPlacement.x/100,lampX:lampPlacement.x/100,lampY:lampPlacement.y/100,deskX,deskY});
+    const doorPlacement=placements.find(p=>p.id==='door');
+    const state=lighting.sample({portal,doorOpen:city.isOpen(game,'door'),doorX:doorPlacement.x/100,doorY:doorPlacement.y/100-.22,exterior:light,curtain:city.curtainState(game),lamp:city.isOpen(game,'lamp'),deskLamp:city.isOpen(game,'desk-lamp'),windowX:windowPlacement.x/100,lampX:lampPlacement.x/100,lampY:lampPlacement.y/100,deskX,deskY});
     const key=JSON.stringify(state);
     if(key===lightTarget)return;
     lightTarget=key;
@@ -459,9 +476,9 @@
     const {actual, visible} = outside;
     const previewMinute={morning:420,noon:720,evening:1080,night:0}[lightPreview.value];
     const light=previewMinute===undefined?outside.light:exterior.ambient(previewMinute,visible.kind);
-    renderRoomLighting(light);
-    renderDoorAmbient();
-    get('corridor').style.filter='brightness('+(.60+.40*Math.min(1,light.outsideBrightness))+')';
+    const portal=corridorLighting(light,previewMinute??game.worldMinutes);
+    renderRoomLighting(light,portal);
+    renderDoorAmbient(portal);
     get('street').style.filter = 'brightness('+Math.max(.14,light.outsideBrightness)+') saturate('+light.outsideSaturation+')';
     const windowShade = furniture.get('window').querySelector('.window-exterior-shade');
     windowShade.style.opacity=String(Math.max(0,Math.min(.78,(1-(light.outsideBrightness-.1)/.98)*.78)));
@@ -478,7 +495,7 @@
     windowObject.dataset.birds = !visible.rain && !visible.snow &&
       weather.activity('bird', visible) && weather.wildlifeWindMode('bird', visible.wind) === 'normal'
       ? 'normal' : 'quiet';
-    get('roomWeather').hidden = !room;
+    get('roomWeather').hidden = !room && game.scene!=='rental-corridor';
     const label = visible.name + (preview === 'auto' ? '' : '（預覽）');
     const status = get('windowWeatherStatus');
     if (status.textContent !== label) status.textContent = label;
@@ -501,6 +518,7 @@
     renderWeather();
   };
   lightPreview.onchange=renderWeather;
+  corridorPreview.onchange=renderWeather;
   weatherPicker.onchange = () => {
     const next = weatherPicker.value;
     if (next === 'auto' || weather.kinds[next]?.snow) previewRainEndedAt = null;
@@ -717,6 +735,7 @@
     game = city.create();
     weatherPicker.value = 'auto';
     lightPreview.value='auto';
+    corridorPreview.value='auto';
     lastWeatherPreview = 'auto';
     previewRainEndedAt = null;
     selected = null;
