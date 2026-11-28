@@ -102,13 +102,12 @@
       element.append(open);
     }
     if (item.id === 'chest') {
-      const cavity = document.createElement('span');
-      cavity.className = 'chest-cavity';
-      const lid = document.createElement('span');
-      lid.className = 'chest-lid';
-      lid.setAttribute('aria-hidden', 'true');
-      image.classList.add('chest-body');
-      element.append(lid, cavity);
+      const openImage = document.createElement('img');
+      openImage.alt = '';
+      openImage.className = 'chest-open-image';
+      openImage.src = catalog['chest-open'];
+      image.classList.add('furniture-closed-image');
+      element.append(openImage);
     }
     if (item.id === 'window') {
       const motion = document.createElement('span');
