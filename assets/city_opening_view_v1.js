@@ -83,14 +83,33 @@
     element.className = 'furniture';
     element.dataset.item = item.id;
     element.append(image);
-    const openSrc = catalog[item.id + '-open'];
-    if (openSrc) {
+    if (item.id === 'wardrobe') {
+      const open = document.createElement('span');
+      open.className = 'furniture-open-image';
       const openImage = document.createElement('img');
       openImage.alt = '';
-      openImage.className = 'furniture-open-image';
-      openImage.src = openSrc;
+      openImage.src = catalog['wardrobe-open'];
+      const interior = document.createElement('span');
+      interior.className = 'wardrobe-interior';
+      for (let slot = 1; slot <= 4; slot++) {
+        const hook = document.createElement('span');
+        hook.className = 'wardrobe-hook';
+        hook.dataset.hangerSlot = String(slot);
+        interior.append(hook);
+      }
+      open.append(openImage, interior);
       image.classList.add('furniture-closed-image');
-      element.append(openImage);
+      element.append(open);
+    }
+    if (item.id === 'chest') {
+      const cavity = document.createElement('span');
+      cavity.className = 'chest-cavity';
+      const lid = document.createElement('img');
+      lid.alt = '';
+      lid.src = catalog.chest;
+      lid.className = 'chest-lid';
+      image.classList.add('chest-body');
+      element.append(cavity, lid);
     }
     if (item.id === 'window') {
       const motion = document.createElement('span');
@@ -133,7 +152,9 @@
     for (const item of placements) {
       const element = furniture.get(item.id);
       layout.position(element, item);
-      if (catalog[item.id + '-open']) element.dataset.open = String(city.isOpen(game, item.id));
+      if (item.id === 'wardrobe' || item.id === 'chest') {
+        element.dataset.open = String(city.isOpen(game, item.id));
+      }
       if (labels.has(item.id)) {
         element.setAttribute('aria-pressed', String(selected === item.id));
       }

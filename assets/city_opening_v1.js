@@ -6,8 +6,8 @@
  function create(){const equipmentV1={head:null,chest:null,main:null,legs:null,feet:null,neck:null,outer:null,offhand:null,hands:null,bag:null,owned:Object.values(slots),starterOutfitV2:true};const a={scene:"rental-room",worldMinutes:420,seen:[],notes:[],items:[],flags:{},travelLog:[],equipmentV1};events.appendTravel(a,"daily","在出租屋醒來。","今天該看看校方安排了什麼。",0);return a}
  const ready=a=>a.equipmentV1.chest===slots.chest&&a.equipmentV1.legs===slots.legs&&a.equipmentV1.feet===slots.feet;
  const containers=Object.freeze({
-  wardrobe:{name:"衣櫃",closed:"衣櫃的門關著。",open:"便服與旅行裝備收在衣櫃裡。"},
-  chest:{name:"木箱",closed:"木箱的蓋子闔著。",open:"木箱裡收著幾件日常用的雜物。"}
+  wardrobe:{name:"衣櫃",closed:"衣櫃的門關著。",open:"衣櫃裡的掛桿空著。"},
+  chest:{name:"木箱",closed:"木箱的蓋子闔著。",open:"木箱蓋已掀起。"}
  });
  const isOpen=(a,id)=>a.flags.furnitureOpen?.[id]===true;
  function inspectContainer(a,id){
