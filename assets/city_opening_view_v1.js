@@ -142,13 +142,11 @@
   function glassWetness(actual, visible, preview) {
     const now = game.worldMinutes;
     if (preview !== 'auto') {
-      if (visible.snow) return 0;
-      if (visible.rain) return 0.85;
+      if (visible.snow || visible.rain) return 0;
       return previewRainEndedAt === null
         ? 0 : Math.max(0, 1 - (now - previewRainEndedAt) / glassDryMinutes);
     }
-    if (actual.snow) return 0;
-    if (actual.rain) return 0.85;
+    if (actual.snow || actual.rain) return 0;
     const blockStart = actual.block * 180;
     const elapsed = now - blockStart;
     if (blockStart === 0 || elapsed >= glassDryMinutes) return 0;
@@ -165,7 +163,9 @@
       : { ...actual, snow: 0, overcast: 0, ...weather.kinds[preview], kind: preview };
     const windowObject = furniture.get('window');
     windowObject.dataset.weather = visible.kind;
-    windowObject.querySelector('.window-wet-glass').style.opacity =
+    const wetGlass = windowObject.querySelector('.window-wet-glass');
+    wetGlass.hidden = Boolean(visible.rain);
+    wetGlass.style.opacity =
       String(glassWetness(actual, visible, preview));
     const roofCover = preview === 'auto'
       ? Math.max(actual.snowCover, actual.snow * 0.18)
