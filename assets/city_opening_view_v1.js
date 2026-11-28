@@ -61,7 +61,9 @@
     return Number.isFinite(n) ? clamp(n, field) : field.initial;
   };
   let chestPreview = 'open';
-  const campaignMode=new URLSearchParams(location.search).get('mode')==='game';
+  const sceneOnly=new URLSearchParams(location.search).get('mode')==='scene';
+  if(sceneOnly)document.documentElement.dataset.renderer='scene';
+  const campaignMode=!sceneOnly&&new URLSearchParams(location.search).get('mode')==='game';
   const campaign=window.DungeonCityCampaignSaveV1;
   document.documentElement.dataset.campaign=campaignMode?'game':'dev';
   const saveStatus=get('campaignSaveStatus');
@@ -124,7 +126,7 @@
     }
     return [item.id, values];
   }));
-  if(campaignMode)overrides={};
+  if(campaignMode||sceneOnly)overrides={};
   let placements = layout.applyOverrides(layout.rentalRoom, overrides);
 
   function button(label, action) {
@@ -862,4 +864,5 @@
 
   renderFields();
   render();
+  if(sceneOnly)window.DungeonCitySceneRendererV1=Object.freeze({update(state,observe=false){game=JSON.parse(JSON.stringify(state));observingWindow=!!observe;selected=null;render();}});
 })();

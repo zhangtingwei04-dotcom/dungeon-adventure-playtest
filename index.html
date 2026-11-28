@@ -4309,7 +4309,7 @@ html.stage-locked #app #battleSurface .battle-actions button{font-size:17px;min-
 #app:has(#dialogVeil:not(.hidden)) .discovery-summary{visibility:hidden}
 @media(prefers-reduced-motion:reduce){#app #travelFeed,#app #placeDrawer{transition:none}#app.route-attention .location-reference-card{animation:none}}
 </style>
-</head>
+<style>#sceneStage #citySceneRenderer{position:absolute;inset:0;width:100%;height:100%;border:0;z-index:2;pointer-events:none;background:#151e19}#app[data-city-native=true] #sceneStage #view,#app[data-city-native=true] #sceneStage #dayTint,#app[data-city-native=true] #sceneStage #shade,#app[data-city-native=true] #sceneStage #weatherOverlay{visibility:hidden}#app[data-city-native=true] #sceneStage #sceneDialogue{z-index:12!important}</style></head>
 <body>
 <div id="app"><div id="worldFrame" aria-hidden="true">
  <svg class="worldFrameArt" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 700" preserveAspectRatio="none">
@@ -4552,7 +4552,7 @@ html.stage-locked #app #battleSurface .battle-actions button{font-size:17px;min-
 <div class="veil hidden" id="dialogVeil"><section class="panel" role="dialog" aria-modal="true" aria-labelledby="dialogTitle"><div class="panel-head"><div><div class="kicker" id="dialogKicker">發現</div><h2 id="dialogTitle"></h2></div><div id="dialogCharacter" aria-label="目前發言人物"><canvas id="dialogCharacterCanvas" width="48" height="64" aria-hidden="true"></canvas><span id="dialogCharacterName"></span></div><button class="close" id="dialogClose" aria-label="關閉">×</button></div><p id="dialogText"></p><div class="choices" id="dialogChoices"></div></section></div>
 <div class="veil hidden" id="journalVeil"><section class="panel journal" role="dialog" aria-modal="true"><div class="panel-head"><div><div class="kicker">FIELD NOTES</div><h2>旅程日誌</h2></div><button class="close" id="journalClose">×</button></div><div class="journal-tabs" id="journalTabs"></div><div id="journalContent"></div><div class="line"></div><p class="meta">本版本使用瀏覽器本機儲存，並未連接《鱗片與種子》的雲端存檔。可在設定中匯出備份。</p></section></div>
 <div class="veil hidden" id="menuVeil"><section class="panel" role="dialog" aria-modal="true"><div class="panel-head"><div><div class="kicker">OPTIONS</div><h2>探索設定</h2></div><button class="close" id="menuClose">×</button></div><p id="menuStatus">遊戲會自動在本機儲存。</p><div class="choices"><button class="choice" id="battlePlaytestBtn">測試戰鬥</button><button class="choice" id="soundBtn">音效：關閉</button><button class="choice" id="exportBtn">匯出存檔</button><button class="choice" id="importBtn">匯入存檔</button><button class="choice" id="restorePreviousBtn">復原上一份存檔</button><button class="choice" id="exportPreviousBtn">匯出上一份存檔</button><button class="choice" id="restartBtn">重新開始</button></div><button class="choice" type="button" id="engineDiagnosticsBtn">共用核心診斷</button><a class="choice" href="city-opening-playtest.html">城鎮住宅試玩</a><div class="line"></div><div class="phase-preview-heading">光線預覽 · 不修改遊戲時間</div><p class="phase-preview-explain">只預覽場景光線，不會跳過事件或改動存檔。畫面右上角可結束預覽。</p><div class="choices phase-preview-options"><button class="choice" type="button" data-preview-period="dawn">清晨</button><button class="choice" type="button" data-preview-period="day">白天</button><button class="choice" type="button" data-preview-period="dusk">黃昏</button><button class="choice" type="button" data-preview-period="night">夜晚</button></div><div class="line"></div><div class="phase-preview-heading" id="weatherSettingsHeading">天氣預覽 · 不修改存檔</div><p class="phase-preview-explain">可隨時查看場景的天氣效果。降雪預覽約20秒、暴風雪約10秒累積至全雪地；返回自然天氣後依遊戲時間變化。</p><div class="choices phase-preview-options"><button class="choice" type="button" data-preview-weather="clear">晴朗</button><button class="choice" type="button" data-preview-weather="cloudy">陰天</button><button class="choice" type="button" data-preview-weather="fog">薄霧</button><button class="choice" type="button" data-preview-weather="drizzle">細雨</button><button class="choice" type="button" data-preview-weather="rain">降雨</button><button class="choice" type="button" data-preview-weather="storm">雷雨</button><button class="choice" type="button" data-preview-weather="snow">降雪</button><button class="choice" type="button" data-preview-weather="blizzard">暴風雪</button><button class="choice" type="button" data-preview-weather="auto">自然天氣</button></div><div class="line"></div><div class="phase-preview-heading">風力預覽 · 不修改存檔</div><p class="phase-preview-explain">獨立調整風力及畫面風向；不影響降雨、降雪量或正式遊戲時間。</p><div class="choices phase-preview-options"><button class="choice" type="button" data-preview-wind="0">0級 無風</button><button class="choice" type="button" data-preview-wind="1">1級 微風</button><button class="choice" type="button" data-preview-wind="2">2級 輕風</button><button class="choice" type="button" data-preview-wind="3">3級 強風</button><button class="choice" type="button" data-preview-wind="4">4級 烈風</button><button class="choice" type="button" data-preview-wind="5">5級 暴風</button><button class="choice" type="button" data-preview-wind="auto">自然風力</button></div><div class="choices phase-preview-options"><button class="choice" type="button" data-preview-wind-dir="-1">向左吹 ←</button><button class="choice" type="button" data-preview-wind-dir="1">向右吹 →</button><button class="choice" type="button" data-preview-wind-dir="auto">自然風向</button></div><input id="fileInput" type="file" accept="application/json" class="hidden"><div class="line"></div><div class="note">V0.5.1 測試版本：第二章的公會、委託與人物對話是可修改的玩法草案。人物稱呼仍為佔位，主角身體來歷、復活原因及正式戰鬥方式都尚未定案。</div></section></div>
-<div class="veil" id="startVeil"><section class="panel start"><div class="stamp">A STORY OF THE UNKNOWN</div><h1 class="screen-title">迷宮盡頭的燈火</h1><p>你受軍校安排來到這座城鎮，在租下的小房間醒來。今天，你將踏出新的旅程。</p><a class="choice" href="city-opening-playtest.html?mode=game&amp;start=new">開始新的旅程</a><a class="choice hidden" id="cityContinueBtn" href="city-opening-playtest.html?mode=game">繼續城鎮旅程</a><button class="choice" id="startBtn">舊版森林冒險（獨立測試）</button><button class="choice hidden" id="continueBtn">繼續舊版森林冒險</button><button class="choice hidden" id="startRestorePreviousBtn">復原上一份有效存檔</button><button class="choice" id="startImportBtn">匯入存檔</button><a class="choice" href="city-opening-playtest.html">城鎮住宅開發測試</a><div class="note">城鎮開場 V0.66 · 舊版森林冒險保留 · 橫式手機／電腦　｜　探索優先、調查可選　｜　不需登入及付費</div></section></div>
+<div class="veil" id="startVeil"><section class="panel start"><div class="stamp">A STORY OF THE UNKNOWN</div><h1 class="screen-title">迷宮盡頭的燈火</h1><p>你受軍校安排來到這座城鎮，在租下的小房間醒來。今天，你將踏出新的旅程。</p><a class="choice" href="?campaign=city&amp;start=new">開始新的旅程</a><a class="choice hidden" id="cityContinueBtn" href="?campaign=city">繼續城鎮旅程</a><button class="choice" id="startBtn">舊版森林冒險（獨立測試）</button><button class="choice hidden" id="continueBtn">繼續舊版森林冒險</button><button class="choice hidden" id="startRestorePreviousBtn">復原上一份有效存檔</button><button class="choice" id="startImportBtn">匯入存檔</button><a class="choice" href="city-opening-playtest.html">城鎮住宅開發測試</a><div class="note">城鎮開場 V0.67 · 原版介面整合 · 橫式手機／電腦　｜　探索優先、調查可選　｜　不需登入及付費</div></section></div>
 <div class="orientation"><div><strong>請將手機轉為橫向</strong><p>第一章與城鎮探索以橫式畫面呈現。</p>↻</div></div>
 </div>
 <script src="./assets/ornaments_data.js"></script>
@@ -4674,6 +4674,7 @@ window.DUNGEON_FOREST_V4_LAYOUT=window.DUNGEON_WRECK_CURRENT_LAYOUT;
 <script src="./assets/monsters/moss_beast_live_v3.js?v=2"></script>
 <script src="./assets/encounter_motion_v1.js?v=4-body-scale"></script>
 <script src="./assets/battle_playtest_v1.js?v=encounter-motion-v1"></script>
+<script src="./assets/furniture_storage_v1.js?v=1"></script><script src="./assets/timed_tasks_v1.js?v=1"></script><script src="./assets/city_opening_v1.js?v=15"></script><script src="./assets/interior_furniture_v1.js?v=20"></script><script src="./assets/city_campaign_save_v1.js?v=1"></script><script src="./assets/city_investigation_v1.js?v=1"></script>
 <script>
 (()=>{'use strict';
 // Fixed design canvas: use the approved screenshot's exact 1536×707 ratio,
@@ -4752,11 +4753,15 @@ if(window.matchMedia('(display-mode: standalone)').matches||navigator.standalone
  })();
 // Developer-studio preview is intentionally isolated from real play saves.
 const DEV_PREVIEW_MODE=new URLSearchParams(location.search).get('dev-preview')==='1';
+const CITY_NATIVE=!DEV_PREVIEW_MODE&&new URLSearchParams(location.search).get('campaign')==='city';
+const cityCore=window.DungeonCityOpeningV1,cityInvest=window.DungeonCityInvestigationV1,citySlot=window.DungeonCityCampaignSaveV1;
+let citySaveBlocked=false,cityObserving=false,cityFrame=null;
 const MIND_LIVE_TRIAL=DEV_PREVIEW_MODE&&new URLSearchParams(location.search).get('mind-trial')==='1';
 const KEY=MIND_LIVE_TRIAL?'dungeon_adventure_mindtrial_v1':DEV_PREVIEW_MODE?'dungeon_adventure_ch1_devpreview_v1':'dungeon_adventure_ch1_v01';
 let mindTrialLiveObjects=[],mindTrialLoader=null;
 const $=id=>document.getElementById(id);
 const names={wreck:['破損的馬車','森林邊緣 · 一切從這裡開始'],trail:['林間小徑','陽光沿著舊路灑落'],clearing:['寂靜的林間空地','風聲裡混著陌生的細響'],ruin:['苔生石門','林木間的無名遺構'],gate:['城鎮入口','道路與陌生的人群'],inn:['旅店客房','一處短暫安全的地方'],lobby:['旅店大廳','晨光與麵包香氣'],street:['城鎮街道','人們各自忙碌的日常'],guild:['冒險者公會','工作、傳聞與出發前的準備'],outskirts:['近郊路口','城牆之外 · 未知尚在前方'],home:['冒險小隊的公共起居室','共同生活的六個人 · 只是普通的一天']};
+Object.assign(names,cityInvest.scenes);
 // Fictional first-chapter travel times in game minutes (balance estimates, not measured distances).
 // Town coaching service operates only after the morning story has begun.
 const ROUTE_TIMES=[
@@ -4775,7 +4780,7 @@ const ROUTE_TIMES=[
 ];
 function gameTime(minutes){return window.DungeonGameTimeV1.format(minutes);}
 const PERIOD_NAMES=Object.freeze({dawn:'清晨',day:'白天',dusk:'黃昏',night:'夜晚'});
-const INDOOR_SCENES=new Set(['inn','lobby','guild','home']);
+const INDOOR_SCENES=new Set(['inn','lobby','guild','home','rental-room','rental-corridor']);
 function periodForMinutes(minutes){return window.DungeonGameTimeV1.parts(minutes).period;}
 function atmosphereSubtitle(scene,period){
  const alt={
@@ -5497,6 +5502,7 @@ function backpackContents(){
  return entries;
 }
 function renderBackpackPanel(out){
+ if(CITY_NATIVE){sideInfoHeading(out,'隨身物品');const carried=cityCore.wardrobeItems.filter(item=>cityCore.itemLocation(s,item.id)==='carried');for(const item of carried)sideInfoText(out,item.name+' ×1');if(s.items.includes('academy_report_notice'))sideInfoText(out,'軍校報到通知 ×1');if(!carried.length&&!s.items.length)sideInfoText(out,'目前沒有隨身物品。');sideInfoHeading(out,'穿戴中');sideInfoText(out,cityCore.wornNames(s).join('、')||'室內衣著');sideInfoText(out,'存放於衣櫃的物品不計入隨身物品。');return;}
  normalizeEquipmentV1();
  const entries=backpackContents();
  // Gear is tracked by item IDs, separate from the existing collected-item arrays.
@@ -5580,6 +5586,7 @@ const EQUIPMENT_PARTS=Object.freeze([
  {id:'bag',name:'背包',symbol:'▣',side:'right',hint:'可替換的旅行背包'}
 ]);
 function normalizeEquipmentV1(){
+ if(CITY_NATIVE)return; // city storage owns every clothing location
  if(!s.equipmentV1||typeof s.equipmentV1!=='object'||Array.isArray(s.equipmentV1))s.equipmentV1={};
  // Preserve worn pieces and migrate older saves into a nonduplicating gear list.
  const eq=s.equipmentV1;
@@ -5626,6 +5633,7 @@ const EQUIPMENT_VISUAL_CATALOG=Object.freeze({
  bag:Object.freeze({id:'enchanted_satchel',name:'附魔旅行側包',icon:4})
 });
 function displayEquipmentInSlot(slotId){
+ if(CITY_NATIVE){const item=cityCore.wardrobeItems.find(x=>x.id===s.equipmentV1[slotId]);return item?{item,preview:false}:null;}
  const item=EQUIPMENT_VISUAL_CATALOG[slotId];
  if(!item)return null;
  if(s.equipmentV1&&s.equipmentV1[slotId]===item.id)return {item,preview:false};
@@ -6789,6 +6797,7 @@ function equipmentGuideHTML(sceneMode='equipment'){
   (paperDollTryOn?'<span class="paperdoll-preview-label">試穿</span>':'')+'</div>';
 }
 function setOwnedEquipmentEquipped(slotId,equip){
+ if(CITY_NATIVE){toast('請透過衣櫃或已取出的衣物管理穿戴。');return;}
  if(activeDialogueSurface())return;
  normalizeEquipmentV1();
  const item=EQUIPMENT_VISUAL_CATALOG[slotId];
@@ -6802,6 +6811,7 @@ function setOwnedEquipmentEquipped(slotId,equip){
  toast(item.name+(equip?'已裝上':'已脫下，物品仍保留'));
 }
 function showEquipmentDetail(id){
+ if(CITY_NATIVE){equipmentSelected=id;const item=cityCore.wardrobeItems.find(x=>x.id===s.equipmentV1[id]);const part=EQUIPMENT_PARTS.find(x=>x.id===id);const host=$('equipmentDetail');host.textContent=(part?.name||id)+'｜'+(item?.name||'空裝備格')+(item?.id.startsWith('academy_')?'（穿著美術尚待製作）':'');$('equipEquipmentAction').hidden=true;return;}
  const part=EQUIPMENT_PARTS.find(x=>x.id===id)||EQUIPMENT_PARTS[0];
  equipmentSelected=part.id;
  for(const b of $('equipmentBoard').querySelectorAll('.equip-slot')){
@@ -6996,6 +7006,7 @@ function renderEquipmentBoard(){
  paintNpcDreamPreview();
 }
 function renderSideTab(tab,out){
+ if(CITY_NATIVE&&tab==='character'){sideInfoHeading(out,'軍校畢業生');sideInfoText(out,'生命 '+s.hp+'/'+s.maxHp);sideInfoText(out,'目前衣著：'+(cityCore.wornNames(s).join('、')||'室內衣著'));const env=characterEnvironmentView();if(env)for(const [label,value] of window.DungeonCharacterEnvironmentV1.rows(env))sideInfoText(out,label+'：'+value);return;}
  if(tab==='character'){
   const card=document.createElement('section');card.className='protagonist-card';
   card.setAttribute('aria-label','主角形象與基本狀態');
@@ -7151,6 +7162,44 @@ function runSceneAction(fn){
   if(text)inspectInScene(text,[{label:'繼續',fn:()=>{}}]);
  });
 }
+function syncCityScene(){
+ const stage=$('sceneStage');$('app').dataset.cityNative='true';
+ if(!cityFrame){cityFrame=document.createElement('iframe');cityFrame.id='citySceneRenderer';cityFrame.title='城鎮場景';cityFrame.tabIndex=-1;cityFrame.setAttribute('aria-hidden','true');cityFrame.src='city-opening-playtest.html?mode=scene&v=84';cityFrame.onload=syncCityScene;stage.appendChild(cityFrame);}
+ try{cityFrame.contentWindow?.DungeonCitySceneRendererV1?.update(s,cityObserving);}catch(error){console.warn('City scene update',error);}
+}
+function cityDiscover(){
+ const found=cityInvest.discover(s,cityCore,window.DungeonGameTimeV1,window.DungeonEventsV1);
+ sceneActionView={actor:s,scene:s.scene};render();
+ openSceneDialogue([{speaker:'旁白',text:found.length?'調查周遭後，發現了 '+found.length+' 個可互動物件。':'這裡已調查過，可從右側選擇物件。'}],'investigation-entry');
+}
+function cityObject(id){
+ const view=cityCore.inspect(s,id);if(!view)return;
+ const choices=view.actions.map(([key,label])=>({label,fn:()=>cityAction(id,key)}));choices.push({label:'先離開',fn:()=>{}});
+ inspectInScene(view.text,choices);
+}
+function cityAction(id,key){
+ if(key==='storage-list'){cityObject('wardrobe-items');return;}
+ if(key==='storage-back'){cityObject('wardrobe');return;}
+ if(key.startsWith('item:')){cityObject('wardrobe-item:'+key.slice(5));return;}
+ if(key==='notice-back'){cityObject('desk');return;}
+ if(key==='notice-view'){cityObject('report-notice');return;}
+ if(key==='report-back'){if(id==='report-notice')cityObject('report-office');return;}
+ const before=s.scene,result=cityCore.act(s,id,key);
+ if(!result.ok){inspectInScene(result.reason,[{label:'返回',fn:()=>cityObject(id)}]);return;}
+ if(s.scene!==before){cityObserving=false;sceneActionView=null;s.visits[s.scene]=(s.visits[s.scene]||0)+1;}
+ if(key==='look')cityObserving=true;
+ if(key==='curtain-close')cityObserving=false;
+ render();
+ if(key==='read'){cityObject('report-notice');return;}
+ if(key==='look'){inspectInScene('從窗前望向街道。',[...cityCore.inspect(s,'window').actions.filter(([k])=>k.startsWith('curtain-')).map(([k,label])=>({label,fn:()=>cityAction('window',k)})),{label:'離開窗前',fn:()=>{cityObserving=false;render();}}]);return;}
+ inspectInScene(result.message,[{label:s.scene===before?'返回物件':'繼續',fn:()=>{if(s.scene===before)cityObject(id);}}]);
+}
+function cityCards(list,append){
+ const objects=cityInvest.visible(s,cityCore);
+ if(!objects.length){append('調查周遭 · 2分鐘',()=>runSceneAction(cityDiscover));return;}
+ const catalog=window.DungeonInteriorFurnitureV1;
+ appendInvestigationCards(list,objects.map(o=>{const node=document.createElement('button');if(catalog[o.id]){const img=document.createElement('img');img.src=catalog[o.id];node.appendChild(img);}return {name:o.name,node,entry:{fn:()=>cityObject(o.id)},status:'已發現',action:'調查'};}),append);
+}
 function renderSceneActionDock(host){
  const actions=splitSceneActions(entries()).scene;
  function add(label,fn,kind){
@@ -7165,6 +7214,7 @@ function renderSceneActionDock(host){
  add(sceneActionView?'返回資訊':'調查／其他行動',()=>{
   sceneActionView=sceneActionView?null:{actor:s,scene:s.scene};
   renderPlaceDrawer();
+  if(sceneActionView&&CITY_NATIVE){cityDiscover();return;}
   if(sceneActionView)openSceneDialogue([{speaker:'旁白',text:openingExitOnly()?'天色漸暗，現在得先確認離開的道路。':'你環顧四周，看看有沒有值得留意的地方。'}],'investigation-entry');
  },'investigation');
  for(const item of actions.filter(a=>a.routeTo))add(item.title,item.fn,'route');
@@ -7221,6 +7271,7 @@ function renderSceneActionView(out){
   button.textContent=label;button.onclick=fn;parent.appendChild(button);
   return button;
  }
+ if(CITY_NATIVE){cityCards(list,append);return;}
  if(openingExitOnly()){
   const core=window.DungeonWreckComponentsV1;
   const cards=core.parts.map(p=>({name:p.name,assetId:p.assetId,entry:{fn:()=>inspectWreckComponent(p.id)},status:core.taken(s,p.id)?'已拿走':p.event?'劇情線索':'可搜取',action:core.taken(s,p.id)?'查看紀錄':'調查'}));
@@ -7291,6 +7342,14 @@ function renderPlaceDrawer(){
  }
  if(sceneActionView){renderSceneActionView(out);out.scrollTop=priorScroll;return;}
  if(activeSideTab!=='locations'){renderSideTab(activeSideTab,out);out.scrollTop=priorScroll;return;}
+ if(CITY_NATIVE){
+ sideInfoHeading(out,names[s.scene][0]);sideInfoText(out,names[s.scene][1]);
+ const report=cityCore.reportStatus(s);sideInfoHeading(out,'今日事項');sideInfoText(out,report.completed?report.message:!report.read?'調查書桌上的校方通知。':'第1日 09:00–11:00｜'+report.message);
+ if(report.read&&!report.completed)for(const r of report.requirements)sideInfoText(out,(r.ok?'✓ ':'○ ')+r.label);
+ sideInfoHeading(out,'已發現物件');for(const item of cityInvest.visible(s,cityCore))sideInfoText(out,item.name);
+ if(!cityInvest.known(s).length)sideInfoText(out,'尚未調查。');
+ out.scrollTop=priorScroll;return;
+ }
  const previewTitle=names[previewId][0];
  const locationMeta=previewId==='wreck'&&wreckCleared()?{...LOCATION_CARD_META.wreck,description:'馬車和散落的貨物已移走，林道旁只剩車輪壓過的泥痕。'}:
   LOCATION_CARD_META[previewId]||{area:'未知區域',kind:'探索地點',description:names[previewId]?.[1]||''};
@@ -7559,8 +7618,19 @@ function selectFour(seed){let a=[0,1,2,3,4,5],v=seed>>>0;for(let i=a.length-1;i>
 function initial(){const seed=randomSeed();return{v:1,seed,scene:'wreck',worldMinutes:960,routeDiscovery:{known:[],searchCounts:{}},placeCardsViewed:[],exploration:{counts:{},routeProgress:{},pending:{},daily:{},last:{}},recovery:{found:false,looted:false,items:[],parts:{}},forestEcology:{checkedDays:{},observed:{},ingredients:{},leafCollected:false},forestRare:{checkedDays:{},sighted:{},hints:{},ingredients:{},beetleGearTaken:false,rabbitHerbTaken:false},beetle:{questAccepted:false,questCompleted:false,captured:false,terrarium:false,seen:false,food:72,clean:85,comfort:68,lastDay:0},wallet:{silver:1,copper:12},equipmentV1:createStartingEquipmentV1(),appearanceV1:{hairColor:'#c8cbd0',templateId:'human_male_base_v2_shirtless'},hp:16,maxHp:16,seen:[],notes:[],items:[],party:selectFour(seed),flags:{},visits:{wreck:1},savedAt:Date.now(),sound:false,feedCollapsed:false,travelHudMode:'compact',travelLog:[{type:'daily',message:'在毀壞的馬車篷內醒來，扶著斷裂木板爬到了外面。',thought:'我怎麼會在這裡？先看看四周吧。',scene:'wreck',time:Date.now(),worldMinute:960}]};}
 function validSave(j){return window.DungeonSaveV1.valid(j,names);}
 function load(){try{return window.DungeonSaveV1.read(localStorage,KEY,names);}catch{return null;}}
-const loadedSave=load();
-let s=loadedSave||initial(),hasSave=!!loadedSave,modal=null,showHints=false,journalTab='discoveries',toastHandle=null;
+function cityInitial(){const a=cityCore.create();return {...initial(),...a,cityCampaign:true,cityInvestigated:{},visits:{'rental-room':1}};}
+function loadCityNative(){
+ let slot;try{slot=citySlot.load(localStorage);}catch{slot={status:'unavailable'};}
+ const fresh=new URLSearchParams(location.search).get('start')==='new';
+ const replace=fresh&&['ok','invalid'].includes(slot.status)&&confirm('開始新城鎮旅程？保留上一份城鎮存檔備份。');
+ if(slot.status==='ok'&&!replace)return {...cityInitial(),...slot.state,cityCampaign:true};
+ if(slot.status==='invalid'&&!replace||slot.status==='unavailable')citySaveBlocked=true;
+ const actor=cityInitial();
+ if(replace){try{citySaveBlocked=!citySlot.write(localStorage,actor,{replace:true});}catch{citySaveBlocked=true;}}
+ return actor;
+}
+const loadedSave=CITY_NATIVE?null:load();
+let s=CITY_NATIVE?loadCityNative():loadedSave||initial(),hasSave=!!loadedSave||CITY_NATIVE,modal=null,showHints=false,journalTab='discoveries',toastHandle=null;
 let backpackView='all',equipmentSelected='bag';
 normalizeWallet();normalizeEquipmentV1();normalizeAppearanceV1();
 if(!Array.isArray(s.travelLog))s.travelLog=[];
@@ -7663,6 +7733,7 @@ function renderFeed(){
 }
 const addUnique=(arr,value)=>{if(!arr.includes(value))arr.push(value);};
 function save(){
+ if(CITY_NATIVE){let ok=false;try{ok=!citySaveBlocked&&citySlot.write(localStorage,s);}catch{}const notice=$('saveFaultNotice');if(notice)notice.hidden=ok;return ok;}
  const faults=window.DungeonRuntimeFaultsV1,notice=$('saveFaultNotice');
  let ok=false;
  try{window.DungeonWeatherV1?.exposure(s,INDOOR_SCENES.has(s.scene));ok=window.DungeonSaveV1.write(localStorage,KEY,s,names)===true;}
@@ -8292,7 +8363,7 @@ function finishBattle(){
  if(state.source==='opening'&&s.scene==='wreck'&&!s.flags.rescued){if(routeKnown('wreck','trail'))presentDiscoveredRoute('wreck','trail');else inspectInScene('林間重新安靜下來，你還需要確認離開的道路。',[{label:'查看車輪與泥地',fn:marks},{label:'先離開',fn:()=>{}}]);}
 }
 
-function entries(){const a={
+function entries(){if(CITY_NATIVE)return [];const a={
  wreck:[routeAction('前往林間小徑','trail',()=>change('trail'),true),...(wreckCleared()?[]:[action('查看倒塌貨箱',glance),action('查看車輪痕跡',marks)])],
  trail:[routeAction('前往城鎮入口','gate',rescue,true),action(s.recovery.found?'調查舊馬車殘骸':'搜索林邊 · 12分鐘',searchForest,false,true),...(s.recovery.found?[action('留意甲蟲活動痕跡 · 8分鐘',()=>forestRareCheck('beetle'))]:[]),...(s.recovery.found&&s.beetle.questAccepted&&!s.beetle.captured?[eventAction('設置甲蟲誘捕盒 · 10分鐘',captureRustBeetle)]:[]),routeAction('進入林間空地','clearing',()=>change('clearing')),routeAction('走近舊石門','ruin',()=>change('ruin')),action('查看路旁舊石碑',inspectTrailMarker),routeAction('返回馬車','wreck',()=>change('wreck'))],
  clearing:[routeAction('返回小徑','trail',()=>change('trail'),true),action('觀察空地生態 · 6分鐘',()=>observeForestEcology('clearing'),false,true),...(!s.flags.lightTaken?[eventAction('查看樹根旁的微光',light)]:[]),...(!window.DungeonSceneObjectsV1?.creatureVisible(s)?[eventAction('留意林間聲響',soundInForest)]:[])],
@@ -8445,7 +8516,7 @@ function render(){if(!names[s.scene])s.scene='wreck';normalizeGameTime();tickBee
  guild:'公告板寫著普通的工作與路況情報。你不必立即登記或接受委託。',
  outskirts:'城牆外的風帶著草木氣味。你可以看看風景、記下路標，或直接回城。',
  home:'六人的公共起居室裡有生活的痕跡。你只是受邀來訪，還不是固定房客。'
-};$('narrative').textContent=texts[s.scene];$('actions').replaceChildren();const available=splitSceneActions(entries()).scene;const primary=available.find(a=>a.primary)||available[0];
+};$('narrative').textContent=CITY_NATIVE?names[s.scene][1]:texts[s.scene];$('actions').replaceChildren();const available=splitSceneActions(entries()).scene;const primary=available.find(a=>a.primary)||available[0];
 if(primary){const b=document.createElement('button');b.className='action primary';setActionVisual(b,/探索|觀察/.test(primary.title)?'explore':'route',primary.title);b.title='主要行動；點擊執行';b.onclick=()=>runSceneAction(primary.fn);$('actions').appendChild(b);}
 const quick=available.find(a=>a.quick&&a!==primary);if(quick){const b=document.createElement('button');b.className='action explore';setActionVisual(b,'explore',quick.title);b.onclick=()=>runSceneAction(quick.fn);$('actions').appendChild(b);}
 /* Secondary interactions are now grouped under the right-side place drawer. */renderHotspots();renderFeed();renderPlaceDrawer();renderSceneInfoBar();renderOpeningObjective();renderBattleSurface();save();}
@@ -8891,6 +8962,7 @@ function refreshHourlySceneResources(){
  save();
 }
 function renderHotspots(){
+ if(CITY_NATIVE){$('hotspots').replaceChildren();syncCityScene();return;}
  if($('battleSurface').dataset.embeddedTrial==='true')return;
  refreshHourlySceneResources();
  window.DungeonScenePresenceV1?.sync({enabled:forestV4Active(),scene:s.scene,period:previewPeriod||periodForMinutes(s.worldMinutes),weather:currentWeather?.kind,indoor:INDOOR_SCENES.has(s.scene),battle:!!s.flags.inBattle});
@@ -8930,6 +9002,7 @@ function renderHotspots(){
  }
 }
 function renderRouteMap(out){
+ if(CITY_NATIVE){sideInfoHeading(out,'目前：'+names[s.scene][0]);for(const id of Object.keys(cityInvest.scenes))if(s.visits[id])sideInfoText(out,names[id][0]);sideInfoText(out,'新地點需透過調查物件與移動發現。');return;}
  const clock=document.createElement('div');clock.className='map-summary';
  const left=document.createElement('strong');left.textContent='目前：'+names[s.scene][0];
  const right=document.createElement('span');right.textContent=gameTime(s.worldMinutes);
@@ -9019,7 +9092,7 @@ function renderJourneyDiary(out){
   out.appendChild(section);
  }
 }
-function journal(tab='discoveries'){if(activeDialogueSurface()&&tab!=='map')return;tickBeetleCare();closePlaceDrawer();$('journalVeil').classList.remove('hidden');journalTab=tab;$('journalTabs').replaceChildren();const tabs=[['journey','旅途'],['discoveries','發現'],['map','地點'],['party','相遇者'],['items','物品與材料'],['bestiary','怪物圖鑑'],['terrarium','生態箱']];for(const [key,label] of tabs){const b=document.createElement('button');b.className='journal-tab'+(tab===key?' selected':'');b.textContent=label;b.onclick=()=>journal(key);$('journalTabs').appendChild(b);}const out=$('journalContent');out.replaceChildren();if(tab==='map'){renderRouteMap(out);return;}if(tab==='items'){renderWalletPanel(out);renderRecoveredItems(out);return;}if(tab==='bestiary'){renderCreatureBestiary(out);return;}if(tab==='terrarium'){renderRustTerrarium(out);return;}if(tab==='journey'){renderJourneyDiary(out);return;}let list=[];if(tab==='discoveries')list=s.notes.length?s.notes:['目前尚無額外發現。直接往前走也能繼續冒險。'];if(tab==='party')list=s.flags.rescued?s.party.map(i=>roster[i].name+'｜'+roster[i].speech):['尚未與冒險者正式相遇。'];const ul=document.createElement('ul');ul.className='journal-list';for(const item of list){const li=document.createElement('li');li.textContent=item;ul.appendChild(li);}out.appendChild(ul);}
+function journal(tab='discoveries'){if(activeDialogueSurface()&&tab!=='map')return;tickBeetleCare();closePlaceDrawer();$('journalVeil').classList.remove('hidden');journalTab=tab;$('journalTabs').replaceChildren();const tabs=[['journey','旅途'],['discoveries','發現'],['map','地點'],['party','相遇者'],['items','物品與材料'],['bestiary','怪物圖鑑'],['terrarium','生態箱']];for(const [key,label] of tabs){const b=document.createElement('button');b.className='journal-tab'+(tab===key?' selected':'');b.textContent=label;b.onclick=()=>journal(key);$('journalTabs').appendChild(b);}const out=$('journalContent');out.replaceChildren();if(tab==='map'){renderRouteMap(out);return;}if(tab==='items'){renderWalletPanel(out);if(CITY_NATIVE)renderBackpackPanel(out);else renderRecoveredItems(out);return;}if(tab==='bestiary'){renderCreatureBestiary(out);return;}if(tab==='terrarium'){renderRustTerrarium(out);return;}if(tab==='journey'){renderJourneyDiary(out);return;}let list=[];if(tab==='discoveries')list=s.notes.length?s.notes:['目前尚無額外發現。直接往前走也能繼續冒險。'];if(tab==='party')list=s.flags.rescued?s.party.map(i=>roster[i].name+'｜'+roster[i].speech):['尚未與冒險者正式相遇。'];const ul=document.createElement('ul');ul.className='journal-list';for(const item of list){const li=document.createElement('li');li.textContent=item;ul.appendChild(li);}out.appendChild(ul);}
 function setTravelHud(mode){if(!['compact','expanded'].includes(mode))return;s.travelHudMode=mode;save();renderFeed();}
 $('playerStatusButton').onclick=showPlayerStatus;
 $('hudCharacterBtn').onclick=()=>setActiveSideTab('character');
@@ -9086,7 +9159,7 @@ if(MIND_LIVE_TRIAL){
  btn.onclick=async()=>{const actor=s;$('menuVeil').classList.add('hidden');if(!mindTrialAllowed()){toast('請在可探索的破損馬車場景使用。');return}btn.disabled=true;try{await loadMindTrial();if(s===actor&&mindTrialAllowed())showMindTrial()}catch(err){toast('心象測試載入失敗，請重新整理。');console.warn(err)}finally{btn.disabled=false}};
 }
 
-$('restartBtn').onclick=()=>{if(!confirm('確定重新開始？目前本機存檔將被覆蓋。'))return;closeSceneDialogue();window.DungeonSaveV1.allowReplacement();s=initial();paperDollTryOn=false;equipmentSelected='bag';previewPeriod=null;previewWeather=null;previewWind=null;previewWindDir=null;hideSceneActors();hideSceneInspection();refreshSceneFraming();$('menuVeil').classList.add('hidden');render();openWreckIntroduction();toast('已開始新的旅程');};
+$('restartBtn').onclick=()=>{if(CITY_NATIVE){location.href='?campaign=city&start=new';return;}if(!confirm('確定重新開始？目前本機存檔將被覆蓋。'))return;closeSceneDialogue();window.DungeonSaveV1.allowReplacement();s=initial();paperDollTryOn=false;equipmentSelected='bag';previewPeriod=null;previewWeather=null;previewWind=null;previewWindDir=null;hideSceneActors();hideSceneInspection();refreshSceneFraming();$('menuVeil').classList.add('hidden');render();openWreckIntroduction();toast('已開始新的旅程');};
 function downloadSave(actor,filename){
  const blob=new Blob([window.DungeonSaveV1.exportText(actor,names)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');
  a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
@@ -9130,7 +9203,7 @@ $('fileInput').onchange=async e=>{
   toast(stored?'已匯入存檔':'已匯入至本次遊戲，但本機儲存失敗');
  }catch{alert('無法讀取這份存檔。');}finally{e.target.value='';}
 };
-$('startBtn').onclick=()=>{if(window.DungeonSaveV1.diagnostics().writeProtected&&!confirm('原始存檔無法讀取。確定開始新遊戲並覆寫？'))return;closeSceneDialogue();window.DungeonSaveV1.allowReplacement();s=initial();paperDollTryOn=false;equipmentSelected='bag';previewPeriod=null;refreshSceneFraming();hasSave=true;$('startVeil').classList.add('hidden');render();openWreckIntroduction();};if(hasSave){$('continueBtn').classList.remove('hidden');$('continueBtn').onclick=()=>{$('startVeil').classList.add('hidden');render();if(s.flags.inBattle)battleDialog('繼續尚未結束的遭遇戰。');else openWreckIntroduction();};}
+$('startBtn').onclick=()=>{if(CITY_NATIVE){location.href='./';return;}if(window.DungeonSaveV1.diagnostics().writeProtected&&!confirm('原始存檔無法讀取。確定開始新遊戲並覆寫？'))return;closeSceneDialogue();window.DungeonSaveV1.allowReplacement();s=initial();paperDollTryOn=false;equipmentSelected='bag';previewPeriod=null;refreshSceneFraming();hasSave=true;$('startVeil').classList.add('hidden');render();openWreckIntroduction();};if(hasSave){$('continueBtn').classList.remove('hidden');$('continueBtn').onclick=()=>{$('startVeil').classList.add('hidden');render();if(s.flags.inBattle)battleDialog('繼續尚未結束的遭遇戰。');else openWreckIntroduction();};}
 window.addEventListener('keydown',e=>{
 if(e.metaKey||e.ctrlKey||e.altKey||e.target.matches('input,textarea,select,[contenteditable="true"]'))return;
 const active=activeDialogueSurface();
@@ -9272,6 +9345,7 @@ function wreckBattleBackdropActive(sceneId=s.scene){
  return sceneId==='wreck'&&s.flags.inBattle&&wreckBattleBase.complete&&wreckBattleBase.naturalWidth>0;
 }
 function sceneDraw(time,sceneId=s.scene,thumbnail=false){
+ if(CITY_NATIVE){ctx.clearRect(0,0,W,H);return;}
  ensureSceneArt(sceneId);
  ctx.clearRect(0,0,W,H);
  if(!thumbnail){
@@ -9380,13 +9454,19 @@ function frame(ms){
  if(ms-last>68){
   t=ms/1000;renderPerf?.draw(ms);
   runVisual('scene',()=>sceneDraw(t));
-  runVisual('weather',()=>window.DungeonWeatherV1?.draw(ms,adaptiveQuality.profile().particleScale));
+  if(!CITY_NATIVE)runVisual('weather',()=>window.DungeonWeatherV1?.draw(ms,adaptiveQuality.profile().particleScale));
   runVisual('thumbnail',()=>drawLocationThumbnail(ms),{cooldown:3000,threshold:3});
   last=ms;
  }
-}requestAnimationFrame(frame);render();
+}if(CITY_NATIVE){
+ $('startVeil').classList.add('hidden');
+ for(const id of ['importBtn','restorePreviousBtn','exportPreviousBtn','exportBtn','battlePlaytestBtn'])if($(id))$(id).hidden=true;
+ const home=document.createElement('a');home.className='choice';home.href='./';home.textContent='返回遊戲主選單';$('menuVeil').querySelector('.panel').appendChild(home);
+ try{history.replaceState(null,'',location.pathname+'?campaign=city');}catch{}
+}
+requestAnimationFrame(frame);render();
 })();
 </script>
-<script src="./assets/city_campaign_save_v1.js?v=1"></script><script>try{const slot=window.DungeonCityCampaignSaveV1.load(localStorage);const link=document.getElementById("cityContinueBtn");if(slot.status==="ok"||slot.status==="invalid")link.classList.remove("hidden");}catch{}</script>
+<script>try{const slot=window.DungeonCityCampaignSaveV1.load(localStorage);const link=document.getElementById("cityContinueBtn");if(slot.status==="ok"||slot.status==="invalid")link.classList.remove("hidden");}catch{}</script>
 </body>
 </html>

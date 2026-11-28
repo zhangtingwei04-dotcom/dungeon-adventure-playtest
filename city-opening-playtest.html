@@ -233,6 +233,11 @@ main:has(#layoutEditor[open]:not([hidden])) .furniture[aria-pressed=true]{outlin
 .furniture[data-item=window][data-curtain=half][data-curtain-from=closed] .curtain-panel,.furniture[data-item=window][data-curtain=closed][data-curtain-from=half] .curtain-panel{transition:transform .8s cubic-bezier(.42,0,.58,1)}
 @media(prefers-reduced-motion:reduce){#room .door-opening,#room .door-leaf,.door-swing,.curtain-panel,#room::after,.furniture[data-item=lamp] img{transition:none}}
 html[data-campaign=game] #layoutQuick,html[data-campaign=game] #layoutEditor,html[data-campaign=game] #roomWeather{display:none!important}
+html[data-renderer=scene],html[data-renderer=scene] body{margin:0;width:100%;height:100%;min-height:0;overflow:hidden}
+html[data-renderer=scene] body>header,html[data-renderer=scene] .side,html[data-renderer=scene] .dialog,html[data-renderer=scene] .orientation,html[data-renderer=scene] #targets{display:none!important}
+html[data-renderer=scene] body>main,html[data-renderer=scene] .center{display:contents!important}
+html[data-renderer=scene] #scene{position:absolute;inset:0;border:0;width:100%;height:100%;aspect-ratio:auto;pointer-events:none}
+html[data-renderer=scene] .furniture{outline:none!important}
 </style></head><body><header><strong>迷宮盡頭的燈火</strong><span id="clock"></span><button id="layoutQuick" type="button" aria-controls="layoutEditor" aria-expanded="false">家具調整</button><span class="muted">城鎮開場 V0.66</span></header><main><aside class="side"><h2>旅途紀錄</h2><div id="log" class="log"></div></aside><div class="center"><div id="scene" class="scene" data-scene="rental-room">
 <div id="room"><img class="room-base" src="assets/interiors/rental-room/empty.png" alt="城鎮出租屋室內"><span id="windowLightBeam" aria-hidden="true"></span><div id="furniture"></div><canvas id="roomLighting" width="240" height="135" aria-hidden="true"></canvas></div>
 <svg id="corridor" role="img" aria-label="二樓公共走廊與樓梯" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540"><defs>
@@ -253,7 +258,7 @@ html[data-campaign=game] #layoutQuick,html[data-campaign=game] #layoutEditor,htm
 <script src="assets/rental_window_sky_v1.js?v=5"></script>
 <script src="assets/city_exterior_v1.js?v=7"></script>
 <script src="assets/lighting_core_v1.js?v=4"></script>
-<script src="assets/city_opening_view_v1.js?v=63"></script>
+<script src="assets/city_opening_view_v1.js?v=64"></script>
 <script>
 (function(){
  const panel=document.getElementById('layoutEditor'), quick=document.getElementById('layoutQuick');
