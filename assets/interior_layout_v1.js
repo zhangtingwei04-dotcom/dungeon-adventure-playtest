@@ -4,12 +4,12 @@
 
   const rentalRoom = Object.freeze([
     { id: 'window', x: 46, y: 51, width: 25, scale: 1, angle: 0, z: 10 },
-    { id: 'mirror', x: 69, y: 47, width: 5, scale: 1, angle: 0, z: 11 },
-    { id: 'door', x: 85, y: 74, width: 12, scale: 1, angle: 0, z: 12 },
-    { id: 'rug', x: 48, y: 96, width: 33, scale: 1, angle: 0, z: 13 },
+    { id: 'mirror', x: 84, y: 51, width: 5, scale: 1, angle: 0, z: 11 },
+    { id: 'door', x: 69, y: 69, width: 13, scale: 1, angle: 0, z: 12 },
+    { id: 'rug', x: 62, y: 98, width: 24, scale: 1, angle: 0, z: 13 },
     { id: 'wardrobe', x: 18, y: 68, width: 15, scale: 1, angle: 0, z: 14 },
-    { id: 'desk', x: 63, y: 84, width: 28, scale: 1, angle: 0, z: 15 },
-    { id: 'bed', x: 28, y: 92, width: 31, scale: 1, angle: 0, z: 16 }
+    { id: 'desk', x: 51, y: 81, width: 23, scale: 1, angle: 0, z: 15 },
+    { id: 'bed', x: 27, y: 93, width: 28, scale: 1, angle: 0, z: 16 }
   ].map(Object.freeze));
 
   const fields = Object.freeze({

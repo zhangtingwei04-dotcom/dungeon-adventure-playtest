@@ -20,9 +20,20 @@
   } catch {
     // The default room is usable when browser storage is unavailable.
   }
+  // Older saves wrote every field. Keep only fields changed from the previous layout.
+  const previous = {
+    bed: { x: 28, y: 92 }, wardrobe: { x: 18, y: 68 }, desk: { x: 63, y: 84 },
+    window: { x: 46, y: 51 }, door: { x: 85, y: 74 }, mirror: { x: 69, y: 47 },
+    rug: { x: 48, y: 96 }
+  };
+  overrides = Object.fromEntries(layout.rentalRoom.map(item => {
+    const saved = overrides?.[item.id];
+    const fields = Object.keys(layout.fields).filter(key => Number.isFinite(saved?.[key]));
+    const edited = fields.filter(key => !Object.hasOwn(saved, 'width')
+      || saved[key] !== (previous[item.id]?.[key] ?? item[key]));
+    return [item.id, Object.fromEntries(edited.map(key => [key, saved[key]]))];
+  }));
   let placements = layout.applyOverrides(layout.rentalRoom, overrides);
-  // Use the validated values as the source for future saves.
-  overrides = Object.fromEntries(placements.map(item => [item.id, item]));
 
   function button(label, action) {
     const element = document.createElement('button');
@@ -140,14 +151,14 @@
       input.value = item[key];
       input.oninput = () => {
         if (!Number.isFinite(input.valueAsNumber)) return;
-        overrides[item.id][key] = input.valueAsNumber;
+        (overrides[item.id] ??= {})[key] = input.valueAsNumber;
         placements = layout.applyOverrides(layout.rentalRoom, overrides);
         get('layoutStatus').textContent = '配置尚未儲存。';
         renderFurniture();
       };
       input.onchange = () => {
         const value = placements.find(placement => placement.id === item.id)[key];
-        overrides[item.id][key] = value;
+        if (overrides[item.id]) overrides[item.id][key] = value;
         input.value = value;
       };
       label.append(input);
@@ -173,7 +184,7 @@
   get('layoutSave').onclick = () => saveLayout(false);
   get('layoutReset').onclick = () => {
     placements = layout.applyOverrides(layout.rentalRoom);
-    overrides = Object.fromEntries(placements.map(item => [item.id, item]));
+    overrides = {};
     renderFields();
     saveLayout(true);
   };
