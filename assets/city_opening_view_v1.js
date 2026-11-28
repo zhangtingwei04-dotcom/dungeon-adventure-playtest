@@ -202,7 +202,15 @@
         wetGlass.append(drop);
       }
       element.append(wetGlass);
-      window.DungeonRentalCurtainMotionV1.mount(element);
+      const curtains = document.createElement('span');
+      curtains.className = 'curtain-cover';
+      curtains.setAttribute('aria-hidden', 'true');
+      for (const side of ['left','right']) {
+        const cloth = document.createElement('span');
+        cloth.className = 'curtain-panel curtain-' + side;
+        curtains.append(cloth);
+      }
+      element.append(curtains);
     }
     get('furniture').append(element);
     furniture.set(item.id, element);
@@ -260,9 +268,36 @@
     };
   }
 
+  let curtainSwapFrame = null;
   function updateCurtainState(element, open) {
-    element.dataset.open = String(open);
-    window.DungeonRentalCurtainMotionV1.setOpen(element, open);
+    const next = String(open);
+    const first = !element.hasAttribute('data-tied-hidden');
+    if (element.dataset.open === next && !first) return;
+    if (curtainSwapFrame !== null) cancelAnimationFrame(curtainSwapFrame);
+    curtainSwapFrame = null;
+    element.dataset.open = next;
+    if (first || reduceMotion.matches) {
+      element.dataset.tiedHidden = String(!open);
+      return;
+    }
+    const panels = [...element.querySelectorAll('.curtain-panel')];
+    const cover = element.querySelector('.curtain-cover');
+    const started = performance.now();
+    function track(now) {
+      // Both strips must actually cover the tied-curtain mask, not just reach a timer.
+      const width = element.getBoundingClientRect().width;
+      const enough = width > 0 && cover && panels.length === 2 && panels.every(panel =>
+        panel.getBoundingClientRect().width >= width * .30 &&
+        Number(getComputedStyle(panel).opacity) >= .98);
+      element.dataset.tiedHidden = String(enough);
+      if (now - started < 1750 && element.dataset.open === next) {
+        curtainSwapFrame = requestAnimationFrame(track);
+      } else {
+        element.dataset.tiedHidden = String(!open);
+        curtainSwapFrame = null;
+      }
+    }
+    curtainSwapFrame = requestAnimationFrame(track);
   }
 
   function renderFurniture() {
