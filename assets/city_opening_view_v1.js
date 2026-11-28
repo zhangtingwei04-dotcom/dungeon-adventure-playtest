@@ -61,7 +61,31 @@
     return Number.isFinite(n) ? clamp(n, field) : field.initial;
   };
   let chestPreview = 'open';
+  const campaignMode=new URLSearchParams(location.search).get('mode')==='game';
+  const campaign=window.DungeonCityCampaignSaveV1;
+  document.documentElement.dataset.campaign=campaignMode?'game':'dev';
+  const saveStatus=get('campaignSaveStatus');
+  let saveBlocked=false;
   let game = city.create();
+  if(campaignMode){
+    saveStatus.hidden=false;
+    let slot;
+    try{slot=campaign.load(localStorage);}catch{slot={status:'unavailable'};}
+    const params=new URLSearchParams(location.search);
+    const newRun=params.get('start')==='new';
+    const replace=newRun&&['ok','invalid'].includes(slot.status)&&confirm('開始新的城鎮旅程？目前城鎮存檔會保留一份備份。舊版森林存檔不受影響。');
+    if(slot.status==='ok'&&!replace)game=slot.state;
+    else if(slot.status==='invalid'&&!replace){saveBlocked=true;saveStatus.textContent='城鎮存檔無法讀取。暫不覆寫，重新開始需另行確認。';}
+    else if(replace){try{saveBlocked=!campaign.write(localStorage,game,{replace:true});}catch{saveBlocked=true;}}
+    if(slot.status==='unavailable')saveBlocked=true;
+    if(newRun){params.delete('start');history.replaceState(null,'',location.pathname+'?'+params.toString()+location.hash);}
+  }
+  function saveCampaign(){
+    if(!campaignMode||saveBlocked)return;
+    try{saveStatus.textContent=campaign.write(localStorage,game)?'城鎮進度已儲存':'無法儲存城鎮進度';}
+    catch{saveStatus.textContent='瀏覽器儲存不可用';}
+  }
+  if(campaignMode&&saveBlocked&&!saveStatus.textContent)saveStatus.textContent='儲存不可用；目前進度僅保留於此頁。';
   let selected = null;
   let observingWindow=false;
   let curtainAnimating=false;
@@ -100,6 +124,7 @@
     }
     return [item.id, values];
   }));
+  if(campaignMode)overrides={};
   let placements = layout.applyOverrides(layout.rentalRoom, overrides);
 
   function button(label, action) {
@@ -531,7 +556,7 @@
     windowObject.dataset.birds = !visible.rain && !visible.snow &&
       weather.activity('bird', visible) && weather.wildlifeWindMode('bird', visible.wind) === 'normal'
       ? 'normal' : 'quiet';
-    get('roomWeather').hidden = !room && game.scene!=='rental-corridor';
+    get('roomWeather').hidden = campaignMode||(!room && game.scene!=='rental-corridor');
     const label = visible.name + (preview === 'auto' ? '' : '（預覽）');
     const status = get('windowWeatherStatus');
     if (status.textContent !== label) status.textContent = label;
@@ -633,6 +658,7 @@
   }
 
   function render() {
+    saveCampaign();
     const room = game.scene === 'rental-room';
     if(!room||(!curtainAnimating&&city.curtainState(game)==='closed'))observingWindow=false;
     get('scene').dataset.scene = game.scene;
@@ -819,8 +845,10 @@
   };
   get('reset').onclick = () => {
     if(doorTransit||curtainAnimating)return;
-    if (!confirm('重新開始城鎮開場試玩？')) return;
-    game = city.create();
+    if (!confirm(campaignMode?'重新開始城鎮旅程？目前城鎮存檔將備份，舊版森林存檔不受影響。':'重新開始城鎮開場試玩？')) return;
+    const fresh=city.create();
+    if(campaignMode){try{saveBlocked=!campaign.write(localStorage,fresh,{replace:true});}catch{saveBlocked=true;}if(saveBlocked)saveStatus.textContent='無法儲存，重新開始僅套用於此頁。';}
+    game = fresh;
     observingWindow=false;
     weatherPicker.value = 'auto';
     lightPreview.value='auto';
