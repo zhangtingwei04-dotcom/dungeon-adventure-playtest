@@ -4,7 +4,7 @@
 const area=Object.freeze({id:'residential-quarter',weatherSeed:'city-opening-v1',weatherScene:'home',style:'timber-stone-medieval',calendarMode:'fixed-daylight',streetId:'rental-street',corridorId:'rental-corridor',roomFloor:2});
 // Relative directions are provisional until the town map is authored.
 const views=Object.freeze({
- window:Object.freeze({id:'rental-window',area:area.id,direction:'rear',distance:'town-skyline',asset:'assets/interiors/rental-room/reference/window.webp'}),
+ window:Object.freeze({id:'rental-window',area:area.id,direction:'rear',distance:'town-skyline',asset:'assets/interiors/rental-room/reference/window-clean-v1.svg'}),
  door:Object.freeze({id:'rental-door',area:area.id,direction:'right',distance:'interior-near',destination:area.corridorId,presentation:'shadow-only'}),
  corridor:Object.freeze({id:area.corridorId,area:area.id,floor:2,asset:'assets/interiors/rental-room/corridor-v1.svg',assetStatus:'layout-prototype',returnsTo:'rental-room',stairsTo:area.streetId}),
  street:Object.freeze({id:area.streetId,area:area.id,direction:'street-level',distance:'street-full',returnsTo:area.corridorId,assetStatus:'placeholder'})
