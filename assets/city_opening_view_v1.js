@@ -31,7 +31,7 @@
     chest: {
       depth: { label: '景深：往內 + / 往外 − (%)', min: -20, max: 35, step: 0.5, initial: 0 },
       depthDirection: { label: '景深方向角度 (°)', min: -25, max: 65, step: 1, initial: 0 },
-      pitch: { label: '箱身前後俯仰 (°)', min: -25, max: 25, step: 0.5, initial: 0 },
+      pitch: { label: '箱身上下角度 (°)', min: -45, max: 45, step: 0.5, initial: 0 },
       yaw: { label: '箱身左右朝向 (°)', min: -25, max: 25, step: 0.5, initial: 0 },
       leftLean: { label: '左側邊線傾斜 (°)', min: -15, max: 15, step: 0.5, initial: 0 },
       rightLean: { label: '右側邊線傾斜 (°)', min: -15, max: 15, step: 0.5, initial: 0 },
@@ -398,7 +398,7 @@
     const item = placements.find(placement => placement.id === itemPicker.value);
     const special = detailFields[item.id] || {};
     const valueFor = key => Object.hasOwn(special, key) ? detailValue(item.id, key) : placements.find(p => p.id === item.id)[key];
-    const chestOrder = ['depth','depthDirection','yaw','pitch','y','x','leftLean','rightLean','leftHeight','rightHeight','angle','scale','z','openX','openY','openScale','openAngle','openSkew','openWidth'];
+    const chestOrder = ['depth','pitch','yaw','depthDirection','y','x','leftLean','rightLean','leftHeight','rightHeight','angle','scale','z','openX','openY','openScale','openAngle','openSkew','openWidth'];
     const allFields = { ...layout.fields, ...special };
     const fields = (item.id === 'chest' ? chestOrder.map(key => [key,allFields[key]]) : Object.entries(allFields)).map(([key, field]) => {
       const label = document.createElement('label');
