@@ -8,6 +8,15 @@
   const storageKey = 'dungeon_rental_room_layout_v1';
   const get = id => document.getElementById(id);
   const editor = get('layoutEditor');
+  const weather = window.DungeonWeatherV1;
+  const weatherPicker = get('windowWeather');
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  const portrait = matchMedia('(orientation:portrait) and (max-width:767px), (orientation:portrait) and (pointer:coarse)');
+  for (const [kind, details] of Object.entries(weather.kinds)) {
+    weatherPicker.add(new Option(details.name + '預覽', kind));
+  }
+  let weatherFrame = 0;
+  let lastWeatherFrame = 0;
   const itemPicker = get('layoutItem');
   const labels = new Map(city.objects.map(item => [item.id, item.name]));
   const decorations = { rug: '地毯', shelves: '壁架', chest: '木箱', lamp: '吊燈', 'left-shelf': '左牆木架', 'wall-map': '左牆掛圖', 'right-wall-map': '右牆掛圖' };
@@ -77,6 +86,11 @@
       motion.append(bird);
       element.append(motion);
       window.DungeonRentalWindowSkyV1.mount(image, motion);
+      const glassWeather = document.createElement('canvas');
+      glassWeather.className = 'window-weather';
+      glassWeather.setAttribute('aria-hidden', 'true');
+      element.append(glassWeather);
+      weather.bind(glassWeather);
     }
     get('furniture').append(element);
     furniture.set(item.id, element);
@@ -98,6 +112,46 @@
       element.classList.toggle('is-editing', editor.open && itemPicker.value === item.id);
     }
   }
+
+  function drawWeather(ms) {
+    if (ms - lastWeatherFrame >= 33) {
+      weather.draw(ms, 0.5);
+      lastWeatherFrame = ms;
+    }
+    weatherFrame = requestAnimationFrame(drawWeather);
+  }
+
+  function renderWeather() {
+    const room = game.scene === 'rental-room';
+    const preview = weatherPicker.value;
+    const actual = weather.at('city-opening-v1', game.worldMinutes, 'home');
+    const visible = preview === 'auto'
+      ? actual
+      : { ...actual, snow: 0, overcast: 0, ...weather.kinds[preview], kind: preview };
+    const windowObject = furniture.get('window');
+    windowObject.dataset.weather = visible.kind;
+    windowObject.dataset.birds = !visible.rain && !visible.snow &&
+      weather.activity('bird', visible) && weather.wildlifeWindMode('bird', visible.wind) === 'normal'
+      ? 'normal' : 'quiet';
+    get('roomWeather').hidden = !room;
+    const label = visible.name + (preview === 'auto' ? '' : '（預覽）');
+    const status = get('windowWeatherStatus');
+    if (status.textContent !== label) status.textContent = label;
+
+    const active = room && !portrait.matches && !document.hidden && visible.kind !== 'clear';
+    weather.set(visible, !active, reduceMotion.matches, { scene: 'home' });
+    if (active && !weatherFrame) weatherFrame = requestAnimationFrame(drawWeather);
+    if (!active && weatherFrame) {
+      cancelAnimationFrame(weatherFrame);
+      weatherFrame = 0;
+      lastWeatherFrame = 0;
+    }
+  }
+
+  weatherPicker.onchange = renderWeather;
+  reduceMotion.addEventListener('change', renderWeather);
+  portrait.addEventListener('change', renderWeather);
+  document.addEventListener('visibilitychange', renderWeather);
 
   function render() {
     const room = game.scene === 'rental-room';
@@ -122,6 +176,7 @@
     });
     get('log').replaceChildren(...entries);
     renderFurniture();
+    renderWeather();
     returnButton.setAttribute('aria-pressed', String(selected === 'return'));
 
     const view = city.inspect(game, selected);
