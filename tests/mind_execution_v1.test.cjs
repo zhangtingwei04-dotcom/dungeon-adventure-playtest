@@ -1,0 +1,25 @@
+const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');const ctx=vm.createContext({window:{}});for(const f of ['engine_foundation_v1.js','mind_core_v1.js','mind_execution_v1.js'])vm.runInContext(fs.readFileSync(path.join(__dirname,'../assets',f),'utf8'),ctx);if(!ctx.window.DungeonEngineV1.status().some(x=>x.id==='mind.execution'&&x.state==='ready'))throw Error('registry');console.log('Mind execution: '+(function test(c,e){
+ let n=0;const check=(v,m)=>{if(!v)throw Error(m);n++};
+ let p=c.createProfile({schoolId:"school-4-0",main:"影",phases:["影","續"]});p=c.observe(p,"wolf");p=c.createSkill(p,{id:"wolf",name:"狼",allocations:[{phase:"影",branch:"形",share:60},{phase:"續",branch:"循",share:40}],materials:["wolf"]});
+ check(e.compatible(p,"wolf").map(t=>t.id).join(",")==="construct,link,beast","templates");
+ let s=e.createState(100);
+ check(!e.activate(s,p,"unknown","beast").ok,"ownership");
+ check(!e.activate(s,p,"wolf","release").ok,"missing phase");
+ check(!e.activate(s,p,"wolf","beast",{cost:101}).ok,"budget");
+ check(!e.activate(s,p,"wolf","beast",{cost:20,upkeep:0}).ok,"free upkeep");
+ let r=e.activate(s,p,"wolf","beast",{cost:20,upkeep:30});check(r.ok,"activate");check(s.energy===100&&s.active.length===0,"immutable");s=r.state;
+ check(s.energy===80&&s.active.length===1,"cost");check(r.effect.power===3.2,"bottleneck");
+ check(!e.activate(s,p,"wolf","beast").ok,"no duplicate");
+ s=e.advance(s).state;check(s.energy===50&&s.turn===1,"tick");
+ s=e.advance(s).state;check(s.energy===20,"tick2");
+ r=e.advance(s);check(r.state.active.length===0&&r.state.energy===20&&r.events[0].reason==="ENERGY_DEPLETED","end");
+ r=e.activate(e.createState(),p,"wolf","construct",{cost:10,duration:2});check(r.ok&&r.state.energy===90,"finite");s=e.advance(r.state).state;check(s.active[0].remaining===1&&s.energy===90,"finite no upkeep");s=e.advance(s).state;check(s.active.length===0,"expiry");
+ r=e.activate(e.createState(),p,"wolf","link");s=e.release(r.state,r.effect.id).state;check(s.active.length===0&&s.energy===80,"release no refund");
+ check(!e.release(s,"missing").ok,"unknown release");
+ let a=c.createProfile({schoolId:"school-1-0",main:"光",phases:["光"]});a=c.createSkill(a,{id:"ray",name:"光",allocations:[{phase:"光",share:100}],materials:[]});
+ r=e.activate(e.createState(),a,"ray","release",{cost:10});check(r.ok&&r.effect.power===10&&r.state.active.length===0,"instant");
+ let bad={...p,phases:["影"]};check(!e.inspect(bad,"wolf","beast").ok,"revalidation");
+ check(!e.activate(e.createState(),p,"wolf","beast",{cost:NaN}).ok,"nonfinite");
+ check(!e.activate(e.createState(),p,"wolf","construct",{duration:0}).ok,"duration");
+ return n;
+})(ctx.window.DungeonMindCoreV1,ctx.window.DungeonMindExecutionV1)+' assertions passed');
