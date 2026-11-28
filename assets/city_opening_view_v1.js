@@ -282,6 +282,7 @@
   returnButton.style.left = '17%';
   returnButton.style.top = '62%';
   const stairsButton=button('樓梯',()=>select('stairs'));stairsButton.className='spot';stairsButton.style.left='65%';stairsButton.style.top='76%';get('targets').append(stairsButton);
+  const reportButton=button('燈火會報到（流程測試）',()=>select('report-office'));reportButton.className='spot';reportButton.style.left='65%';reportButton.style.top='65%';get('targets').append(reportButton);
 
   // Project the full sprite, preserving the common body/lid silhouette.
   // The bottom two corners are fixed; left and right upper corners move independently.
@@ -646,7 +647,12 @@
     stairsButton.style.display=corridor?'':'none';returnButton.textContent=corridor?'返回房間':'返回住宅走廊';
     stairsButton.setAttribute('aria-pressed',String(selected==='stairs'));
     get('clothes').textContent = city.wornNames(game).join('、')||'室內衣著';
-    get('notice').textContent = game.flags.noticeRead ? '校方通知已讀；待後續報到安排。' : '可查看桌上的校方通知。';
+    reportButton.style.display=game.scene==='rental-street'?'':'none';
+    reportButton.setAttribute('aria-pressed',String(selected==='report-office'));
+    const report=city.reportStatus(game);
+    const notice=get('notice');
+    notice.textContent=report.completed?report.message:!report.read&&report.notice==='desk'?'可查看桌上的校方通知。':'燈火會報到｜第1日 09:00–11:00\n'+report.message+'\n'+report.requirements.map(r=>(r.ok?'✓ ':'○ ')+r.label).join('\n');
+    notice.style.whiteSpace='pre-line';
 
     const entries = [...game.travelLog].reverse().map(entry => {
       const row = document.createElement('div');
@@ -689,11 +695,14 @@
       return;
     }
 
-    get('dialogTitle').textContent = room ? (labels.get(selected)??(selected==='wardrobe-items'?'衣物管理':city.wardrobeItems.find(item=>'wardrobe-item:'+item.id===selected)?.name??'衣櫃')) : selected==='stairs'?'樓梯':corridor?'返回房間':'返回住宅走廊';
+    get('dialogTitle').textContent = selected==='report-notice'?'報到須知':selected==='report-office'?'燈火會報到（流程測試）':room ? (labels.get(selected)??(selected==='wardrobe-items'?'衣物管理':city.wardrobeItems.find(item=>'wardrobe-item:'+item.id===selected)?.name??'衣櫃')) : selected==='stairs'?'樓梯':corridor?'返回房間':'返回住宅走廊';
     get('dialogText').textContent = view.text;
     for (const [key, label] of view.actions) {
       const choice=button(label, () => {
         if(doorTransit||curtainAnimating)return;
+        if(key==='notice-back'){select('desk');return;}
+        if(key==='report-back'){select(selected==='report-notice'?'report-office':null);return;}
+        if(key==='notice-view'){select('report-notice');return;}
         if(key==='storage-list'){select('wardrobe-items');return;}
         if(key==='storage-back'){select('wardrobe');return;}
         if(key.startsWith('item:')){select('wardrobe-item:'+key.slice(5));return;}
@@ -703,6 +712,7 @@
         get('status').textContent = result.ok
           ? result.message + (result.minutes ? '（' + result.minutes + '分鐘）' : '')
           : result.reason;
+        if(result.ok&&key==='read')selected='report-notice';
         if(result.ok&&key==='look'){observingWindow=true;editor.open=false;}
         if (result.ok && (['leave','return','downstairs'].includes(key))) selected = null;
         render();
