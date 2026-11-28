@@ -237,9 +237,14 @@
         wetGlass.append(drop);
       }
       element.append(wetGlass);
-      const shade = document.createElement('span');
-      shade.className = 'window-weather window-exterior-shade';
+      // Trace individual panes in the original 456×349 sprite coordinates.
+      // Slight overlap onto the inner bevel removes bright daylight seams at night.
+      const shade = document.createElementNS('http://www.w3.org/2000/svg','svg');
+      shade.setAttribute('class','window-exterior-shade');
+      shade.setAttribute('viewBox','0 0 456 349');
+      shade.setAttribute('preserveAspectRatio','none');
       shade.setAttribute('aria-hidden','true');
+      shade.innerHTML='<path d="M108 45H226V139H96L97 101Z M246 45H352L367 139H246Z M96 148H156V228H96Z M161 148H226V228H161Z M246 148H368V228H246Z M96 234H156V304H96Z M161 234H226V304H161Z M246 234H368V304H246Z M75 155V228H52L55 193Z M52 234H76V304H64L52 274Z M383 153L405 191L414 228H383Z M383 234H414L402 304H383Z" fill="#101a2c"/>';
       element.append(shade);
       const curtains = document.createElement('span');
       curtains.className = 'curtain-cover';
