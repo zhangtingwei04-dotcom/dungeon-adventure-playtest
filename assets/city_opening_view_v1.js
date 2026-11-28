@@ -13,6 +13,11 @@
   const thunderButton = get('windowThunder');
   let thunderSound = false;
   const exterior = window.DungeonCityExteriorV1;
+  const lighting=window.DungeonLightingV1;
+  const lightPreview=get('lightingPreview');
+  const lightCanvas=get('roomLighting');
+  const lightBeam=get('windowLightBeam');
+  let lightState=null,lightTarget=null,lightFrame=0;
   const glassDryMinutes = 90;
   let lastWeatherPreview = 'auto';
   let previewRainEndedAt = null;
@@ -284,13 +289,15 @@
   }
 
   let curtainSwapFrame = null;
-  function updateCurtainState(element, open) {
+  function updateCurtainState(element, state) {
+    const open=state==='open';
     const next = String(open);
     const first = !element.hasAttribute('data-tied-hidden');
-    if (element.dataset.open === next && !first) return;
+    if (element.dataset.curtain === state && !first) return;
     if (curtainSwapFrame !== null) cancelAnimationFrame(curtainSwapFrame);
     curtainSwapFrame = null;
     element.dataset.open = next;
+    element.dataset.curtain=state;
     if (first || reduceMotion.matches) {
       element.dataset.tiedHidden = String(!open);
       return;
@@ -305,7 +312,7 @@
         panel.getBoundingClientRect().width >= width * .30 &&
         Number(getComputedStyle(panel).opacity) >= .98);
       element.dataset.tiedHidden = String(enough);
-      if (now - started < 1750 && element.dataset.open === next) {
+      if (now - started < 1750 && element.dataset.curtain === state) {
         curtainSwapFrame = requestAnimationFrame(track);
       } else {
         element.dataset.tiedHidden = String(!open);
@@ -344,7 +351,7 @@
       if (['door','lamp'].includes(item.id)) {
         element.dataset.open = String(city.isOpen(game, item.id));
       }
-      if (item.id === 'window') updateCurtainState(element, city.isOpen(game, item.id));
+      if (item.id === 'window') updateCurtainState(element, city.curtainState(game));
       if (item.id === 'mirror') {
         element.querySelector('img').style.transform = `skewY(${detailValue('mirror', 'skewY')}deg) skewX(${detailValue('mirror', 'skewX')}deg)`;
       }
@@ -397,16 +404,40 @@
     door.style.setProperty('--door-light-core','#b78c60');
   }
 
+  function paintRoomLight(state) {
+    lightState=state;
+    lighting.paint(lightCanvas,state);
+    lightBeam.style.opacity=String(state.beam);
+    lightBeam.style.setProperty('--beam-width',String(state.beamWidth));
+    lightBeam.style.setProperty('--beam-color','rgb('+state.beamColor.map(Math.round).join(',')+')');
+  }
+  function renderRoomLighting(light) {
+    const windowPlacement=placements.find(p=>p.id==='window'),lampPlacement=placements.find(p=>p.id==='lamp');
+    const state=lighting.sample({exterior:light,curtain:city.curtainState(game),lamp:city.isOpen(game,'lamp'),windowX:windowPlacement.x/100,lampX:lampPlacement.x/100,lampY:lampPlacement.y/100});
+    const key=JSON.stringify(state);
+    if(key===lightTarget)return;
+    lightTarget=key;
+    if(lightFrame)cancelAnimationFrame(lightFrame);
+    lightFrame=0;
+    if(!lightState||reduceMotion.matches||game.scene!=='rental-room'||document.hidden){paintRoomLight(state);return;}
+    const start=lightState,at=performance.now(),duration=Math.abs(start.transmission-state.transmission)>.01?1650:420;
+    function step(now){const t=Math.min(1,(now-at)/duration);paintRoomLight(lighting.interpolate(start,state,t*t*(3-2*t)));if(t<1)lightFrame=requestAnimationFrame(step);else lightFrame=0;}
+    lightFrame=requestAnimationFrame(step);
+  }
+
   function renderWeather() {
     const room = game.scene === 'rental-room';
     const preview = weatherPicker.value;
     const outside = exterior.sample(weather, game.worldMinutes, preview);
-    const {actual, visible, light} = outside;
+    const {actual, visible} = outside;
+    const previewMinute={morning:420,noon:720,evening:1080,night:0}[lightPreview.value];
+    const light=previewMinute===undefined?outside.light:exterior.ambient(previewMinute,visible.kind);
+    renderRoomLighting(light);
     renderDoorAmbient();
     get('corridor').style.filter='brightness('+(.60+.40*Math.min(1,light.outsideBrightness))+')';
-    get('street').style.filter = 'brightness('+outside.streetBrightness+') saturate('+light.outsideSaturation+')';
+    get('street').style.filter = 'brightness('+Math.max(.14,light.outsideBrightness)+') saturate('+light.outsideSaturation+')';
     const windowShade = furniture.get('window').querySelector('.window-exterior-shade');
-    windowShade.style.opacity=String(outside.windowShade);
+    windowShade.style.opacity=String(Math.max(0,Math.min(.78,(1-(light.outsideBrightness-.1)/.98)*.78)));
     const windowObject = furniture.get('window');
     windowObject.dataset.weather = visible.kind;
     const wetGlass = windowObject.querySelector('.window-wet-glass');
@@ -442,6 +473,7 @@
     thunderButton.setAttribute('aria-pressed', String(thunderSound));
     renderWeather();
   };
+  lightPreview.onchange=renderWeather;
   weatherPicker.onchange = () => {
     const next = weatherPicker.value;
     if (next === 'auto' || weather.kinds[next]?.snow) previewRainEndedAt = null;
@@ -451,7 +483,7 @@
     lastWeatherPreview = next;
     renderWeather();
   };
-  reduceMotion.addEventListener('change', renderWeather);
+  reduceMotion.addEventListener('change',()=>{lightTarget=null;renderWeather();});
   portrait.addEventListener('change', renderWeather);
   document.addEventListener('visibilitychange', renderWeather);
 
@@ -500,7 +532,7 @@
     const room = game.scene === 'rental-room';
     get('scene').dataset.scene = game.scene;
     get('room').dataset.lamp = city.isOpen(game, 'lamp') ? 'on' : 'off';
-    get('room').dataset.curtains = city.isOpen(game, 'window') ? 'open' : 'closed';
+    get('room').dataset.curtains = city.curtainState(game);
     editor.hidden = !room;
     get('clock').textContent = time.format(game.worldMinutes);
     const corridor=game.scene==='rental-corridor';
@@ -657,6 +689,7 @@
     if (!confirm('重新開始城鎮開場試玩？')) return;
     game = city.create();
     weatherPicker.value = 'auto';
+    lightPreview.value='auto';
     lastWeatherPreview = 'auto';
     previewRainEndedAt = null;
     selected = null;

@@ -10,6 +10,7 @@
   chest:{name:"木箱",closed:"木箱的蓋子闔著。",open:"木箱蓋已掀起。"}
  });
  const isOpen=(a,id)=>a.flags.furnitureOpen?.[id]===true;
+ const curtainState=a=>["open","half","closed"].includes(a.flags.curtainState)?a.flags.curtainState:isOpen(a,"window")?"open":"closed";
  function inspectContainer(a,id){
   const item=containers[id],open=isOpen(a,id);
   const choices=open
@@ -17,13 +18,14 @@
    : [["open","打開"+item.name]];
   return {id,text:open?item.open:item.closed,actions:choices};
  }
- function inspect(a,id){if(a.scene==="rental-corridor"){if(id==="return")return {id,text:"這是自己的房間。",actions:[["return","回到房間"]]};if(id==="stairs")return {id,text:ready(a)?"木造樓梯通往一樓。":"木造樓梯通往一樓。前往街道前，請先回房換好外出衣著與鞋子。",actions:[["downstairs","下樓前往街道"]]};return null;}if(a.scene==="rental-street"){return id==="return"?{id,text:"沿原路上樓，回到二樓走廊。",actions:[["return","返回住宅走廊"]]}:null;}if(a.scene==="rental-room"&&!objects.some(o=>o.id===id)||a.scene==="rental-street"&&id!=="return"||!["rental-room","rental-street"].includes(a.scene))return null;if(Object.hasOwn(containers,id))return inspectContainer(a,id);if(id==="lamp")return {id,text:isOpen(a,id)?"吊燈正亮著。":"吊燈已熄滅。",actions:[[isOpen(a,id)?"switch-off":"switch-on",isOpen(a,id)?"熄滅吊燈":"點亮吊燈"]]};if(id==="window")return {id,text:isOpen(a,id)?"窗簾已拉開，可以看見街道。":"窗簾已拉上。",actions:isOpen(a,id)?[["curtain-close","拉上窗簾"],...actions.window]:[["curtain-open","拉開窗簾"]]};if(id==="door")return {id,text:isOpen(a,id)?"房門已打開。": "房門關著。",actions:[[isOpen(a,id)?"door-close":"door-open",isOpen(a,id)?"關上房門":"打開房門"],...actions.door]};const descriptions={bed:"一張簡單的木床，床邊放著昨晚整理好的物品。",desk:a.flags.noticeRead?"校方通知已閱讀，報到事項尚待確認。":"桌上放著軍校寄來的通知。",window:"清晨的街道漸漸熱鬧起來。",mirror:"鏡中的自己，正準備開始新的一天。",door:ready(a)?"已經換好外出衣著，可以出門。":"先換好外出衣著，再出門。",return:"沿著街道走回自己的出租屋。"};return {id,text:descriptions[id],actions:actions[id]}}
+ function inspect(a,id){if(a.scene==="rental-corridor"){if(id==="return")return {id,text:"這是自己的房間。",actions:[["return","回到房間"]]};if(id==="stairs")return {id,text:ready(a)?"木造樓梯通往一樓。":"木造樓梯通往一樓。前往街道前，請先回房換好外出衣著與鞋子。",actions:[["downstairs","下樓前往街道"]]};return null;}if(a.scene==="rental-street"){return id==="return"?{id,text:"沿原路上樓，回到二樓走廊。",actions:[["return","返回住宅走廊"]]}:null;}if(a.scene==="rental-room"&&!objects.some(o=>o.id===id)||a.scene==="rental-street"&&id!=="return"||!["rental-room","rental-street"].includes(a.scene))return null;if(Object.hasOwn(containers,id))return inspectContainer(a,id);if(id==="lamp")return {id,text:isOpen(a,id)?"吊燈正亮著。":"吊燈已熄滅。",actions:[[isOpen(a,id)?"switch-off":"switch-on",isOpen(a,id)?"熄滅吊燈":"點亮吊燈"]]};if(id==="window"){const state=curtainState(a);return {id,text:{open:"窗簾已拉開，可以看見城鎮。",half:"窗簾半開，部分自然光進入室內。",closed:"窗簾已拉上，只剩少量透光。"}[state],actions:[...([["curtain-open","拉開窗簾"],["curtain-half","半開窗簾"],["curtain-close","拉上窗簾"]].filter(([key])=>key!==({open:"curtain-open",half:"curtain-half",closed:"curtain-close"}[state]))),...(state!=="closed"?actions.window:[])]};}if(id==="door")return {id,text:isOpen(a,id)?"房門已打開。": "房門關著。",actions:[[isOpen(a,id)?"door-close":"door-open",isOpen(a,id)?"關上房門":"打開房門"],...actions.door]};const descriptions={bed:"一張簡單的木床，床邊放著昨晚整理好的物品。",desk:a.flags.noticeRead?"校方通知已閱讀，報到事項尚待確認。":"桌上放著軍校寄來的通知。",window:"清晨的街道漸漸熱鬧起來。",mirror:"鏡中的自己，正準備開始新的一天。",door:ready(a)?"已經換好外出衣著，可以出門。":"先換好外出衣著，再出門。",return:"沿著街道走回自己的出租屋。"};return {id,text:descriptions[id],actions:actions[id]}}
  function act(a,id,key){
   const view=inspect(a,id);if(!view?.actions.some(x=>x[0]===key))return {ok:false,reason:"無法在目前位置執行此行動。"};
   if(key==="open"||key==="close"){
    (a.flags.furnitureOpen??={})[id]=key==="open";
    return {ok:true,message:(key==="open"?"打開了":"關上了")+containers[id].name+"。",minutes:0};
   }
+  if(key.startsWith("curtain-")){const state={"curtain-open":"open","curtain-half":"half","curtain-close":"closed"}[key];if(state){a.flags.curtainState=state;(a.flags.furnitureOpen??={}).window=state!=="closed";return {ok:true,message:{open:"拉開了窗簾。",half:"將窗簾拉至半開。",closed:"拉上了窗簾。"}[state],minutes:0};}}
   const toggles={"switch-on":["lamp",true,"點亮了吊燈。"],"switch-off":["lamp",false,"熄滅了吊燈。"],"curtain-open":["window",true,"拉開了窗簾。"],"curtain-close":["window",false,"拉上了窗簾。"],"door-open":["door",true,"打開了房門。"],"door-close":["door",false,"關上了房門。"]};
   if(Object.hasOwn(toggles,key)){const [target,on,message]=toggles[key];(a.flags.furnitureOpen??={})[target]=on;return {ok:true,message,minutes:0};}
   if(key==="downstairs"&&!ready(a))return {ok:false,reason:"前往街道前，請先回房換好外出衣著與鞋子。"};
@@ -41,5 +43,5 @@
   else if(key==="return"){(a.flags.furnitureOpen??={}).door=false;minutes=3;to=a.scene==="rental-street"?"rental-corridor":"rental-room";message=to==="rental-corridor"?"回到二樓公共走廊。":"回到私人房間。"}
   const before=a.scene;clock.advance(a,minutes,{reason:"city-opening:"+key,fromScene:before,toScene:to});a.scene=to;events.appendTravel(a,"daily",message,thought);return {ok:true,message:thought||message,minutes}
  }
- return Object.freeze({version:"1.0.0",objects,slots,create,inspect,act,ready,isOpen});
+ return Object.freeze({version:"1.0.0",objects,slots,create,inspect,act,ready,isOpen,curtainState});
 })(root.DungeonGameTimeV1,root.DungeonEventsV1,root.DungeonSceneActionTimeV1);root.DungeonEngineV1.register({id:'city.opening',version:'1.0.0',requires:['engine.time','engine.events'],available:()=>!!root.DungeonSceneActionTimeV1});})(window);
