@@ -25,9 +25,9 @@ const views=Object.freeze({
     const daylight=Math.max(0,Math.min(1,((a[1]+(b[1]-a[1])*t)-.025)/.295));
     return {strength,color,edge:color.map(v=>Math.round(v*.46)),
       outsideBrightness:.10+.98*Math.sqrt(daylight)*factor,
-      outsideOpacity:.80+.20*Math.sqrt(daylight),
+      outsideOpacity:1,
       outsideSaturation:.40+.55*Math.sqrt(daylight),
-      outsideBlur:kind==='fog'||kind==='blizzard'?1.8:kind==='storm'||kind==='rain'?1.1:.45
+      outsideBlur:kind==='fog'||kind==='blizzard'?.65:kind==='storm'||kind==='rain'?.2:0
     };
   }
 
@@ -41,5 +41,5 @@ function sample(weather,worldMinutes,preview='auto'){
    windowShade:Math.max(0,Math.min(.78,darkness*.78)),
    streetBrightness:Math.max(.14,light.outsideBrightness)};
 }
-root.DungeonCityExteriorV1=Object.freeze({version:'1.0.0',area,views,ambient,sample});
+root.DungeonCityExteriorV1=Object.freeze({version:'1.0.1',area,views,ambient,sample});
 })(window);
