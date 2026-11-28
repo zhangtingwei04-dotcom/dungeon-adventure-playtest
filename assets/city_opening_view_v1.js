@@ -132,6 +132,21 @@
     element.className = 'furniture';
     element.dataset.item = item.id;
     element.append(image);
+    if(item.id==='desk'){
+      // The lamp is baked into the existing desk sprite. Reuse exactly the same
+      // sprite in a clipped overlay so only its glass is dimmed when extinguished.
+      const darkGlass=document.createElement('span');
+      darkGlass.className='desk-lamp-glass';
+      darkGlass.style.backgroundImage='url("'+catalog.desk+'")';
+      darkGlass.setAttribute('aria-hidden','true');
+      element.append(darkGlass);
+      const hit=document.createElement('span');
+      hit.className='desk-lamp-hit';
+      hit.title='桌上油燈';
+      hit.setAttribute('aria-hidden','true');
+      hit.addEventListener('click',event=>{event.stopPropagation();select('desk-lamp');});
+      element.append(hit);
+    }
     if (item.id === 'wardrobe') {
       const open = document.createElement('span');
       open.className = 'furniture-open-image';
@@ -351,6 +366,10 @@
       if (['door','lamp'].includes(item.id)) {
         element.dataset.open = String(city.isOpen(game, item.id));
       }
+      if(item.id==='desk'){
+        element.dataset.deskLamp=city.isOpen(game,'desk-lamp')?'on':'off';
+        element.setAttribute('aria-pressed',String(selected==='desk'||selected==='desk-lamp'));
+      }
       if (item.id === 'window') updateCurtainState(element, city.curtainState(game));
       if (item.id === 'mirror') {
         element.querySelector('img').style.transform = `skewY(${detailValue('mirror', 'skewY')}deg) skewX(${detailValue('mirror', 'skewX')}deg)`;
@@ -364,7 +383,7 @@
         img.style.transform = `rotate(${detailValue('chest', 'openAngle')}deg) skewY(${detailValue('chest', 'openSkew')}deg) scaleX(${detailValue('chest', 'openWidth')})`;
         renderChestPerspective(element);
       }
-      if (labels.has(item.id)) {
+      if (labels.has(item.id) && item.id!=='desk') {
         element.setAttribute('aria-pressed', String(selected === item.id));
       }
       element.classList.toggle('is-editing', editor.open && itemPicker.value === item.id);
@@ -413,7 +432,15 @@
   }
   function renderRoomLighting(light) {
     const windowPlacement=placements.find(p=>p.id==='window'),lampPlacement=placements.find(p=>p.id==='lamp');
-    const state=lighting.sample({exterior:light,curtain:city.curtainState(game),lamp:city.isOpen(game,'lamp'),windowX:windowPlacement.x/100,lampX:lampPlacement.x/100,lampY:lampPlacement.y/100});
+    const deskPlacement=placements.find(p=>p.id==='desk');
+    // Sprite coordinates: lantern flame (293,60) on the 341×269 desk asset.
+    // Position from bottom-centre anchor, including editor rotation and scale.
+    const width=deskPlacement.width*deskPlacement.scale/100;
+    const dx=(293/341-.5)*width,dy=(60-269)/341*width*16/9;
+    const a=deskPlacement.angle*Math.PI/180;
+    const deskX=deskPlacement.x/100+dx*Math.cos(a)-dy*9/16*Math.sin(a);
+    const deskY=deskPlacement.y/100+dx*16/9*Math.sin(a)+dy*Math.cos(a);
+    const state=lighting.sample({exterior:light,curtain:city.curtainState(game),lamp:city.isOpen(game,'lamp'),deskLamp:city.isOpen(game,'desk-lamp'),windowX:windowPlacement.x/100,lampX:lampPlacement.x/100,lampY:lampPlacement.y/100,deskX,deskY});
     const key=JSON.stringify(state);
     if(key===lightTarget)return;
     lightTarget=key;
