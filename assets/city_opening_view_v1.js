@@ -64,6 +64,8 @@
   let game = city.create();
   let selected = null;
   let observingWindow=false;
+  let curtainAnimating=false;
+  const curtainDuration=800;
   let doorTransit = false;
   let overrides = {};
 
@@ -109,7 +111,7 @@
   }
 
   function select(id) {
-    if(doorTransit||observingWindow)return;
+    if(doorTransit||curtainAnimating||observingWindow)return;
     selected = id;
     get('status').textContent = '';
     render();
@@ -321,6 +323,7 @@
     if (element.dataset.curtain === state && !first) return;
     if (curtainSwapFrame !== null) cancelAnimationFrame(curtainSwapFrame);
     curtainSwapFrame = null;
+    element.dataset.curtainFrom=element.dataset.curtain||state;
     element.dataset.open = next;
     element.dataset.curtain=state;
     if (first || reduceMotion.matches) {
@@ -337,7 +340,7 @@
         panel.getBoundingClientRect().width >= width * .30 &&
         Number(getComputedStyle(panel).opacity) >= .98);
       element.dataset.tiedHidden = String(enough);
-      if (now - started < 1750 && element.dataset.curtain === state) {
+      if (now - started < curtainDuration && element.dataset.curtain === state) {
         curtainSwapFrame = requestAnimationFrame(track);
       } else {
         element.dataset.tiedHidden = String(!open);
@@ -477,7 +480,7 @@
     if(lightFrame)cancelAnimationFrame(lightFrame);
     lightFrame=0;
     if(!lightState||reduceMotion.matches||game.scene!=='rental-room'||document.hidden){paintRoomLight(state);return;}
-    const start=lightState,at=performance.now(),duration=Math.abs(start.transmission-state.transmission)>.01?1650:Math.abs(start.portalProjection.strength-state.portalProjection.strength)>.01?720:420;
+    const start=lightState,at=performance.now(),duration=Math.abs(start.transmission-state.transmission)>.01?curtainDuration:Math.abs(start.portalProjection.strength-state.portalProjection.strength)>.01?720:420;
     function step(now){const t=Math.min(1,(now-at)/duration);paintRoomLight(lighting.interpolate(start,state,t*t*(3-2*t)));if(t<1)lightFrame=requestAnimationFrame(step);else lightFrame=0;}
     lightFrame=requestAnimationFrame(step);
   }
@@ -587,9 +590,32 @@
     }
   }
 
+  // All curtain commands use the same transition and lock, including window close-up.
+  async function changeCurtain(key){
+    if(curtainAnimating||doorTransit||game.scene!=='rental-room')return;
+    const result=city.act(game,'window',key);
+    if(!result.ok){get('status').textContent=result.reason;return;}
+    curtainAnimating=true;
+    selected='window';
+    const activeGame=game;
+    try{
+      get('status').textContent=result.message;
+      render();
+      await new Promise(resolve=>setTimeout(resolve,reduceMotion.matches?0:curtainDuration+40));
+      if(activeGame!==game)return;
+      if(city.curtainState(game)==='closed'&&observingWindow){
+        await new Promise(resolve=>setTimeout(resolve,reduceMotion.matches?0:180));
+        observingWindow=false;
+      }
+    }finally{
+      curtainAnimating=false;
+      render();
+    }
+  }
+
   function render() {
     const room = game.scene === 'rental-room';
-    if(!room||city.curtainState(game)==='closed')observingWindow=false;
+    if(!room||(!curtainAnimating&&city.curtainState(game)==='closed'))observingWindow=false;
     get('scene').dataset.scene = game.scene;
     get('room').dataset.observing=String(observingWindow);
     get('room').dataset.lamp = city.isOpen(game, 'lamp') ? 'on' : 'off';
@@ -622,13 +648,20 @@
 
     const view = city.inspect(game, selected);
     const choices = get('choices');
-    get('reset').disabled=doorTransit;
-    get('layoutQuick').disabled=doorTransit||observingWindow;
+    get('reset').disabled=doorTransit||curtainAnimating;
+    get('layoutQuick').disabled=doorTransit||curtainAnimating||observingWindow;
     choices.replaceChildren();
     if(observingWindow){
       get('dialogTitle').textContent='窗外的城鎮';
-      get('dialogText').textContent='從二樓的窗戶望出去，屋頂與街巷在遠方延伸。';
-      choices.append(button('離開窗前',()=>{observingWindow=false;selected='window';get('status').textContent='';render();}));
+      get('dialogText').textContent=curtainAnimating?'正在拉動窗簾……':'從二樓的窗戶望出去，屋頂與街巷在遠方延伸。';
+      for(const [key,label] of city.inspect(game,'window').actions.filter(([key])=>key.startsWith('curtain-'))){
+        const control=button(label,()=>{void changeCurtain(key);});
+        control.disabled=curtainAnimating;
+        choices.append(control);
+      }
+      const back=button('離開窗前',()=>{if(curtainAnimating)return;observingWindow=false;selected='window';get('status').textContent='';render();});
+      back.disabled=curtainAnimating;
+      choices.append(back);
       return;
     }
     if (!view) {
@@ -643,7 +676,8 @@
     get('dialogText').textContent = view.text;
     for (const [key, label] of view.actions) {
       const choice=button(label, () => {
-        if(doorTransit)return;
+        if(doorTransit||curtainAnimating)return;
+        if(key.startsWith('curtain-')){void changeCurtain(key);return;}
         if(key==='leave'){void leaveThroughDoor();return;}
         const result = city.act(game, selected, key);
         get('status').textContent = result.ok
@@ -653,7 +687,7 @@
         if (result.ok && (['leave','return','downstairs'].includes(key))) selected = null;
         render();
       });
-      choice.disabled=doorTransit;
+      choice.disabled=doorTransit||curtainAnimating;
       choices.append(choice);
     }
   }
@@ -754,7 +788,7 @@
     saveLayout(true);
   };
   get('reset').onclick = () => {
-    if(doorTransit)return;
+    if(doorTransit||curtainAnimating)return;
     if (!confirm('重新開始城鎮開場試玩？')) return;
     game = city.create();
     observingWindow=false;

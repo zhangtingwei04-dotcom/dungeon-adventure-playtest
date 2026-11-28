@@ -202,7 +202,7 @@ main:has(#layoutEditor[open]:not([hidden])) .furniture[aria-pressed=true]{outlin
 .furniture .window-exterior-shade{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:0;transition:opacity .45s ease;image-rendering:auto}
 @media(prefers-reduced-motion:reduce){.furniture .window-exterior-shade{transition:none}}
 .curtain-cover{position:absolute;inset:1.5% 1.7% 1.5%;overflow:hidden;pointer-events:none}
-.curtain-panel{position:absolute;top:0;bottom:0;width:50%;opacity:0;transform:scaleX(.51);background-image:url('assets/interiors/furniture/curtain-closed-painted-v3.webp');background-size:200% 100%;background-repeat:no-repeat;pointer-events:none;transition:transform 1.35s cubic-bezier(.42,0,.58,1),clip-path .30s ease 1.25s,opacity .22s linear 1.42s}
+.curtain-panel{position:absolute;top:0;bottom:0;width:50%;opacity:0;transform:scaleX(.51);background-image:url('assets/interiors/furniture/curtain-closed-painted-v3.webp');background-size:200% 100%;background-repeat:no-repeat;pointer-events:none;transition:transform .65s cubic-bezier(.42,0,.58,1),clip-path .18s ease .58s,opacity .12s linear .68s}
 .furniture[data-item=window][data-tied-hidden=true] > img,.furniture[data-item=window][data-tied-hidden=true] > .window-sky-base{
   -webkit-mask-image:linear-gradient(to right,#000 0 2.2%,transparent 2.2% 25%,#000 25% 75%,transparent 75% 97.8%,#000 97.8% 100%),linear-gradient(to bottom,#000 0 2%,transparent 2% 98.5%,#000 98.5% 100%);
   mask-image:linear-gradient(to right,#000 0 2.2%,transparent 2.2% 25%,#000 25% 75%,transparent 75% 97.8%,#000 97.8% 100%),linear-gradient(to bottom,#000 0 2%,transparent 2% 98.5%,#000 98.5% 100%);
@@ -210,12 +210,13 @@ main:has(#layoutEditor[open]:not([hidden])) .furniture[aria-pressed=true]{outlin
 }
 .curtain-left{left:0;background-position:left center;transform-origin:left center;clip-path:polygon(0 0,100% 0,88% 21%,64% 43%,46% 58%,62% 77%,76% 100%,0 100%)}
 .curtain-right{right:0;background-position:right center;transform-origin:right center;clip-path:polygon(100% 0,0 0,12% 21%,36% 43%,54% 58%,38% 77%,24% 100%,100% 100%)}
-.furniture[data-item=window][data-open=false] .curtain-panel{opacity:1;transform:scaleX(1);transition:clip-path .30s ease,transform 1.35s cubic-bezier(.42,0,.58,1) .30s,opacity .18s linear}
+.furniture[data-item=window][data-open=false] .curtain-panel{opacity:1;transform:scaleX(1);transition:clip-path .16s ease,transform .64s cubic-bezier(.42,0,.58,1) .16s,opacity .12s linear}
 .furniture[data-item=window][data-open=false] .curtain-left{clip-path:polygon(0 0,100% 0,100% 21%,100% 43%,100% 58%,100% 77%,100% 100%,0 100%)}
 .furniture[data-item=window][data-open=false] .curtain-right{clip-path:polygon(100% 0,0 0,0 21%,0 43%,0 58%,0 77%,0 100%,100% 100%)}
 .furniture[data-item=window][data-curtain=half] .curtain-panel{transform:scaleX(.73);opacity:1}
+.furniture[data-item=window][data-curtain=half][data-curtain-from=closed] .curtain-panel,.furniture[data-item=window][data-curtain=closed][data-curtain-from=half] .curtain-panel{transition:transform .8s cubic-bezier(.42,0,.58,1)}
 @media(prefers-reduced-motion:reduce){#room .door-opening,#room .door-leaf,.door-swing,.curtain-panel,#room::after,.furniture[data-item=lamp] img{transition:none}}
-</style></head><body><header><strong>迷宮盡頭的燈火</strong><span id="clock"></span><button id="layoutQuick" type="button" aria-controls="layoutEditor" aria-expanded="false">家具調整</button><span class="muted">城鎮開場 V0.51</span></header><main><aside class="side"><h2>旅途紀錄</h2><div id="log" class="log"></div></aside><div class="center"><div id="scene" class="scene" data-scene="rental-room">
+</style></head><body><header><strong>迷宮盡頭的燈火</strong><span id="clock"></span><button id="layoutQuick" type="button" aria-controls="layoutEditor" aria-expanded="false">家具調整</button><span class="muted">城鎮開場 V0.52</span></header><main><aside class="side"><h2>旅途紀錄</h2><div id="log" class="log"></div></aside><div class="center"><div id="scene" class="scene" data-scene="rental-room">
 <div id="room"><img class="room-base" src="assets/interiors/rental-room/empty.png" alt="城鎮出租屋室內"><span id="windowLightBeam" aria-hidden="true"></span><div id="furniture"></div><canvas id="roomLighting" width="240" height="135" aria-hidden="true"></canvas></div>
 <svg id="corridor" role="img" aria-label="二樓公共走廊與樓梯" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540"><defs>
 <linearGradient id="wall" x2="0" y2="1"><stop stop-color="#b7a28a"/><stop offset="1" stop-color="#806751"/></linearGradient><linearGradient id="floor" x2="0" y2="1"><stop stop-color="#976c47"/><stop offset="1" stop-color="#553723"/></linearGradient><linearGradient id="sky" x2="0" y2="1"><stop stop-color="#81b5d8"/><stop offset="1" stop-color="#d8dfc9"/></linearGradient><linearGradient id="wood"><stop stop-color="#4c3222"/><stop offset=".5" stop-color="#9d7049"/><stop offset="1" stop-color="#573923"/></linearGradient><radialGradient id="glow"><stop stop-color="#ffcf79" stop-opacity=".55"/><stop offset="1" stop-color="#ffcf79" stop-opacity="0"/></radialGradient></defs>
@@ -235,7 +236,7 @@ main:has(#layoutEditor[open]:not([hidden])) .furniture[aria-pressed=true]{outlin
 <script src="assets/rental_window_sky_v1.js?v=4"></script>
 <script src="assets/city_exterior_v1.js?v=5"></script>
 <script src="assets/lighting_core_v1.js?v=4"></script>
-<script src="assets/city_opening_view_v1.js?v=58"></script>
+<script src="assets/city_opening_view_v1.js?v=59"></script>
 <script>
 (function(){
  const panel=document.getElementById('layoutEditor'), quick=document.getElementById('layoutQuick');
