@@ -1,0 +1,34 @@
+const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+const ctx=vm.createContext({window:{}});
+for(const f of ['engine_foundation_v1.js','mind_core_v1.js'])vm.runInContext(fs.readFileSync(path.join(__dirname,'../assets',f),'utf8'),ctx);
+const c=ctx.window.DungeonMindCoreV1;
+if(!ctx.window.DungeonEngineV1.status().some(x=>x.id==='mind.core'&&x.state==='ready'))throw Error('registry');
+const count=(function runTests(c){
+ let count=0;const check=(x,m)=>{if(!x)throw Error(m);count++};const near=(a,b)=>Math.abs(a-b)<1e-8;
+ check(c.schools.length===21,"schools");check(c.schools.flatMap(s=>s.draftMoves).length===63,"moves");check(new Set(c.schools.flatMap(s=>s.draftMoves)).size===63,"unique moves");check(Object.values(c.branches).flat().length===18,"branches");check(c.realms.length===7,"realms");
+ for(const [n,num] of [[0,1],[1,6],[2,12],[3,8]])check(c.combinations.filter(x=>x.length===n).length===num,"combos "+n);
+ for(const p of c.phases){check(c.efficiency(p,p)===100,"main");check(c.efficiency(p,"燈")===100,"lamp");for(const q of c.phases)check((c.efficiency(p,q)===0)===c.opposite(p,q),"opposite");}
+ check(c.efficiency("影","續")===40,"far");check(c.efficiency("滅","續")===75,"adjacent");check(!c.legalPhases(["熱","光","影"]),"secondary opposition");
+ let p=c.createProfile({schoolId:"school-4-0",main:"影",phases:["影","續"]});
+ const d={id:"wolf",name:"白夜之狼",materials:["wolf"],allocations:[{phase:"影",branch:"形",share:50},{phase:"續",branch:"循",share:50}]};
+ check(c.validateSkill(p,d).errors.includes("OBSERVATION_REQUIRED"),"locked");
+ p=c.observe(p,"wolf");check(c.observe(p,"wolf")===p,"dedup");
+ const v=c.validateSkill(p,d);check(v.ok,"valid");check(near(v.effective,70)&&near(v.loss,30),"split");check(v.displayPhases.join("")==="影續","labels");
+ const created=c.createSkill(p,d);check(p.skills.length===0&&created.skills.length===1,"immutable");check(created.observations.length===1,"record not consumed");
+ check(!c.validateSkill(created,d).ok,"duplicate id");
+ const variant={...d,id:"wolf2",name:"狼影",sourceId:"wolf"};check(c.validateSkill(created,variant).ok,"adaptation");
+ const next=c.createSkill(created,variant);check(next.skills.length===2&&next.skills[1].sourceId==="wolf","history");
+ check(!c.validateSkill(p,variant).ok,"source ownership");
+ check(!c.validateSkill(p,{...d,allocations:[{phase:"影",share:101}]}).ok,"over budget");
+ check(!c.validateSkill(p,{...d,allocations:[{phase:"影",share:50},{phase:"光",share:50}]}).ok,"opposed");
+ check(!c.validateSkill(p,{...d,allocations:[{phase:"影",branch:"發",share:100}]}).ok,"wrong branch");
+ let pure=c.createProfile({schoolId:"school-0-0",main:"影",phases:["影","續"]});pure=c.observe(pure,"wolf");
+ check(c.validateSkill(pure,{...d,allocations:[{phase:"影",share:100}]}).ok,"pure single");
+ check(!c.validateSkill(pure,d).ok,"pure mixed");
+ check(!c.validateSkill(pure,{...d,allocations:[{phase:"影",branch:"形",share:100}]}).ok,"pure branch");
+ check(c.validateSkill(pure,{...d,allocations:[{phase:"燈",share:100}]}).effective===100,"pure lamp");
+ check(!c.validateProfile({...p,phases:["影","光"]}).ok,"profile opposition");
+ check(!c.validateSkill(p,{...d,allocations:[{phase:"影",share:NaN}]}).ok,"nonfinite");
+ return count;
+})(c);
+console.log('Mind core: '+count+' rule assertions + registry check passed');
