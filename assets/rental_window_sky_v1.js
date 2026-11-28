@@ -56,14 +56,17 @@
         if (!sky) continue;
         const i = (y * width + x) * 4;
         const [r, g, b] = pixels.subarray(i, i + 3);
-        if (r < sky[0] + 12 || g < 166 || b < 193 || b + 4 < r || b + 8 < g) continue;
-        // Recover the bright cloud as alpha over the sampled sky color.
+        if (r <= sky[0] + 4 || g < 166 || b < 193 || b + 4 < r || b + 8 < g) continue;
+        // Feather a single cloud bank before it moves away from the painted window.
+        const edge = Math.max(0, Math.min(1, (x - 270) / 15, (357 - x) / 12,
+          (y - 50) / 8, (89 - y) / 10));
+        const amount = Math.max(0, Math.min(1, (r - sky[0] - 4) / 13));
         const alpha = Math.min(1, (r - sky[0]) / (255 - sky[0]));
         for (let c = 0; c < 3; c++) {
           clouds.data[i + c] = sky[c] + (pixels[i + c] - sky[c]) / alpha;
-          pixels[i + c] = sky[c];
+          pixels[i + c] += (sky[c] - pixels[i + c]) * amount;
         }
-        clouds.data[i + 3] = Math.round(alpha * 255);
+        clouds.data[i + 3] = Math.round(alpha * amount * edge * 255);
       }
     }
 
