@@ -72,12 +72,11 @@
       const motion = document.createElement('span');
       motion.className = 'window-motion';
       motion.setAttribute('aria-hidden', 'true');
-      for (const name of ['window-cloud', 'window-bird']) {
-        const detail = document.createElement('span');
-        detail.className = name;
-        motion.append(detail);
-      }
+      const bird = document.createElement('span');
+      bird.className = 'window-bird';
+      motion.append(bird);
       element.append(motion);
+      window.DungeonRentalWindowSkyV1.mount(image, motion);
     }
     get('furniture').append(element);
     furniture.set(item.id, element);
