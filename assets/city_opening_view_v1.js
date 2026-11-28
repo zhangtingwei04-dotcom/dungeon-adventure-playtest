@@ -26,6 +26,24 @@
   const itemPicker = get('layoutItem');
   const labels = new Map(city.objects.map(item => [item.id, item.name]));
   const decorations = { rug: '地毯', shelves: '壁架', lamp: '吊燈', 'left-shelf': '左牆木架', 'wall-map': '左牆掛圖', 'right-wall-map': '右牆掛圖' };
+  const detailFields = {
+    mirror: { skewY: { label: '鏡面斜度 (°)', min: -35, max: 35, step: 0.5, initial: 7 } },
+    chest: {
+      openX: { label: '開蓋 X (%箱寬)', min: -60, max: 60, step: 0.5, initial: 0 },
+      openY: { label: '開蓋 Y (%箱高，向下)', min: -60, max: 60, step: 0.5, initial: 0 },
+      openScale: { label: '開蓋大小 (倍)', min: 0.5, max: 2, step: 0.01, initial: 1 },
+      openAngle: { label: '開蓋角度 (°)', min: -45, max: 45, step: 0.5, initial: 0 },
+      openSkew: { label: '開蓋斜度 (°)', min: -30, max: 30, step: 0.5, initial: 0 },
+      openWidth: { label: '開蓋橫向比例', min: 0.5, max: 1.5, step: 0.01, initial: 1 }
+    }
+  };
+  const clamp = (n, field) => Math.max(field.min, Math.min(field.max, n));
+  const detailValue = (id, key) => {
+    const field = detailFields[id][key];
+    const n = overrides[id]?.[key];
+    return Number.isFinite(n) ? clamp(n, field) : field.initial;
+  };
+  let chestPreview = 'open';
   let game = city.create();
   let selected = null;
   let overrides = {};
@@ -46,7 +64,11 @@
     const fields = Object.keys(layout.fields).filter(key => Number.isFinite(saved?.[key]));
     const edited = fields.filter(key => !Object.hasOwn(saved, 'width')
       || saved[key] !== (previous[item.id]?.[key] ?? item[key]));
-    return [item.id, Object.fromEntries(edited.map(key => [key, saved[key]]))];
+    const values = Object.fromEntries(edited.map(key => [key, saved[key]]));
+    for (const [key, field] of Object.entries(detailFields[item.id] || {})) {
+      if (Number.isFinite(saved?.[key])) values[key] = clamp(saved[key], field);
+    }
+    return [item.id, values];
   }));
   let placements = layout.applyOverrides(layout.rentalRoom, overrides);
 
@@ -151,7 +173,19 @@
       const element = furniture.get(item.id);
       layout.position(element, item);
       if (item.id === 'wardrobe' || item.id === 'chest') {
-        element.dataset.open = String(city.isOpen(game, item.id));
+        const preview = item.id === 'chest' && editor.open && itemPicker.value === 'chest' && chestPreview !== 'actual';
+        element.dataset.open = String(preview ? chestPreview === 'open' : city.isOpen(game, item.id));
+      }
+      if (item.id === 'mirror') {
+        element.querySelector('img').style.transform = `skewY(${detailValue('mirror', 'skewY')}deg)`;
+      }
+      if (item.id === 'chest') {
+        const img = element.querySelector('.chest-open-image');
+        img.style.left = detailValue('chest', 'openX') + '%';
+        img.style.bottom = -detailValue('chest', 'openY') + '%';
+        img.style.width = (123.076923 * detailValue('chest', 'openScale')) + '%';
+        img.style.transformOrigin = 'left bottom';
+        img.style.transform = `rotate(${detailValue('chest', 'openAngle')}deg) skewY(${detailValue('chest', 'openSkew')}deg) scaleX(${detailValue('chest', 'openWidth')})`;
       }
       if (labels.has(item.id)) {
         element.setAttribute('aria-pressed', String(selected === item.id));
@@ -291,7 +325,9 @@
 
   function renderFields() {
     const item = placements.find(placement => placement.id === itemPicker.value);
-    const fields = Object.entries(layout.fields).map(([key, field]) => {
+    const special = detailFields[item.id] || {};
+    const valueFor = key => Object.hasOwn(special, key) ? detailValue(item.id, key) : placements.find(p => p.id === item.id)[key];
+    const fields = Object.entries({ ...layout.fields, ...special }).map(([key, field]) => {
       const label = document.createElement('label');
       label.textContent = field.label;
       const input = document.createElement('input');
@@ -299,23 +335,63 @@
       input.min = field.min;
       input.max = field.max;
       input.step = field.step;
-      input.value = item[key];
+      input.value = valueFor(key);
+      input.inputMode = 'decimal';
       input.oninput = () => {
         if (!Number.isFinite(input.valueAsNumber)) return;
-        (overrides[item.id] ??= {})[key] = input.valueAsNumber;
+        (overrides[item.id] ??= {})[key] = clamp(input.valueAsNumber, field);
         placements = layout.applyOverrides(layout.rentalRoom, overrides);
         get('layoutStatus').textContent = '配置尚未儲存。';
         renderFurniture();
       };
       input.onchange = () => {
-        const value = placements.find(placement => placement.id === item.id)[key];
+        const value = valueFor(key);
         if (overrides[item.id]) overrides[item.id][key] = value;
         input.value = value;
       };
-      label.append(input);
+      const controls = document.createElement('span');
+      controls.style.cssText = 'display:flex;align-items:center;gap:3px';
+      const nudge = direction => {
+        input.value = clamp(Number((valueFor(key) + direction * field.step).toFixed(4)), field);
+        input.oninput();
+        input.onchange();
+      };
+      const minus = button('−', () => nudge(-1));
+      const plus = button('+', () => nudge(1));
+      minus.setAttribute('aria-label', field.label + ' 減少');
+      plus.setAttribute('aria-label', field.label + ' 增加');
+      minus.style.padding = plus.style.padding = '4px 9px';
+      controls.append(minus, input, plus);
+      label.append(controls);
       return label;
     });
-    get('layoutFields').replaceChildren(...fields);
+    if (item.id === 'chest') {
+      const label = document.createElement('label');
+      label.textContent = '木箱狀態（僅預覽）';
+      const picker = document.createElement('select');
+      for (const [value, name] of [['open','開蓋'],['closed','關閉'],['actual','實際遊戲狀態']]) picker.add(new Option(name,value));
+      picker.value = chestPreview;
+      picker.onchange = () => { chestPreview = picker.value; renderFurniture(); };
+      label.append(picker);
+      fields.unshift(label);
+    }
+    const resetOne = button('恢復此家具預設', () => {
+      delete overrides[item.id];
+      placements = layout.applyOverrides(layout.rentalRoom, overrides);
+      get('layoutStatus').textContent = '配置尚未儲存。';
+      renderFields();
+    });
+    const exportButton = button('顯示配置 JSON', () => {
+      const area = document.createElement('textarea');
+      area.readOnly = true;
+      area.rows = 5;
+      area.style.width = '100%';
+      area.value = JSON.stringify({ format: 'dungeon-rental-room-layout-v1', overrides }, null, 2);
+      const status = get('layoutStatus');
+      status.replaceChildren(document.createTextNode('長按下方文字即可複製配置。'), area);
+      area.focus(); area.select();
+    });
+    get('layoutFields').replaceChildren(...fields, resetOne, exportButton);
     renderFurniture();
   }
 
@@ -330,7 +406,7 @@
   }
 
   itemPicker.value = 'bed';
-  itemPicker.onchange = renderFields;
+  itemPicker.onchange = () => { chestPreview = 'open'; renderFields(); };
   editor.ontoggle = renderFurniture;
   get('layoutSave').onclick = () => saveLayout(false);
   get('layoutReset').onclick = () => {
