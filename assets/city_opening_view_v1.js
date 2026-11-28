@@ -168,13 +168,12 @@
       reveal.setAttribute('viewBox','0 0 100 100');
       reveal.setAttribute('preserveAspectRatio','none');
       reveal.setAttribute('aria-hidden','true');
-      reveal.innerHTML = '<defs><linearGradient id="rentalJamb" x1="0" x2="1"><stop stop-color="#4b2e20"/><stop offset=".5" stop-color="#96623e"/><stop offset="1" stop-color="#523626"/></linearGradient><linearGradient id="rentalSill" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#96643f"/><stop offset=".42" stop-color="#805130"/><stop offset="1" stop-color="#50321f"/></linearGradient></defs>'
-        + '<path d="M25 12L34 14L34 90.9L25 93Z" fill="url(#rentalJamb)"/>'
+      reveal.innerHTML = '<defs><linearGradient id="rentalJamb" x1="0" x2="1"><stop stop-color="#4b2e20"/><stop offset=".5" stop-color="#96623e"/><stop offset="1" stop-color="#523626"/></linearGradient><linearGradient id="rentalSill" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#795136"/><stop offset=".55" stop-color="#68432c"/><stop offset="1" stop-color="#4a3020"/></linearGradient></defs>'
+        + '<path d="M25 12L34 14L34 92.4L25 93Z" fill="url(#rentalJamb)"/>'
         + '<path d="M25 12L98 6L98 8.9L34 14Z" fill="#64412b"/>'
-        + '<path d="M34 90.9L98 95.1L98 98L25 93Z" fill="url(#rentalSill)"/>'
-        + '<path d="M34 14L34 90.9L98 95.1" fill="none" stroke="#3c291e" stroke-width=".9" vector-effect="non-scaling-stroke"/>'
-        + '<path d="M25 93L98 98" fill="none" stroke="#4d3021" stroke-width=".8" vector-effect="non-scaling-stroke"/>'
-        + '<path class="jamb-light" d="M29 14L34 15L34 90.9L29 92Z M34 90.9L98 95.1L98 96.1L32 91.8Z"/>';
+        + '<path d="M34 92.4L98 96.8L98 98L25 93Z" fill="url(#rentalSill)"/>'
+        + '<path d="M34 14L34 92.4L98 96.8" fill="none" stroke="#38281e" stroke-width=".55" vector-effect="non-scaling-stroke"/>'
+        + '<path class="jamb-light" d="M29 14L34 15L34 92.4L29 92.8Z"/>';
       opening.append(reveal);
       const frame = document.createElement('span');
       frame.className = 'door-frame';
