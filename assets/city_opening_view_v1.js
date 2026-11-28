@@ -161,6 +161,12 @@
     if (item.id === 'door') {
       const opening = document.createElement('span');
       opening.className = 'door-opening';
+      const outside = document.createElement('img');
+      outside.className = 'door-outside';
+      outside.alt = '';
+      outside.src = 'assets/interiors/furniture/door-corridor-v4.webp';
+      outside.addEventListener('error', () => { opening.dataset.imageError = 'true'; });
+      opening.append(outside);
       const floorLight = document.createElement('span');
       floorLight.className = 'door-floor-light';
       floorLight.setAttribute('aria-hidden', 'true');
