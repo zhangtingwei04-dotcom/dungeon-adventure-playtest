@@ -4552,7 +4552,7 @@ html.stage-locked #app #battleSurface .battle-actions button{font-size:17px;min-
 <div class="veil hidden" id="dialogVeil"><section class="panel" role="dialog" aria-modal="true" aria-labelledby="dialogTitle"><div class="panel-head"><div><div class="kicker" id="dialogKicker">發現</div><h2 id="dialogTitle"></h2></div><div id="dialogCharacter" aria-label="目前發言人物"><canvas id="dialogCharacterCanvas" width="48" height="64" aria-hidden="true"></canvas><span id="dialogCharacterName"></span></div><button class="close" id="dialogClose" aria-label="關閉">×</button></div><p id="dialogText"></p><div class="choices" id="dialogChoices"></div></section></div>
 <div class="veil hidden" id="journalVeil"><section class="panel journal" role="dialog" aria-modal="true"><div class="panel-head"><div><div class="kicker">FIELD NOTES</div><h2>旅程日誌</h2></div><button class="close" id="journalClose">×</button></div><div class="journal-tabs" id="journalTabs"></div><div id="journalContent"></div><div class="line"></div><p class="meta">本版本使用瀏覽器本機儲存，並未連接《鱗片與種子》的雲端存檔。可在設定中匯出備份。</p></section></div>
 <div class="veil hidden" id="menuVeil"><section class="panel" role="dialog" aria-modal="true"><div class="panel-head"><div><div class="kicker">OPTIONS</div><h2>探索設定</h2></div><button class="close" id="menuClose">×</button></div><p id="menuStatus">遊戲會自動在本機儲存。</p><div class="choices"><button class="choice" id="battlePlaytestBtn">測試戰鬥</button><button class="choice" id="soundBtn">音效：關閉</button><button class="choice" id="exportBtn">匯出存檔</button><button class="choice" id="importBtn">匯入存檔</button><button class="choice" id="restorePreviousBtn">復原上一份存檔</button><button class="choice" id="exportPreviousBtn">匯出上一份存檔</button><button class="choice" id="restartBtn">重新開始</button></div><button class="choice" type="button" id="engineDiagnosticsBtn">共用核心診斷</button><a class="choice" href="city-opening-playtest.html">城鎮住宅試玩</a><div class="line"></div><div class="phase-preview-heading">光線預覽 · 不修改遊戲時間</div><p class="phase-preview-explain">只預覽場景光線，不會跳過事件或改動存檔。畫面右上角可結束預覽。</p><div class="choices phase-preview-options"><button class="choice" type="button" data-preview-period="dawn">清晨</button><button class="choice" type="button" data-preview-period="day">白天</button><button class="choice" type="button" data-preview-period="dusk">黃昏</button><button class="choice" type="button" data-preview-period="night">夜晚</button></div><div class="line"></div><div class="phase-preview-heading" id="weatherSettingsHeading">天氣預覽 · 不修改存檔</div><p class="phase-preview-explain">可隨時查看場景的天氣效果。降雪預覽約20秒、暴風雪約10秒累積至全雪地；返回自然天氣後依遊戲時間變化。</p><div class="choices phase-preview-options"><button class="choice" type="button" data-preview-weather="clear">晴朗</button><button class="choice" type="button" data-preview-weather="cloudy">陰天</button><button class="choice" type="button" data-preview-weather="fog">薄霧</button><button class="choice" type="button" data-preview-weather="drizzle">細雨</button><button class="choice" type="button" data-preview-weather="rain">降雨</button><button class="choice" type="button" data-preview-weather="storm">雷雨</button><button class="choice" type="button" data-preview-weather="snow">降雪</button><button class="choice" type="button" data-preview-weather="blizzard">暴風雪</button><button class="choice" type="button" data-preview-weather="auto">自然天氣</button></div><div class="line"></div><div class="phase-preview-heading">風力預覽 · 不修改存檔</div><p class="phase-preview-explain">獨立調整風力及畫面風向；不影響降雨、降雪量或正式遊戲時間。</p><div class="choices phase-preview-options"><button class="choice" type="button" data-preview-wind="0">0級 無風</button><button class="choice" type="button" data-preview-wind="1">1級 微風</button><button class="choice" type="button" data-preview-wind="2">2級 輕風</button><button class="choice" type="button" data-preview-wind="3">3級 強風</button><button class="choice" type="button" data-preview-wind="4">4級 烈風</button><button class="choice" type="button" data-preview-wind="5">5級 暴風</button><button class="choice" type="button" data-preview-wind="auto">自然風力</button></div><div class="choices phase-preview-options"><button class="choice" type="button" data-preview-wind-dir="-1">向左吹 ←</button><button class="choice" type="button" data-preview-wind-dir="1">向右吹 →</button><button class="choice" type="button" data-preview-wind-dir="auto">自然風向</button></div><input id="fileInput" type="file" accept="application/json" class="hidden"><div class="line"></div><div class="note">V0.5.1 測試版本：第二章的公會、委託與人物對話是可修改的玩法草案。人物稱呼仍為佔位，主角身體來歷、復活原因及正式戰鬥方式都尚未定案。</div></section></div>
-<div class="veil" id="startVeil"><section class="panel start"><div class="stamp">A STORY OF THE UNKNOWN</div><h1 class="screen-title">迷宮盡頭的燈火</h1><p>你受軍校安排來到這座城鎮，在租下的小房間醒來。今天，你將踏出新的旅程。</p><a class="choice" href="?campaign=city&amp;start=new">開始新的旅程</a><a class="choice hidden" id="cityContinueBtn" href="?campaign=city">繼續城鎮旅程</a><button class="choice" id="startBtn">舊版森林冒險（獨立測試）</button><button class="choice hidden" id="continueBtn">繼續舊版森林冒險</button><button class="choice hidden" id="startRestorePreviousBtn">復原上一份有效存檔</button><button class="choice" id="startImportBtn">匯入存檔</button><a class="choice" href="city-opening-playtest.html">城鎮住宅開發測試</a><div class="note">城鎮開場 V0.67 · 原版介面整合 · 橫式手機／電腦　｜　探索優先、調查可選　｜　不需登入及付費</div></section></div>
+<div class="veil" id="startVeil"><section class="panel start"><div class="stamp">A STORY OF THE UNKNOWN</div><h1 class="screen-title">迷宮盡頭的燈火</h1><p>你受軍校安排來到這座城鎮，在租下的小房間醒來。今天，你將踏出新的旅程。</p><a class="choice" href="?campaign=city&amp;start=new">開始新的旅程</a><a class="choice hidden" id="cityContinueBtn" href="?campaign=city">繼續城鎮旅程</a><button class="choice" id="startBtn">舊版森林冒險（獨立測試）</button><button class="choice hidden" id="continueBtn">繼續舊版森林冒險</button><button class="choice hidden" id="startRestorePreviousBtn">復原上一份有效存檔</button><button class="choice" id="startImportBtn">匯入存檔</button><a class="choice" href="city-opening-playtest.html">城鎮住宅開發測試</a><div class="note">城鎮開場 V0.68 · 地點與移動整合 · 橫式手機／電腦　｜　探索優先、調查可選　｜　不需登入及付費</div></section></div>
 <div class="orientation"><div><strong>請將手機轉為橫向</strong><p>第一章與城鎮探索以橫式畫面呈現。</p>↻</div></div>
 </div>
 <script src="./assets/ornaments_data.js"></script>
@@ -4571,7 +4571,7 @@ html.stage-locked #app #battleSurface .battle-actions button{font-size:17px;min-
 <script src="./assets/fault_isolation_v1.js?v=1"></script>
 <script src="./assets/object_investigation_v1.js?v=6-resource-stock"></script>
 <script src="./assets/scene_concealment_v1.js?v=1"></script>
-<script src="./assets/investigation_cards_v1.js?v=1.1.0"></script>
+<script src="./assets/investigation_cards_v1.js?v=1.2.0"></script>
 <script src="./assets/wreck_components_v1.js?v=1.1"></script>
 <script src="./assets/creature_capture_v1.js?v=1"></script>
 <script src="./assets/scene_action_time_v1.js?v=1"></script>
@@ -4674,7 +4674,7 @@ window.DUNGEON_FOREST_V4_LAYOUT=window.DUNGEON_WRECK_CURRENT_LAYOUT;
 <script src="./assets/monsters/moss_beast_live_v3.js?v=2"></script>
 <script src="./assets/encounter_motion_v1.js?v=4-body-scale"></script>
 <script src="./assets/battle_playtest_v1.js?v=encounter-motion-v1"></script>
-<script src="./assets/furniture_storage_v1.js?v=1"></script><script src="./assets/timed_tasks_v1.js?v=1"></script><script src="./assets/city_opening_v1.js?v=15"></script><script src="./assets/interior_furniture_v1.js?v=20"></script><script src="./assets/city_campaign_save_v1.js?v=1"></script><script src="./assets/city_investigation_v1.js?v=1"></script>
+<script src="./assets/furniture_storage_v1.js?v=1"></script><script src="./assets/timed_tasks_v1.js?v=1"></script><script src="./assets/city_opening_v1.js?v=15"></script><script src="./assets/interior_furniture_v1.js?v=20"></script><script src="./assets/city_campaign_save_v1.js?v=1"></script><script src="./assets/city_investigation_v1.js?v=2"></script>
 <script>
 (()=>{'use strict';
 // Fixed design canvas: use the approved screenshot's exact 1536×707 ratio,
@@ -5441,6 +5441,9 @@ function currentLocationImage(){
 }
 // Visual location descriptions; never change the game's actual exploration rewards.
 const LOCATION_CARD_META=Object.freeze({
+ 'rental-room':{area:'住宅區',kind:'私人住所',description:'二樓租下的私人房間。'},
+ 'rental-corridor':{area:'住宅區',kind:'公共走廊',description:'連接私人房間與一樓街道的木造走廊。'},
+ 'rental-street':{area:'住宅區',kind:'城鎮街道',description:'住宅外的街道，燈火會正式場景仍待製作。'},
  wreck:{area:'森林邊緣',kind:'事件地點',description:'一輛破損的馬車倒在林間，車篷撕裂、木材腐朽；附近仍可能找到一些可用的物品。'},
  trail:{area:'森林內部',kind:'林間道路',description:'陽光穿過林冠灑落在舊路上，樹根與落葉之間留著動物活動的痕跡。'},
  clearing:{area:'森林內部',kind:'自然地點',description:'樹冠在這裡稍微開展，草葉與泥地留下不同生物活動過的線索。'},
@@ -7164,7 +7167,7 @@ function runSceneAction(fn){
 }
 function syncCityScene(){
  const stage=$('sceneStage');$('app').dataset.cityNative='true';
- if(!cityFrame){cityFrame=document.createElement('iframe');cityFrame.id='citySceneRenderer';cityFrame.title='城鎮場景';cityFrame.tabIndex=-1;cityFrame.setAttribute('aria-hidden','true');cityFrame.src='city-opening-playtest.html?mode=scene&v=84';cityFrame.onload=syncCityScene;stage.appendChild(cityFrame);}
+ if(!cityFrame){cityFrame=document.createElement('iframe');cityFrame.id='citySceneRenderer';cityFrame.title='城鎮場景';cityFrame.tabIndex=-1;cityFrame.setAttribute('aria-hidden','true');cityFrame.src='city-opening-playtest.html?mode=scene&v=85';cityFrame.onload=syncCityScene;stage.appendChild(cityFrame);}
  try{cityFrame.contentWindow?.DungeonCitySceneRendererV1?.update(s,cityObserving);}catch(error){console.warn('City scene update',error);}
 }
 function cityDiscover(){
@@ -7198,7 +7201,7 @@ function cityCards(list,append){
  const objects=cityInvest.visible(s,cityCore);
  if(!objects.length){append('調查周遭 · 2分鐘',()=>runSceneAction(cityDiscover));return;}
  const catalog=window.DungeonInteriorFurnitureV1;
- appendInvestigationCards(list,objects.map(o=>{const node=document.createElement('button');if(catalog[o.id]){const img=document.createElement('img');img.src=catalog[o.id];node.appendChild(img);}return {name:o.name,node,entry:{fn:()=>cityObject(o.id)},status:'已發現',action:'調查'};}),append);
+ appendInvestigationCards(list,objects.map(o=>{const node=document.createElement('button');if(catalog[o.id]){const img=document.createElement('img');img.src=catalog[o.id];node.appendChild(img);}return {name:o.name,node,imageSrc:catalog[o.id],entry:{fn:()=>cityObject(o.id)},status:'已發現',action:'調查'};}),append);
 }
 function renderSceneActionDock(host){
  const actions=splitSceneActions(entries()).scene;
@@ -7217,6 +7220,7 @@ function renderSceneActionDock(host){
   if(sceneActionView&&CITY_NATIVE){cityDiscover();return;}
   if(sceneActionView)openSceneDialogue([{speaker:'旁白',text:openingExitOnly()?'天色漸暗，現在得先確認離開的道路。':'你環顧四周，看看有沒有值得留意的地方。'}],'investigation-entry');
  },'investigation');
+ if(CITY_NATIVE)for(const route of cityInvest.routes(s,cityCore)){add('前往'+names[route.to][0]+' · '+route.minutes+'分鐘',()=>{if(!route.allowed){inspectInScene('請先換上外出衣物及鞋子。',[{label:'知道了',fn:()=>{}}]);return;}cityAction(route.id,route.action);},'route');}
  for(const item of actions.filter(a=>a.routeTo))add(item.title,item.fn,'route');
  if(s.scene==='wreck'&&!s.flags.inBattle&&new URLSearchParams(location.search).get('combat-trial')==='1')add('測試多怪物戰鬥 · V2',openOpeningCombatTrial,'investigation');
 
@@ -7342,14 +7346,6 @@ function renderPlaceDrawer(){
  }
  if(sceneActionView){renderSceneActionView(out);out.scrollTop=priorScroll;return;}
  if(activeSideTab!=='locations'){renderSideTab(activeSideTab,out);out.scrollTop=priorScroll;return;}
- if(CITY_NATIVE){
- sideInfoHeading(out,names[s.scene][0]);sideInfoText(out,names[s.scene][1]);
- const report=cityCore.reportStatus(s);sideInfoHeading(out,'今日事項');sideInfoText(out,report.completed?report.message:!report.read?'調查書桌上的校方通知。':'第1日 09:00–11:00｜'+report.message);
- if(report.read&&!report.completed)for(const r of report.requirements)sideInfoText(out,(r.ok?'✓ ':'○ ')+r.label);
- sideInfoHeading(out,'已發現物件');for(const item of cityInvest.visible(s,cityCore))sideInfoText(out,item.name);
- if(!cityInvest.known(s).length)sideInfoText(out,'尚未調查。');
- out.scrollTop=priorScroll;return;
- }
  const previewTitle=names[previewId][0];
  const locationMeta=previewId==='wreck'&&wreckCleared()?{...LOCATION_CARD_META.wreck,description:'馬車和散落的貨物已移走，林道旁只剩車輪壓過的泥痕。'}:
   LOCATION_CARD_META[previewId]||{area:'未知區域',kind:'探索地點',description:names[previewId]?.[1]||''};
@@ -7398,6 +7394,7 @@ function renderPlaceDrawer(){
  }
  out.appendChild(summary);
  const findings=new Set();
+ if(CITY_NATIVE){const report=cityCore.reportStatus(s);sideInfoHeading(out,'今日事項');sideInfoText(out,report.completed?report.message:!report.read?'尚未閱讀校方通知。':'第1日 09:00–11:00｜'+report.message);if(report.read&&!report.completed)for(const r of report.requirements)sideInfoText(out,(r.ok?'✓ ':'○ ')+r.label);for(const item of cityInvest.visible(s,cityCore))findings.add(item.name+' · 已發現');}
  for(const event of s.travelLog||[]){
   if(event.scene===s.scene&&event.type==='discovery')findings.add(event.message);
  }
@@ -9002,7 +8999,10 @@ function renderHotspots(){
  }
 }
 function renderRouteMap(out){
- if(CITY_NATIVE){sideInfoHeading(out,'目前：'+names[s.scene][0]);for(const id of Object.keys(cityInvest.scenes))if(s.visits[id])sideInfoText(out,names[id][0]);sideInfoText(out,'新地點需透過調查物件與移動發現。');return;}
+ if(CITY_NATIVE){
+ const clock=document.createElement('div');clock.className='map-summary';const left=document.createElement('strong');left.textContent='目前：'+names[s.scene][0];const right=document.createElement('span');right.textContent=gameTime(s.worldMinutes);clock.append(left,right);out.appendChild(clock);
+ sideInfoHeading(out,'從這裡可前往的地點');const list=document.createElement('div');list.className='map-routes';for(const route of cityInvest.routes(s,cityCore)){const card=document.createElement('div');card.className='map-route route-card';const symbol=document.createElement('div');symbol.className='route-card-symbol';symbol.textContent='◇';const info=document.createElement('div');info.className='route-card-main';const title=document.createElement('div');title.className='map-route-name';title.textContent=names[route.to][0];const meta=document.createElement('div');meta.className='map-route-meta';meta.textContent=!route.allowed?'須換好外出衣著':s.visits[route.to]?'已到訪':'已發現 · 尚未到訪';info.append(title,meta);const duration=document.createElement('div');duration.className='map-route-time route-card-minutes';duration.textContent='步行 '+route.minutes+' 分鐘';card.append(symbol,info,duration);list.appendChild(card);}if(!list.childElementCount)sideInfoText(list,'附近道路尚未標記。');out.appendChild(list);
+ sideInfoHeading(out,'探索過的地點');const visited=document.createElement('div');visited.className='map-world';for(const id of Object.keys(cityInvest.scenes))if(s.visits[id]){const el=document.createElement('span');el.textContent=names[id][0]+(id===s.scene?' · 所在地':'');if(id===s.scene)el.className='current';visited.appendChild(el);}out.appendChild(visited);sideInfoText(out,'新地點須先調查發現，地圖不會直接傳送。');return;}
  const clock=document.createElement('div');clock.className='map-summary';
  const left=document.createElement('strong');left.textContent='目前：'+names[s.scene][0];
  const right=document.createElement('span');right.textContent=gameTime(s.worldMinutes);
@@ -9403,6 +9403,7 @@ function drawLocationThumbnail(ms){
  if(ms-lastLocationThumb<adaptiveQuality.profile().thumbnailMs&&cv.dataset.drawn===id)return;
  lastLocationThumb=ms;
  const g=cv.getContext('2d');if(!g)return;
+ if(CITY_NATIVE){try{const renderer=cityFrame?.contentWindow?.DungeonCitySceneRendererV1;if(renderer?.thumbnail(cv)){cv.dataset.drawn=id;}}catch(error){console.warn('City thumbnail',error);}return;}
  g.setTransform(cv.width/W,0,0,cv.height/H,0,0);g.clearRect(0,0,W,H);
  if(id===s.scene&&!wreckBattleBackdropActive(id)){
   // Copy the current canvas, then composite visible scene-object layers in depth order.

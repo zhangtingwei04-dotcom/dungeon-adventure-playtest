@@ -86,6 +86,7 @@ function appendInvestigationCards(parent,items,append){
   let art;
   if(item.record){const src=window.DUNGEON_FOREST_V4_ASSETS?.[item.record.assetId]?.src;if(src){art=document.createElement('img');art.src=src;art.alt='';art.draggable=false;}button.classList.add('scene-object-departed');}
   else if(item.assetId){const src=window.DUNGEON_FOREST_V4_ASSETS?.[item.assetId]?.src;if(src){art=document.createElement('img');art.src=src;art.alt='';art.draggable=false;art.onerror=()=>art.replaceWith(investigationSceneCrop(item.node));}}
+  else if(item.imageSrc){art=document.createElement('img');art.src=item.imageSrc;art.alt='';art.draggable=false;art.onerror=()=>{art.hidden=true;thumb.classList.add('thumbnail-unavailable');};}
   else if(item.entry)art=investigationSceneCrop(item.node);
   else art=sceneObjectThumbnail(item.node);
   if(!art)art=investigationSceneCrop(item.node);

@@ -864,5 +864,29 @@
 
   renderFields();
   render();
-  if(sceneOnly)window.DungeonCitySceneRendererV1=Object.freeze({update(state,observe=false){game=JSON.parse(JSON.stringify(state));observingWindow=!!observe;selected=null;render();}});
+  if(sceneOnly){
+    let svgSource='',svgImage=null;
+    function thumbnail(canvas){
+      const g=canvas.getContext('2d'),bounds=get('scene').getBoundingClientRect();
+      if(!g||!bounds.width||!bounds.height)return false;
+      const width=canvas.width,height=canvas.height;
+      const draw=(node)=>{if(node.tagName==='IMG'&&(!node.complete||!node.naturalWidth))return;const r=node.getBoundingClientRect();if(!r.width||!r.height)return;let opacity=1;for(let el=node;el&&el!==get('scene');el=el.parentElement){const cs=getComputedStyle(el);if(cs.display==='none'||cs.visibility==='hidden'||el.hidden)return;opacity*=Number(cs.opacity);}if(opacity<.01)return;g.save();g.globalAlpha=opacity;try{const filter=getComputedStyle(node).filter;if(filter&&filter!=='none')g.filter=filter;g.drawImage(node,(r.left-bounds.left)*width/bounds.width,(r.top-bounds.top)*height/bounds.height,r.width*width/bounds.width,r.height*height/bounds.height);}finally{g.restore();}};
+      if(game.scene!=='rental-room'){
+        const svg=get(game.scene==='rental-corridor'?'corridor':'street');
+        const copy=svg.cloneNode(true);copy.setAttribute('width','960');copy.setAttribute('height','540');
+        const source=new XMLSerializer().serializeToString(copy);
+        if(source!==svgSource){svgSource=source;svgImage=new Image();svgImage.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(source);}
+        if(!svgImage?.complete||!svgImage.naturalWidth)return false;
+        g.clearRect(0,0,width,height);g.save();try{g.filter=getComputedStyle(svg).filter;g.drawImage(svgImage,0,0,width,height);}finally{g.restore();}return true;
+      }
+      const base=get('room').querySelector('.room-base');if(!base?.complete||!base.naturalWidth)return false;
+      g.clearRect(0,0,width,height);
+      if(observingWindow){g.fillStyle='#211a15';g.fillRect(0,0,width,height);}
+      else draw(base);
+      const items=[...furniture.values()].sort((a,b)=>(Number(getComputedStyle(a).zIndex)||0)-(Number(getComputedStyle(b).zIndex)||0));
+      for(const item of items)for(const image of item.querySelectorAll('img,canvas'))draw(image);
+      draw(get('roomLighting'));return true;
+    }
+    window.DungeonCitySceneRendererV1=Object.freeze({update(state,observe=false){game=JSON.parse(JSON.stringify(state));observingWindow=!!observe;selected=null;render();},thumbnail});
+  }
 })();

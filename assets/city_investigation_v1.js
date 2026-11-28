@@ -8,6 +8,13 @@
   clock.advance(actor,2,{reason:'city-investigation',fromScene:actor.scene,toScene:actor.scene});
   events.appendTravel(actor,'discovery','調查周遭：發現'+found.map(o=>o.name).join('、')+'。','把值得留意的物件記了下來。');return found;
  }
+ const routeDefs=Object.freeze([
+ {from:'rental-room',to:'rental-corridor',id:'door',action:'leave',minutes:3},
+ {from:'rental-corridor',to:'rental-room',id:'return',action:'return',minutes:3},
+ {from:'rental-corridor',to:'rental-street',id:'stairs',action:'downstairs',minutes:3},
+ {from:'rental-street',to:'rental-corridor',id:'return',action:'return',minutes:3}
+ ].map(Object.freeze));
+ function routes(actor,city){return routeDefs.filter(r=>r.from===actor.scene&&known(actor).includes(r.id)).map(r=>({...r,allowed:r.action!=='downstairs'||city.ready(actor)}));}
  function visible(actor,city){return objects(city,actor.scene).filter(o=>known(actor).includes(o.id));}
- root.DungeonCityInvestigationV1=Object.freeze({scenes,objects,known,discover,visible});
+ root.DungeonCityInvestigationV1=Object.freeze({scenes,objects,known,discover,visible,routes});
 })(window);
