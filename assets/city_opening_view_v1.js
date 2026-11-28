@@ -104,12 +104,11 @@
     if (item.id === 'chest') {
       const cavity = document.createElement('span');
       cavity.className = 'chest-cavity';
-      const lid = document.createElement('img');
-      lid.alt = '';
-      lid.src = catalog.chest;
+      const lid = document.createElement('span');
       lid.className = 'chest-lid';
+      lid.setAttribute('aria-hidden', 'true');
       image.classList.add('chest-body');
-      element.append(cavity, lid);
+      element.append(lid, cavity);
     }
     if (item.id === 'window') {
       const motion = document.createElement('span');
