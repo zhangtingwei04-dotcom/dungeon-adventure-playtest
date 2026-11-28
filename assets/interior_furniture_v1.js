@@ -4,7 +4,7 @@ window.DungeonInteriorFurnitureV1 = Object.freeze({
   wardrobe: 'assets/interiors/furniture/wardrobe.png',
   desk: 'assets/interiors/furniture/desk.png',
   ...Object.fromEntries(
-    ['window', 'mirror', 'door', 'rug', 'lamp', 'shelves', 'chest'].map(id => [
+    ['window', 'mirror', 'door', 'rug', 'lamp', 'shelves', 'chest', 'left-shelf', 'wall-map'].map(id => [
       id, 'assets/interiors/rental-room/reference/' + id + '.webp'
     ])
   )
