@@ -123,7 +123,9 @@ window.DungeonWeatherV1=(function(){
  let scene='wreck',sound=false,audio=null,lastThunder=-1,sceneHost=null,snowPreview=false,weatherPreview=false,previewEnv=emptyEnvironment(),lastEnvironmentLabel=0,plantWindow=null,onPlantWindowChanged=null,windOverride=null,windDirectionOverride=null;
  function unlockAudio(){try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;if(!audio)audio=new AC();if(audio.state==='suspended')audio.resume().catch(()=>{});}catch{}}
  function thunder(){if(!sound||!audio||audio.state!=='running')return;try{const rate=audio.sampleRate,buf=audio.createBuffer(1,Math.floor(rate*2.7),rate),d=buf.getChannelData(0);let low=0;for(let i=0;i<d.length;i++){low=.94*low+.06*(Math.random()*2-1);d[i]=low;}const src=audio.createBufferSource(),f=audio.createBiquadFilter(),g=audio.createGain(),now=audio.currentTime;src.buffer=buf;f.type='lowpass';f.frequency.value=170;g.gain.setValueAtTime(.001,now);g.gain.linearRampToValueAtTime(.19,now+.24);g.gain.exponentialRampToValueAtTime(.001,now+2.6);src.connect(f);f.connect(g);g.connect(audio.destination);src.start(now);src.stop(now+2.7);}catch{}}
+ let particleSize=1;
  function set(weather,indoor,reduce=false,options={}){
+  particleSize=clamp(options.particleSize||1,1,4);
   const nextScene=options.scene||'wreck',sceneChanged=nextScene!==scene;scene=nextScene;sound=Boolean(options.sound);sceneHost=options.sceneHost||sceneHost;onPlantWindowChanged=options.onPlantWindowChanged||null;windOverride=Number.isFinite(options.windOverride)?clamp(options.windOverride,0,5)/5:null;windDirectionOverride=Number.isFinite(options.windDirectionOverride)?clamp(options.windDirectionOverride,-1,1):null;
   const nextPreview=Boolean(options.snowPreview),nextWeatherPreview=Boolean(options.weatherPreview)||nextPreview;if(nextWeatherPreview&&(!weatherPreview||sceneChanged)){previewEnv=emptyEnvironment();for(const key of Object.keys(previewEnv))previewEnv[key]=clamp((sceneChanged?weather[key]:shown[key])||0,0,1);if(nextPreview)previewEnv.snowCover=Math.max(previewEnv.snowCover,options.previewStart??.04);}if(!nextWeatherPreview)previewEnv=emptyEnvironment();snowPreview=nextPreview;weatherPreview=nextWeatherPreview;
   hidden=Boolean(indoor);reduced=reduce;target=hidden?{...kinds.clear,wet:0,snow:0,snowCover:0}:{...weather,wet:weather.wet??weather.rain*.8,snow:weather.snow||0,snowCover:weather.snowCover||0,windDir:weather.windDir??(weatherPreview?-1:1)};
@@ -184,7 +186,7 @@ window.DungeonWeatherV1=(function(){
    ctx.fillStyle='rgba(235,244,246,'+(.42+shown.snow*.22)+')';ctx.beginPath();
    for(let i=0;i<amount;i++){const p=snowParticles[i],v=snowVelocity(i,shown.snowSpeed,(40*shown.wind+235*Math.pow(shown.wind,1.5))*shown.windDir);
     p.x=((p.x+(v.x+Math.sin(t*1.4+i)*(2+18*shown.wind))*dt)%W+W)%W;p.y=(p.y+v.y*dt)%H;
-    const r=.55+(i%4)*.24;if(shown.wind>.55&&i%3===0){const dx=shown.windDir*(2+shown.wind*4),dy=1+storm*1.8;ctx.moveTo(p.x-r,p.y-r);ctx.lineTo(p.x+dx,p.y+dy);ctx.lineTo(p.x+r,p.y+r);ctx.closePath();}else{ctx.moveTo(p.x+r,p.y);ctx.arc(p.x,p.y,r,0,Math.PI*2);}
+    const r=(.55+(i%4)*.24)*particleSize;if(shown.wind>.55&&i%3===0){const dx=shown.windDir*(2+shown.wind*4),dy=1+storm*1.8;ctx.moveTo(p.x-r,p.y-r);ctx.lineTo(p.x+dx,p.y+dy);ctx.lineTo(p.x+r,p.y+r);ctx.closePath();}else{ctx.moveTo(p.x+r,p.y);ctx.arc(p.x,p.y,r,0,Math.PI*2);}
    }ctx.fill();
   }
   if(target.rain>=.99){const clock=ms/1000,cycle=clock%17.7,flash=Math.max(0,1-Math.abs(cycle-5.1)/.24);
@@ -193,8 +195,8 @@ window.DungeonWeatherV1=(function(){
   }
   if(shown.rain>.008&&!reduced){
    const t=ms/1000,amount=Math.min(particles.length,Math.ceil(particles.length*shown.rain*density));
-   ctx.lineCap='round';ctx.lineWidth=.75;ctx.strokeStyle='rgba(209,228,239,'+(.26+shown.rain*.16)+')';ctx.beginPath();
-   for(let i=0;i<amount;i++){const p=particles[i];p.x=((p.x+dt*(25*shown.wind+155*Math.pow(shown.wind,1.5))*shown.windDir)%(W+40)+W+40)%(W+40);p.y=(p.y+dt*p.speed)%(H+24);const x=p.x-20,y=p.y-12;ctx.moveTo(x,y);ctx.lineTo(x+(shown.wind*3+Math.pow(shown.wind,1.5)*11)*shown.windDir,y+p.len);}
+   ctx.lineCap='round';ctx.lineWidth=.75*particleSize;ctx.strokeStyle='rgba(209,228,239,'+Math.min(.9,(.26+shown.rain*.16)*Math.sqrt(particleSize))+')';ctx.beginPath();
+   for(let i=0;i<amount;i++){const p=particles[i];p.x=((p.x+dt*(25*shown.wind+155*Math.pow(shown.wind,1.5))*shown.windDir)%(W+40)+W+40)%(W+40);p.y=(p.y+dt*p.speed)%(H+24);const x=p.x-20,y=p.y-12;ctx.moveTo(x,y);ctx.lineTo(x+(shown.wind*3+Math.pow(shown.wind,1.5)*11)*shown.windDir,y+p.len*Math.sqrt(particleSize));}
    ctx.stroke();
    // Tiny ground-level splashes; never mask the stream or foreground objects.
    ctx.strokeStyle='rgba(200,220,224,'+(shown.rain*.20)+')';ctx.beginPath();

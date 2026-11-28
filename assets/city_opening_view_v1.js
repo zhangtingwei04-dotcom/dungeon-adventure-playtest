@@ -115,7 +115,7 @@
 
   function drawWeather(ms) {
     if (ms - lastWeatherFrame >= 33) {
-      weather.draw(ms, 0.5);
+      weather.draw(ms, 1);
       lastWeatherFrame = ms;
     }
     weatherFrame = requestAnimationFrame(drawWeather);
@@ -139,7 +139,7 @@
     if (status.textContent !== label) status.textContent = label;
 
     const active = room && !portrait.matches && !document.hidden && visible.kind !== 'clear';
-    weather.set(visible, !active, reduceMotion.matches, { scene: 'home' });
+    weather.set(visible, !active, reduceMotion.matches, { scene: 'home', particleSize: 3.4 });
     if (active && !weatherFrame) weatherFrame = requestAnimationFrame(drawWeather);
     if (!active && weatherFrame) {
       cancelAnimationFrame(weatherFrame);
