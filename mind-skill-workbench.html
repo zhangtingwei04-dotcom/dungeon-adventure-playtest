@@ -9,13 +9,14 @@
 <section class="panel"><h2>02 · 觀察紀錄</h2><small>先模擬觀察以取得紀錄，再勾選研發素材；未記錄的素材會被核心拒絕。</small><div id="observations"></div></section>
 </div><div class="stack">
 <section class="panel" id="editor"><h2>03 · 技能創建 / 改造</h2><p>來源：<span id="source">自主創建</span></p><label class="field"><span>技能名稱</span><input id="name" type="text" maxlength="80" value="白夜之狼"></label><small>相別、衍象、投入比例（%）</small><div id="allocations"></div><button id="add">＋增加力量</button><div class="stats"><div class="stat"><small>投入</small><strong id="sum">—</strong></div><div class="stat"><small>有效力量</small><strong id="effective">—</strong></div><div class="stat"><small>轉換損耗</small><strong id="loss">—</strong></div></div><div id="breakdown" class="muted"></div><div id="status" class="status" role="status">載入核心中</div><div class="actions"><button class="primary" id="create" disabled>建立技能</button><button id="new">新草稿</button></div><p id="notice" role="status"></p><small>僅驗證已修相別、衍象權限、比例與觀察紀錄；不代表具體技能效果已可執行。</small></section>
-<section class="panel"><h2>04 · 個人技能庫</h2><div id="skills"></div><button id="export">顯示測試資料 JSON</button><textarea id="json" readonly hidden aria-label="測試資料 JSON"></textarea></section>
+<section class="panel"><h2>04 · 技能執行測試</h2><small>效果原型：驗證發動、消耗、維持與解除，不涉及正式傷害或角色存檔。</small><div class="stats"><div class="stat"><small>心火</small><strong id="exec-energy">100 / 100</strong></div><div class="stat"><small>回合</small><strong id="exec-turn">0</strong></div><div class="stat"><small>持續效果</small><strong id="exec-count">0</strong></div></div><label class="field"><span>已創建的技能</span><select id="exec-skill"></select></label><label class="field"><span>合法效果類型</span><select id="exec-template"></select></label><div class="stats"><label class="field"><span>發動心火</span><input type="number" id="exec-cost" min="1" max="100" value="20"></label><label class="field"><span>每回合供能</span><input type="number" id="exec-upkeep" min="1" max="100" value="5"></label><label class="field"><span>持續回合</span><input type="number" id="exec-duration" min="1" max="100" value="3"></label></div><div class="actions"><button class="primary" id="exec-cast">發動技能</button><button id="exec-tick">下一回合</button><button id="exec-reset">重置測試心火</button></div><p id="exec-status" role="status" class="status">先建立技能</p><div id="exec-active"></div></section>
+<section class="panel"><h2>05 · 個人技能庫</h2><div id="skills"></div><button id="export">顯示測試資料 JSON</button><textarea id="json" readonly hidden aria-label="測試資料 JSON"></textarea></section>
 </div></main>
-<script src="assets/engine_foundation_v1.js"></script><script src="assets/mind_core_v1.js"></script><script>(function workbench(){
+<script src="assets/engine_foundation_v1.js"></script><script src="assets/mind_core_v1.js"></script><script src="assets/mind_execution_v1.js"></script><script>(function workbench(){
  'use strict';
- const c=window.DungeonMindCoreV1;
+ const c=window.DungeonMindCoreV1,execution=window.DungeonMindExecutionV1;
  const $=id=>document.getElementById(id);
- if(!c){$('status').textContent='心象核心載入失敗，請重新整理。';return;}
+ if(!c||!execution){$('status').textContent='心象核心載入失敗，請重新整理。';return;}
  const catalog=[['wolf','狼','形態、奔跑、撲擊'],['spider','蜘蛛','蛛絲、結網、振動'],['bird','鳥類','翅膀、飛行、滑翔'],['flame','火焰','燃燒、熱能、擴散'],['water','流水','流動、循環、衝擊'],['crystal','水晶','結晶、折射'],['rock','岩石','結構、穩定'],['plant','植物','生長、連結']];
  const errors={UNKNOWN_SCHOOL:'未知流派',INVALID_LEARNED_PHASES:'修習相別互斥或超過三相',INVALID_MAIN:'主相無效',MAIN_NOT_LEARNED:'主相必須在已修習相別中',SCHOOL_PHASE_NOT_LEARNED:'需修習流派主相',INVALID_SKILL_ID_OR_NAME:'請輸入技能名稱',INVALID_ALLOCATION:'請選擇力量並輸入正數比例',DUPLICATE_ALLOCATION:'力量不可重複分配',UNLEARNED_PHASE:'包含尚未修習的相',BRANCH_NOT_ALLOWED:'該衍象不可使用',OPPOSED_PHASE:'存在對立相',ALLOCATION_MUST_TOTAL_100:'力量投入比例合計必須為100%',ILLEGAL_COMBINATION:'相別組合不合法',PURE_LAMP_NO_COMBINATION:'純燈流派不可組合多相',SCHOOL_CORE_REQUIRED:'複合技能需含流派核心相',INVALID_MATERIALS:'素材資料無效',OBSERVATION_REQUIRED:'尚未取得對應觀察紀錄',SOURCE_NOT_OWNED:'尚未擁有原始技能',DUPLICATE_SKILL_ID:'技能識別重複'};
  let profile=c.createProfile({schoolId:'school-4-0',main:'影',phases:['影','續']});
@@ -97,6 +98,7 @@
   sourceId=null;selected=new Set();allocations=[{phase:school().phase,share:100}];$('name').value='';$('source').textContent='自主創建';renderObservations();renderAllocations();preview();
  }
  function renderSkills(){
+  renderExecution();
   const host=$('skills');host.replaceChildren();
   if(!profile.skills.length)host.append(el('p','尚未創建技能。','muted'));
   for(const s of profile.skills){
@@ -111,12 +113,42 @@
  $('main').addEventListener('change',()=>renderPhases([...$('learned').querySelectorAll('input:checked')].map(x=>x.value)));
  $('apply').addEventListener('click',()=>{
   if((profile.skills.length||profile.observations.length)&&!window.confirm('切換測試角色會清除本頁觀察與技能，確定？'))return;
-  try{profile=c.createProfile({schoolId:$('school').value,main:$('main').value||null,phases:[...$('learned').querySelectorAll('input:checked')].map(x=>x.value)});seq=1;renderProfile();resetDraft();renderSkills()}catch(e){$('status').textContent=e.message}
+  try{profile=c.createProfile({schoolId:$('school').value,main:$('main').value||null,phases:[...$('learned').querySelectorAll('input:checked')].map(x=>x.value)});seq=1;execState=execution.createState();$('exec-status').textContent='已切換測試角色';renderProfile();resetDraft();renderSkills()}catch(e){$('status').textContent=e.message}
  });
  $('name').addEventListener('input',preview);
  $('add').addEventListener('click',()=>{if(allocations.length<4){allocations.push({phase:profile.phases.find(p=>!allocations.some(a=>a.phase===p))||'燈',share:1});renderAllocations();preview()}});
  $('new').addEventListener('click',resetDraft);
  $('create').addEventListener('click',()=>{try{const d=draft();profile=c.createSkill(profile,d);seq++;renderSkills();resetDraft();$('notice').textContent='已建立「'+d.name+'」，觀察紀錄與原技能保留。'}catch(e){$('status').textContent=e.message}});
  $('export').addEventListener('click',()=>{$('json').value=JSON.stringify(profile,null,2);$('json').hidden=false;$('json').focus();$('json').select()});
+ let execState=execution.createState();
+ function refreshEffects(){
+  const old=$('exec-template').value,items=execution.compatible(profile,$('exec-skill').value);
+  setOptions($('exec-template'),items.map(t=>[t.id,t.name]),items.some(t=>t.id===old)?old:(items[0]?.id||''));
+  const t=items.find(t=>t.id===$('exec-template').value);
+  $('exec-cast').disabled=!t;
+  $('exec-upkeep').disabled=t?.mode!=='sustain';$('exec-duration').disabled=t?.mode!=='finite';
+ }
+ function renderExecution(){
+  const old=$('exec-skill').value;
+  setOptions($('exec-skill'),profile.skills.map(s=>[s.id,s.name]),profile.skills.some(s=>s.id===old)?old:(profile.skills.at(-1)?.id||''));
+  refreshEffects();renderActive();
+ }
+ function renderActive(){
+  $('exec-energy').textContent=fmt(execState.energy)+' / '+execState.capacity;$('exec-turn').textContent=execState.turn;$('exec-count').textContent=execState.active.length;
+  const host=$('exec-active');host.replaceChildren();
+  for(const a of execState.active){
+   const s=profile.skills.find(x=>x.id===a.skillId),t=execution.templates.find(x=>x.id===a.templateId),row=el('article',undefined,'skill');
+   row.append(el('strong',(s?.name||a.skillId)+'・'+t.name),el('p','初始效果力量 '+fmt(a.power)+'｜'+(a.mode==='sustain'?'每回合消耗 '+fmt(a.upkeep):'剩餘 '+a.remaining+' 回合')),button('解除',()=>{const r=execution.release(execState,a.id);execState=r.state;$('exec-status').textContent='已解除，不返還心火。';renderActive()}));host.append(row);
+  }
+ }
+ const execErrors={INSUFFICIENT_OR_INVALID_ENERGY:'心火不足或發動消耗無效',INVALID_UPKEEP:'持續效果必須有正數供能',INVALID_DURATION:'持續回合必須介於1至100',ALREADY_ACTIVE:'同一技能效果正在運作',MISSING_EFFECT_PHASE:'欠缺必要力量',INVALID_SKILL:'技能未通過重新驗證',INSUFFICIENT_EFFECT_POWER:'效果力量不足'};
+ $('exec-skill').addEventListener('change',refreshEffects);
+ $('exec-template').addEventListener('change',refreshEffects);
+ $('exec-cast').addEventListener('click',()=>{
+  const r=execution.activate(execState,profile,$('exec-skill').value,$('exec-template').value,{cost:$('exec-cost').valueAsNumber,upkeep:$('exec-upkeep').valueAsNumber,duration:$('exec-duration').valueAsNumber});
+  if(r.ok){execState=r.state;$('exec-status').textContent='發動成功｜效果力量 '+fmt(r.effect.power)+'（原型數值）';renderActive()}else $('exec-status').textContent=execErrors[r.reason]||r.reason;
+ });
+ $('exec-tick').addEventListener('click',()=>{const r=execution.advance(execState);execState=r.state;$('exec-status').textContent=r.events.map(e=>e.type==='maintained'?'維持 '+e.id+'：消耗 '+fmt(e.cost):e.id+'：'+(e.reason==='EXPIRED'?'時間結束':'供能不足，解除')).join('；')||'已推進一回合。';renderActive()});
+ $('exec-reset').addEventListener('click',()=>{execState=execution.createState();$('exec-status').textContent='已重置獨立測試心火及效果。';renderActive()});
  updateProfileEditor();renderProfile();renderObservations();renderAllocations();renderSkills();preview();
 })();</script></body></html>
