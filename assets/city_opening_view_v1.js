@@ -25,7 +25,7 @@
   let lastWeatherFrame = 0;
   const itemPicker = get('layoutItem');
   const labels = new Map(city.objects.map(item => [item.id, item.name]));
-  const decorations = { rug: '地毯', shelves: '壁架', lamp: '吊燈', 'left-shelf': '左牆木架', 'wall-map': '左牆掛圖', 'right-wall-map': '右牆掛圖' };
+  const decorations = { chair: '椅子', rug: '地毯', shelves: '壁架', lamp: '吊燈', 'left-shelf': '左牆木架', 'wall-map': '左牆掛圖', 'right-wall-map': '右牆掛圖' };
   const detailFields = {
     mirror: { skewY: { label: '鏡面斜度 (°)', min: -35, max: 35, step: 0.5, initial: 7 } },
     chest: {
