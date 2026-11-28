@@ -161,6 +161,14 @@
     if (item.id === 'door') {
       const opening = document.createElement('span');
       opening.className = 'door-opening';
+      // Reuse the real street preview, without navigating away from the room.
+      const outside = get('street').cloneNode(true);
+      outside.removeAttribute('id');
+      outside.classList.add('door-outside');
+      outside.setAttribute('viewBox', '402 65 190 475');
+      outside.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+      outside.setAttribute('aria-hidden', 'true');
+      opening.append(outside);
       const frame = document.createElement('span');
       frame.className = 'door-frame';
       const leaf = document.createElement('span');
@@ -262,6 +270,21 @@
     };
   }
 
+  let curtainSwapTimer = null;
+  function updateCurtainState(element, open) {
+    const next = String(open);
+    if (element.dataset.open === next && element.hasAttribute('data-tied-hidden')) return;
+    if (curtainSwapTimer !== null) clearTimeout(curtainSwapTimer);
+    const first = !element.hasAttribute('data-tied-hidden');
+    element.dataset.open = next;
+    const swap = () => {
+      element.dataset.tiedHidden = String(!open);
+      curtainSwapTimer = null;
+    };
+    if (first || reduceMotion.matches) swap();
+    else curtainSwapTimer = setTimeout(swap, open ? 300 : 850);
+  }
+
   function renderFurniture() {
     for (const item of placements) {
       const element = furniture.get(item.id);
@@ -270,9 +293,10 @@
         const preview = item.id === 'chest' && editor.open && itemPicker.value === 'chest' && chestPreview !== 'actual';
         element.dataset.open = String(preview ? chestPreview === 'open' : city.isOpen(game, item.id));
       }
-      if (['door','lamp','window'].includes(item.id)) {
+      if (['door','lamp'].includes(item.id)) {
         element.dataset.open = String(city.isOpen(game, item.id));
       }
+      if (item.id === 'window') updateCurtainState(element, city.isOpen(game, item.id));
       if (item.id === 'mirror') {
         element.querySelector('img').style.transform = `skewY(${detailValue('mirror', 'skewY')}deg) skewX(${detailValue('mirror', 'skewX')}deg)`;
       }
