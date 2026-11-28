@@ -174,7 +174,7 @@
       reveal.setAttribute('viewBox','0 0 100 100');
       reveal.setAttribute('preserveAspectRatio','none');
       reveal.setAttribute('aria-hidden','true');
-      reveal.innerHTML = '<defs><linearGradient id="rentalJamb" x1="0" x2="1"><stop stop-color="#4b2e20"/><stop offset=".5" stop-color="#96623e"/><stop offset="1" stop-color="#523626"/></linearGradient><linearGradient id="rentalSill" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#c79b65"/><stop offset="1" stop-color="#6e452b"/></linearGradient></defs>'
+      reveal.innerHTML = '<defs><linearGradient id="rentalJamb" x1="0" x2="1"><stop stop-color="#4b2e20"/><stop offset=".5" stop-color="#96623e"/><stop offset="1" stop-color="#523626"/></linearGradient><linearGradient id="rentalSill" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#96643f"/><stop offset=".42" stop-color="#805130"/><stop offset="1" stop-color="#50321f"/></linearGradient></defs>'
         + '<path d="M25 12L34 14L34 90.9L25 93Z" fill="url(#rentalJamb)"/>'
         + '<path d="M25 12L98 6L98 8.9L34 14Z" fill="#64412b"/>'
         + '<path d="M34 90.9L98 95.1L98 98L25 93Z" fill="url(#rentalSill)"/>'
@@ -344,7 +344,7 @@
     const y1=item.y-height*.07,y2=item.y-height*.02;
     const pt=(x,y)=>x.toFixed(3)+'% '+y.toFixed(3)+'%';
     // Spread towards the foreground and left, starting on the actual sill.
-    const polygon='polygon('+[pt(x1,y1),pt(x2,y2),pt(x2-13,Math.min(99,y2+6)),pt(x1-15,Math.min(98,y1+6))].join(',')+')';
+    const polygon='polygon('+[pt(x1,y1),pt(x2,y2),pt(x2-11.3,Math.min(99,y2+5.2)),pt(x1-13,Math.min(98,y1+5.2))].join(',')+')';
     floor.style.setProperty('--door-floor-polygon',polygon);
   }
 
@@ -416,7 +416,7 @@
     const room=get('room');
     room.dataset.door=city.isOpen(game,'door')?'open':'closed';
     room.style.setProperty('--door-light-core','rgb('+light.color.join(',')+')');
-    room.style.setProperty('--door-floor-strength',String(Math.min(.46,light.strength*1.4)));
+    room.style.setProperty('--door-floor-strength',String(Math.min(.46,light.strength*1.4)*.75));
     const corridorBrightness=.60+.40*Math.min(1,light.outsideBrightness);
     door.style.setProperty('--door-outside-brightness',String(corridorBrightness));
     door.style.setProperty('--door-outside-opacity',String(light.outsideOpacity));
