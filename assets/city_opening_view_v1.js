@@ -367,7 +367,13 @@
     const factor=({clear:1,cloudy:.65,fog:.58,drizzle:.52,rain:.43,storm:.27,snow:.72,blizzard:.4})[kind]??.65;
     const strength=(a[1]+(b[1]-a[1])*t)*factor;
     const color=a[2].map((v,j)=>Math.round((v+(b[2][j]-v)*t)*(.52+.48*factor)));
-    return {strength,color,edge:color.map(v=>Math.round(v*.46))};
+    const daylight=Math.max(0,Math.min(1,((a[1]+(b[1]-a[1])*t)-.025)/.295));
+    return {strength,color,edge:color.map(v=>Math.round(v*.46)),
+      outsideBrightness:.10+.82*daylight*factor,
+      outsideOpacity:.55+.30*daylight,
+      outsideSaturation:.35+.40*daylight,
+      outsideBlur:kind==='fog'||kind==='blizzard'?5:kind==='storm'||kind==='rain'?4:3
+    };
   }
   function renderDoorAmbient(visible) {
     const door=furniture.get('door');
@@ -376,6 +382,10 @@
     door.style.setProperty('--door-light-strength',String(light.strength));
     door.style.setProperty('--door-light-core','rgb('+light.color.join(',')+')');
     door.style.setProperty('--door-light-edge','rgb('+light.edge.join(',')+')');
+    door.style.setProperty('--door-outside-brightness',String(light.outsideBrightness));
+    door.style.setProperty('--door-outside-opacity',String(light.outsideOpacity));
+    door.style.setProperty('--door-outside-saturation',String(light.outsideSaturation));
+    door.style.setProperty('--door-outside-blur',light.outsideBlur+'px');
   }
 
   function renderWeather() {
