@@ -3,7 +3,7 @@ window.DungeonInteriorFurnitureV1 = Object.freeze({
   bed: 'assets/interiors/furniture/bed.png',
   wardrobe: 'assets/interiors/furniture/wardrobe.png',
   'wardrobe-open': 'assets/interiors/rental-room/reference/wardrobe-open.webp',
-  'chest-open': 'assets/interiors/rental-room/reference/chest-open-aligned.webp',
+  'chest-open': 'assets/interiors/rental-room/reference/chest-open-aligned.webp?v=2',
   desk: 'assets/interiors/furniture/desk.png',
   ...Object.fromEntries(
     ['window', 'mirror', 'door', 'rug', 'lamp', 'shelves', 'chest', 'left-shelf', 'wall-map', 'right-wall-map'].map(id => [
