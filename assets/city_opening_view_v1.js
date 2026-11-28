@@ -175,17 +175,17 @@
       reveal.setAttribute('preserveAspectRatio','none');
       reveal.setAttribute('aria-hidden','true');
       reveal.innerHTML = '<defs><linearGradient id="rentalJamb" x1="0" x2="1"><stop stop-color="#4b2e20"/><stop offset=".5" stop-color="#96623e"/><stop offset="1" stop-color="#523626"/></linearGradient><linearGradient id="rentalSill" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#c79b65"/><stop offset="1" stop-color="#6e452b"/></linearGradient></defs>'
-        + '<path d="M25 12L35 14L35 90.6L25 93Z" fill="url(#rentalJamb)"/>'
-        + '<path d="M25 12L98 6L98 8.9L35 14Z" fill="#64412b"/>'
-        + '<path d="M35 90.6L98 94.2L98 98L25 93Z" fill="url(#rentalSill)"/>'
-        + '<path d="M35 14L35 90.6L98 94.2" fill="none" stroke="#3c291e" stroke-width=".9" vector-effect="non-scaling-stroke"/>'
+        + '<path d="M25 12L34 14L34 90.9L25 93Z" fill="url(#rentalJamb)"/>'
+        + '<path d="M25 12L98 6L98 8.9L34 14Z" fill="#64412b"/>'
+        + '<path d="M34 90.9L98 95.1L98 98L25 93Z" fill="url(#rentalSill)"/>'
+        + '<path d="M34 14L34 90.9L98 95.1" fill="none" stroke="#3c291e" stroke-width=".9" vector-effect="non-scaling-stroke"/>'
         + '<path d="M25 93L98 98" fill="none" stroke="#4d3021" stroke-width=".8" vector-effect="non-scaling-stroke"/>'
-        + '<path class="jamb-light" d="M29 14L35 15L35 90.6L29 92Z M35 90.6L98 94.2L98 95.2L33 91.5Z"/>';
+        + '<path class="jamb-light" d="M29 14L34 15L34 90.9L29 92Z M34 90.9L98 95.1L98 96.1L32 91.8Z"/>';
       opening.append(reveal);
       const floorLight = document.createElement('span');
       floorLight.className = 'door-floor-light';
       floorLight.setAttribute('aria-hidden', 'true');
-      element.prepend(floorLight);
+      get('room').insertBefore(floorLight, get('furniture'));
       const frame = document.createElement('span');
       frame.className = 'door-frame';
       const leaf = document.createElement('span');
@@ -323,10 +323,37 @@
     curtainSwapFrame = requestAnimationFrame(track);
   }
 
+  // Widen horizontally around the right edge, retaining the original vertical size.
+  const doorWidthFactor = 1.16;
+  function doorGeometry(item) {
+    const baseWidth=item.width*item.scale;
+    const width=baseWidth*doorWidthFactor;
+    const right=item.x+baseWidth/2;
+    return {width,right,left:right-width,x:right-width/2,baseWidth};
+  }
+  function positionRoomDoor(element,item) {
+    const g=doorGeometry(item);
+    layout.position(element,{...item,x:g.x});
+    element.style.transform += ' scaleX('+doorWidthFactor+')';
+    const floor=get('room').querySelector('.door-floor-light');
+    const image=element.querySelector('.door-leaf');
+    const ratio=image.naturalWidth>0?image.naturalHeight/image.naturalWidth:430/62;
+    const height=g.baseWidth*(16/9)*ratio;
+    const x1=g.left+g.width*.25,x2=g.left+g.width*.98;
+    const y1=item.y-height*.07,y2=item.y-height*.02;
+    const pt=(x,y)=>x.toFixed(3)+'% '+y.toFixed(3)+'%';
+    // Spread towards the foreground and left, starting on the actual sill.
+    const polygon='polygon('+[pt(x1,y1),pt(x2,y2),pt(x2-13,Math.min(99,y2+6)),pt(x1-15,Math.min(98,y1+6))].join(',')+')';
+    floor.style.setProperty('--door-floor-polygon',polygon);
+  }
+
   function renderFurniture() {
     for (const item of placements) {
       const element = furniture.get(item.id);
-      layout.position(element, item.id === 'chest' ? projectChestDepth(item, detailValue('chest', 'depth'), detailValue('chest', 'depthDirection')) : item);
+      if (item.id === 'door') positionRoomDoor(element,item);
+      else if (item.id === 'mirror' && !Number.isFinite(overrides?.mirror?.x)) {
+        layout.position(element,{...item,x:item.x-.65});
+      } else layout.position(element, item.id === 'chest' ? projectChestDepth(item, detailValue('chest', 'depth'), detailValue('chest', 'depthDirection')) : item);
       if (item.id === 'wardrobe' || item.id === 'chest') {
         const preview = item.id === 'chest' && editor.open && itemPicker.value === 'chest' && chestPreview !== 'actual';
         element.dataset.open = String(preview ? chestPreview === 'open' : city.isOpen(game, item.id));
@@ -385,7 +412,11 @@
     door.style.setProperty('--door-light-strength',String(light.strength));
     door.style.setProperty('--door-light-core','rgb('+light.color.join(',')+')');
     door.style.setProperty('--door-light-edge','rgb('+light.edge.join(',')+')');
-    door.style.setProperty('--door-outside-brightness',String(light.outsideBrightness));
+    const room=get('room');
+    room.dataset.door=city.isOpen(game,'door')?'open':'closed';
+    room.style.setProperty('--door-light-core','rgb('+light.color.join(',')+')');
+    room.style.setProperty('--door-floor-strength',String(Math.min(.46,light.strength*1.4)));
+    door.style.setProperty('--door-outside-brightness',String(Math.min(1.12,light.outsideBrightness+.14*Math.max(0,light.outsideBrightness-.1))));
     door.style.setProperty('--door-outside-opacity',String(light.outsideOpacity));
     door.style.setProperty('--door-outside-saturation',String(light.outsideSaturation));
     door.style.setProperty('--door-outside-blur',light.outsideBlur+'px');
