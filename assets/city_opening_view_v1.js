@@ -12,6 +12,10 @@
   const weatherPicker = get('windowWeather');
   const thunderButton = get('windowThunder');
   let thunderSound = false;
+  const weatherSeed = 'city-opening-v1';
+  const glassDryMinutes = 90;
+  let lastWeatherPreview = 'auto';
+  let previewRainEndedAt = null;
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
   const portrait = matchMedia('(orientation:portrait) and (max-width:767px), (orientation:portrait) and (pointer:coarse)');
   for (const [kind, details] of Object.entries(weather.kinds)) {
@@ -93,6 +97,18 @@
       glassWeather.setAttribute('aria-hidden', 'true');
       element.append(window.DungeonRentalWindowSkyV1.createRoofSnow(image), glassWeather);
       weather.bind(glassWeather);
+      const wetGlass = document.createElement('span');
+      wetGlass.className = 'window-weather window-wet-glass';
+      wetGlass.setAttribute('aria-hidden', 'true');
+      for (const [x, y, length] of [[30, 29, 9], [39, 51, 12], [45, 76, 8],
+        [58, 26, 10], [65, 51, 14], [72, 33, 7], [68, 75, 11], [27, 57, 8]]) {
+        const drop = document.createElement('i');
+        drop.style.left = x + '%';
+        drop.style.top = y + '%';
+        drop.style.setProperty('--drop-length', length + '%');
+        wetGlass.append(drop);
+      }
+      element.append(wetGlass);
     }
     get('furniture').append(element);
     furniture.set(item.id, element);
@@ -123,15 +139,34 @@
     weatherFrame = requestAnimationFrame(drawWeather);
   }
 
+  function glassWetness(actual, visible, preview) {
+    const now = game.worldMinutes;
+    if (preview !== 'auto') {
+      if (visible.snow) return 0;
+      if (visible.rain) return 0.85;
+      return previewRainEndedAt === null
+        ? 0 : Math.max(0, 1 - (now - previewRainEndedAt) / glassDryMinutes);
+    }
+    if (actual.snow) return 0;
+    if (actual.rain) return 0.85;
+    const blockStart = actual.block * 180;
+    const elapsed = now - blockStart;
+    if (blockStart === 0 || elapsed >= glassDryMinutes) return 0;
+    const previous = weather.at(weatherSeed, blockStart - 1, 'home');
+    return previous.rain ? 1 - elapsed / glassDryMinutes : 0;
+  }
+
   function renderWeather() {
     const room = game.scene === 'rental-room';
     const preview = weatherPicker.value;
-    const actual = weather.at('city-opening-v1', game.worldMinutes, 'home');
+    const actual = weather.at(weatherSeed, game.worldMinutes, 'home');
     const visible = preview === 'auto'
       ? actual
       : { ...actual, snow: 0, overcast: 0, ...weather.kinds[preview], kind: preview };
     const windowObject = furniture.get('window');
     windowObject.dataset.weather = visible.kind;
+    windowObject.querySelector('.window-wet-glass').style.opacity =
+      String(glassWetness(actual, visible, preview));
     const roofCover = preview === 'auto'
       ? Math.max(actual.snowCover, actual.snow * 0.18)
       : preview === 'blizzard' ? 0.95 : preview === 'snow' ? 0.72 : 0;
@@ -161,7 +196,15 @@
     thunderButton.setAttribute('aria-pressed', String(thunderSound));
     renderWeather();
   };
-  weatherPicker.onchange = renderWeather;
+  weatherPicker.onchange = () => {
+    const next = weatherPicker.value;
+    if (next === 'auto' || weather.kinds[next]?.snow) previewRainEndedAt = null;
+    else if (weather.kinds[lastWeatherPreview]?.rain && !weather.kinds[next]?.rain) {
+      previewRainEndedAt = game.worldMinutes;
+    }
+    lastWeatherPreview = next;
+    renderWeather();
+  };
   reduceMotion.addEventListener('change', renderWeather);
   portrait.addEventListener('change', renderWeather);
   document.addEventListener('visibilitychange', renderWeather);
@@ -270,6 +313,9 @@
   get('reset').onclick = () => {
     if (!confirm('重新開始城鎮開場試玩？')) return;
     game = city.create();
+    weatherPicker.value = 'auto';
+    lastWeatherPreview = 'auto';
+    previewRainEndedAt = null;
     selected = null;
     get('status').textContent = '';
     render();

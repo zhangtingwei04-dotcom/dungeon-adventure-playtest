@@ -76,6 +76,17 @@ a{color:#e3c88f}
 [data-weather=storm]{--window-weather-tone:linear-gradient(#1c2537f0,#3b4a6ba8)}
 [data-weather=snow]{--window-weather-tone:linear-gradient(#afc9dba8,#d5e8ef9c)}
 [data-weather=blizzard]{--window-weather-tone:linear-gradient(#afc6d9e6,#e0edf6d9)}
+.window-wet-glass{background:none;opacity:0;transition:opacity .6s}
+.window-wet-glass i{
+  position:absolute;width:1.4%;height:var(--drop-length);
+  background:linear-gradient(transparent,#b8d0e175 74%,#eef9ff);
+  border-radius:0 0 70% 70%;box-shadow:1px 0 #172d3e38;
+}
+.window-wet-glass i::after{
+  content:'';position:absolute;bottom:0;left:-35%;width:170%;aspect-ratio:1;
+  background:#dfeef5;border-radius:50%;box-shadow:0 1px #1637479e;
+}
+@media(prefers-reduced-motion:reduce){.window-wet-glass{transition:none}}
 .furniture[data-birds=quiet] .window-bird{display:none}
 .furniture[data-weather]:not([data-weather=clear]) .window-cloud{visibility:hidden;animation-play-state:paused}
 #windowWeather{max-width:100%;font:inherit;color:inherit;background:#253a30}
@@ -87,6 +98,6 @@ a{color:#e3c88f}
 <script src="assets/interior_layout_v1.js?v=6"></script>
 <script src="assets/weather_system_v1.js?v=window-3"></script>
 <script src="assets/rental_window_sky_v1.js?v=4"></script>
-<script src="assets/city_opening_view_v1.js?v=12"></script>
+<script src="assets/city_opening_view_v1.js?v=13"></script>
 <div class="orientation"><div><strong>請將手機轉為橫向</strong><p>城鎮住宅以橫式畫面呈現。</p></div></div>
 </body></html>
