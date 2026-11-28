@@ -369,10 +369,10 @@
     const color=a[2].map((v,j)=>Math.round((v+(b[2][j]-v)*t)*(.52+.48*factor)));
     const daylight=Math.max(0,Math.min(1,((a[1]+(b[1]-a[1])*t)-.025)/.295));
     return {strength,color,edge:color.map(v=>Math.round(v*.46)),
-      outsideBrightness:.10+.82*daylight*factor,
-      outsideOpacity:.55+.30*daylight,
-      outsideSaturation:.35+.40*daylight,
-      outsideBlur:kind==='fog'||kind==='blizzard'?5:kind==='storm'||kind==='rain'?4:3
+      outsideBrightness:.10+.98*daylight*factor,
+      outsideOpacity:.68+.30*daylight,
+      outsideSaturation:.35+.50*daylight,
+      outsideBlur:kind==='fog'||kind==='blizzard'?3.5:kind==='storm'||kind==='rain'?2.6:1.6
     };
   }
   function renderDoorAmbient(visible) {
