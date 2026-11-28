@@ -3,8 +3,8 @@
   'use strict';
 
   const rentalRoom = Object.freeze([
-    { id: 'left-shelf', x: 6.5, y: 26.5, width: 13, scale: 1, angle: 0, z: 8 },
-    { id: 'wall-map', x: 4, y: 43, width: 7, scale: 1, angle: 0, z: 9 },
+    { id: 'left-shelf', x: 8, y: 26, width: 12, scale: 1, angle: 0, z: 8 },
+    { id: 'wall-map', x: 5.5, y: 46, width: 6.5, scale: 1, angle: 0, z: 9 },
     { id: 'window', x: 47.5, y: 56, width: 29, scale: 1, angle: 0, z: 10 },
     { id: 'mirror', x: 90, y: 63, width: 5.5, scale: 1, angle: 0, z: 11 },
     { id: 'door', x: 96.7, y: 93, width: 6.6, scale: 1, angle: 0, z: 12 },

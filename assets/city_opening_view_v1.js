@@ -68,6 +68,17 @@
     element.className = 'furniture';
     element.dataset.item = item.id;
     element.append(image);
+    if (item.id === 'window') {
+      const motion = document.createElement('span');
+      motion.className = 'window-motion';
+      motion.setAttribute('aria-hidden', 'true');
+      for (const name of ['window-cloud', 'window-bird']) {
+        const detail = document.createElement('span');
+        detail.className = name;
+        motion.append(detail);
+      }
+      element.append(motion);
+    }
     get('furniture').append(element);
     furniture.set(item.id, element);
     itemPicker.add(new Option(label, item.id));
