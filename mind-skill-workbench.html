@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="color-scheme" content="dark"><title>迷宮盡頭的燈火｜技能研發工作台 V1</title>
+<style>
+:root{color-scheme:dark;--bg:#141b19;--panel:#202b26;--border:#62624b;--gold:#dbbd7c;--text:#e9e7db;--muted:#b3bdb1}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 system-ui,sans-serif}header{position:sticky;top:0;z-index:2;background:#19231f;border-bottom:1px solid var(--border);padding:10px max(12px,env(safe-area-inset-left))}h1{font-size:18px;margin:0;color:var(--gold)}h2{font-size:15px;color:var(--gold);margin:0 0 8px}p{margin:5px 0}.muted,small{color:var(--muted)}main{padding:10px max(12px,env(safe-area-inset-left)) 20px;display:grid;grid-template-columns:minmax(225px,1fr) minmax(300px,1.35fr);gap:10px;align-items:start;max-width:1200px;margin:auto}.panel{border:1px solid var(--border);background:var(--panel);border-radius:8px;padding:12px;min-width:0}.stack{display:grid;gap:10px;min-width:0}button,input,select,textarea{font:inherit;color:var(--text);background:#141c18;border:1px solid #77765c;border-radius:5px;padding:7px;min-height:36px;max-width:100%}button{cursor:pointer;color:var(--gold)}button:disabled{opacity:.45;cursor:default}input[type=checkbox]{min-height:20px;accent-color:#bc9f63;flex:none}select,input[type=text],textarea{width:100%}label.field{display:block;margin:6px 0}label.field span{display:block;color:var(--muted)}.chips{display:flex;flex-wrap:wrap;gap:5px}.chip,.obs-label{display:flex;align-items:center;gap:5px}.chip{border:1px solid #59665b;padding:2px 5px;border-radius:4px}.observation{display:flex;align-items:center;justify-content:space-between;gap:5px;border-top:1px solid #3a493f;padding:5px 0}.obs-label{font-size:12px}.observation button{white-space:nowrap;min-height:32px;font-size:12px}.allocation{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) 62px 48px;gap:5px;margin-bottom:6px}.allocation>*{min-width:0;width:100%}.allocation button{padding:4px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}.stat{background:#141c18;padding:8px;border-radius:5px}.stat strong{display:block;font-size:17px;color:var(--gold)}.status{padding:8px;border-left:3px solid #c5a154;background:#1b211c;margin:8px 0;overflow-wrap:anywhere}.ok{border-color:#8eba93}.warn{border-color:#d59871}.actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}.primary{background:#b79b62;color:#182019;font-weight:700}.skill{border-top:1px solid #536256;padding:8px 0;overflow-wrap:anywhere}.skill p{font-size:12px;color:var(--muted)}textarea{min-height:120px;margin-top:8px}#editor{scroll-margin-top:70px}#notice{color:var(--gold)}@media(max-width:610px){main{grid-template-columns:1fr}}@media(orientation:landscape) and (max-height:480px){header{position:static;padding:6px 12px}h1{font-size:16px}main{padding-top:6px}.panel{padding:9px}}
+</style></head><body>
+<header><h1>技能研發工作台 V1.0</h1><small>獨立測試｜心象法 · 御心者｜重新整理即重置，不讀寫正式存檔</small></header>
+<main><div class="stack">
+<section class="panel"><h2>01 · 測試修行者</h2><label class="field"><span>修行流派</span><select id="school"></select></label><label class="field"><span>個人主相</span><select id="main"></select></label><div id="learned" class="chips"></div><div class="actions"><button id="apply">套用測試角色</button></div><p id="current"></p><small id="permissions"></small><p class="muted" id="moves"></p></section>
+<section class="panel"><h2>02 · 觀察紀錄</h2><small>先模擬觀察以取得紀錄，再勾選研發素材；未記錄的素材會被核心拒絕。</small><div id="observations"></div></section>
+</div><div class="stack">
+<section class="panel" id="editor"><h2>03 · 技能創建 / 改造</h2><p>來源：<span id="source">自主創建</span></p><label class="field"><span>技能名稱</span><input id="name" type="text" maxlength="80" value="白夜之狼"></label><small>相別、衍象、投入比例（%）</small><div id="allocations"></div><button id="add">＋增加力量</button><div class="stats"><div class="stat"><small>投入</small><strong id="sum">—</strong></div><div class="stat"><small>有效力量</small><strong id="effective">—</strong></div><div class="stat"><small>轉換損耗</small><strong id="loss">—</strong></div></div><div id="breakdown" class="muted"></div><div id="status" class="status" role="status">載入核心中</div><div class="actions"><button class="primary" id="create" disabled>建立技能</button><button id="new">新草稿</button></div><p id="notice" role="status"></p><small>僅驗證已修相別、衍象權限、比例與觀察紀錄；不代表具體技能效果已可執行。</small></section>
+<section class="panel"><h2>04 · 個人技能庫</h2><div id="skills"></div><button id="export">顯示測試資料 JSON</button><textarea id="json" readonly hidden aria-label="測試資料 JSON"></textarea></section>
+</div></main>
+<script src="assets/engine_foundation_v1.js"></script><script src="assets/mind_core_v1.js"></script><script>(function workbench(){
+ 'use strict';
+ const c=window.DungeonMindCoreV1;
+ const $=id=>document.getElementById(id);
+ if(!c){$('status').textContent='心象核心載入失敗，請重新整理。';return;}
+ const catalog=[['wolf','狼','形態、奔跑、撲擊'],['spider','蜘蛛','蛛絲、結網、振動'],['bird','鳥類','翅膀、飛行、滑翔'],['flame','火焰','燃燒、熱能、擴散'],['water','流水','流動、循環、衝擊'],['crystal','水晶','結晶、折射'],['rock','岩石','結構、穩定'],['plant','植物','生長、連結']];
+ const errors={UNKNOWN_SCHOOL:'未知流派',INVALID_LEARNED_PHASES:'修習相別互斥或超過三相',INVALID_MAIN:'主相無效',MAIN_NOT_LEARNED:'主相必須在已修習相別中',SCHOOL_PHASE_NOT_LEARNED:'需修習流派主相',INVALID_SKILL_ID_OR_NAME:'請輸入技能名稱',INVALID_ALLOCATION:'請選擇力量並輸入正數比例',DUPLICATE_ALLOCATION:'力量不可重複分配',UNLEARNED_PHASE:'包含尚未修習的相',BRANCH_NOT_ALLOWED:'該衍象不可使用',OPPOSED_PHASE:'存在對立相',ALLOCATION_MUST_TOTAL_100:'力量投入比例合計必須為100%',ILLEGAL_COMBINATION:'相別組合不合法',PURE_LAMP_NO_COMBINATION:'純燈流派不可組合多相',SCHOOL_CORE_REQUIRED:'複合技能需含流派核心相',INVALID_MATERIALS:'素材資料無效',OBSERVATION_REQUIRED:'尚未取得對應觀察紀錄',SOURCE_NOT_OWNED:'尚未擁有原始技能',DUPLICATE_SKILL_ID:'技能識別重複'};
+ let profile=c.createProfile({schoolId:'school-4-0',main:'影',phases:['影','續']});
+ let selected=new Set(),allocations=[{phase:'影',branch:'形',share:60},{phase:'續',branch:'循',share:40}],sourceId=null,seq=1;
+ const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n};
+ const option=(value,label)=>{const n=el('option',label);n.value=value;return n};
+ function setOptions(node,items,value){node.replaceChildren(...items.map(x=>option(x[0],x[1])));node.value=value}
+ function button(label,fn){const b=el('button',label);b.type='button';b.addEventListener('click',fn);return b}
+ function school(){return c.schools.find(x=>x.id===profile.schoolId)}
+ function updateProfileEditor(){
+  $('school').value=profile.schoolId;
+  refreshMain(profile.main??'');
+  renderPhases(profile.phases);
+ }
+ function refreshMain(preferred){
+  const s=c.schools.find(x=>x.id===$('school').value);
+  const allowed=s.phase==='燈'?['',...c.phases]:c.phases.filter(p=>!c.opposite(p,s.phase));
+  const value=allowed.includes(preferred)?preferred:(s.phase==='燈'?'':s.phase);
+  setOptions($('main'),allowed.map(p=>[p,p||'尚未選擇六相']),value);
+ }
+ function renderPhases(previous=[]){
+  const s=c.schools.find(x=>x.id===$('school').value),main=$('main').value,required=[...new Set([main,s.phase==='燈'?'':s.phase].filter(Boolean))];
+  const chosen=[...required];
+  if(main)for(const p of previous)if(!chosen.includes(p)&&c.legalPhases([...chosen,p]))chosen.push(p);
+  const host=$('learned');host.replaceChildren();
+  for(const p of c.phases){
+   const label=el('label',undefined,'chip'),box=el('input');box.type='checkbox';box.value=p;box.checked=chosen.includes(p);
+   box.disabled=!main||required.includes(p)||(!box.checked&&!c.legalPhases([...chosen,p]));
+   box.addEventListener('change',()=>renderPhases([...host.querySelectorAll('input:checked')].map(x=>x.value)));
+   label.append(box,document.createTextNode(p+(main?' · '+c.efficiency(main,p)+'%':'')));host.append(label);
+  }
+ }
+ function renderProfile(){
+  const s=school();
+  $('current').textContent=s.name+'｜主相：'+(profile.main||'無')+'｜已修：'+(profile.phases.join('、')||'純燈');
+  $('permissions').textContent=s.phase==='燈'?'純燈：可使用合法單相基礎技能，不開放衍象及多相組合。':'六相流派：可研修合法衍象，複合技能需含流派核心相。';
+  $('moves').textContent=s.draftMoves.join('、')+'（名稱初稿，尚未授予或定義效果）';
+ }
+ function renderObservations(){
+  const host=$('observations');host.replaceChildren();
+  for(const [id,name,features] of catalog){
+   const row=el('div',undefined,'observation');const label=el('label',undefined,'obs-label'),cb=el('input');cb.type='checkbox';cb.checked=selected.has(id);
+   cb.addEventListener('change',()=>{if(cb.checked)selected.add(id);else selected.delete(id);preview()});
+   label.append(cb,el('span',name+'｜'+features));
+   const acquired=profile.observations.includes(id),b=button(acquired?'已記錄':'模擬觀察',()=>{profile=c.observe(profile,id);renderObservations();preview()});b.disabled=acquired;
+   row.append(label,b);host.append(row);
+  }
+ }
+ function renderAllocations(){
+  const host=$('allocations');host.replaceChildren();
+  allocations.forEach((a,i)=>{
+   const row=el('div',undefined,'allocation');const phase=el('select');phase.setAttribute('aria-label','第'+(i+1)+'項相別');
+   setOptions(phase,['燈',...c.phases].map(p=>[p,p+(p!=='燈'&&!profile.phases.includes(p)?'（未修習）':'')]),a.phase);
+   const branch=el('select');branch.setAttribute('aria-label','第'+(i+1)+'項衍象');
+   const bs=school().phase==='燈'?[]:c.branches[a.phase]||[];
+   setOptions(branch,[['','基礎運用'],...bs.map(p=>[p,p])],a.branch||'');branch.disabled=!bs.length;
+   const share=el('input');share.type='number';share.inputMode='decimal';share.min='1';share.max='100';share.step='any';share.value=a.share;share.setAttribute('aria-label','第'+(i+1)+'項投入百分比');
+   phase.addEventListener('change',()=>{a.phase=phase.value;delete a.branch;renderAllocations();preview()});
+   branch.addEventListener('change',()=>{if(branch.value)a.branch=branch.value;else delete a.branch;preview()});
+   share.addEventListener('input',()=>{a.share=share.valueAsNumber;preview()});
+   row.append(phase,branch,share,button('移除',()=>{allocations.splice(i,1);renderAllocations();preview()}));host.append(row);
+  });
+  $('add').disabled=allocations.length>=4;
+ }
+ function draft(){return {id:'skill-'+seq,name:$('name').value.trim(),allocations:allocations.map(x=>({...x})),materials:[...selected],sourceId}}
+ const fmt=n=>Number.isFinite(n)?Number(n.toFixed(2)).toString():'—';
+ function preview(){
+  const v=c.validateSkill(profile,draft()),sum=allocations.reduce((n,x)=>n+x.share,0);
+  $('sum').textContent=fmt(sum)+' / 100';
+  $('effective').textContent=v.ok?fmt(v.effective)+' / 100':'—';
+  $('loss').textContent=v.ok?fmt(v.loss)+' / 100':'—';
+  $('status').textContent=v.ok?'規則驗證通過，可建立技能資料。':v.errors.map(x=>errors[x]||x).join('；');
+  $('status').className=v.ok?'status ok':'status warn';
+  const list=$('breakdown');list.replaceChildren();
+  for(const b of v.breakdown)list.append(el('div',b.phase+'：投入 '+fmt(b.share)+' × '+b.cap+'% = '+fmt(b.effective)));
+  $('create').disabled=!v.ok;
+ }
+ function resetDraft(){
+  sourceId=null;selected=new Set();allocations=[{phase:school().phase,share:100}];$('name').value='';$('source').textContent='自主創建';renderObservations();renderAllocations();preview();
+ }
+ function renderSkills(){
+  const host=$('skills');host.replaceChildren();
+  if(!profile.skills.length)host.append(el('p','尚未創建技能。','muted'));
+  for(const s of profile.skills){
+   const row=el('article',undefined,'skill'),top=el('strong',s.name+' ｜ '+s.displayPhases.join('＋')),from=profile.skills.find(x=>x.id===s.sourceId);
+   row.append(top,el('p','來源：'+(from?.name||'自主創建')+'｜素材：'+(s.materials.map(id=>catalog.find(x=>x[0]===id)?.[1]||id).join('、')||'無')));
+   row.append(el('p',s.allocations.map(a=>a.phase+(a.branch?'・'+a.branch:'')+' '+fmt(a.share)+'%').join(' / ')));
+   row.append(button('以此技能改造',()=>{sourceId=s.id;selected=new Set(s.materials);allocations=s.allocations.map(a=>({...a}));$('name').value=s.name+'・改';$('source').textContent=s.name+'（原版保留）';renderObservations();renderAllocations();preview();$('editor').scrollIntoView({block:'start',behavior:'smooth'})}));host.append(row);
+  }
+ }
+ $('school').replaceChildren(...c.schools.map(s=>option(s.id,s.phase+'｜'+s.name)));
+ $('school').addEventListener('change',()=>{refreshMain('');renderPhases()});
+ $('main').addEventListener('change',()=>renderPhases([...$('learned').querySelectorAll('input:checked')].map(x=>x.value)));
+ $('apply').addEventListener('click',()=>{
+  if((profile.skills.length||profile.observations.length)&&!window.confirm('切換測試角色會清除本頁觀察與技能，確定？'))return;
+  try{profile=c.createProfile({schoolId:$('school').value,main:$('main').value||null,phases:[...$('learned').querySelectorAll('input:checked')].map(x=>x.value)});seq=1;renderProfile();resetDraft();renderSkills()}catch(e){$('status').textContent=e.message}
+ });
+ $('name').addEventListener('input',preview);
+ $('add').addEventListener('click',()=>{if(allocations.length<4){allocations.push({phase:profile.phases.find(p=>!allocations.some(a=>a.phase===p))||'燈',share:1});renderAllocations();preview()}});
+ $('new').addEventListener('click',resetDraft);
+ $('create').addEventListener('click',()=>{try{const d=draft();profile=c.createSkill(profile,d);seq++;renderSkills();resetDraft();$('notice').textContent='已建立「'+d.name+'」，觀察紀錄與原技能保留。'}catch(e){$('status').textContent=e.message}});
+ $('export').addEventListener('click',()=>{$('json').value=JSON.stringify(profile,null,2);$('json').hidden=false;$('json').focus();$('json').select()});
+ updateProfileEditor();renderProfile();renderObservations();renderAllocations();renderSkills();preview();
+})();</script></body></html>
