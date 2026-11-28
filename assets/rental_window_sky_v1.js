@@ -20,6 +20,34 @@
     return layer;
   }
 
+  // Patch the original raster before any weather layers sample it.
+  // Explicit source and destination sizes avoid Safari SVG drawImage sizing quirks.
+  function prepareWindow(image, url) {
+    const source = new Image();
+    source.onload = () => {
+      try {
+        const width = 456, height = 349;
+        if(source.naturalWidth !== width || source.naturalHeight !== height) throw Error('Unexpected window size');
+        const result = canvas(width, height);
+        const ctx = result.getContext('2d');
+        if(!ctx) throw Error('No canvas context');
+        ctx.drawImage(source, 0, 0, width, height, 0, 0, width, height);
+        ctx.clearRect(425, 297, 31, 52);
+        ctx.save();
+        ctx.translate(width, 0);
+        ctx.scale(-1, 1);
+        ctx.drawImage(source, 0, 297, 31, 52, 0, 297, 31, 52);
+        ctx.restore();
+        image.src = result.toDataURL('image/png');
+      } catch(error) {
+        console.warn('Window raster patch unavailable', error);
+        image.src = url;
+      }
+    };
+    source.onerror = () => { image.src = url; };
+    source.src = url;
+  }
+
   function separate(image, motion) {
     const width = 456;
     const height = 349;
@@ -30,7 +58,7 @@
     const cloudCtx = cloud.getContext('2d');
     if (!ctx || !cloudCtx) return;
 
-    ctx.drawImage(image, 0, 0);
+    ctx.drawImage(image, 0, 0, width, height, 0, 0, width, height);
     const frame = ctx.getImageData(0, 0, width, height);
     const clouds = cloudCtx.createImageData(width, height);
     const pixels = frame.data;
@@ -85,7 +113,7 @@
     const foliage = canvas(width, height);
     const source = foliage.getContext('2d', { willReadFrequently: true });
     if (!source) return;
-    source.drawImage(image, 0, 0);
+    source.drawImage(image, 0, 0, width, height, 0, 0, width, height);
     const frame = source.getImageData(0, 0, width, height);
     const original = frame.data;
     const mask = source.createImageData(width, height);
@@ -149,6 +177,7 @@
   }
 
   root.DungeonRentalWindowSkyV1 = Object.freeze({
+    prepareWindow,
     createRoofSnow,
     mount(image, motion) {
       function load() {

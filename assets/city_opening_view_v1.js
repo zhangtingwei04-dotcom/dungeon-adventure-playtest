@@ -122,7 +122,7 @@
     const interactive = labels.has(item.id);
     const label = labels.get(item.id) ?? decorations[item.id];
     const image = document.createElement('img');
-    image.src = catalog[item.id];
+    if(item.id!=='window')image.src = catalog[item.id];
     image.alt = '';
     const element = interactive
       ? button('', () => select(item.id))
@@ -270,6 +270,7 @@
         curtains.append(cloth);
       }
       element.append(curtains);
+      window.DungeonRentalWindowSkyV1.prepareWindow(image,catalog[item.id]);
     }
     get('furniture').append(element);
     furniture.set(item.id, element);
