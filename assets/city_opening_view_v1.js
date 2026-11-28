@@ -458,10 +458,6 @@
   // One travel action; the two door toggles are visual-only and cost no world time.
   async function leaveThroughDoor() {
     if(doorTransit || game.scene!=='rental-room')return;
-    if(!city.ready(game)){
-      get('status').textContent='先換好外出衣著。';
-      return;
-    }
     doorTransit=true;
     const activeGame=game;
     const wait=ms=>new Promise(resolve=>setTimeout(resolve,reduceMotion.matches?0:ms));
@@ -469,23 +465,33 @@
       render();
       get('status').textContent=message;
     };
+    let result;
     try{
-      if(!city.isOpen(game,'door')){
-        city.act(game,'door','door-open');
-        show('打開房門……');
+      try{
+        if(!city.isOpen(game,'door')){
+          city.act(game,'door','door-open');
+          show('打開房門……');
+          await wait(760);
+        }
+        show('走出房間……');
+        await wait(240);
+        city.act(game,'door','door-close');
+        show('隨手關上房門……');
         await wait(760);
+      }catch(error){
+        console.warn('Door animation interrupted; completing travel.',error);
       }
-      show('走出房間……');
-      await wait(240);
-      city.act(game,'door','door-close');
-      show('隨手關上房門……');
-      await wait(760);
       if(game!==activeGame)return;
-      const result=city.act(game,'door','leave');
-      if(result.ok)selected=null;
-      get('status').textContent=result.ok?result.message+'（'+result.minutes+'分鐘）':result.reason;
+      if(game.scene==='rental-room')result=city.act(game,'door','leave');
+      if(result?.ok)selected=null;
+    }catch(error){
+      console.error('Room exit failed',error);
+      result={ok:false,reason:'未能切換地點，請再試一次。'};
     }finally{
       doorTransit=false;
+      get('reset').disabled=false;
+      get('layoutQuick').disabled=false;
+      if(result)get('status').textContent=result.ok?result.message+'（'+result.minutes+'分鐘）':result.reason;
       render();
     }
   }
