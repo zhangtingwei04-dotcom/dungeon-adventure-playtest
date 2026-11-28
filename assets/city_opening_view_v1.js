@@ -63,6 +63,7 @@
   let chestPreview = 'open';
   let game = city.create();
   let selected = null;
+  let observingWindow=false;
   let doorTransit = false;
   let overrides = {};
 
@@ -108,7 +109,7 @@
   }
 
   function select(id) {
-    if(doorTransit)return;
+    if(doorTransit||observingWindow)return;
     selected = id;
     get('status').textContent = '';
     render();
@@ -583,14 +584,16 @@
 
   function render() {
     const room = game.scene === 'rental-room';
+    if(!room||city.curtainState(game)==='closed')observingWindow=false;
     get('scene').dataset.scene = game.scene;
+    get('room').dataset.observing=String(observingWindow);
     get('room').dataset.lamp = city.isOpen(game, 'lamp') ? 'on' : 'off';
     get('room').dataset.curtains = city.curtainState(game);
-    editor.hidden = !room;
+    editor.hidden = !room||observingWindow;
     get('clock').textContent = time.format(game.worldMinutes);
     const corridor=game.scene==='rental-corridor';
     get('place').textContent = room ? '城鎮出租屋' : corridor?'二樓公共走廊':'城鎮街道';
-    get('description').textContent = room ? '住宅區・二樓私人房間' : corridor?'住宅區・二樓住宿區':'住宅區・街道';
+    get('description').textContent = observingWindow?'住宅區・二樓窗前觀景':room ? '住宅區・二樓私人房間' : corridor?'住宅區・二樓住宿區':'住宅區・街道';
     stairsButton.style.display=corridor?'':'none';returnButton.textContent=corridor?'返回房間':'返回住宅走廊';
     stairsButton.setAttribute('aria-pressed',String(selected==='stairs'));
     get('clothes').textContent = (city.ready(game) ? '白色布衣、旅行褲、鞋子' : '室內衣著')
@@ -615,8 +618,14 @@
     const view = city.inspect(game, selected);
     const choices = get('choices');
     get('reset').disabled=doorTransit;
-    get('layoutQuick').disabled=doorTransit;
+    get('layoutQuick').disabled=doorTransit||observingWindow;
     choices.replaceChildren();
+    if(observingWindow){
+      get('dialogTitle').textContent='窗外的城鎮';
+      get('dialogText').textContent='從二樓的窗戶望出去，屋頂與街巷在遠方延伸。';
+      choices.append(button('離開窗前',()=>{observingWindow=false;selected='window';get('status').textContent='';render();}));
+      return;
+    }
     if (!view) {
       get('dialogTitle').textContent = room ? '出租屋' : corridor?'二樓公共走廊':'住宅區街道';
       get('dialogText').textContent = room
@@ -635,6 +644,7 @@
         get('status').textContent = result.ok
           ? result.message + (result.minutes ? '（' + result.minutes + '分鐘）' : '')
           : result.reason;
+        if(result.ok&&key==='look'){observingWindow=true;editor.open=false;}
         if (result.ok && (['leave','return','downstairs'].includes(key))) selected = null;
         render();
       });
@@ -742,6 +752,7 @@
     if(doorTransit)return;
     if (!confirm('重新開始城鎮開場試玩？')) return;
     game = city.create();
+    observingWindow=false;
     weatherPicker.value = 'auto';
     lightPreview.value='auto';
     corridorPreview.value='auto';
