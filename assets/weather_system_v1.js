@@ -190,9 +190,23 @@ window.DungeonWeatherV1=(function(){
     const r=(.55+(i%4)*.24)*particleSize;if(shown.wind>.55&&i%3===0){const dx=shown.windDir*(2+shown.wind*4),dy=1+storm*1.8;ctx.moveTo(p.x-r,p.y-r);ctx.lineTo(p.x+dx,p.y+dy);ctx.lineTo(p.x+r,p.y+r);ctx.closePath();}else{ctx.moveTo(p.x+r,p.y);ctx.arc(p.x,p.y,r,0,Math.PI*2);}
    }ctx.fill();
   }
-  if(target.kind==='storm'){const clock=scene==='home'?(ms-(stormStarted??=ms))/1000+3:ms/1000,cycle=clock%17.7,flash=Math.max(0,1-Math.abs(cycle-5.1)/.24);
-   if(flash>0&&!reduced){ctx.fillStyle='rgba(224,234,241,'+(flash*(scene==='home'?.34:.12))+')';ctx.fillRect(0,0,W,H);}
-   const id=Math.floor(clock/17.7);if(cycle>=6.2&&cycle<7.2&&id!==lastThunder){lastThunder=id;thunder();}
+  if(target.kind==='storm'){
+   const atHome=scene==='home';
+   const clock=atHome?(ms-(stormStarted??=ms))/1000+3:ms/1000;
+   const cycle=clock%17.7, group=Math.floor(clock/17.7);
+   // Alternate a pair of strikes with a single strike at the residence.
+   const secondStrike=atHome&&group%2===0;
+   const firstFlash=Math.max(0,1-Math.abs(cycle-5.1)/.24);
+   const secondFlash=secondStrike?Math.max(0,1-Math.abs(cycle-6.65)/.2)*.8:0;
+   const flash=Math.max(firstFlash,secondFlash);
+   if(flash>0&&!reduced){
+    ctx.fillStyle='rgba(224,234,241,'+(flash*(atHome?.34:.12))+')';
+    ctx.fillRect(0,0,W,H);
+   }
+   const strike=cycle>=6.2&&cycle<7.2?0:
+    secondStrike&&cycle>=7.75&&cycle<8.75?1:-1;
+   const id=group*2+strike;
+   if(strike>=0&&id!==lastThunder){lastThunder=id;thunder();}
   }
   if(shown.rain>.008&&!reduced){
    const t=ms/1000,amount=Math.min(particles.length,Math.ceil(particles.length*shown.rain*density));
