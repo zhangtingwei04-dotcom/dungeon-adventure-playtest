@@ -161,12 +161,10 @@
     if (item.id === 'door') {
       const opening = document.createElement('span');
       opening.className = 'door-opening';
-      // Reuse the real street preview, without navigating away from the room.
-      const outside = get('street').cloneNode(true);
-      outside.removeAttribute('id');
-      outside.classList.add('door-outside');
-      outside.setAttribute('viewBox', '402 65 190 475');
-      outside.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+      const outside = document.createElement('img');
+      outside.className = 'door-outside';
+      outside.src = 'assets/interiors/furniture/door-corridor-v4.webp';
+      outside.alt = '';
       outside.setAttribute('aria-hidden', 'true');
       opening.append(outside);
       const frame = document.createElement('span');
@@ -270,19 +268,36 @@
     };
   }
 
-  let curtainSwapTimer = null;
+  let curtainSwapFrame = null;
   function updateCurtainState(element, open) {
     const next = String(open);
-    if (element.dataset.open === next && element.hasAttribute('data-tied-hidden')) return;
-    if (curtainSwapTimer !== null) clearTimeout(curtainSwapTimer);
     const first = !element.hasAttribute('data-tied-hidden');
+    if (element.dataset.open === next && !first) return;
+    if (curtainSwapFrame !== null) cancelAnimationFrame(curtainSwapFrame);
+    curtainSwapFrame = null;
     element.dataset.open = next;
-    const swap = () => {
+    if (first || reduceMotion.matches) {
       element.dataset.tiedHidden = String(!open);
-      curtainSwapTimer = null;
-    };
-    if (first || reduceMotion.matches) swap();
-    else curtainSwapTimer = setTimeout(swap, open ? 300 : 850);
+      return;
+    }
+    const panels = [...element.querySelectorAll('.curtain-panel')];
+    const cover = element.querySelector('.curtain-cover');
+    const started = performance.now();
+    function track(now) {
+      // Both strips must actually cover the tied-curtain mask, not just reach a timer.
+      const width = element.getBoundingClientRect().width;
+      const enough = width > 0 && cover && panels.length === 2 && panels.every(panel =>
+        panel.getBoundingClientRect().width >= width * .24 &&
+        Number(getComputedStyle(panel).opacity) >= .98);
+      element.dataset.tiedHidden = String(enough);
+      if (now - started < 1850 && element.dataset.open === next) {
+        curtainSwapFrame = requestAnimationFrame(track);
+      } else {
+        element.dataset.tiedHidden = String(!open);
+        curtainSwapFrame = null;
+      }
+    }
+    curtainSwapFrame = requestAnimationFrame(track);
   }
 
   function renderFurniture() {
