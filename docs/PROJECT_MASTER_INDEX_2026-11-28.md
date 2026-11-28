@@ -27,8 +27,9 @@
 ## 新增：正式頁受控心象場景試驗
 主頁加入限定雙參數的[心象試驗入口](../index.html?dev-preview=1&mind-trial=1)，獨立測試存檔 key；[session 核心](../assets/mind_live_trial_v1.js)、[測試](../tests/mind_live_trial_v1.test.cjs) 已提交。沿用正式觀察及採集函式，13項獨立斷言、3段主頁腳本語法及8項靜態接入檢查通過。普通遊玩維持舊流程。真實距離、動畫、正式持久化心象、iPhone與CI尚未驗收。詳見[統一設計第12節](design/mind-growth-relic-life-v1-2026-11-28.md)。下一優先：實際驗收感知及採集，確認既有遊戲未回歸。
 
-## 最新開發優先：城鎮出租屋初場景 V0.1
-使用者要求先開發遊戲初場景，暫緩心象擴充，優先於下方其他開發排序。[城鎮開場可玩預覽](../city-opening-playtest.html)、[核心](../assets/city_opening_v1.js)、[測試](../tests/city_opening_v1.test.cjs) 已提交。出租屋六物件、便服、通知、出門及返回，共用世界時計與旅途事件；15項獨立斷言通過。房間與街道為暫時SVG配置草圖；尚未接正式紙娃娃、制服、存檔、考察劇情或iPhone驗收。詳見[城鎮開場第9節](design/city-opening-society-civilization-relics-v1-2026-11-28.md)。下一優先：初場景正式美術及物件分層。
+## 最新開發優先：城鎮出租屋初場景 V0.2
+
+初始住宅目前優先於心象與戰鬥擴充。從主遊戲開場選單或「探索設定」可進入[城鎮住宅試玩](../city-opening-playtest.html)。沿用深綠金邊三欄介面、世界時計、旅途紀錄、對話和開場邏輯。無門窗家具的底圖與七個獨立物件圖層已接入。家具配置可調 X/Y、縮放、角度與圖層，配置另存於目前瀏覽器。素材來源、配置契約及實機驗收範圍見[開發紀錄第10節](design/city-opening-society-civilization-relics-v1-2026-11-28.md#10-城鎮出租屋美術與配置-v02)。
 
 ## 1. 使用規則
 - 最新設計基準：[城鎮開場、燈火會、文明及遺物 V1.0](design/city-opening-society-civilization-relics-v1-2026-11-28.md)。其主角、開場、招募、固定部門及遺物擴充優先於舊失憶與馬車開場文件；本次只改設計文件，尚未改正式遊戲。
