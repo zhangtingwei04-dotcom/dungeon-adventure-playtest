@@ -161,9 +161,14 @@
     if (item.id === 'door') {
       const opening = document.createElement('span');
       opening.className = 'door-opening';
-      element.prepend(opening);
+      const frame = document.createElement('span');
+      frame.className = 'door-frame';
+      const leaf = document.createElement('span');
+      leaf.className = 'door-swing';
+      for (const part of [opening, frame, leaf]) part.setAttribute('aria-hidden', 'true');
       image.classList.add('door-leaf');
-
+      element.prepend(opening);
+      element.append(frame, leaf);
     }
     if (item.id === 'window') {
       const motion = document.createElement('span');
