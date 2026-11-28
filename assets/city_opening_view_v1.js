@@ -161,12 +161,10 @@
     if (item.id === 'door') {
       const opening = document.createElement('span');
       opening.className = 'door-opening';
-      const outside = document.createElement('img');
-      outside.className = 'door-outside';
-      outside.src = 'assets/interiors/furniture/door-corridor-v4.webp';
-      outside.alt = '';
-      outside.setAttribute('aria-hidden', 'true');
-      opening.append(outside);
+      const floorLight = document.createElement('span');
+      floorLight.className = 'door-floor-light';
+      floorLight.setAttribute('aria-hidden', 'true');
+      element.prepend(floorLight);
       const frame = document.createElement('span');
       frame.className = 'door-frame';
       const leaf = document.createElement('span');
@@ -354,6 +352,32 @@
     return previous.rain ? 1 - elapsed / glassDryMinutes : 0;
   }
 
+  // Ambient daylight uses the game clock, not the device clock.
+  function doorAmbient(worldMinutes, kind) {
+    const hour = ((worldMinutes % 1440 + 1440) % 1440) / 60;
+    const keys = [
+      [0, .025, [55,65,84]], [5, .025, [55,65,84]],
+      [6, .12, [156,126,103]], [8, .25, [235,207,163]],
+      [12, .32, [244,225,188]], [16, .26, [236,207,160]],
+      [18, .14, [194,132,89]], [19, .05, [91,99,126]],
+      [21, .025, [55,65,84]], [24, .025, [55,65,84]]
+    ];
+    let i=1;while(i<keys.length-1&&hour>keys[i][0])i++;
+    const a=keys[i-1],b=keys[i],t=(hour-a[0])/(b[0]-a[0]);
+    const factor=({clear:1,cloudy:.65,fog:.58,drizzle:.52,rain:.43,storm:.27,snow:.72,blizzard:.4})[kind]??.65;
+    const strength=(a[1]+(b[1]-a[1])*t)*factor;
+    const color=a[2].map((v,j)=>Math.round((v+(b[2][j]-v)*t)*(.52+.48*factor)));
+    return {strength,color,edge:color.map(v=>Math.round(v*.46))};
+  }
+  function renderDoorAmbient(visible) {
+    const door=furniture.get('door');
+    if(!door)return;
+    const light=doorAmbient(game.worldMinutes,visible.kind);
+    door.style.setProperty('--door-light-strength',String(light.strength));
+    door.style.setProperty('--door-light-core','rgb('+light.color.join(',')+')');
+    door.style.setProperty('--door-light-edge','rgb('+light.edge.join(',')+')');
+  }
+
   function renderWeather() {
     const room = game.scene === 'rental-room';
     const preview = weatherPicker.value;
@@ -361,6 +385,7 @@
     const visible = preview === 'auto'
       ? actual
       : { ...actual, snow: 0, overcast: 0, ...weather.kinds[preview], kind: preview };
+    renderDoorAmbient(visible);
     const windowObject = furniture.get('window');
     windowObject.dataset.weather = visible.kind;
     const wetGlass = windowObject.querySelector('.window-wet-glass');
