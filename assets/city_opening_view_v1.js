@@ -10,7 +10,7 @@
   const editor = get('layoutEditor');
   const itemPicker = get('layoutItem');
   const labels = new Map(city.objects.map(item => [item.id, item.name]));
-  const decorations = { rug: '地毯', shelves: '壁架', chest: '木箱', lamp: '吊燈', 'left-shelf': '左牆木架', 'wall-map': '牆上掛圖' };
+  const decorations = { rug: '地毯', shelves: '壁架', chest: '木箱', lamp: '吊燈', 'left-shelf': '左牆木架', 'wall-map': '左牆掛圖', 'right-wall-map': '右牆掛圖' };
   let game = city.create();
   let selected = null;
   let overrides = {};
