@@ -4552,7 +4552,7 @@ html.stage-locked #app #battleSurface .battle-actions button{font-size:17px;min-
 <div class="veil hidden" id="dialogVeil"><section class="panel" role="dialog" aria-modal="true" aria-labelledby="dialogTitle"><div class="panel-head"><div><div class="kicker" id="dialogKicker">發現</div><h2 id="dialogTitle"></h2></div><div id="dialogCharacter" aria-label="目前發言人物"><canvas id="dialogCharacterCanvas" width="48" height="64" aria-hidden="true"></canvas><span id="dialogCharacterName"></span></div><button class="close" id="dialogClose" aria-label="關閉">×</button></div><p id="dialogText"></p><div class="choices" id="dialogChoices"></div></section></div>
 <div class="veil hidden" id="journalVeil"><section class="panel journal" role="dialog" aria-modal="true"><div class="panel-head"><div><div class="kicker">FIELD NOTES</div><h2>旅程日誌</h2></div><button class="close" id="journalClose">×</button></div><div class="journal-tabs" id="journalTabs"></div><div id="journalContent"></div><div class="line"></div><p class="meta">本版本使用瀏覽器本機儲存，並未連接《鱗片與種子》的雲端存檔。可在設定中匯出備份。</p></section></div>
 <div class="veil hidden" id="menuVeil"><section class="panel" role="dialog" aria-modal="true"><div class="panel-head"><div><div class="kicker">OPTIONS</div><h2>探索設定</h2></div><button class="close" id="menuClose">×</button></div><p id="menuStatus">遊戲會自動在本機儲存。</p><div class="choices"><button class="choice" id="battlePlaytestBtn">測試戰鬥</button><button class="choice" id="soundBtn">音效：關閉</button><button class="choice" id="exportBtn">匯出存檔</button><button class="choice" id="importBtn">匯入存檔</button><button class="choice" id="restorePreviousBtn">復原上一份存檔</button><button class="choice" id="exportPreviousBtn">匯出上一份存檔</button><button class="choice" id="restartBtn">重新開始</button></div><button class="choice" type="button" id="engineDiagnosticsBtn">共用核心診斷</button><a class="choice" href="city-opening-playtest.html">城鎮住宅試玩</a><div class="line"></div><div class="phase-preview-heading">光線預覽 · 不修改遊戲時間</div><p class="phase-preview-explain">只預覽場景光線，不會跳過事件或改動存檔。畫面右上角可結束預覽。</p><div class="choices phase-preview-options"><button class="choice" type="button" data-preview-period="dawn">清晨</button><button class="choice" type="button" data-preview-period="day">白天</button><button class="choice" type="button" data-preview-period="dusk">黃昏</button><button class="choice" type="button" data-preview-period="night">夜晚</button></div><div class="line"></div><div class="phase-preview-heading" id="weatherSettingsHeading">天氣預覽 · 不修改存檔</div><p class="phase-preview-explain">可隨時查看場景的天氣效果。降雪預覽約20秒、暴風雪約10秒累積至全雪地；返回自然天氣後依遊戲時間變化。</p><div class="choices phase-preview-options"><button class="choice" type="button" data-preview-weather="clear">晴朗</button><button class="choice" type="button" data-preview-weather="cloudy">陰天</button><button class="choice" type="button" data-preview-weather="fog">薄霧</button><button class="choice" type="button" data-preview-weather="drizzle">細雨</button><button class="choice" type="button" data-preview-weather="rain">降雨</button><button class="choice" type="button" data-preview-weather="storm">雷雨</button><button class="choice" type="button" data-preview-weather="snow">降雪</button><button class="choice" type="button" data-preview-weather="blizzard">暴風雪</button><button class="choice" type="button" data-preview-weather="auto">自然天氣</button></div><div class="line"></div><div class="phase-preview-heading">風力預覽 · 不修改存檔</div><p class="phase-preview-explain">獨立調整風力及畫面風向；不影響降雨、降雪量或正式遊戲時間。</p><div class="choices phase-preview-options"><button class="choice" type="button" data-preview-wind="0">0級 無風</button><button class="choice" type="button" data-preview-wind="1">1級 微風</button><button class="choice" type="button" data-preview-wind="2">2級 輕風</button><button class="choice" type="button" data-preview-wind="3">3級 強風</button><button class="choice" type="button" data-preview-wind="4">4級 烈風</button><button class="choice" type="button" data-preview-wind="5">5級 暴風</button><button class="choice" type="button" data-preview-wind="auto">自然風力</button></div><div class="choices phase-preview-options"><button class="choice" type="button" data-preview-wind-dir="-1">向左吹 ←</button><button class="choice" type="button" data-preview-wind-dir="1">向右吹 →</button><button class="choice" type="button" data-preview-wind-dir="auto">自然風向</button></div><input id="fileInput" type="file" accept="application/json" class="hidden"><div class="line"></div><div class="note">V0.5.1 測試版本：第二章的公會、委託與人物對話是可修改的玩法草案。人物稱呼仍為佔位，主角身體來歷、復活原因及正式戰鬥方式都尚未定案。</div></section></div>
-<div class="veil" id="startVeil"><section class="panel start"><div class="stamp">A STORY OF THE UNKNOWN</div><h1 class="screen-title">迷宮盡頭的燈火</h1><p>你受軍校安排來到這座城鎮，在租下的小房間醒來。今天，你將踏出新的旅程。</p><a class="choice" href="?campaign=city&amp;start=new">開始新的旅程</a><a class="choice hidden" id="cityContinueBtn" href="?campaign=city">繼續城鎮旅程</a><button class="choice" id="startBtn">舊版森林冒險（獨立測試）</button><button class="choice hidden" id="continueBtn">繼續舊版森林冒險</button><button class="choice hidden" id="startRestorePreviousBtn">復原上一份有效存檔</button><button class="choice" id="startImportBtn">匯入存檔</button><a class="choice" href="city-opening-playtest.html">城鎮住宅開發測試</a><div class="note">城鎮開場 V0.69 · 角色與裝備整合 · 橫式手機／電腦　｜　探索優先、調查可選　｜　不需登入及付費</div></section></div>
+<div class="veil" id="startVeil"><section class="panel start"><div class="stamp">A STORY OF THE UNKNOWN</div><h1 class="screen-title">迷宮盡頭的燈火</h1><p>你受軍校安排來到這座城鎮，在租下的小房間醒來。今天，你將踏出新的旅程。</p><a class="choice" href="?campaign=city&amp;start=new">開始新的旅程</a><a class="choice hidden" id="cityContinueBtn" href="?campaign=city">繼續城鎮旅程</a><button class="choice" id="startBtn">舊版森林冒險（獨立測試）</button><button class="choice hidden" id="continueBtn">繼續舊版森林冒險</button><button class="choice hidden" id="startRestorePreviousBtn">復原上一份有效存檔</button><button class="choice" id="startImportBtn">匯入存檔</button><a class="choice" href="city-opening-playtest.html">城鎮住宅開發測試</a><div class="note">城鎮開場 V0.70 · 住宅互動整合 · 橫式手機／電腦　｜　探索優先、調查可選　｜　不需登入及付費</div></section></div>
 <div class="orientation"><div><strong>請將手機轉為橫向</strong><p>第一章與城鎮探索以橫式畫面呈現。</p>↻</div></div>
 </div>
 <script src="./assets/ornaments_data.js"></script>
@@ -4674,7 +4674,7 @@ window.DUNGEON_FOREST_V4_LAYOUT=window.DUNGEON_WRECK_CURRENT_LAYOUT;
 <script src="./assets/monsters/moss_beast_live_v3.js?v=2"></script>
 <script src="./assets/encounter_motion_v1.js?v=4-body-scale"></script>
 <script src="./assets/battle_playtest_v1.js?v=encounter-motion-v1"></script>
-<script src="./assets/furniture_storage_v1.js?v=1"></script><script src="./assets/timed_tasks_v1.js?v=1"></script><script src="./assets/city_opening_v1.js?v=16"></script><script src="./assets/interior_furniture_v1.js?v=20"></script><script src="./assets/city_campaign_save_v1.js?v=1"></script><script src="./assets/city_investigation_v1.js?v=2"></script>
+<script src="./assets/furniture_storage_v1.js?v=1"></script><script src="./assets/timed_tasks_v1.js?v=1"></script><script src="./assets/city_opening_v1.js?v=16"></script><script src="./assets/interior_furniture_v1.js?v=20"></script><script src="./assets/city_campaign_save_v1.js?v=1"></script><script src="./assets/city_investigation_v1.js?v=2"></script><script src="./assets/city_transitions_v1.js?v=1"></script>
 <script>
 (()=>{'use strict';
 // Fixed design canvas: use the approved screenshot's exact 1536×707 ratio,
@@ -4755,7 +4755,7 @@ if(window.matchMedia('(display-mode: standalone)').matches||navigator.standalone
 const DEV_PREVIEW_MODE=new URLSearchParams(location.search).get('dev-preview')==='1';
 const CITY_NATIVE=!DEV_PREVIEW_MODE&&new URLSearchParams(location.search).get('campaign')==='city';
 const cityCore=window.DungeonCityOpeningV1,cityInvest=window.DungeonCityInvestigationV1,citySlot=window.DungeonCityCampaignSaveV1;
-let citySaveBlocked=false,cityObserving=false,cityFrame=null;
+let citySaveBlocked=false,cityObserving=false,cityFrame=null,cityBusy=false,cityCurtainAnimating=false;
 const MIND_LIVE_TRIAL=DEV_PREVIEW_MODE&&new URLSearchParams(location.search).get('mind-trial')==='1';
 const KEY=MIND_LIVE_TRIAL?'dungeon_adventure_mindtrial_v1':DEV_PREVIEW_MODE?'dungeon_adventure_ch1_devpreview_v1':'dungeon_adventure_ch1_v01';
 let mindTrialLiveObjects=[],mindTrialLoader=null;
@@ -4820,7 +4820,7 @@ function syncWeather(){
  $('hudPhase').title='當前天氣：'+label+' · '+currentWeather.season+'第'+currentWeather.seasonDay+'日 · '+currentWeather.temperature+'°C';
  $('hudWeatherBtn').title=$('hudPhase').title+' · 點擊切換天氣';$('hudPhaseIcon').textContent=currentWeather.kind==='clear'?(previewPeriod==='night'||(!previewPeriod&&periodForMinutes(s.worldMinutes)==='night')?'☾':'☀'):currentWeather.icon;
  if(!indoor&&currentWeather.kind!=='clear')$('subplace').textContent=({cloudy:'雲層遮住天光',fog:'薄霧在四周緩緩瀰漫',drizzle:'細雨落在周圍',rain:'雨水打濕了周遭景物',storm:'風雨加劇，遠處偶有雷光',snow:'雪花緩緩飄落，空氣寒冷',blizzard:'風雪交加，遠方景物逐漸模糊'})[currentWeather.kind]||label;
- engine.set(currentWeather,indoor,window.matchMedia('(prefers-reduced-motion: reduce)').matches,{scene:s.scene,sound:s.sound,sceneHost:app,onPlantWindowChanged:()=>renderHotspots(),windOverride:previewWind,windDirectionOverride:previewWindDir,weatherPreview:Boolean(previewWeather),snowPreview:previewWeather==='snow'||previewWeather==='blizzard'});
+ engine.set(currentWeather,indoor,window.matchMedia('(prefers-reduced-motion: reduce)').matches,{scene:s.scene,sound:!CITY_NATIVE&&s.sound,sceneHost:app,onPlantWindowChanged:()=>renderHotspots(),windOverride:previewWind,windDirectionOverride:previewWindDir,weatherPreview:Boolean(previewWeather),snowPreview:previewWeather==='snow'||previewWeather==='blizzard'});
 }
 function selectWeatherPreview(kind){const engine=window.DungeonWeatherV1;if(!engine){toast('天氣模組尚未載入，請重新整理遊戲。');return;}if(kind!=='auto'&&!engine.kinds[kind])return;if(s.sound)engine.unlockAudio();previewWeather=kind==='auto'?null:kind;$('menuVeil').classList.add('hidden');syncTimeAtmosphere();engine.draw(performance.now());toast(kind==='auto'?'已恢復自然天氣':'天氣預覽：'+engine.kinds[kind].name+(INDOOR_SCENES.has(s.scene)?'（室內不顯示雨霧）':''));renderHotspots();renderPlaceDrawer();renderSceneInfoBar();}
 
@@ -6801,7 +6801,7 @@ function equipmentGuideHTML(sceneMode='equipment'){
   (paperDollTryOn?'<span class="paperdoll-preview-label">試穿</span>':'')+'</div>';
 }
 function cityWear(id,equip){
- if(activeDialogueSurface())return;
+ if(cityBusy||activeDialogueSurface())return;
  const result=cityCore.wearCarried(s,id,equip);
  if(!result.ok){toast(result.reason);return;}
  paperDollTryOn=false;render();
@@ -7185,8 +7185,8 @@ function runSceneAction(fn){
 }
 function syncCityScene(){
  const stage=$('sceneStage');$('app').dataset.cityNative='true';
- if(!cityFrame){cityFrame=document.createElement('iframe');cityFrame.id='citySceneRenderer';cityFrame.title='城鎮場景';cityFrame.tabIndex=-1;cityFrame.setAttribute('aria-hidden','true');cityFrame.src='city-opening-playtest.html?mode=scene&v=85';cityFrame.onload=syncCityScene;stage.appendChild(cityFrame);}
- try{cityFrame.contentWindow?.DungeonCitySceneRendererV1?.update(s,cityObserving);}catch(error){console.warn('City scene update',error);}
+ if(!cityFrame){cityFrame=document.createElement('iframe');cityFrame.id='citySceneRenderer';cityFrame.title='城鎮場景';cityFrame.tabIndex=-1;cityFrame.setAttribute('aria-hidden','true');cityFrame.src='city-opening-playtest.html?mode=scene&v=87';cityFrame.onload=syncCityScene;stage.appendChild(cityFrame);}
+ try{cityFrame.contentWindow?.DungeonCitySceneRendererV1?.update(s,cityObserving,{curtainAnimating:cityCurtainAnimating,sound:!!s.sound});}catch(error){console.warn('City scene update',error);}
 }
 function cityDiscover(){
  const found=cityInvest.discover(s,cityCore,window.DungeonGameTimeV1,window.DungeonEventsV1);
@@ -7198,7 +7198,43 @@ function cityObject(id){
  const choices=view.actions.map(([key,label])=>({label,fn:()=>cityAction(id,key)}));choices.push({label:'先離開',fn:()=>{}});
  inspectInScene(view.text,choices);
 }
+function cityWait(ms){return new Promise(resolve=>setTimeout(resolve,matchMedia('(prefers-reduced-motion: reduce)').matches?0:ms));}
+function cityUnlockAudio(){if(!s.sound)return;try{cityFrame?.contentWindow?.DungeonCitySceneRendererV1?.unlockAudio();}catch{}}
+function cityVisual(state,message){
+ try{cityFrame?.contentWindow?.DungeonCitySceneRendererV1?.update(state,false,{sound:!!s.sound});}catch{}
+ $('sceneDialogueText').textContent=message;
+}
+function cityLock(locked){cityBusy=locked;$('app').inert=locked;}
+const cityTransitions=window.DungeonCityTransitionsV1.create({core:cityCore,wait:cityWait,show:cityVisual,commit:(actor,id,key)=>cityCore.act(actor,id,key),valid:actor=>actor===s});
+async function cityDoor(id,key){
+ if(cityBusy)return;const before=s.scene;let result;
+ cityUnlockAudio();cityLock(true);
+ try{
+  openSceneDialogue([{speaker:'旁白',text:key==='leave'?'準備走出房間……':'準備返回房間……'}],'city-transit');
+  result=await cityTransitions.door(s,id,key);
+ }catch(error){console.warn('City transition',error);result={ok:false,reason:'未能完成移動，請再試一次。'};}
+ finally{cityLock(false);closeSceneDialogue();}
+ if(result?.ok&&s.scene!==before){cityObserving=false;sceneActionView=null;s.visits[s.scene]=(s.visits[s.scene]||0)+1;}
+ render();inspectInScene(result?.ok?result.message:result?.reason||'未能完成移動。',[{label:'繼續',fn:()=>{}}]);
+}
+function cityWindowMenu(message='從窗前望向街道。'){
+ const view=cityCore.inspect(s,'window');
+ inspectInScene(message,[...(view?.actions||[]).filter(([key])=>key.startsWith('curtain-')).map(([key,label])=>({label,fn:()=>cityAction('window',key)})),{label:'離開窗前',fn:()=>{cityObserving=false;render();}}]);
+}
+async function cityCurtain(id,key){
+ if(cityBusy)return;const result=cityCore.act(s,id,key);
+ if(!result.ok){inspectInScene(result.reason,[{label:'返回',fn:()=>cityObject(id)}]);return;}
+ cityUnlockAudio();cityLock(true);cityCurtainAnimating=true;
+ try{openSceneDialogue([{speaker:'旁白',text:result.message}],'city-transit');render();await cityWait(840);
+ if(cityCore.curtainState(s)==='closed'&&cityObserving){await cityWait(180);cityObserving=false;}
+ }finally{cityCurtainAnimating=false;cityLock(false);closeSceneDialogue();render();}
+ if(cityObserving)cityWindowMenu(result.message);else inspectInScene(result.message,[{label:'返回物件',fn:()=>cityObject('window')},{label:'離開',fn:()=>{}}]);
+}
 function cityAction(id,key){
+ if(cityBusy)return;
+ if((s.scene==='rental-room'&&id==='door'&&key==='leave')||(s.scene==='rental-corridor'&&id==='return'&&key==='return')){void cityDoor(id,key);return;}
+ if(id==='window'&&key.startsWith('curtain-')){void cityCurtain(id,key);return;}
+ cityUnlockAudio();
  if(key==='storage-list'){cityObject('wardrobe-items');return;}
  if(key==='storage-back'){cityObject('wardrobe');return;}
  if(key.startsWith('item:')){cityObject('wardrobe-item:'+key.slice(5));return;}
@@ -7212,7 +7248,7 @@ function cityAction(id,key){
  if(key==='curtain-close')cityObserving=false;
  render();
  if(key==='read'){cityObject('report-notice');return;}
- if(key==='look'){inspectInScene('從窗前望向街道。',[...cityCore.inspect(s,'window').actions.filter(([k])=>k.startsWith('curtain-')).map(([k,label])=>({label,fn:()=>cityAction('window',k)})),{label:'離開窗前',fn:()=>{cityObserving=false;render();}}]);return;}
+ if(key==='look'){cityWindowMenu();return;}
  inspectInScene(result.message,[{label:s.scene===before?'返回物件':'繼續',fn:()=>{if(s.scene===before)cityObject(id);}}]);
 }
 function cityCards(list,append){
@@ -7870,7 +7906,7 @@ function syncDialogueInputLock(){
   const el=$(id);if(el)el.inert=!!active&&!el.contains(active);
  }
 }
-function guardedAction(fn){if(activeDialogueSurface())return;const now=Date.now();if(now-lastActionAt<300)return;lastActionAt=now;if(['dock-feedback','investigation-entry'].includes(sceneDialogueState.purpose))closeSceneDialogue();fn?.();}
+function guardedAction(fn){if(cityBusy||activeDialogueSurface())return;const now=Date.now();if(now-lastActionAt<300)return;lastActionAt=now;if(['dock-feedback','investigation-entry'].includes(sceneDialogueState.purpose))closeSceneDialogue();fn?.();}
 // Capture phase protects every background control, including dynamically generated buttons.
 function dialogueInfoAllowed(target){
  if(!target?.closest)return false;
@@ -9124,8 +9160,8 @@ $('hudWeatherBtn').onclick=()=>{ $('menuVeil').classList.remove('hidden');$('sou
 $('timePreviewTag').onclick=()=>{previewPeriod=null;previewWeather=null;previewWind=null;previewWindDir=null;syncTimeAtmosphere();renderHotspots();renderPlaceDrawer();renderSceneInfoBar();};
 $('sceneDialogueNext').onclick=e=>{e.stopPropagation();nextSceneDialogue();};
 $('sceneDialogue').onclick=e=>{if(e.target.closest('button'))return;nextSceneDialogue();};
-$('soundBtn').onclick=()=>{s.sound=!s.sound;if(s.sound)window.DungeonWeatherV1?.unlockAudio();$('soundBtn').textContent='音效：'+(s.sound?'開啟':'關閉');syncTimeAtmosphere();save();beep(520);};
- document.addEventListener('pointerdown',()=>{if(s.sound)window.DungeonWeatherV1?.unlockAudio();},{passive:true});
+$('soundBtn').onclick=()=>{s.sound=!s.sound;if(s.sound){if(CITY_NATIVE)cityUnlockAudio();else window.DungeonWeatherV1?.unlockAudio();}$('soundBtn').textContent='音效：'+(s.sound?'開啟':'關閉');syncTimeAtmosphere();if(CITY_NATIVE)syncCityScene();save();beep(520);};
+ document.addEventListener('pointerdown',()=>{if(s.sound){if(CITY_NATIVE)cityUnlockAudio();else window.DungeonWeatherV1?.unlockAudio();}},{passive:true});
 $('engineDiagnosticsBtn').onclick=()=>{const d=window.DungeonEngineV1.diagnostics(),ev=window.DungeonEventsV1.diagnostics(),sv=window.DungeonSaveV1.diagnostics();$('menuVeil').classList.add('hidden');dialog('共用核心診斷',d.modules.map(m=>m.id+' v'+m.version+' · '+({ready:'正常',missing:'缺少模組',blocked:'相依未就緒',error:'錯誤'}[m.state]||m.state)).join('\n')+'\n\n時間更新接入：'+d.timeListeners.join('、')+'\n事件訂閱：'+ev.subscriptions.map(x=>x.type).join('、')+'\n存檔狀態：'+sv.state+(sv.message?' · '+sv.message:'')+'\n近期錯誤：'+([...d.faults,...ev.errors].length?[...d.faults,...ev.errors].map(f=>f.id+'：'+f.message).join('\n'):'無'),[{label:'返回',fn:()=>{}}],'開發診斷');};
 
 /* Opt-in only: separate save key, transient trial character, existing scene actions. */

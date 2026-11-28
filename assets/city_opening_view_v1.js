@@ -887,6 +887,6 @@
       for(const item of items)for(const image of item.querySelectorAll('img,canvas'))draw(image);
       draw(get('roomLighting'));return true;
     }
-    window.DungeonCitySceneRendererV1=Object.freeze({update(state,observe=false){game=JSON.parse(JSON.stringify(state));observingWindow=!!observe;selected=null;render();},thumbnail});
+    window.DungeonCitySceneRendererV1=Object.freeze({update(state,observe=false,options={}){game=JSON.parse(JSON.stringify(state));observingWindow=!!observe;curtainAnimating=!!options.curtainAnimating;thunderSound=!!options.sound;selected=null;render();},unlockAudio(){weather.unlockAudio();},thumbnail});
   }
 })();
