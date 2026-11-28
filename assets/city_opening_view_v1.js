@@ -184,7 +184,7 @@
     if (item.id === 'door') {
       const opening = document.createElement('span');
       opening.className = 'door-opening';
-      // Shadow-only portal: no corridor image and no directional floor light.
+      // No corridor image; the shared light compositor controls doorway spill.
       // Keep the original frame, jamb and threshold geometry.
       const reveal = document.createElementNS('http://www.w3.org/2000/svg','svg');
       reveal.setAttribute('class','door-reveal');
@@ -205,7 +205,10 @@
       for (const part of [opening, frame, leaf]) part.setAttribute('aria-hidden', 'true');
       image.classList.add('door-leaf');
       element.prepend(opening);
-      element.append(frame, leaf);
+      const seam=document.createElementNS('http://www.w3.org/2000/svg','svg');
+      seam.setAttribute('class','door-seam');seam.setAttribute('viewBox','0 0 100 100');seam.setAttribute('preserveAspectRatio','none');seam.setAttribute('aria-hidden','true');
+      seam.innerHTML='<path d="M34 92.4L98 96.8" fill="none" stroke="currentColor" stroke-width=".8" vector-effect="non-scaling-stroke"/>';
+      element.append(frame,leaf,seam);
     }
     if (item.id === 'window') {
       const motion = document.createElement('span');
@@ -427,11 +430,11 @@
     if(!door)return;
     const rgb=portal.color;
     const shade=(base,mult)=>'rgb('+base.map((v,i)=>Math.round(v+rgb[i]*portal.strength*mult)).join(',')+')';
-    door.style.setProperty('--portal-dark',shade([21,17,14],.16));
-    door.style.setProperty('--portal-mid',shade([34,26,20],.27));
-    door.style.setProperty('--portal-edge',shade([43,32,23],.38));
+    door.style.setProperty('--portal-dark',shade([21,17,14],.30));
+    door.style.setProperty('--portal-mid',shade([34,26,20],.48));
+    door.style.setProperty('--portal-edge',shade([43,32,23],.58));
     door.style.setProperty('--door-light-core','rgb('+rgb.join(',')+')');
-    door.style.setProperty('--door-light-strength',String(portal.strength*.34));
+    door.style.setProperty('--door-light-strength',String(portal.strength*.48));
     const hall=get('corridor');
     hall.dataset.lamp=portal.lampOn?'on':'off';
     hall.style.setProperty('--corridor-brightness',String(.28+portal.strength*.86));
@@ -442,6 +445,8 @@
   function paintRoomLight(state) {
     lightState=state;
     lighting.paint(lightCanvas,state);
+    const door=furniture.get('door');
+    if(door){door.style.setProperty('--door-seam-strength',String(state.portalProjection.seam));door.style.setProperty('--door-seam-color','rgb('+state.portalProjection.color.map(Math.round).join(',')+')');}
     lightBeam.style.opacity=String(state.beam);
     lightBeam.style.setProperty('--beam-width',String(state.beamWidth));
     lightBeam.style.setProperty('--beam-color','rgb('+state.beamColor.map(Math.round).join(',')+')');
@@ -457,17 +462,20 @@
     const deskX=deskPlacement.x/100+dx*Math.cos(a)-dy*9/16*Math.sin(a);
     const deskY=deskPlacement.y/100+dx*16/9*Math.sin(a)+dy*Math.cos(a);
     const doorPlacement=placements.find(p=>p.id==='door');
-    const state=lighting.sample({portal,doorOpen:city.isOpen(game,'door'),doorX:doorPlacement.x/100,doorY:doorPlacement.y/100-.22,exterior:light,curtain:city.curtainState(game),lamp:city.isOpen(game,'lamp'),deskLamp:city.isOpen(game,'desk-lamp'),windowX:windowPlacement.x/100,lampX:lampPlacement.x/100,lampY:lampPlacement.y/100,deskX,deskY});
+    const roomRect=get('room').getBoundingClientRect(),doorRect=furniture.get('door').getBoundingClientRect();
+    const doorBounds=roomRect.width>0&&roomRect.height>0&&doorRect.width>0?{x:(doorRect.left-roomRect.left)/roomRect.width,y:(doorRect.top-roomRect.top)/roomRect.height,w:doorRect.width/roomRect.width,h:doorRect.height/roomRect.height}:null;
+    const state=lighting.sample({portal,doorBounds,doorOpen:city.isOpen(game,'door'),doorX:doorPlacement.x/100,doorY:doorPlacement.y/100-.22,exterior:light,curtain:city.curtainState(game),lamp:city.isOpen(game,'lamp'),deskLamp:city.isOpen(game,'desk-lamp'),windowX:windowPlacement.x/100,lampX:lampPlacement.x/100,lampY:lampPlacement.y/100,deskX,deskY});
     const key=JSON.stringify(state);
     if(key===lightTarget)return;
     lightTarget=key;
     if(lightFrame)cancelAnimationFrame(lightFrame);
     lightFrame=0;
     if(!lightState||reduceMotion.matches||game.scene!=='rental-room'||document.hidden){paintRoomLight(state);return;}
-    const start=lightState,at=performance.now(),duration=Math.abs(start.transmission-state.transmission)>.01?1650:420;
+    const start=lightState,at=performance.now(),duration=Math.abs(start.transmission-state.transmission)>.01?1650:Math.abs(start.portalProjection.strength-state.portalProjection.strength)>.01?720:420;
     function step(now){const t=Math.min(1,(now-at)/duration);paintRoomLight(lighting.interpolate(start,state,t*t*(3-2*t)));if(t<1)lightFrame=requestAnimationFrame(step);else lightFrame=0;}
     lightFrame=requestAnimationFrame(step);
   }
+  window.addEventListener('resize',()=>{if(game.scene==='rental-room')renderWeather();});
 
   function renderWeather() {
     const room = game.scene === 'rental-room';
@@ -657,6 +665,7 @@
         placements = layout.applyOverrides(layout.rentalRoom, overrides);
         get('layoutStatus').textContent = '配置尚未儲存。';
         renderFurniture();
+        renderWeather();
       };
       input.onchange = () => {
         const value = valueFor(key);

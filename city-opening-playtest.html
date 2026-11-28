@@ -160,6 +160,7 @@ main:has(#layoutEditor[open]:not([hidden])) .furniture[aria-pressed=true]{outlin
 .door-opening{position:absolute;display:block;inset:0;pointer-events:none;z-index:4;overflow:hidden;clip-path:polygon(25% 12%,98% 6%,98% 98%,25% 93%);background:linear-gradient(180deg,var(--portal-dark,#211811) 0%,transparent 19%,transparent 82%,var(--portal-edge,#3c2c20) 100%),linear-gradient(100deg,var(--portal-edge,#59412d) 0%,var(--portal-mid,#33261d) 38%,var(--portal-dark,#2c2119) 78%,var(--portal-mid,#39291d) 100%);opacity:0;transition:opacity .72s ease}
 .door-opening::after{content:'';position:absolute;inset:0;box-shadow:inset 3px 0 5px #241b1744;pointer-events:none}
 .furniture .door-reveal{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;image-rendering:auto}
+.furniture .door-seam{position:absolute;inset:0;width:100%;height:100%;z-index:7;pointer-events:none;color:var(--door-seam-color,#e6b875);opacity:var(--door-seam-strength,0);image-rendering:auto}
 .door-reveal .jamb-light{fill:var(--door-light-core,#a18a69);opacity:var(--door-light-strength,.14)}
 .door-leaf{position:relative;z-index:6;opacity:1;transition:opacity 0s .72s}
 .door-frame{position:absolute;inset:0;background:url('assets/interiors/rental-room/reference/door.webp') center/100% 100% no-repeat;pointer-events:none;z-index:3;opacity:0;transition:opacity 0s .72s}
@@ -206,7 +207,7 @@ main:has(#layoutEditor[open]:not([hidden])) .furniture[aria-pressed=true]{outlin
 .furniture[data-item=window][data-open=false] .curtain-right{clip-path:polygon(100% 0,0 0,0 21%,0 43%,0 58%,0 77%,0 100%,100% 100%)}
 .furniture[data-item=window][data-curtain=half] .curtain-panel{transform:scaleX(.73);opacity:1}
 @media(prefers-reduced-motion:reduce){#room .door-opening,#room .door-leaf,.door-swing,.curtain-panel,#room::after,.furniture[data-item=lamp] img{transition:none}}
-</style></head><body><header><strong>迷宮盡頭的燈火</strong><span id="clock"></span><button id="layoutQuick" type="button" aria-controls="layoutEditor" aria-expanded="false">家具調整</button><span class="muted">城鎮開場 V0.48</span></header><main><aside class="side"><h2>旅途紀錄</h2><div id="log" class="log"></div></aside><div class="center"><div id="scene" class="scene" data-scene="rental-room">
+</style></head><body><header><strong>迷宮盡頭的燈火</strong><span id="clock"></span><button id="layoutQuick" type="button" aria-controls="layoutEditor" aria-expanded="false">家具調整</button><span class="muted">城鎮開場 V0.49</span></header><main><aside class="side"><h2>旅途紀錄</h2><div id="log" class="log"></div></aside><div class="center"><div id="scene" class="scene" data-scene="rental-room">
 <div id="room"><img class="room-base" src="assets/interiors/rental-room/empty.png" alt="城鎮出租屋室內"><span id="windowLightBeam" aria-hidden="true"></span><div id="furniture"></div><canvas id="roomLighting" width="240" height="135" aria-hidden="true"></canvas></div>
 <svg id="corridor" role="img" aria-label="二樓公共走廊與樓梯" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540"><defs>
 <linearGradient id="wall" x2="0" y2="1"><stop stop-color="#b7a28a"/><stop offset="1" stop-color="#806751"/></linearGradient><linearGradient id="floor" x2="0" y2="1"><stop stop-color="#976c47"/><stop offset="1" stop-color="#553723"/></linearGradient><linearGradient id="sky" x2="0" y2="1"><stop stop-color="#81b5d8"/><stop offset="1" stop-color="#d8dfc9"/></linearGradient><linearGradient id="wood"><stop stop-color="#4c3222"/><stop offset=".5" stop-color="#9d7049"/><stop offset="1" stop-color="#573923"/></linearGradient><radialGradient id="glow"><stop stop-color="#ffcf79" stop-opacity=".55"/><stop offset="1" stop-color="#ffcf79" stop-opacity="0"/></radialGradient></defs>
@@ -225,8 +226,8 @@ main:has(#layoutEditor[open]:not([hidden])) .furniture[aria-pressed=true]{outlin
 <script src="assets/weather_system_v1.js?v=window-5"></script>
 <script src="assets/rental_window_sky_v1.js?v=4"></script>
 <script src="assets/city_exterior_v1.js?v=5"></script>
-<script src="assets/lighting_core_v1.js?v=3"></script>
-<script src="assets/city_opening_view_v1.js?v=55"></script>
+<script src="assets/lighting_core_v1.js?v=4"></script>
+<script src="assets/city_opening_view_v1.js?v=56"></script>
 <script>
 (function(){
  const panel=document.getElementById('layoutEditor'), quick=document.getElementById('layoutQuick');
