@@ -18,6 +18,19 @@
  const itemLocation=(a,id)=>storage.location(a.storageV1,id);
  const wardrobeContents=a=>storage.contents(a.storageV1,wardrobeItems,'wardrobe');
  const moveItems=(a,commands)=>storage.apply(a.storageV1,wardrobeItems,a.equipmentV1,commands);
+ // Carry-only equipment action: no remote access to furniture.
+ function wearCarried(a,id,equip){
+  const item=itemById(id);if(!item)return {ok:false,reason:'找不到衣物。'};
+  const current=itemLocation(a,id),expected=equip?'carried':storage.equip(item);
+  if(current!==expected)return {ok:false,reason:'衣物不在可操作的位置。'};
+  const commands=[];
+  if(equip){const old=a.equipmentV1[item.slot];if(old&&old!==id)commands.push({id:old,to:'carried'});}
+  commands.push({id,to:equip?storage.equip(item):'carried'});
+  const result=moveItems(a,commands);if(!result.ok)return result;
+  const message=equip?'穿戴了'+item.name+'。':'脫下'+item.name+'，收在隨身物品中。';
+  clock.advance(a,1,{reason:'carried-equipment:'+id});events.appendTravel(a,'daily',message,'');
+  return {ok:true,message,minutes:1};
+ }
  const wornNames=a=>wardrobeItems.filter(item=>itemLocation(a,item.id)===storage.equip(item)).map(item=>item.name);
  const objects=Object.freeze([{id:"bed",name:"床",x:20,y:68},{id:"wardrobe",name:"衣櫃",x:13,y:35},{id:"desk",name:"書桌",x:71,y:59},{id:"window",name:"窗戶",x:48,y:26},{id:"mirror",name:"鏡子",x:84,y:31},{id:"door",name:"房門",x:89,y:65},{id:"chest",name:"木箱"},{id:"lamp",name:"吊燈"},{id:"desk-lamp",name:"桌上油燈"}].map(Object.freeze));
  const actions=Object.freeze({bed:[["rest","稍作休息"]],wardrobe:[["dress","換上日常衣物"],["dress-academy","換上軍校制服"],["undress","換回室內衣著"]],desk:[["read","閱讀校方通知"]],window:[["look","望向街道"]],mirror:[["mirror","整理儀容"]],door:[["leave","走出房間"]],return:[["return","返回出租屋"]]});
@@ -69,5 +82,5 @@
   else if(key==="return"){(a.flags.furnitureOpen??={}).door=false;minutes=3;to=a.scene==="rental-street"?"rental-corridor":"rental-room";message=to==="rental-corridor"?"回到二樓公共走廊。":"回到私人房間。"}
   const before=a.scene;clock.advance(a,minutes,{reason:"city-opening:"+key,fromScene:before,toScene:to});a.scene=to;events.appendTravel(a,"daily",message,thought);return {ok:true,message:thought||message,minutes}
  }
- return Object.freeze({version:"1.0.0",objects,slots,outfits,create,inspect,act,ready,isOpen,curtainState,wardrobeItems,wardrobeContents,itemLocation,wornNames,reportStatus,noticeText,academyReady});
+ return Object.freeze({version:"1.0.0",objects,slots,outfits,create,inspect,act,ready,isOpen,curtainState,wardrobeItems,wardrobeContents,itemLocation,wornNames,wearCarried,reportStatus,noticeText,academyReady});
 })(root.DungeonGameTimeV1,root.DungeonEventsV1,root.DungeonSceneActionTimeV1);root.DungeonEngineV1.register({id:'city.opening',version:'1.0.0',requires:['engine.time','engine.events'],available:()=>!!root.DungeonSceneActionTimeV1});})(window);

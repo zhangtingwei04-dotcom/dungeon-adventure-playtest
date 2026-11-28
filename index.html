@@ -4309,7 +4309,7 @@ html.stage-locked #app #battleSurface .battle-actions button{font-size:17px;min-
 #app:has(#dialogVeil:not(.hidden)) .discovery-summary{visibility:hidden}
 @media(prefers-reduced-motion:reduce){#app #travelFeed,#app #placeDrawer{transition:none}#app.route-attention .location-reference-card{animation:none}}
 </style>
-<style>#sceneStage #citySceneRenderer{position:absolute;inset:0;width:100%;height:100%;border:0;z-index:2;pointer-events:none;background:#151e19}#app[data-city-native=true] #sceneStage #view,#app[data-city-native=true] #sceneStage #dayTint,#app[data-city-native=true] #sceneStage #shade,#app[data-city-native=true] #sceneStage #weatherOverlay{visibility:hidden}#app[data-city-native=true] #sceneStage #sceneDialogue{z-index:12!important}</style></head>
+<style>#sceneStage #citySceneRenderer{position:absolute;inset:0;width:100%;height:100%;border:0;z-index:2;pointer-events:none;background:#151e19}#app[data-city-native=true] #sceneStage #view,#app[data-city-native=true] #sceneStage #dayTint,#app[data-city-native=true] #sceneStage #shade,#app[data-city-native=true] #sceneStage #weatherOverlay{visibility:hidden}#app[data-city-native=true] #sceneStage #sceneDialogue{z-index:12!important}</style><style>#app[data-city-native=true] .protagonist-card{display:block}#app[data-city-native=true] .protagonist-profile{width:100%;min-width:0}</style></head>
 <body>
 <div id="app"><div id="worldFrame" aria-hidden="true">
  <svg class="worldFrameArt" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 700" preserveAspectRatio="none">
@@ -4552,7 +4552,7 @@ html.stage-locked #app #battleSurface .battle-actions button{font-size:17px;min-
 <div class="veil hidden" id="dialogVeil"><section class="panel" role="dialog" aria-modal="true" aria-labelledby="dialogTitle"><div class="panel-head"><div><div class="kicker" id="dialogKicker">發現</div><h2 id="dialogTitle"></h2></div><div id="dialogCharacter" aria-label="目前發言人物"><canvas id="dialogCharacterCanvas" width="48" height="64" aria-hidden="true"></canvas><span id="dialogCharacterName"></span></div><button class="close" id="dialogClose" aria-label="關閉">×</button></div><p id="dialogText"></p><div class="choices" id="dialogChoices"></div></section></div>
 <div class="veil hidden" id="journalVeil"><section class="panel journal" role="dialog" aria-modal="true"><div class="panel-head"><div><div class="kicker">FIELD NOTES</div><h2>旅程日誌</h2></div><button class="close" id="journalClose">×</button></div><div class="journal-tabs" id="journalTabs"></div><div id="journalContent"></div><div class="line"></div><p class="meta">本版本使用瀏覽器本機儲存，並未連接《鱗片與種子》的雲端存檔。可在設定中匯出備份。</p></section></div>
 <div class="veil hidden" id="menuVeil"><section class="panel" role="dialog" aria-modal="true"><div class="panel-head"><div><div class="kicker">OPTIONS</div><h2>探索設定</h2></div><button class="close" id="menuClose">×</button></div><p id="menuStatus">遊戲會自動在本機儲存。</p><div class="choices"><button class="choice" id="battlePlaytestBtn">測試戰鬥</button><button class="choice" id="soundBtn">音效：關閉</button><button class="choice" id="exportBtn">匯出存檔</button><button class="choice" id="importBtn">匯入存檔</button><button class="choice" id="restorePreviousBtn">復原上一份存檔</button><button class="choice" id="exportPreviousBtn">匯出上一份存檔</button><button class="choice" id="restartBtn">重新開始</button></div><button class="choice" type="button" id="engineDiagnosticsBtn">共用核心診斷</button><a class="choice" href="city-opening-playtest.html">城鎮住宅試玩</a><div class="line"></div><div class="phase-preview-heading">光線預覽 · 不修改遊戲時間</div><p class="phase-preview-explain">只預覽場景光線，不會跳過事件或改動存檔。畫面右上角可結束預覽。</p><div class="choices phase-preview-options"><button class="choice" type="button" data-preview-period="dawn">清晨</button><button class="choice" type="button" data-preview-period="day">白天</button><button class="choice" type="button" data-preview-period="dusk">黃昏</button><button class="choice" type="button" data-preview-period="night">夜晚</button></div><div class="line"></div><div class="phase-preview-heading" id="weatherSettingsHeading">天氣預覽 · 不修改存檔</div><p class="phase-preview-explain">可隨時查看場景的天氣效果。降雪預覽約20秒、暴風雪約10秒累積至全雪地；返回自然天氣後依遊戲時間變化。</p><div class="choices phase-preview-options"><button class="choice" type="button" data-preview-weather="clear">晴朗</button><button class="choice" type="button" data-preview-weather="cloudy">陰天</button><button class="choice" type="button" data-preview-weather="fog">薄霧</button><button class="choice" type="button" data-preview-weather="drizzle">細雨</button><button class="choice" type="button" data-preview-weather="rain">降雨</button><button class="choice" type="button" data-preview-weather="storm">雷雨</button><button class="choice" type="button" data-preview-weather="snow">降雪</button><button class="choice" type="button" data-preview-weather="blizzard">暴風雪</button><button class="choice" type="button" data-preview-weather="auto">自然天氣</button></div><div class="line"></div><div class="phase-preview-heading">風力預覽 · 不修改存檔</div><p class="phase-preview-explain">獨立調整風力及畫面風向；不影響降雨、降雪量或正式遊戲時間。</p><div class="choices phase-preview-options"><button class="choice" type="button" data-preview-wind="0">0級 無風</button><button class="choice" type="button" data-preview-wind="1">1級 微風</button><button class="choice" type="button" data-preview-wind="2">2級 輕風</button><button class="choice" type="button" data-preview-wind="3">3級 強風</button><button class="choice" type="button" data-preview-wind="4">4級 烈風</button><button class="choice" type="button" data-preview-wind="5">5級 暴風</button><button class="choice" type="button" data-preview-wind="auto">自然風力</button></div><div class="choices phase-preview-options"><button class="choice" type="button" data-preview-wind-dir="-1">向左吹 ←</button><button class="choice" type="button" data-preview-wind-dir="1">向右吹 →</button><button class="choice" type="button" data-preview-wind-dir="auto">自然風向</button></div><input id="fileInput" type="file" accept="application/json" class="hidden"><div class="line"></div><div class="note">V0.5.1 測試版本：第二章的公會、委託與人物對話是可修改的玩法草案。人物稱呼仍為佔位，主角身體來歷、復活原因及正式戰鬥方式都尚未定案。</div></section></div>
-<div class="veil" id="startVeil"><section class="panel start"><div class="stamp">A STORY OF THE UNKNOWN</div><h1 class="screen-title">迷宮盡頭的燈火</h1><p>你受軍校安排來到這座城鎮，在租下的小房間醒來。今天，你將踏出新的旅程。</p><a class="choice" href="?campaign=city&amp;start=new">開始新的旅程</a><a class="choice hidden" id="cityContinueBtn" href="?campaign=city">繼續城鎮旅程</a><button class="choice" id="startBtn">舊版森林冒險（獨立測試）</button><button class="choice hidden" id="continueBtn">繼續舊版森林冒險</button><button class="choice hidden" id="startRestorePreviousBtn">復原上一份有效存檔</button><button class="choice" id="startImportBtn">匯入存檔</button><a class="choice" href="city-opening-playtest.html">城鎮住宅開發測試</a><div class="note">城鎮開場 V0.68 · 地點與移動整合 · 橫式手機／電腦　｜　探索優先、調查可選　｜　不需登入及付費</div></section></div>
+<div class="veil" id="startVeil"><section class="panel start"><div class="stamp">A STORY OF THE UNKNOWN</div><h1 class="screen-title">迷宮盡頭的燈火</h1><p>你受軍校安排來到這座城鎮，在租下的小房間醒來。今天，你將踏出新的旅程。</p><a class="choice" href="?campaign=city&amp;start=new">開始新的旅程</a><a class="choice hidden" id="cityContinueBtn" href="?campaign=city">繼續城鎮旅程</a><button class="choice" id="startBtn">舊版森林冒險（獨立測試）</button><button class="choice hidden" id="continueBtn">繼續舊版森林冒險</button><button class="choice hidden" id="startRestorePreviousBtn">復原上一份有效存檔</button><button class="choice" id="startImportBtn">匯入存檔</button><a class="choice" href="city-opening-playtest.html">城鎮住宅開發測試</a><div class="note">城鎮開場 V0.69 · 角色與裝備整合 · 橫式手機／電腦　｜　探索優先、調查可選　｜　不需登入及付費</div></section></div>
 <div class="orientation"><div><strong>請將手機轉為橫向</strong><p>第一章與城鎮探索以橫式畫面呈現。</p>↻</div></div>
 </div>
 <script src="./assets/ornaments_data.js"></script>
@@ -4674,7 +4674,7 @@ window.DUNGEON_FOREST_V4_LAYOUT=window.DUNGEON_WRECK_CURRENT_LAYOUT;
 <script src="./assets/monsters/moss_beast_live_v3.js?v=2"></script>
 <script src="./assets/encounter_motion_v1.js?v=4-body-scale"></script>
 <script src="./assets/battle_playtest_v1.js?v=encounter-motion-v1"></script>
-<script src="./assets/furniture_storage_v1.js?v=1"></script><script src="./assets/timed_tasks_v1.js?v=1"></script><script src="./assets/city_opening_v1.js?v=15"></script><script src="./assets/interior_furniture_v1.js?v=20"></script><script src="./assets/city_campaign_save_v1.js?v=1"></script><script src="./assets/city_investigation_v1.js?v=2"></script>
+<script src="./assets/furniture_storage_v1.js?v=1"></script><script src="./assets/timed_tasks_v1.js?v=1"></script><script src="./assets/city_opening_v1.js?v=16"></script><script src="./assets/interior_furniture_v1.js?v=20"></script><script src="./assets/city_campaign_save_v1.js?v=1"></script><script src="./assets/city_investigation_v1.js?v=2"></script>
 <script>
 (()=>{'use strict';
 // Fixed design canvas: use the approved screenshot's exact 1536×707 ratio,
@@ -5495,7 +5495,7 @@ function backpackContents(){
  for(const item of s.recovery.items){
   const def=RECOVERABLE[item.id];if(def)push('items',item.known?def.name:def.raw);
  }
- for(const name of s.items)if(typeof name==='string')push('items',name);
+ for(const name of s.items)if(typeof name==='string')push(CITY_NATIVE&&name==='academy_report_notice'?'special':'items',CITY_NATIVE&&name==='academy_report_notice'?'軍校報到通知':name);
  for(const [name,n] of Object.entries(s.recovery.parts))push('materials',name,n);
  for(const [name,n] of Object.entries(s.forestRare.ingredients))push('materials',name,n);
  for(const [name,n] of Object.entries(s.forestEcology.ingredients))push('materials',name,n);
@@ -5505,12 +5505,13 @@ function backpackContents(){
  return entries;
 }
 function renderBackpackPanel(out){
- if(CITY_NATIVE){sideInfoHeading(out,'隨身物品');const carried=cityCore.wardrobeItems.filter(item=>cityCore.itemLocation(s,item.id)==='carried');for(const item of carried)sideInfoText(out,item.name+' ×1');if(s.items.includes('academy_report_notice'))sideInfoText(out,'軍校報到通知 ×1');if(!carried.length&&!s.items.length)sideInfoText(out,'目前沒有隨身物品。');sideInfoHeading(out,'穿戴中');sideInfoText(out,cityCore.wornNames(s).join('、')||'室內衣著');sideInfoText(out,'存放於衣櫃的物品不計入隨身物品。');return;}
+
  normalizeEquipmentV1();
  const entries=backpackContents();
  // Gear is tracked by item IDs, separate from the existing collected-item arrays.
  sideInfoHeading(out,'已持有裝備');
- for(const [slotId,item] of Object.entries(EQUIPMENT_VISUAL_CATALOG)){
+ const gearRows=CITY_NATIVE?cityCore.wardrobeItems.filter(item=>['carried','equipped:'+item.slot].includes(cityCore.itemLocation(s,item.id))).map(item=>[item.slot,item]):Object.entries(EQUIPMENT_VISUAL_CATALOG);
+ for(const [slotId,item] of gearRows){
   if(!s.equipmentV1.owned.includes(item.id))continue;
   const worn=s.equipmentV1[slotId]===item.id;
   const row=document.createElement('div');row.className='owned-gear-row';
@@ -5519,11 +5520,11 @@ function renderBackpackPanel(out){
   const action=document.createElement('button');action.type='button';
   action.className='owned-gear-action';action.textContent=worn?'脫下':'裝上';
   action.setAttribute('aria-label',(worn?'脫下':'裝上')+item.name);
-  action.onclick=()=>setOwnedEquipmentEquipped(slotId,!worn);
+  action.onclick=()=>CITY_NATIVE?cityWear(item.id,!worn):setOwnedEquipmentEquipped(slotId,!worn);
   row.append(label,action);out.appendChild(row);
  }
  sideInfoHeading(out,s.equipmentV1.bag?'旅行背包':'隨身物品');
- if(!s.equipmentV1.bag)sideInfoText(out,'背包已脫下；現有物品仍安全保留。容量限制尚未啟用。','side-info-note');
+ if(!s.equipmentV1.bag)sideInfoText(out,CITY_NATIVE?'尚未持有背包；衣櫃內衣物不列入隨身裝備。':'背包已脫下；現有物品仍安全保留。容量限制尚未啟用。','side-info-note');
  const meta=document.createElement('p');meta.className='bag-meta';
  meta.textContent=entries.length+' 種物品 · '+entries.reduce((n,e)=>n+e.count,0)+' 件／份 · 尚無負重限制';
  out.appendChild(meta);
@@ -5533,8 +5534,8 @@ function renderBackpackPanel(out){
   btn.className='bag-filter';btn.textContent=label;
   btn.setAttribute('aria-pressed',String(backpackView===key));
   btn.onclick=()=>{
-   backpackView=key;const y=$('placeDrawerList').scrollTop;
-   renderPlaceDrawer();$('placeDrawerList').scrollTop=y;
+   backpackView=key;const y=out.scrollTop;
+   if(CITY_NATIVE&&out.id==='journalContent')journal('items');else renderPlaceDrawer();out.scrollTop=y;
   };
   filters.appendChild(btn);
  }
@@ -5551,14 +5552,14 @@ function renderBackpackPanel(out){
    const row=document.createElement('div');row.className='bag-item';
    const name=document.createElement('span');name.className='bag-item-name';name.textContent=item.name;
    const number=document.createElement('span');number.className='bag-item-quantity';number.textContent='×'+item.count;
-   row.append(name,number);out.appendChild(row);
+   row.append(name,number);if(CITY_NATIVE&&item.name==='軍校報到通知'){const read=document.createElement('button');read.type='button';read.className='owned-gear-action';read.textContent='查看';read.onclick=()=>{if(activeDialogueSurface())return;$('journalVeil').classList.add('hidden');inspectInScene(cityCore.noticeText,[{label:'收起通知',fn:()=>{}}]);};row.appendChild(read);}out.appendChild(row);
   }
  }
  if(!visible)sideInfoText(out,'這個分類目前沒有物品。','side-info-note');
  const btn=document.createElement('button');btn.type='button';btn.className='side-info-aux';
- btn.textContent='鑑定／分解與完整紀錄';btn.onclick=()=>journal('items');out.appendChild(btn);
+ btn.textContent='鑑定／分解與完整紀錄';btn.onclick=()=>journal('items');if(!CITY_NATIVE)out.appendChild(btn);
  const foot=document.createElement('p');foot.className='wallet-note';
- foot.textContent='既有探索物品與材料會自動顯示於背包，無需重新搜集；目前不會限制拾取數量。';
+ foot.textContent=CITY_NATIVE?'隨身換裝時，舊衣物留在身上；存回衣櫃須回到房間操作。容量限制尚未啟用。':'既有探索物品與材料會自動顯示於背包，無需重新搜集；目前不會限制拾取數量。';
  out.appendChild(foot);
 }
 
@@ -6799,8 +6800,16 @@ function equipmentGuideHTML(sceneMode='equipment'){
   behind+cloakBack+base+shorts+tank+outfit+equippedGarments+boots+gloves+satchel+cloakFront+satchelLower+nativeArms+extras+veil+brows+eyes+mouth+healthMarks+hair+
   (paperDollTryOn?'<span class="paperdoll-preview-label">試穿</span>':'')+'</div>';
 }
+function cityWear(id,equip){
+ if(activeDialogueSurface())return;
+ const result=cityCore.wearCarried(s,id,equip);
+ if(!result.ok){toast(result.reason);return;}
+ paperDollTryOn=false;render();
+ if(!$('journalVeil').classList.contains('hidden')&&journalTab==='items')journal('items');
+ toast(result.message);
+}
 function setOwnedEquipmentEquipped(slotId,equip){
- if(CITY_NATIVE){toast('請透過衣櫃或已取出的衣物管理穿戴。');return;}
+ if(CITY_NATIVE){const item=equip?cityCore.wardrobeItems.find(x=>x.slot===slotId&&cityCore.itemLocation(s,x.id)==='carried'):cityCore.wardrobeItems.find(x=>x.id===s.equipmentV1[slotId]);if(item)cityWear(item.id,equip);return;}
  if(activeDialogueSurface())return;
  normalizeEquipmentV1();
  const item=EQUIPMENT_VISUAL_CATALOG[slotId];
@@ -6814,7 +6823,15 @@ function setOwnedEquipmentEquipped(slotId,equip){
  toast(item.name+(equip?'已裝上':'已脫下，物品仍保留'));
 }
 function showEquipmentDetail(id){
- if(CITY_NATIVE){equipmentSelected=id;const item=cityCore.wardrobeItems.find(x=>x.id===s.equipmentV1[id]);const part=EQUIPMENT_PARTS.find(x=>x.id===id);const host=$('equipmentDetail');host.textContent=(part?.name||id)+'｜'+(item?.name||'空裝備格')+(item?.id.startsWith('academy_')?'（穿著美術尚待製作）':'');$('equipEquipmentAction').hidden=true;return;}
+ if(CITY_NATIVE){
+ equipmentSelected=id;const part=EQUIPMENT_PARTS.find(x=>x.id===id);const item=cityCore.wardrobeItems.find(x=>x.id===s.equipmentV1[id]);const carried=cityCore.wardrobeItems.filter(x=>x.slot===id&&cityCore.itemLocation(s,x.id)==='carried');
+ for(const button of $('equipmentBoard').querySelectorAll('.equip-slot')){const pressed=button.dataset.equipPart===id;button.classList.toggle('is-selected',pressed);button.setAttribute('aria-pressed',String(pressed));}
+ const host=$('equipmentDetail');host.replaceChildren();const heading=document.createElement('strong');heading.className='equip-detail-title';heading.textContent=(part?.name||id)+'｜'+(item?.name||'空裝備格');host.appendChild(heading);
+ const note=document.createElement('span');note.className='equip-detail-note';note.textContent=item?'已穿戴；脫下後留在隨身物品。':carried.length?'選擇下方隨身衣物穿戴。':'沒有可穿戴的隨身物品。';host.appendChild(note);
+ if(item?.id.startsWith('academy_')){const pending=document.createElement('span');pending.className='equip-detail-note';pending.textContent='軍裝紙娃娃素材尚待製作。';host.appendChild(pending);}
+ for(const piece of carried){const button=document.createElement('button');button.type='button';button.className='owned-gear-action';button.textContent='穿戴 '+piece.name;button.onclick=()=>cityWear(piece.id,true);host.appendChild(button);}
+ const action=$('equipEquipmentAction');action.hidden=!item;if(item){action.textContent='脫下';action.onclick=()=>cityWear(item.id,false);}return;
+ }
  const part=EQUIPMENT_PARTS.find(x=>x.id===id)||EQUIPMENT_PARTS[0];
  equipmentSelected=part.id;
  for(const b of $('equipmentBoard').querySelectorAll('.equip-slot')){
@@ -6980,7 +6997,7 @@ function renderEquipmentBoard(){
    const btn=document.createElement('button');btn.type='button';
    btn.className='equip-slot'+(full?' is-filled':'')+(preview?' is-preview':'');
    btn.dataset.equipPart=part.id;
-   const stored=EQUIPMENT_VISUAL_CATALOG[part.id];
+   const stored=CITY_NATIVE?cityCore.wardrobeItems.find(x=>x.slot===part.id&&cityCore.itemLocation(s,x.id)==='carried'):EQUIPMENT_VISUAL_CATALOG[part.id];
    const owned=!!stored&&s.equipmentV1.owned.includes(stored.id);
    btn.setAttribute('aria-label',part.name+'：'+(shown?shown.item.name+'（已穿戴）':owned?stored.name+'（已脫下，可重新裝上）':'空裝備格'));
    const icon=document.createElement('span');icon.className='equip-slot-symbol';icon.setAttribute('aria-hidden','true');
@@ -7009,7 +7026,7 @@ function renderEquipmentBoard(){
  paintNpcDreamPreview();
 }
 function renderSideTab(tab,out){
- if(CITY_NATIVE&&tab==='character'){sideInfoHeading(out,'軍校畢業生');sideInfoText(out,'生命 '+s.hp+'/'+s.maxHp);sideInfoText(out,'目前衣著：'+(cityCore.wornNames(s).join('、')||'室內衣著'));const env=characterEnvironmentView();if(env)for(const [label,value] of window.DungeonCharacterEnvironmentV1.rows(env))sideInfoText(out,label+'：'+value);return;}
+
  if(tab==='character'){
   const card=document.createElement('section');card.className='protagonist-card';
   card.setAttribute('aria-label','主角形象與基本狀態');
@@ -7029,9 +7046,9 @@ function renderSideTab(tab,out){
   };
   const profile=document.createElement('div');profile.className='protagonist-profile';
   const name=document.createElement('h3');name.className='protagonist-name';
-  name.textContent='身分未明的旅人';profile.appendChild(name);
+  name.textContent=CITY_NATIVE?'軍校畢業生':'身分未明的旅人';profile.appendChild(name);
   const chapter=document.createElement('div');chapter.className='protagonist-subtitle';
-  chapter.textContent='第一章 · 破損的馬車';profile.appendChild(chapter);
+  chapter.textContent=CITY_NATIVE?'第一章 · 城鎮生活':'第一章 · 破損的馬車';profile.appendChild(chapter);
   const state=document.createElement('div');state.className='protagonist-status-tag';
   state.textContent=paperDollRestPreview.sleep==='awake'?
  (s.flags.rescued?'清醒 · 已受救援':'清醒 · 獨自探索'):
@@ -7062,6 +7079,7 @@ function renderSideTab(tab,out){
    const right=document.createElement('strong');right.textContent=value;
    row.append(left,right);profile.appendChild(row);
   }
+  if(CITY_NATIVE){const clothing=document.createElement('div');clothing.className='protagonist-stat';const label=document.createElement('span');label.textContent='衣著';const value=document.createElement('strong');value.textContent=cityCore.wornNames(s).join('、')||'室內衣著';clothing.append(label,value);profile.appendChild(clothing);card.append(profile);out.appendChild(card);return;}
   card.append(photo,profile);out.appendChild(card);
   const heading=document.createElement('h4');heading.className='protagonist-section-title';
   heading.textContent='背部紋印與身分線索';out.appendChild(heading);
@@ -7104,7 +7122,7 @@ function renderSideTab(tab,out){
   const appearanceControls=renderPaperDollAppearanceControls();
   // One selected slot, then one direct "脫下／裝上" action just below it.
   const artNote=document.createElement('p');artNote.className='equip-art-pending';
-  artNote.textContent='已正式安裝 V13 長袖、V2 旅行長褲、V4 旅行靴、V2 深綠披風與 V1 棕色皮革手套；男、女左右手套各自貼合，與側包、披風共用透明手部遮擋。所有裝備依穿脫及存檔狀態顯示。';
+  artNote.textContent=CITY_NATIVE?'衣物與衣櫃、隨身物品及裝備欄共用資料。日常衣著暫沿用舊版外穿素材，軍裝及日常便鞋專用紙娃娃素材待製作。':'已正式安裝 V13 長袖、V2 旅行長褲、V4 旅行靴、V2 深綠披風與 V1 棕色皮革手套；男、女左右手套各自貼合，與側包、披風共用透明手部遮擋。所有裝備依穿脫及存檔狀態顯示。';
   footer.append(detail,equipAction,bag);
   section.append(board,footer,artNote,genderControls);
   section.append(hairControls,eyeControls,expressionControls,restControls,abnormalControls,appearanceControls);
