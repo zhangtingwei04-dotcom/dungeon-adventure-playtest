@@ -287,10 +287,10 @@
       // Both strips must actually cover the tied-curtain mask, not just reach a timer.
       const width = element.getBoundingClientRect().width;
       const enough = width > 0 && cover && panels.length === 2 && panels.every(panel =>
-        panel.getBoundingClientRect().width >= width * .24 &&
+        panel.getBoundingClientRect().width >= width * .30 &&
         Number(getComputedStyle(panel).opacity) >= .98);
       element.dataset.tiedHidden = String(enough);
-      if (now - started < 1850 && element.dataset.open === next) {
+      if (now - started < 1750 && element.dataset.open === next) {
         curtainSwapFrame = requestAnimationFrame(track);
       } else {
         element.dataset.tiedHidden = String(!open);
