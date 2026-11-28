@@ -19,7 +19,7 @@
  const catalog=[['wolf','狼','形態、奔跑、撲擊'],['spider','蜘蛛','蛛絲、結網、振動'],['bird','鳥類','翅膀、飛行、滑翔'],['flame','火焰','燃燒、熱能、擴散'],['water','流水','流動、循環、衝擊'],['crystal','水晶','結晶、折射'],['rock','岩石','結構、穩定'],['plant','植物','生長、連結']];
  const errors={UNKNOWN_SCHOOL:'未知流派',INVALID_LEARNED_PHASES:'修習相別互斥或超過三相',INVALID_MAIN:'主相無效',MAIN_NOT_LEARNED:'主相必須在已修習相別中',SCHOOL_PHASE_NOT_LEARNED:'需修習流派主相',INVALID_SKILL_ID_OR_NAME:'請輸入技能名稱',INVALID_ALLOCATION:'請選擇力量並輸入正數比例',DUPLICATE_ALLOCATION:'力量不可重複分配',UNLEARNED_PHASE:'包含尚未修習的相',BRANCH_NOT_ALLOWED:'該衍象不可使用',OPPOSED_PHASE:'存在對立相',ALLOCATION_MUST_TOTAL_100:'力量投入比例合計必須為100%',ILLEGAL_COMBINATION:'相別組合不合法',PURE_LAMP_NO_COMBINATION:'純燈流派不可組合多相',SCHOOL_CORE_REQUIRED:'複合技能需含流派核心相',INVALID_MATERIALS:'素材資料無效',OBSERVATION_REQUIRED:'尚未取得對應觀察紀錄',SOURCE_NOT_OWNED:'尚未擁有原始技能',DUPLICATE_SKILL_ID:'技能識別重複'};
  let profile=c.createProfile({schoolId:'school-4-0',main:'影',phases:['影','續']});
- let selected=new Set(),allocations=[{phase:'影',branch:'形',share:60},{phase:'續',branch:'循',share:40}],sourceId=null,seq=1;
+ let selected=new Set(['wolf']),allocations=[{phase:'影',branch:'形',share:60},{phase:'續',branch:'循',share:40}],sourceId=null,seq=1;
  const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n};
  const option=(value,label)=>{const n=el('option',label);n.value=value;return n};
  function setOptions(node,items,value){node.replaceChildren(...items.map(x=>option(x[0],x[1])));node.value=value}
