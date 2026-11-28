@@ -165,6 +165,19 @@
         hook.dataset.hangerSlot = String(slot);
         interior.append(hook);
       }
+      const stored=document.createElement('span');
+      stored.className='wardrobe-stored-items';
+      for(const item of city.wardrobeItems){
+        const piece=document.createElement('span');
+        piece.className='wardrobe-stored-item '+(item.home.startsWith('hanger')?'hanging':'shelf-item');
+        piece.dataset.storedItem=item.id;piece.title=item.name;
+        piece.style.left=((Number(item.home.split('-')[1])-.5)*25)+'%';
+        const art=document.createElement('img');art.src=item.asset;art.alt='';
+        piece.append(art);
+        piece.addEventListener('click',event=>{event.stopPropagation();if(city.isOpen(game,'wardrobe'))select('wardrobe-item:'+item.id);});
+        stored.append(piece);
+      }
+      interior.append(stored);
       open.append(openImage, interior);
       image.classList.add('furniture-closed-image');
       element.append(open);
@@ -375,6 +388,10 @@
       if (item.id === 'wardrobe' || item.id === 'chest') {
         const preview = item.id === 'chest' && editor.open && itemPicker.value === 'chest' && chestPreview !== 'actual';
         element.dataset.open = String(preview ? chestPreview === 'open' : city.isOpen(game, item.id));
+      }
+      if(item.id==='wardrobe'){
+        const visible=new Set(city.wardrobeContents(game).map(item=>item.id));
+        for(const piece of element.querySelectorAll('[data-stored-item]'))piece.hidden=!visible.has(piece.dataset.storedItem);
       }
       if (['door','lamp'].includes(item.id)) {
         element.dataset.open = String(city.isOpen(game, item.id));
@@ -627,8 +644,7 @@
     get('description').textContent = observingWindow?'住宅區・二樓窗前觀景':room ? '住宅區・二樓私人房間' : corridor?'住宅區・二樓住宿區':'住宅區・街道';
     stairsButton.style.display=corridor?'':'none';returnButton.textContent=corridor?'返回房間':'返回住宅走廊';
     stairsButton.setAttribute('aria-pressed',String(selected==='stairs'));
-    get('clothes').textContent = (city.ready(game) ? '白色布衣、旅行褲、鞋子' : '室內衣著')
-      + (game.equipmentV1.bag ? '；已配戴側包、披風與手套' : '');
+    get('clothes').textContent = city.wornNames(game).join('、')||'室內衣著';
     get('notice').textContent = game.flags.noticeRead ? '校方通知已讀；待後續報到安排。' : '可查看桌上的校方通知。';
 
     const entries = [...game.travelLog].reverse().map(entry => {
@@ -672,11 +688,14 @@
       return;
     }
 
-    get('dialogTitle').textContent = room ? labels.get(selected) : selected==='stairs'?'樓梯':corridor?'返回房間':'返回住宅走廊';
+    get('dialogTitle').textContent = room ? (labels.get(selected)??(selected==='wardrobe-items'?'衣物管理':city.wardrobeItems.find(item=>'wardrobe-item:'+item.id===selected)?.name??'衣櫃')) : selected==='stairs'?'樓梯':corridor?'返回房間':'返回住宅走廊';
     get('dialogText').textContent = view.text;
     for (const [key, label] of view.actions) {
       const choice=button(label, () => {
         if(doorTransit||curtainAnimating)return;
+        if(key==='storage-list'){select('wardrobe-items');return;}
+        if(key==='storage-back'){select('wardrobe');return;}
+        if(key.startsWith('item:')){select('wardrobe-item:'+key.slice(5));return;}
         if(key.startsWith('curtain-')){void changeCurtain(key);return;}
         if(key==='leave'){void leaveThroughDoor();return;}
         const result = city.act(game, selected, key);
