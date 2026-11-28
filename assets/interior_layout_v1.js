@@ -3,13 +3,16 @@
   'use strict';
 
   const rentalRoom = Object.freeze([
-    { id: 'window', x: 46, y: 51, width: 25, scale: 1, angle: 0, z: 10 },
-    { id: 'mirror', x: 84, y: 51, width: 5, scale: 1, angle: 0, z: 11 },
-    { id: 'door', x: 69, y: 69, width: 13, scale: 1, angle: 0, z: 12 },
-    { id: 'rug', x: 62, y: 98, width: 24, scale: 1, angle: 0, z: 13 },
-    { id: 'wardrobe', x: 18, y: 68, width: 15, scale: 1, angle: 0, z: 14 },
-    { id: 'desk', x: 51, y: 81, width: 23, scale: 1, angle: 0, z: 15 },
-    { id: 'bed', x: 27, y: 93, width: 28, scale: 1, angle: 0, z: 16 }
+    { id: 'window', x: 47.5, y: 56, width: 29, scale: 1, angle: 0, z: 10 },
+    { id: 'mirror', x: 90, y: 63, width: 5.5, scale: 1, angle: 0, z: 11 },
+    { id: 'door', x: 96.7, y: 93, width: 6.6, scale: 1, angle: 0, z: 12 },
+    { id: 'rug', x: 49, y: 99, width: 62, scale: 1, angle: 0, z: 13 },
+    { id: 'shelves', x: 72.5, y: 43, width: 17, scale: 1, angle: 0, z: 14 },
+    { id: 'wardrobe', x: 21.5, y: 72, width: 19, scale: 1, angle: 0, z: 15 },
+    { id: 'desk', x: 72, y: 75, width: 24, scale: 1, angle: 0, z: 16 },
+    { id: 'bed', x: 10, y: 100, width: 30, scale: 1, angle: 0, z: 17 },
+    { id: 'chest', x: 87, y: 86, width: 12.5, scale: 1, angle: 0, z: 18 },
+    { id: 'lamp', x: 50, y: 15.5, width: 6, scale: 1, angle: 0, z: 19 }
   ].map(Object.freeze));
 
   const fields = Object.freeze({

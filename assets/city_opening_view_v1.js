@@ -10,7 +10,7 @@
   const editor = get('layoutEditor');
   const itemPicker = get('layoutItem');
   const labels = new Map(city.objects.map(item => [item.id, item.name]));
-  labels.set('rug', '地毯');
+  const decorations = { rug: '地毯', shelves: '壁架', chest: '木箱', lamp: '吊燈' };
   let game = city.create();
   let selected = null;
   let overrides = {};
@@ -51,14 +51,15 @@
 
   const furniture = new Map();
   for (const item of placements) {
-    const label = labels.get(item.id);
+    const interactive = labels.has(item.id);
+    const label = labels.get(item.id) ?? decorations[item.id];
     const image = document.createElement('img');
     image.src = catalog[item.id];
     image.alt = '';
-    const element = item.id === 'rug'
-      ? document.createElement('div')
-      : button('', () => select(item.id));
-    if (item.id !== 'rug') {
+    const element = interactive
+      ? button('', () => select(item.id))
+      : document.createElement('div');
+    if (interactive) {
       element.setAttribute('aria-label', label);
       element.title = label;
     } else {
@@ -81,7 +82,7 @@
     for (const item of placements) {
       const element = furniture.get(item.id);
       layout.position(element, item);
-      if (item.id !== 'rug') {
+      if (labels.has(item.id)) {
         element.setAttribute('aria-pressed', String(selected === item.id));
       }
       element.classList.toggle('is-editing', editor.open && itemPicker.value === item.id);
