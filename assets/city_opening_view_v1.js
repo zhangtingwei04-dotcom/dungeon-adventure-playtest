@@ -34,7 +34,13 @@
       openScale: { label: '開蓋大小 (倍)', min: 0.5, max: 2, step: 0.01, initial: 1 },
       openAngle: { label: '開蓋角度 (°)', min: -45, max: 45, step: 0.5, initial: 0 },
       openSkew: { label: '開蓋斜度 (°)', min: -30, max: 30, step: 0.5, initial: 0 },
-      openWidth: { label: '開蓋橫向比例', min: 0.5, max: 1.5, step: 0.01, initial: 1 }
+      openWidth: { label: '開蓋橫向比例', min: 0.5, max: 1.5, step: 0.01, initial: 1 },
+      lidX: { label: '箱蓋 X (%)', min: -30, max: 30, step: 0.5, initial: 0 },
+      lidY: { label: '箱蓋 Y (%)', min: -30, max: 30, step: 0.5, initial: 0 },
+      lidAngle: { label: '箱蓋角度 (°)', min: -60, max: 60, step: 0.5, initial: 0 },
+      lidWidth: { label: '箱蓋寬度 (倍)', min: 0.5, max: 1.8, step: 0.02, initial: 1 },
+      lidHeight: { label: '箱蓋高度 (倍)', min: 0.4, max: 1.8, step: 0.02, initial: 1 },
+      lidSkew: { label: '箱蓋斜度 (°)', min: -35, max: 35, step: 0.5, initial: 0 }
     }
   };
   const clamp = (n, field) => Math.max(field.min, Math.min(field.max, n));
@@ -124,10 +130,17 @@
       element.append(open);
     }
     if (item.id === 'chest') {
-      const openImage = document.createElement('img');
-      openImage.alt = '';
+      const openImage = document.createElement('span');
       openImage.className = 'chest-open-image';
-      openImage.src = catalog['chest-open'];
+      const base = document.createElement('img');
+      base.alt = '';
+      base.src = catalog['chest-open'];
+      base.className = 'chest-open-base';
+      const lid = document.createElement('img');
+      lid.alt = '';
+      lid.src = catalog['chest-open'];
+      lid.className = 'chest-open-lid';
+      openImage.append(base, lid);
       image.classList.add('furniture-closed-image');
       element.append(openImage);
     }
@@ -186,6 +199,8 @@
         img.style.width = (123.076923 * detailValue('chest', 'openScale')) + '%';
         img.style.transformOrigin = 'left bottom';
         img.style.transform = `rotate(${detailValue('chest', 'openAngle')}deg) skewY(${detailValue('chest', 'openSkew')}deg) scaleX(${detailValue('chest', 'openWidth')})`;
+        const lid = img.querySelector('.chest-open-lid');
+        lid.style.transform = `translate(${detailValue('chest','lidX')}%, ${detailValue('chest','lidY')}%) rotate(${detailValue('chest','lidAngle')}deg) skewY(${detailValue('chest','lidSkew')}deg) scale(${detailValue('chest','lidWidth')}, ${detailValue('chest','lidHeight')})`;
       }
       if (labels.has(item.id)) {
         element.setAttribute('aria-pressed', String(selected === item.id));
@@ -327,7 +342,8 @@
     const item = placements.find(placement => placement.id === itemPicker.value);
     const special = detailFields[item.id] || {};
     const valueFor = key => Object.hasOwn(special, key) ? detailValue(item.id, key) : placements.find(p => p.id === item.id)[key];
-    const fields = Object.entries({ ...layout.fields, ...special }).map(([key, field]) => {
+    const orderedFields = item.id === 'chest' ? { ...Object.fromEntries(Object.entries(special).filter(([k]) => k.startsWith('lid'))), ...layout.fields, ...Object.fromEntries(Object.entries(special).filter(([k]) => !k.startsWith('lid'))) } : { ...layout.fields, ...special };
+    const fields = Object.entries(orderedFields).map(([key, field]) => {
       const label = document.createElement('label');
       label.textContent = field.label;
       const input = document.createElement('input');
