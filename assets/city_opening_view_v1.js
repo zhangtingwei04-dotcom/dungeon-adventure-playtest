@@ -27,7 +27,10 @@
   const labels = new Map(city.objects.map(item => [item.id, item.name]));
   const decorations = { chair: '椅子', rug: '地毯', shelves: '壁架', lamp: '吊燈', 'left-shelf': '左牆木架', 'wall-map': '左牆掛圖', 'right-wall-map': '右牆掛圖' };
   const detailFields = {
-    mirror: { skewY: { label: '鏡面斜度 (°)', min: -35, max: 35, step: 0.5, initial: 7 } },
+    mirror: {
+      skewY: { label: '鏡面上下緣斜度 (°)', min: -35, max: 35, step: 0.5, initial: -16 },
+      skewX: { label: '鏡面左右邊垂直度 (°)', min: -15, max: 15, step: 0.5, initial: 0 }
+    },
     chest: {
       depth: { label: '景深：往內 + / 往外 − (%)', min: -20, max: 35, step: 0.5, initial: 19.5 },
       depthDirection: { label: '景深方向角度 (°)', min: -25, max: 65, step: 1, initial: 0 },
@@ -247,7 +250,7 @@
         element.dataset.open = String(preview ? chestPreview === 'open' : city.isOpen(game, item.id));
       }
       if (item.id === 'mirror') {
-        element.querySelector('img').style.transform = `skewY(${detailValue('mirror', 'skewY')}deg)`;
+        element.querySelector('img').style.transform = `skewY(${detailValue('mirror', 'skewY')}deg) skewX(${detailValue('mirror', 'skewX')}deg)`;
       }
       if (item.id === 'chest') {
         const img = element.querySelector('.chest-open-image');
