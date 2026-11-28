@@ -7,7 +7,7 @@
     { id: 'wall-map', x: 5.5, y: 46, width: 6.5, scale: 1, angle: 0, z: 9 },
     { id: 'right-wall-map', x: 83.4, y: 41, width: 4.9, scale: 1, angle: 0, z: 9 },
     { id: 'window', x: 47.5, y: 56, width: 29, scale: 1, angle: 0, z: 10 },
-    { id: 'mirror', x: 90, y: 63, width: 5.5, scale: 1, angle: 0, z: 11 },
+    { id: 'mirror', x: 90, y: 54, width: 5.2, scale: 1, angle: 0, z: 11 },
     { id: 'door', x: 96.7, y: 93, width: 6.6, scale: 1, angle: 0, z: 12 },
     { id: 'rug', x: 49, y: 99, width: 62, scale: 1, angle: 0, z: 13 },
     { id: 'shelves', x: 72.5, y: 43, width: 17, scale: 1, angle: 0, z: 14 },
