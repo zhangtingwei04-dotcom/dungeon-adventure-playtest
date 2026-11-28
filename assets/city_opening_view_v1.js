@@ -25,7 +25,7 @@
   let lastWeatherFrame = 0;
   const itemPicker = get('layoutItem');
   const labels = new Map(city.objects.map(item => [item.id, item.name]));
-  const decorations = { rug: '地毯', shelves: '壁架', chest: '木箱', lamp: '吊燈', 'left-shelf': '左牆木架', 'wall-map': '左牆掛圖', 'right-wall-map': '右牆掛圖' };
+  const decorations = { rug: '地毯', shelves: '壁架', lamp: '吊燈', 'left-shelf': '左牆木架', 'wall-map': '左牆掛圖', 'right-wall-map': '右牆掛圖' };
   let game = city.create();
   let selected = null;
   let overrides = {};
@@ -83,6 +83,15 @@
     element.className = 'furniture';
     element.dataset.item = item.id;
     element.append(image);
+    const openSrc = catalog[item.id + '-open'];
+    if (openSrc) {
+      const openImage = document.createElement('img');
+      openImage.alt = '';
+      openImage.className = 'furniture-open-image';
+      openImage.src = openSrc;
+      image.classList.add('furniture-closed-image');
+      element.append(openImage);
+    }
     if (item.id === 'window') {
       const motion = document.createElement('span');
       motion.className = 'window-motion';
@@ -124,6 +133,7 @@
     for (const item of placements) {
       const element = furniture.get(item.id);
       layout.position(element, item);
+      if (catalog[item.id + '-open']) element.dataset.open = String(city.isOpen(game, item.id));
       if (labels.has(item.id)) {
         element.setAttribute('aria-pressed', String(selected === item.id));
       }
