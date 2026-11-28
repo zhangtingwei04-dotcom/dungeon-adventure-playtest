@@ -78,7 +78,41 @@
     motion.prepend(cloud);
   }
 
+  function createRoofSnow() {
+    const layer = canvas(456, 349);
+    layer.className = 'window-roof-snow';
+    const ctx = layer.getContext('2d');
+    // Roof planes in the painted town, excluding the window bars and walls.
+    const roofs = [
+      [[119,174],[135,152],[148,170],[138,176],[133,174],[128,180]],
+      [[132,190],[142,174],[154,190],[147,193],[142,190],[138,195]],
+      [[166,183],[180,156],[194,183],[187,184],[180,178],[174,185]],
+      [[171,205],[184,184],[199,204],[191,206],[184,201],[179,208]],
+      [[199,213],[211,194],[222,207],[222,214],[211,208],[206,215]],
+      [[308,188],[329,154],[347,183],[361,184],[361,190],[332,183],[320,190]],
+      [[273,214],[291,190],[311,212],[304,217],[292,209],[285,218]],
+      [[311,218],[328,193],[350,212],[340,217],[329,212],[322,219]],
+      [[288,259],[303,241],[318,256],[310,262],[302,256],[296,262]],
+      [[322,258],[342,239],[359,252],[359,259],[343,252],[332,260]]
+    ];
+    if (ctx) {
+      for (const roof of roofs) {
+        ctx.beginPath();
+        roof.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y));
+        ctx.closePath();
+        ctx.fillStyle = '#eaf2f8';
+        ctx.fill();
+        ctx.strokeStyle = '#a3bfdb';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+    }
+    layer.style.opacity = '0';
+    return layer;
+  }
+
   root.DungeonRentalWindowSkyV1 = Object.freeze({
+    createRoofSnow,
     mount(image, motion) {
       function load() {
         try {

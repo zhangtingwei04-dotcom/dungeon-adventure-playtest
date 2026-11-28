@@ -89,7 +89,7 @@
       const glassWeather = document.createElement('canvas');
       glassWeather.className = 'window-weather';
       glassWeather.setAttribute('aria-hidden', 'true');
-      element.append(glassWeather);
+      element.append(window.DungeonRentalWindowSkyV1.createRoofSnow(), glassWeather);
       weather.bind(glassWeather);
     }
     get('furniture').append(element);
@@ -130,6 +130,10 @@
       : { ...actual, snow: 0, overcast: 0, ...weather.kinds[preview], kind: preview };
     const windowObject = furniture.get('window');
     windowObject.dataset.weather = visible.kind;
+    const roofCover = preview === 'auto'
+      ? Math.max(actual.snowCover, actual.snow * 0.18)
+      : preview === 'blizzard' ? 0.95 : preview === 'snow' ? 0.72 : 0;
+    windowObject.querySelector('.window-roof-snow').style.opacity = String(roofCover);
     windowObject.dataset.birds = !visible.rain && !visible.snow &&
       weather.activity('bird', visible) && weather.wildlifeWindMode('bird', visible.wind) === 'normal'
       ? 'normal' : 'quiet';
