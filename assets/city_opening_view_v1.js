@@ -161,14 +161,8 @@
     if (item.id === 'door') {
       const opening = document.createElement('span');
       opening.className = 'door-opening';
-      const outside = document.createElement('img');
-      outside.className = 'door-outside';
-      outside.alt = '';
-      outside.src = exterior.views.door.asset;
-      outside.addEventListener('error', () => { opening.dataset.imageError = 'true'; });
-      opening.append(outside);
-      // Doorway reveal follows the original right-wall vanishing lines.
-      // Keep threshold and jamb independent of the time-tinted street artwork.
+      // Shadow-only portal: no corridor image and no directional floor light.
+      // Keep the original frame, jamb and threshold geometry.
       const reveal = document.createElementNS('http://www.w3.org/2000/svg','svg');
       reveal.setAttribute('class','door-reveal');
       reveal.setAttribute('viewBox','0 0 100 100');
@@ -182,10 +176,6 @@
         + '<path d="M25 93L98 98" fill="none" stroke="#4d3021" stroke-width=".8" vector-effect="non-scaling-stroke"/>'
         + '<path class="jamb-light" d="M29 14L34 15L34 90.9L29 92Z M34 90.9L98 95.1L98 96.1L32 91.8Z"/>';
       opening.append(reveal);
-      const floorLight = document.createElement('span');
-      floorLight.className = 'door-floor-light';
-      floorLight.setAttribute('aria-hidden', 'true');
-      get('room').insertBefore(floorLight, get('furniture'));
       const frame = document.createElement('span');
       frame.className = 'door-frame';
       const leaf = document.createElement('span');
@@ -336,16 +326,7 @@
     const g=doorGeometry(item);
     layout.position(element,{...item,x:g.x});
     element.style.transform += ' scaleX('+doorWidthFactor+')';
-    const floor=get('room').querySelector('.door-floor-light');
-    const image=element.querySelector('.door-leaf');
-    const ratio=image.naturalWidth>0?image.naturalHeight/image.naturalWidth:430/62;
-    const height=g.baseWidth*(16/9)*ratio;
-    const x1=g.left+g.width*.25,x2=g.left+g.width*.98;
-    const y1=item.y-height*.07,y2=item.y-height*.02;
-    const pt=(x,y)=>x.toFixed(3)+'% '+y.toFixed(3)+'%';
-    // Spread towards the foreground and left, starting on the actual sill.
-    const polygon='polygon('+[pt(x1,y1),pt(x2,y2),pt(x2-11.3,Math.min(99,y2+5.2)),pt(x1-13,Math.min(98,y1+5.2))].join(',')+')';
-    floor.style.setProperty('--door-floor-polygon',polygon);
+
   }
 
   function renderFurniture() {
@@ -406,22 +387,13 @@
   }
 
   // Ambient daylight uses the game clock, not the device clock.
-  function renderDoorAmbient(visible) {
+  function renderDoorAmbient() {
     const door=furniture.get('door');
     if(!door)return;
-    const light=visible;
-    door.style.setProperty('--door-light-strength',String(light.strength));
-    door.style.setProperty('--door-light-core','rgb('+light.color.join(',')+')');
-    door.style.setProperty('--door-light-edge','rgb('+light.edge.join(',')+')');
-    const room=get('room');
-    room.dataset.door=city.isOpen(game,'door')?'open':'closed';
-    room.style.setProperty('--door-light-core','rgb('+light.color.join(',')+')');
-    room.style.setProperty('--door-floor-strength',String(Math.min(.46,light.strength*1.4)*.75));
-    const corridorBrightness=.60+.40*Math.min(1,light.outsideBrightness);
-    door.style.setProperty('--door-outside-brightness',String(corridorBrightness));
-    door.style.setProperty('--door-outside-opacity',String(light.outsideOpacity));
-    door.style.setProperty('--door-outside-saturation',String(light.outsideSaturation));
-    door.style.setProperty('--door-outside-blur','0px');
+    // A sheltered corridor is not a direct source of sunlight or outdoor weather.
+    const lampOn=city.isOpen(game,'lamp');
+    door.style.setProperty('--door-light-strength',lampOn?'.12':'.04');
+    door.style.setProperty('--door-light-core','#b78c60');
   }
 
   function renderWeather() {
@@ -429,7 +401,7 @@
     const preview = weatherPicker.value;
     const outside = exterior.sample(weather, game.worldMinutes, preview);
     const {actual, visible, light} = outside;
-    renderDoorAmbient(light);
+    renderDoorAmbient();
     get('corridor').style.filter='brightness('+(.60+.40*Math.min(1,light.outsideBrightness))+')';
     get('street').style.filter = 'brightness('+outside.streetBrightness+') saturate('+light.outsideSaturation+')';
     const windowShade = furniture.get('window').querySelector('.window-exterior-shade');
