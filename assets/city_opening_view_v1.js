@@ -89,7 +89,7 @@
       const glassWeather = document.createElement('canvas');
       glassWeather.className = 'window-weather';
       glassWeather.setAttribute('aria-hidden', 'true');
-      element.append(window.DungeonRentalWindowSkyV1.createRoofSnow(), glassWeather);
+      element.append(window.DungeonRentalWindowSkyV1.createRoofSnow(image), glassWeather);
       weather.bind(glassWeather);
     }
     get('furniture').append(element);

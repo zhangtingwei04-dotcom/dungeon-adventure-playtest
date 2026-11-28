@@ -78,7 +78,39 @@
     motion.prepend(cloud);
   }
 
-  function createRoofSnow() {
+  function addFoliageSnow(image, ctx) {
+    const width = 456;
+    const height = 349;
+    if (image.naturalWidth !== width || image.naturalHeight !== height) return;
+    const foliage = canvas(width, height);
+    const source = foliage.getContext('2d', { willReadFrequently: true });
+    if (!source) return;
+    source.drawImage(image, 0, 0);
+    const frame = source.getImageData(0, 0, width, height);
+    const original = frame.data;
+    const mask = source.createImageData(width, height);
+    const pixels = mask.data;
+    for (let y = 50; y < 304; y++) {
+      for (let x = 92; x < 368; x++) {
+        // Upper-left canopy, then the shrubs visible below the roofs.
+        if (y < 135 ? x > 222 : y < 260 || (x > 222 && x < 248)) continue;
+        const i = (y * width + x) * 4;
+        const r = original[i], g = original[i + 1], b = original[i + 2];
+        const green = Math.min((g - r - 3) / 22, (g - b - 12) / 35);
+        if (green <= 0 || g < 62) continue;
+        const light = Math.min(1, (g - 62) / 124);
+        const white = Math.round(142 + light * 99);
+        pixels[i] = white;
+        pixels[i + 1] = white + 7;
+        pixels[i + 2] = white + 13;
+        pixels[i + 3] = Math.round(255 * Math.min(1, green) * (.68 + light * .32));
+      }
+    }
+    source.putImageData(mask, 0, 0);
+    ctx.drawImage(foliage, 0, 0);
+  }
+
+  function createRoofSnow(image) {
     const layer = canvas(456, 349);
     layer.className = 'window-roof-snow';
     const ctx = layer.getContext('2d');
@@ -106,6 +138,11 @@
         ctx.lineWidth = 1;
         ctx.stroke();
       }
+    }
+    if (ctx) {
+      const load = () => addFoliageSnow(image, ctx);
+      if (image.complete && image.naturalWidth) load();
+      else image.addEventListener('load', load, { once: true });
     }
     layer.style.opacity = '0';
     return layer;
