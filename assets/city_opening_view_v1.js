@@ -244,6 +244,7 @@
   returnButton.className = 'spot';
   returnButton.style.left = '17%';
   returnButton.style.top = '62%';
+  const stairsButton=button('樓梯',()=>select('stairs'));stairsButton.className='spot';stairsButton.style.left='65%';stairsButton.style.top='76%';get('targets').append(stairsButton);
 
   // Project the full sprite, preserving the common body/lid silhouette.
   // The bottom two corners are fixed; left and right upper corners move independently.
@@ -416,10 +417,11 @@
     room.dataset.door=city.isOpen(game,'door')?'open':'closed';
     room.style.setProperty('--door-light-core','rgb('+light.color.join(',')+')');
     room.style.setProperty('--door-floor-strength',String(Math.min(.46,light.strength*1.4)));
-    door.style.setProperty('--door-outside-brightness',String(Math.min(1.12,light.outsideBrightness+.14*Math.max(0,light.outsideBrightness-.1))));
+    const corridorBrightness=.60+.40*Math.min(1,light.outsideBrightness);
+    door.style.setProperty('--door-outside-brightness',String(corridorBrightness));
     door.style.setProperty('--door-outside-opacity',String(light.outsideOpacity));
     door.style.setProperty('--door-outside-saturation',String(light.outsideSaturation));
-    door.style.setProperty('--door-outside-blur',light.outsideBlur+'px');
+    door.style.setProperty('--door-outside-blur','0px');
   }
 
   function renderWeather() {
@@ -428,6 +430,7 @@
     const outside = exterior.sample(weather, game.worldMinutes, preview);
     const {actual, visible, light} = outside;
     renderDoorAmbient(light);
+    get('corridor').style.filter='brightness('+(.60+.40*Math.min(1,light.outsideBrightness))+')';
     get('street').style.filter = 'brightness('+outside.streetBrightness+') saturate('+light.outsideSaturation+')';
     const windowShade = furniture.get('window').querySelector('.window-exterior-shade');
     windowShade.style.opacity=String(outside.windowShade);
@@ -486,8 +489,11 @@
     get('room').dataset.curtains = city.isOpen(game, 'window') ? 'open' : 'closed';
     editor.hidden = !room;
     get('clock').textContent = time.format(game.worldMinutes);
-    get('place').textContent = room ? '城鎮出租屋' : '城鎮街道';
-    get('description').textContent = room ? '住宅區・私人房間' : '住宅區・街道';
+    const corridor=game.scene==='rental-corridor';
+    get('place').textContent = room ? '城鎮出租屋' : corridor?'二樓公共走廊':'城鎮街道';
+    get('description').textContent = room ? '住宅區・二樓私人房間' : corridor?'住宅區・二樓住宿區':'住宅區・街道';
+    stairsButton.style.display=corridor?'':'none';returnButton.textContent=corridor?'返回房間':'返回住宅走廊';
+    stairsButton.setAttribute('aria-pressed',String(selected==='stairs'));
     get('clothes').textContent = (city.ready(game) ? '白色布衣、旅行褲、鞋子' : '室內衣著')
       + (game.equipmentV1.bag ? '；已配戴側包、披風與手套' : '');
     get('notice').textContent = game.flags.noticeRead ? '校方通知已讀；待後續報到安排。' : '可查看桌上的校方通知。';
@@ -511,14 +517,14 @@
     const choices = get('choices');
     choices.replaceChildren();
     if (!view) {
-      get('dialogTitle').textContent = room ? '出租屋' : '住宅區街道';
+      get('dialogTitle').textContent = room ? '出租屋' : corridor?'二樓公共走廊':'住宅區街道';
       get('dialogText').textContent = room
         ? '你記得自己是受軍校安排來到這座城鎮。今天先安頓生活。'
-        : '街坊正開始一天的生活。';
+        : corridor?'木造走廊通往其他房間及下樓的樓梯。':'街坊正開始一天的生活。';
       return;
     }
 
-    get('dialogTitle').textContent = room ? labels.get(selected) : '返回出租屋';
+    get('dialogTitle').textContent = room ? labels.get(selected) : selected==='stairs'?'樓梯':corridor?'返回房間':'返回住宅走廊';
     get('dialogText').textContent = view.text;
     for (const [key, label] of view.actions) {
       choices.append(button(label, () => {
@@ -526,7 +532,7 @@
         get('status').textContent = result.ok
           ? result.message + (result.minutes ? '（' + result.minutes + '分鐘）' : '')
           : result.reason;
-        if (result.ok && (key === 'leave' || key === 'return')) selected = null;
+        if (result.ok && (['leave','return','downstairs'].includes(key))) selected = null;
         render();
       }));
     }

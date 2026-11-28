@@ -1,12 +1,13 @@
 /* Shared exterior core: location identity, camera direction, clock, weather and light. */
 (function(root){
 'use strict';
-const area=Object.freeze({id:'residential-quarter',weatherSeed:'city-opening-v1',weatherScene:'home',style:'timber-stone-medieval',calendarMode:'fixed-daylight',streetId:'rental-street'});
+const area=Object.freeze({id:'residential-quarter',weatherSeed:'city-opening-v1',weatherScene:'home',style:'timber-stone-medieval',calendarMode:'fixed-daylight',streetId:'rental-street',corridorId:'rental-corridor',roomFloor:2});
 // Relative directions are provisional until the town map is authored.
 const views=Object.freeze({
  window:Object.freeze({id:'rental-window',area:area.id,direction:'rear',distance:'town-skyline',asset:'assets/interiors/rental-room/reference/window.webp'}),
- door:Object.freeze({id:'rental-door',area:area.id,direction:'right',distance:'street-near',destination:area.streetId,asset:'assets/interiors/furniture/door-street-v1.webp'}),
- street:Object.freeze({id:area.streetId,area:area.id,direction:'street-level',distance:'street-full',returnsTo:'rental-room',assetStatus:'placeholder'})
+ door:Object.freeze({id:'rental-door',area:area.id,direction:'right',distance:'interior-near',destination:area.corridorId,asset:'assets/interiors/rental-room/corridor-v1.svg'}),
+ corridor:Object.freeze({id:area.corridorId,area:area.id,floor:2,asset:'assets/interiors/rental-room/corridor-v1.svg',assetStatus:'layout-prototype',returnsTo:'rental-room',stairsTo:area.streetId}),
+ street:Object.freeze({id:area.streetId,area:area.id,direction:'street-level',distance:'street-full',returnsTo:area.corridorId,assetStatus:'placeholder'})
 });
   function ambient(worldMinutes, kind) {
     const hour = ((worldMinutes % 1440 + 1440) % 1440) / 60;
@@ -41,5 +42,5 @@ function sample(weather,worldMinutes,preview='auto'){
    windowShade:Math.max(0,Math.min(.78,darkness*.78)),
    streetBrightness:Math.max(.14,light.outsideBrightness)};
 }
-root.DungeonCityExteriorV1=Object.freeze({version:'1.0.1',area,views,ambient,sample});
+root.DungeonCityExteriorV1=Object.freeze({version:'1.1.0',area,views,ambient,sample});
 })(window);
