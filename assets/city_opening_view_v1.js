@@ -61,9 +61,9 @@
   } catch {
     // The default room is usable when browser storage is unavailable.
   }
-  // Restore the approved historical chest once, without resetting any other furniture.
+  // Restore the new front-facing chest defaults once, without resetting any other furniture.
   try {
-    const restoreKey = 'dungeon_rental_room_chest_restore_v2';
+    const restoreKey = 'dungeon_rental_room_chest_front_v1';
     if (localStorage.getItem(restoreKey) !== '1') {
       if (overrides && typeof overrides === 'object') delete overrides.chest;
       localStorage.setItem(storageKey, JSON.stringify(overrides));
@@ -253,7 +253,7 @@
         const img = element.querySelector('.chest-open-image');
         img.style.left = detailValue('chest', 'openX') + '%';
         img.style.bottom = -detailValue('chest', 'openY') + '%';
-        img.style.width = (123.076923 * detailValue('chest', 'openScale')) + '%';
+        img.style.width = (100 * detailValue('chest', 'openScale')) + '%';
         img.style.transformOrigin = 'left bottom';
         img.style.transform = `rotate(${detailValue('chest', 'openAngle')}deg) skewY(${detailValue('chest', 'openSkew')}deg) scaleX(${detailValue('chest', 'openWidth')})`;
         renderChestPerspective(element);
