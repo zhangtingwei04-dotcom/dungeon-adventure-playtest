@@ -8,6 +8,7 @@
  {id:"demo-seed",name:"初生之種",origin:"生物",form:"物件",phases:["燈"],abilities:[{kind:"talent",stat:"control",amount:2}],energy:{capacity:0,source:"none"},constraints:["一次性改質"],history:"測試樣本"},
  {id:"demo-crystal",name:"餘燼結晶",origin:"自然",form:"物件",phases:["餘"],abilities:[{kind:"storage"},{kind:"memory"}],energy:{capacity:60,source:"stored"},constraints:["有限儲能"],history:"測試樣本"},
  {id:"demo-core",name:"無眠之核",origin:"人造",form:"物件",phases:["餘","續"],abilities:[{kind:"storage"},{kind:"memory"},{kind:"beastAnchor"}],energy:{capacity:100,source:"external",efficiency:0.8},constraints:["獨立隔離媒介","需外部供能"],history:"測試樣本；對立相分隔，非持有者兼修"},
+ {id:"demo-dormant-anchor",name:"不熄之種",origin:"人造",form:"物件",phases:["餘"],abilities:[{kind:"storage"},{kind:"memory"},{kind:"beastAnchor"}],energy:{capacity:60,source:"stored"},constraints:["有限儲能","獨立記憶媒介"],history:"寄宿型燈獸測試樣本"},
  {id:"demo-gate",name:"守望城門",origin:"意志",form:"地域",phases:["餘"],abilities:[{kind:"memory"}],energy:{capacity:0,source:"none"},constraints:["非攜帶型"],history:"死後心象測試樣本"}
  ]);
  const get=id=>catalog.find(x=>x.id===id);
