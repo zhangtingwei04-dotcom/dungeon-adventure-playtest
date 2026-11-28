@@ -163,9 +163,7 @@
       opening.className = 'door-opening';
       element.prepend(opening);
       image.classList.add('door-leaf');
-      const swing = document.createElement('span');
-      swing.className = 'door-swing';
-      element.append(swing);
+
     }
     if (item.id === 'window') {
       const motion = document.createElement('span');
