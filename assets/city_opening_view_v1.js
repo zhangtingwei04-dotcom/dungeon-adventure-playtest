@@ -29,7 +29,7 @@
   const detailFields = {
     mirror: { skewY: { label: '鏡面斜度 (°)', min: -35, max: 35, step: 0.5, initial: 7 } },
     chest: {
-      depth: { label: '景深：往內 + / 往外 − (%)', min: -20, max: 35, step: 0.5, initial: 0 },
+      depth: { label: '景深：往內 + / 往外 − (%)', min: -20, max: 35, step: 0.5, initial: 19.5 },
       depthDirection: { label: '景深方向角度 (°)', min: -25, max: 65, step: 1, initial: 0 },
       pitch: { label: '箱身上下角度 (°)', min: -45, max: 45, step: 0.5, initial: 0 },
       yaw: { label: '箱身左右朝向 (°)', min: -25, max: 25, step: 0.5, initial: 0 },
