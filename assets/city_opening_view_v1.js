@@ -167,6 +167,21 @@
       outside.src = exterior.views.door.asset;
       outside.addEventListener('error', () => { opening.dataset.imageError = 'true'; });
       opening.append(outside);
+      // Doorway reveal follows the original right-wall vanishing lines.
+      // Keep threshold and jamb independent of the time-tinted street artwork.
+      const reveal = document.createElementNS('http://www.w3.org/2000/svg','svg');
+      reveal.setAttribute('class','door-reveal');
+      reveal.setAttribute('viewBox','0 0 100 100');
+      reveal.setAttribute('preserveAspectRatio','none');
+      reveal.setAttribute('aria-hidden','true');
+      reveal.innerHTML = '<defs><linearGradient id="rentalJamb" x1="0" x2="1"><stop stop-color="#4b2e20"/><stop offset=".5" stop-color="#96623e"/><stop offset="1" stop-color="#523626"/></linearGradient><linearGradient id="rentalSill" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#c79b65"/><stop offset="1" stop-color="#6e452b"/></linearGradient></defs>'
+        + '<path d="M25 12L35 14L35 90.6L25 93Z" fill="url(#rentalJamb)"/>'
+        + '<path d="M25 12L98 6L98 8.9L35 14Z" fill="#64412b"/>'
+        + '<path d="M35 90.6L98 94.2L98 98L25 93Z" fill="url(#rentalSill)"/>'
+        + '<path d="M35 14L35 90.6L98 94.2" fill="none" stroke="#3c291e" stroke-width=".9" vector-effect="non-scaling-stroke"/>'
+        + '<path d="M25 93L98 98" fill="none" stroke="#4d3021" stroke-width=".8" vector-effect="non-scaling-stroke"/>'
+        + '<path class="jamb-light" d="M29 14L35 15L35 90.6L29 92Z M35 90.6L98 94.2L98 95.2L33 91.5Z"/>';
+      opening.append(reveal);
       const floorLight = document.createElement('span');
       floorLight.className = 'door-floor-light';
       floorLight.setAttribute('aria-hidden', 'true');
