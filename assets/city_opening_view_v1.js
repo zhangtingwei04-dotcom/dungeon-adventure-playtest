@@ -158,6 +158,12 @@
         observer.observe(group);
       }
     }
+    if (item.id === 'door') {
+      const opening = document.createElement('span');
+      opening.className = 'door-opening';
+      element.prepend(opening);
+      image.classList.add('door-leaf');
+    }
     if (item.id === 'window') {
       const motion = document.createElement('span');
       motion.className = 'window-motion';
@@ -184,6 +190,15 @@
         wetGlass.append(drop);
       }
       element.append(wetGlass);
+      const curtains = document.createElement('span');
+      curtains.className = 'curtain-cover';
+      curtains.setAttribute('aria-hidden', 'true');
+      for (const side of ['left','right']) {
+        const cloth = document.createElement('span');
+        cloth.className = 'curtain-panel curtain-' + side;
+        curtains.append(cloth);
+      }
+      element.append(curtains);
     }
     get('furniture').append(element);
     furniture.set(item.id, element);
@@ -248,6 +263,9 @@
       if (item.id === 'wardrobe' || item.id === 'chest') {
         const preview = item.id === 'chest' && editor.open && itemPicker.value === 'chest' && chestPreview !== 'actual';
         element.dataset.open = String(preview ? chestPreview === 'open' : city.isOpen(game, item.id));
+      }
+      if (['door','lamp','window'].includes(item.id)) {
+        element.dataset.open = String(city.isOpen(game, item.id));
       }
       if (item.id === 'mirror') {
         element.querySelector('img').style.transform = `skewY(${detailValue('mirror', 'skewY')}deg) skewX(${detailValue('mirror', 'skewX')}deg)`;
@@ -349,6 +367,8 @@
   function render() {
     const room = game.scene === 'rental-room';
     get('scene').dataset.scene = game.scene;
+    get('room').dataset.lamp = city.isOpen(game, 'lamp') ? 'on' : 'off';
+    get('room').dataset.curtains = city.isOpen(game, 'window') ? 'open' : 'closed';
     editor.hidden = !room;
     get('clock').textContent = time.format(game.worldMinutes);
     get('place').textContent = room ? '城鎮出租屋' : '城鎮街道';
