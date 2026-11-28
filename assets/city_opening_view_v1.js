@@ -12,7 +12,7 @@
   const weatherPicker = get('windowWeather');
   const thunderButton = get('windowThunder');
   let thunderSound = false;
-  const weatherSeed = 'city-opening-v1';
+  const exterior = window.DungeonCityExteriorV1;
   const glassDryMinutes = 90;
   let lastWeatherPreview = 'auto';
   let previewRainEndedAt = null;
@@ -164,7 +164,7 @@
       const outside = document.createElement('img');
       outside.className = 'door-outside';
       outside.alt = '';
-      outside.src = 'assets/interiors/furniture/door-corridor-v4.webp';
+      outside.src = exterior.views.door.asset;
       outside.addEventListener('error', () => { opening.dataset.imageError = 'true'; });
       opening.append(outside);
       const floorLight = document.createElement('span');
@@ -206,6 +206,10 @@
         wetGlass.append(drop);
       }
       element.append(wetGlass);
+      const shade = document.createElement('span');
+      shade.className = 'window-weather window-exterior-shade';
+      shade.setAttribute('aria-hidden','true');
+      element.append(shade);
       const curtains = document.createElement('span');
       curtains.className = 'curtain-cover';
       curtains.setAttribute('aria-hidden', 'true');
@@ -354,37 +358,15 @@
     const blockStart = actual.block * 180;
     const elapsed = now - blockStart;
     if (blockStart === 0 || elapsed >= glassDryMinutes) return 0;
-    const previous = weather.at(weatherSeed, blockStart - 1, 'home');
+    const previous = weather.at(exterior.area.weatherSeed, blockStart - 1, 'home');
     return previous.rain ? 1 - elapsed / glassDryMinutes : 0;
   }
 
   // Ambient daylight uses the game clock, not the device clock.
-  function doorAmbient(worldMinutes, kind) {
-    const hour = ((worldMinutes % 1440 + 1440) % 1440) / 60;
-    const keys = [
-      [0, .025, [55,65,84]], [5, .025, [55,65,84]],
-      [6, .12, [156,126,103]], [8, .25, [235,207,163]],
-      [12, .32, [244,225,188]], [16, .26, [236,207,160]],
-      [18, .14, [194,132,89]], [19, .05, [91,99,126]],
-      [21, .025, [55,65,84]], [24, .025, [55,65,84]]
-    ];
-    let i=1;while(i<keys.length-1&&hour>keys[i][0])i++;
-    const a=keys[i-1],b=keys[i],t=(hour-a[0])/(b[0]-a[0]);
-    const factor=({clear:1,cloudy:.65,fog:.58,drizzle:.52,rain:.43,storm:.27,snow:.72,blizzard:.4})[kind]??.65;
-    const strength=(a[1]+(b[1]-a[1])*t)*factor;
-    const color=a[2].map((v,j)=>Math.round((v+(b[2][j]-v)*t)*(.52+.48*factor)));
-    const daylight=Math.max(0,Math.min(1,((a[1]+(b[1]-a[1])*t)-.025)/.295));
-    return {strength,color,edge:color.map(v=>Math.round(v*.46)),
-      outsideBrightness:.10+.98*Math.sqrt(daylight)*factor,
-      outsideOpacity:.80+.20*Math.sqrt(daylight),
-      outsideSaturation:.40+.55*Math.sqrt(daylight),
-      outsideBlur:kind==='fog'||kind==='blizzard'?1.8:kind==='storm'||kind==='rain'?1.1:.45
-    };
-  }
   function renderDoorAmbient(visible) {
     const door=furniture.get('door');
     if(!door)return;
-    const light=doorAmbient(game.worldMinutes,visible.kind);
+    const light=visible;
     door.style.setProperty('--door-light-strength',String(light.strength));
     door.style.setProperty('--door-light-core','rgb('+light.color.join(',')+')');
     door.style.setProperty('--door-light-edge','rgb('+light.edge.join(',')+')');
@@ -397,11 +379,12 @@
   function renderWeather() {
     const room = game.scene === 'rental-room';
     const preview = weatherPicker.value;
-    const actual = weather.at(weatherSeed, game.worldMinutes, 'home');
-    const visible = preview === 'auto'
-      ? actual
-      : { ...actual, snow: 0, overcast: 0, ...weather.kinds[preview], kind: preview };
-    renderDoorAmbient(visible);
+    const outside = exterior.sample(weather, game.worldMinutes, preview);
+    const {actual, visible, light} = outside;
+    renderDoorAmbient(light);
+    get('street').style.filter = 'brightness('+outside.streetBrightness+') saturate('+light.outsideSaturation+')';
+    const windowShade = furniture.get('window').querySelector('.window-exterior-shade');
+    windowShade.style.opacity=String(outside.windowShade);
     const windowObject = furniture.get('window');
     windowObject.dataset.weather = visible.kind;
     const wetGlass = windowObject.querySelector('.window-wet-glass');
