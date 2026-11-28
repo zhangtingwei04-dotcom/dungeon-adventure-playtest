@@ -4752,7 +4752,9 @@ if(window.matchMedia('(display-mode: standalone)').matches||navigator.standalone
  })();
 // Developer-studio preview is intentionally isolated from real play saves.
 const DEV_PREVIEW_MODE=new URLSearchParams(location.search).get('dev-preview')==='1';
-const KEY=DEV_PREVIEW_MODE?'dungeon_adventure_ch1_devpreview_v1':'dungeon_adventure_ch1_v01';
+const MIND_LIVE_TRIAL=DEV_PREVIEW_MODE&&new URLSearchParams(location.search).get('mind-trial')==='1';
+const KEY=MIND_LIVE_TRIAL?'dungeon_adventure_mindtrial_v1':DEV_PREVIEW_MODE?'dungeon_adventure_ch1_devpreview_v1':'dungeon_adventure_ch1_v01';
+let mindTrialLiveObjects=[],mindTrialLoader=null;
 const $=id=>document.getElementById(id);
 const names={wreck:['破損的馬車','森林邊緣 · 一切從這裡開始'],trail:['林間小徑','陽光沿著舊路灑落'],clearing:['寂靜的林間空地','風聲裡混著陌生的細響'],ruin:['苔生石門','林木間的無名遺構'],gate:['城鎮入口','道路與陌生的人群'],inn:['旅店客房','一處短暫安全的地方'],lobby:['旅店大廳','晨光與麵包香氣'],street:['城鎮街道','人們各自忙碌的日常'],guild:['冒險者公會','工作、傳聞與出發前的準備'],outskirts:['近郊路口','城牆之外 · 未知尚在前方'],home:['冒險小隊的公共起居室','共同生活的六個人 · 只是普通的一天']};
 // Fictional first-chapter travel times in game minutes (balance estimates, not measured distances).
@@ -8527,7 +8529,8 @@ function collectionSource(site,id){
  }
  return window.DungeonSceneObjectsV1?.objects(s,plantSpawnWeather()).find(o=>o.id===id&&o.material)||null;
 }
-function harvestForestObject(o){
+function harvestForestObject(o,mindTrial=false){
+ if(mindTrial&&(!MIND_LIVE_TRIAL||openingExitOnly()||(forestV4MaterialBindings().get(o.id)||[]).length))return false;
  if(s.scene!=='wreck'||s.flags.inBattle||!forestV4Active())return;
  const current=[...(window.DUNGEON_FOREST_V4_LAYOUT?.scenes?.wreck||[]),...(window.DUNGEON_FOREST_V4_SPAWNS||[])].find(x=>x.id===o.id&&x.assetId===o.assetId&&x.visible);
  if(!current)return;
@@ -8539,10 +8542,12 @@ function harvestForestObject(o){
  if(!core.harvest(s,'wreck',o))return;
  daily.collected++;
  s.recovery.parts[material]=(s.recovery.parts[material]||0)+1;
+ if(mindTrial)spendSceneInteraction(collectionKind(material));
  addTravel('discovery','從'+(core.get(o.assetId)?.name||o.name)+'取得'+material+' ×1。','先收好，再考慮用途。');
  save();render();
  window.DungeonEventsV1.emit('scene.collection.succeeded',s,{material,target:{x:o.x,y:o.y,id:o.id}});
  toast('已採集 '+material+' ×1');
+ return true;
 }
 // Shared collection performance. No resource or inventory mutation until the action completes.
 function collectionPerformanceSpec(kind){
@@ -8770,6 +8775,7 @@ function renderForestV4(el){
  if(!openingExitOnly())window.DungeonSceneConcealmentV1.initialize(s,'wreck',live);
  if(openingExitOnly())live=live.filter(o=>!!window.DungeonWreckComponentsV1.get(o.id)&&!(o.id==='v4-plank8'&&window.DungeonWreckComponentsV1.taken(s,o.id)));
  live=live.map(o=>({...o,width:o.width*window.DungeonObjectInvestigationV1.resourceScale(s,'wreck',o)}));
+ if(MIND_LIVE_TRIAL)mindTrialLiveObjects=live.filter(o=>o.visible&&assets[o.assetId]?.src&&!o.previewOnly&&!String(o.id).startsWith('preview-'));
  window.DungeonSceneEnvironmentV1?.setActionMap(live.filter(o=>o.visible&&assets[o.assetId]?.src));
  for(const o of live){
   const a=assets[o.assetId];if(!o.visible||!a?.src)continue;
@@ -9030,6 +9036,56 @@ $('sceneDialogue').onclick=e=>{if(e.target.closest('button'))return;nextSceneDia
 $('soundBtn').onclick=()=>{s.sound=!s.sound;if(s.sound)window.DungeonWeatherV1?.unlockAudio();$('soundBtn').textContent='音效：'+(s.sound?'開啟':'關閉');syncTimeAtmosphere();save();beep(520);};
  document.addEventListener('pointerdown',()=>{if(s.sound)window.DungeonWeatherV1?.unlockAudio();},{passive:true});
 $('engineDiagnosticsBtn').onclick=()=>{const d=window.DungeonEngineV1.diagnostics(),ev=window.DungeonEventsV1.diagnostics(),sv=window.DungeonSaveV1.diagnostics();$('menuVeil').classList.add('hidden');dialog('共用核心診斷',d.modules.map(m=>m.id+' v'+m.version+' · '+({ready:'正常',missing:'缺少模組',blocked:'相依未就緒',error:'錯誤'}[m.state]||m.state)).join('\n')+'\n\n時間更新接入：'+d.timeListeners.join('、')+'\n事件訂閱：'+ev.subscriptions.map(x=>x.type).join('、')+'\n存檔狀態：'+sv.state+(sv.message?' · '+sv.message:'')+'\n近期錯誤：'+([...d.faults,...ev.errors].length?[...d.faults,...ev.errors].map(f=>f.id+'：'+f.message).join('\n'):'無'),[{label:'返回',fn:()=>{}}],'開發診斷');};
+
+/* Opt-in only: separate save key, transient trial character, existing scene actions. */
+function mindTrialAllowed(){return MIND_LIVE_TRIAL&&s.scene==='wreck'&&forestV4Active()&&!s.flags.inBattle&&!encounterPending&&!openingExitOnly()&&!activeDialogueSurface()}
+function mindTrialContext(){
+ const present=o=>Array.from($('hotspots').querySelectorAll('button[data-object-id]:not(.env-leaving):not([disabled])')).some(n=>n.dataset.objectId===o.id&&(n.dataset.rabbitVariant||'')===(o.rabbitVariant||''));
+ const staticObjects=[...(window.DUNGEON_FOREST_V4_LAYOUT?.scenes?.wreck||[]),...(window.DUNGEON_FOREST_V4_SPAWNS||[])];
+ const objects=mindTrialLiveObjects.filter(o=>!o.previewOnly&&!String(o.id).startsWith('preview-')&&(!['forest4_branch','forest4_mushroom'].includes(o.assetId)||(staticObjects.some(x=>x.id===o.id&&x.assetId===o.assetId&&x.visible)&&!(forestV4MaterialBindings().get(o.id)||[]).length)));
+ // Same-screen interaction reach for this trial only. No invented world-space coordinates.
+ return {objects,present,canReach:(_id,o)=>present(o),exitOnly:!mindTrialAllowed()};
+}
+function loadMindTrial(){
+ if(!mindTrialLoader)mindTrialLoader=(async()=>{
+  for(const [file,key] of [['mind_core_v1.js','DungeonMindCoreV1'],['mind_growth_v1.js','DungeonMindGrowthV1'],['relic_core_v1.js','DungeonRelicCoreV1'],['lantern_beast_v1.js','DungeonLanternBeastV1'],['mind_form_v1.js','DungeonMindFormV1'],['mind_world_bridge_v1.js','DungeonMindWorldBridgeV1'],['mind_live_trial_v1.js','DungeonMindLiveTrialV1']]){
+   if(window[key])continue;
+   await new Promise((resolve,reject)=>{const el=document.createElement('script');el.src='./assets/'+file+'?v=mindtrial1';el.onload=resolve;el.onerror=()=>reject(Error('載入失敗：'+file));document.head.append(el)});
+   if(!window[key])throw Error('缺少核心：'+key);
+  }
+  return window.DungeonMindLiveTrialV1;
+ })();
+ return mindTrialLoader;
+}
+function showMindTrial(){
+ if(!mindTrialAllowed()){toast('目前不能使用心象場景測試。');return}
+ const trial=window.DungeonMindLiveTrialV1,session=trial.get(s),energy=session.forms.life.owner.energy,choices=[];
+ for(const form of ['beast','tool'])choices.push({label:form==='beast'?'構築測試燈獸（5心火）':'構築測試燈器（5心火）',fn:()=>{if(!mindTrialAllowed())return;const x=trial.cast(s,form);if(!x.ok)toast('構築失敗：'+x.reason);showMindTrial()}});
+ for(const b of session.forms.life.beasts.filter(x=>x.status==='active'))choices.push({label:'燈獸感知 · '+b.id,fn:()=>selectMindTrialTarget(b.id,'sense')});
+ for(const e of session.forms.effects.filter(x=>x.formId==='tool'))choices.push({label:'燈器採集 · '+e.id,fn:()=>selectMindTrialTarget(e.id,'useTool')});
+ choices.push({label:'重置測試心象（不重置場景）',fn:()=>{if(!mindTrialAllowed())return;trial.reset(s);showMindTrial()}},{label:'返回場景',fn:()=>{}});
+ dialog('心象場景測試','心火 '+energy+' / '+session.forms.life.owner.abilities.capacity+'｜測試回合 '+session.forms.life.turn+'\n已匯入觀察：'+(session.profile.observations.join('、')||'尚無')+'\n僅開發測試角色。採集與觀察沿用原場景；每次正式耗時事件結算一次維持。',choices,'心象開發測試');
+}
+function selectMindTrialTarget(id,action){
+ if(!mindTrialAllowed())return;
+ const trial=window.DungeonMindLiveTrialV1,actor=s,targets=trial.targets(s,id,action,mindTrialContext());
+ const choices=targets.map(({obj,plan})=>({label:(action==='sense'?'感知 ':'採集 ')+(window.DungeonObjectInvestigationV1.get(obj.assetId)?.name||obj.name)+' · '+plan.minutes+'分鐘',fn:()=>{
+  if(s!==actor||!mindTrialAllowed()){toast('場景已改變');return}
+  const ctx=mindTrialContext(),q=trial.confirm(s,plan,ctx);if(!q.ok){toast('目標已改變，請重新選擇。');return}
+  const live=ctx.objects.find(x=>x.id===plan.targetId);
+  if(action==='sense')interactForestAnimal(live,'observe');
+  else if(!harvestForestObject(live,true))toast('採集未完成。');
+  trial.get(s);
+ }}));
+ choices.push({label:'返回心象測試',fn:showMindTrial},{label:'離開',fn:()=>{}});
+ dialog('選擇場景目標',targets.length?'選擇目前畫面仍可互動的真實目標。':'目前沒有符合條件的目標。',choices,'心象開發測試');
+}
+if(MIND_LIVE_TRIAL){
+ const btn=document.createElement('button');btn.type='button';btn.className='choice';btn.id='mindLiveTrialBtn';btn.textContent='心象場景測試（獨立存檔）';
+ $('engineDiagnosticsBtn').insertAdjacentElement('afterend',btn);
+ btn.onclick=async()=>{const actor=s;$('menuVeil').classList.add('hidden');if(!mindTrialAllowed()){toast('請在可探索的破損馬車場景使用。');return}btn.disabled=true;try{await loadMindTrial();if(s===actor&&mindTrialAllowed())showMindTrial()}catch(err){toast('心象測試載入失敗，請重新整理。');console.warn(err)}finally{btn.disabled=false}};
+}
+
 $('restartBtn').onclick=()=>{if(!confirm('確定重新開始？目前本機存檔將被覆蓋。'))return;closeSceneDialogue();window.DungeonSaveV1.allowReplacement();s=initial();paperDollTryOn=false;equipmentSelected='bag';previewPeriod=null;previewWeather=null;previewWind=null;previewWindDir=null;hideSceneActors();hideSceneInspection();refreshSceneFraming();$('menuVeil').classList.add('hidden');render();openWreckIntroduction();toast('已開始新的旅程');};
 function downloadSave(actor,filename){
  const blob=new Blob([window.DungeonSaveV1.exportText(actor,names)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');
