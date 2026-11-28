@@ -29,6 +29,12 @@
   const detailFields = {
     mirror: { skewY: { label: '鏡面斜度 (°)', min: -35, max: 35, step: 0.5, initial: 7 } },
     chest: {
+      pitch: { label: '前後俯仰 (°)', min: -25, max: 25, step: 0.5, initial: 0 },
+      yaw: { label: '左右轉向 (°)', min: -25, max: 25, step: 0.5, initial: 0 },
+      leftLean: { label: '左側邊線傾斜 (°)', min: -15, max: 15, step: 0.5, initial: 0 },
+      rightLean: { label: '右側邊線傾斜 (°)', min: -15, max: 15, step: 0.5, initial: 0 },
+      leftHeight: { label: '左側上緣高低 (%)', min: -15, max: 15, step: 0.5, initial: 0 },
+      rightHeight: { label: '右側上緣高低 (%)', min: -15, max: 15, step: 0.5, initial: 0 },
       openX: { label: '開蓋 X (%箱寬)', min: -60, max: 60, step: 0.5, initial: 0 },
       openY: { label: '開蓋 Y (%箱高，向下)', min: -60, max: 60, step: 0.5, initial: 0 },
       openScale: { label: '開蓋大小 (倍)', min: 0.5, max: 2, step: 0.01, initial: 1 },
@@ -138,7 +144,14 @@
       openImage.className = 'chest-open-image';
       openImage.src = catalog['chest-open'];
       image.classList.add('furniture-closed-image');
-      element.append(openImage);
+      const group = document.createElement('span');
+      group.className = 'chest-perspective';
+      group.append(image, openImage);
+      element.append(group);
+      if (typeof ResizeObserver === 'function') {
+        const observer = new ResizeObserver(() => renderChestPerspective(element));
+        observer.observe(group);
+      }
     }
     if (item.id === 'window') {
       const motion = document.createElement('span');
@@ -177,6 +190,34 @@
   returnButton.style.left = '17%';
   returnButton.style.top = '62%';
 
+  // Project the full sprite, preserving the common body/lid silhouette.
+  // The bottom two corners are fixed; left and right upper corners move independently.
+  function renderChestPerspective(element) {
+    const group = element.querySelector('.chest-perspective');
+    if (!group) return;
+    const w = group.offsetWidth, h = group.offsetHeight;
+    if (!w || !h) return;
+    const d = key => detailValue('chest', key);
+    const pitch = d('pitch'), yaw = d('yaw');
+    const ll = d('leftLean'), rl = d('rightLean'), lh = d('leftHeight'), rh = d('rightHeight');
+    if (![pitch,yaw,ll,rl,lh,rh].some(Boolean)) { group.style.transform = 'none'; return; }
+    const rad = Math.PI / 180;
+    const x0 = Math.tan(ll*rad)*h, y0 = lh*h/100;
+    const x1 = w+Math.tan(rl*rad)*h, y1 = rh*h/100;
+    const x2 = w, y2 = h, x3 = 0, y3 = h;
+    const dx1=x1-x2, dx2=x3-x2, dx3=x0-x1+x2-x3;
+    const dy1=y1-y2, dy2=y3-y2, dy3=y0-y1+y2-y3;
+    const det=dx1*dy2-dx2*dy1;
+    if (Math.abs(det)<1e-8) { group.style.transform='none'; return; }
+    const g=(dx3*dy2-dx2*dy3)/det, k=(dx1*dy3-dx3*dy1)/det;
+    const a=x1-x0+g*x1, b=x3-x0+k*x3;
+    const c=y1-y0+g*y1, e=y3-y0+k*y3;
+    // Limit extreme extrapolation for the open lid above the closed sprite.
+    if (Math.min(1,1+g,1+k,1+g+k,1-k,1+g-k)<0.25) { group.style.transform='none'; return; }
+    const matrix=[a/w,c/w,0,g/w,b/h,e/h,0,k/h,0,0,1,0,x0,y0,0,1];
+    group.style.transform = `perspective(${Math.max(w,h)*6}px) translate(${w/2}px,${h}px) rotateX(${pitch}deg) rotateY(${yaw}deg) translate(${-w/2}px,${-h}px) matrix3d(${matrix.join(',')})`;
+  }
+
   function renderFurniture() {
     for (const item of placements) {
       const element = furniture.get(item.id);
@@ -195,6 +236,7 @@
         img.style.width = (123.076923 * detailValue('chest', 'openScale')) + '%';
         img.style.transformOrigin = 'left bottom';
         img.style.transform = `rotate(${detailValue('chest', 'openAngle')}deg) skewY(${detailValue('chest', 'openSkew')}deg) scaleX(${detailValue('chest', 'openWidth')})`;
+        renderChestPerspective(element);
       }
       if (labels.has(item.id)) {
         element.setAttribute('aria-pressed', String(selected === item.id));
@@ -336,9 +378,11 @@
     const item = placements.find(placement => placement.id === itemPicker.value);
     const special = detailFields[item.id] || {};
     const valueFor = key => Object.hasOwn(special, key) ? detailValue(item.id, key) : placements.find(p => p.id === item.id)[key];
-    const fields = Object.entries({ ...layout.fields, ...special }).map(([key, field]) => {
+    const chestOrder = ['y','x','pitch','yaw','leftLean','rightLean','leftHeight','rightHeight','angle','scale','z','openX','openY','openScale','openAngle','openSkew','openWidth'];
+    const allFields = { ...layout.fields, ...special };
+    const fields = (item.id === 'chest' ? chestOrder.map(key => [key,allFields[key]]) : Object.entries(allFields)).map(([key, field]) => {
       const label = document.createElement('label');
-      label.textContent = field.label;
+      label.textContent = item.id === 'chest' && key === 'y' ? '前後位置 Y (%)' : field.label;
       const input = document.createElement('input');
       input.type = 'number';
       input.min = field.min;

@@ -14,7 +14,7 @@
     { id: 'wardrobe', x: 21.5, y: 72, width: 19, scale: 1, angle: 0, z: 15 },
     { id: 'desk', x: 72, y: 75, width: 24, scale: 1, angle: 0, z: 16 },
     { id: 'bed', x: 10, y: 100, width: 30, scale: 1, angle: 0, z: 17 },
-    { id: 'chest', x: 86.5, y: 83.5, width: 12.5, scale: 1, angle: 0, z: 18 },
+    { id: 'chest', x: 86.5, y: 85.5, width: 12.5, scale: 1, angle: 2, z: 18 },
     { id: 'lamp', x: 50, y: 15.5, width: 6, scale: 1, angle: 0, z: 19 }
   ].map(Object.freeze));
 
