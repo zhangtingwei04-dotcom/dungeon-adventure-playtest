@@ -10,6 +10,8 @@
   const editor = get('layoutEditor');
   const weather = window.DungeonWeatherV1;
   const weatherPicker = get('windowWeather');
+  const thunderButton = get('windowThunder');
+  let thunderSound = false;
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
   const portrait = matchMedia('(orientation:portrait) and (max-width:767px), (orientation:portrait) and (pointer:coarse)');
   for (const [kind, details] of Object.entries(weather.kinds)) {
@@ -143,7 +145,7 @@
     if (status.textContent !== label) status.textContent = label;
 
     const active = room && !portrait.matches && !document.hidden && visible.kind !== 'clear';
-    weather.set(visible, !active, reduceMotion.matches, { scene: 'home', particleSize: 3.4 });
+    weather.set(visible, !active, reduceMotion.matches, { scene: 'home', particleSize: 3.4, sound: thunderSound });
     if (active && !weatherFrame) weatherFrame = requestAnimationFrame(drawWeather);
     if (!active && weatherFrame) {
       cancelAnimationFrame(weatherFrame);
@@ -152,6 +154,13 @@
     }
   }
 
+  thunderButton.onclick = () => {
+    thunderSound = !thunderSound;
+    if (thunderSound) weather.unlockAudio();
+    thunderButton.textContent = thunderSound ? '雷聲已開啟' : '雷聲已關閉';
+    thunderButton.setAttribute('aria-pressed', String(thunderSound));
+    renderWeather();
+  };
   weatherPicker.onchange = renderWeather;
   reduceMotion.addEventListener('change', renderWeather);
   portrait.addEventListener('change', renderWeather);

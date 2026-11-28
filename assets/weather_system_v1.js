@@ -123,11 +123,12 @@ window.DungeonWeatherV1=(function(){
  let scene='wreck',sound=false,audio=null,lastThunder=-1,sceneHost=null,snowPreview=false,weatherPreview=false,previewEnv=emptyEnvironment(),lastEnvironmentLabel=0,plantWindow=null,onPlantWindowChanged=null,windOverride=null,windDirectionOverride=null;
  function unlockAudio(){try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;if(!audio)audio=new AC();if(audio.state==='suspended')audio.resume().catch(()=>{});}catch{}}
  function thunder(){if(!sound||!audio||audio.state!=='running')return;try{const rate=audio.sampleRate,buf=audio.createBuffer(1,Math.floor(rate*2.7),rate),d=buf.getChannelData(0);let low=0;for(let i=0;i<d.length;i++){low=.94*low+.06*(Math.random()*2-1);d[i]=low;}const src=audio.createBufferSource(),f=audio.createBiquadFilter(),g=audio.createGain(),now=audio.currentTime;src.buffer=buf;f.type='lowpass';f.frequency.value=170;g.gain.setValueAtTime(.001,now);g.gain.linearRampToValueAtTime(.19,now+.24);g.gain.exponentialRampToValueAtTime(.001,now+2.6);src.connect(f);f.connect(g);g.connect(audio.destination);src.start(now);src.stop(now+2.7);}catch{}}
- let particleSize=1;
+ let particleSize=1,stormStarted=null;
  function set(weather,indoor,reduce=false,options={}){
   particleSize=clamp(options.particleSize||1,1,4);
   const nextScene=options.scene||'wreck',sceneChanged=nextScene!==scene;scene=nextScene;sound=Boolean(options.sound);sceneHost=options.sceneHost||sceneHost;onPlantWindowChanged=options.onPlantWindowChanged||null;windOverride=Number.isFinite(options.windOverride)?clamp(options.windOverride,0,5)/5:null;windDirectionOverride=Number.isFinite(options.windDirectionOverride)?clamp(options.windDirectionOverride,-1,1):null;
   const nextPreview=Boolean(options.snowPreview),nextWeatherPreview=Boolean(options.weatherPreview)||nextPreview;if(nextWeatherPreview&&(!weatherPreview||sceneChanged)){previewEnv=emptyEnvironment();for(const key of Object.keys(previewEnv))previewEnv[key]=clamp((sceneChanged?weather[key]:shown[key])||0,0,1);if(nextPreview)previewEnv.snowCover=Math.max(previewEnv.snowCover,options.previewStart??.04);}if(!nextWeatherPreview)previewEnv=emptyEnvironment();snowPreview=nextPreview;weatherPreview=nextWeatherPreview;
+  if(nextScene==='home'&&(indoor||weather.kind!=='storm'||target.kind!=='storm')){stormStarted=null;lastThunder=-1;}
   hidden=Boolean(indoor);reduced=reduce;target=hidden?{...kinds.clear,wet:0,snow:0,snowCover:0}:{...weather,wet:weather.wet??weather.rain*.8,snow:weather.snow||0,snowCover:weather.snowCover||0,windDir:weather.windDir??(weatherPreview?-1:1)};
   if(sceneChanged){for(const key of Object.keys(emptyEnvironment()))shown[key]=target[key]||0;plantWindow=null;}
   if(canvas)canvas.hidden=hidden;
@@ -189,8 +190,8 @@ window.DungeonWeatherV1=(function(){
     const r=(.55+(i%4)*.24)*particleSize;if(shown.wind>.55&&i%3===0){const dx=shown.windDir*(2+shown.wind*4),dy=1+storm*1.8;ctx.moveTo(p.x-r,p.y-r);ctx.lineTo(p.x+dx,p.y+dy);ctx.lineTo(p.x+r,p.y+r);ctx.closePath();}else{ctx.moveTo(p.x+r,p.y);ctx.arc(p.x,p.y,r,0,Math.PI*2);}
    }ctx.fill();
   }
-  if(target.rain>=.99){const clock=ms/1000,cycle=clock%17.7,flash=Math.max(0,1-Math.abs(cycle-5.1)/.24);
-   if(flash>0&&!reduced){ctx.fillStyle='rgba(224,234,241,'+(flash*.12)+')';ctx.fillRect(0,0,W,H);}
+  if(target.kind==='storm'){const clock=scene==='home'?(ms-(stormStarted??=ms))/1000+3:ms/1000,cycle=clock%17.7,flash=Math.max(0,1-Math.abs(cycle-5.1)/.24);
+   if(flash>0&&!reduced){ctx.fillStyle='rgba(224,234,241,'+(flash*(scene==='home'?.34:.12))+')';ctx.fillRect(0,0,W,H);}
    const id=Math.floor(clock/17.7);if(cycle>=6.2&&cycle<7.2&&id!==lastThunder){lastThunder=id;thunder();}
   }
   if(shown.rain>.008&&!reduced){
