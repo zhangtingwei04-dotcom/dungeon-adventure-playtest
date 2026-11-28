@@ -27,14 +27,14 @@
   const b={id,name,skillId,type,anchorId,upkeep,body:100,integrity:100,status:"active",awakened:false,self:null,companion:true};
   return {ok:true,state:{...s,owner:{...s.owner,energy:s.owner.energy-initialCost},beasts:[...s.beasts,b]}};
  }
- function tick(s,{ownerAvailable=true}={}){
-  requireState(s);if(typeof ownerAvailable!=="boolean"||s.turn===Number.MAX_SAFE_INTEGER)throw Error("INVALID_TICK");
-  let next={...s,turn:s.turn+1},events=[];
+ function tick(s,{ownerAvailable=true,ownerBudget=s.owner.abilities.output}={}){
+  requireState(s);if(typeof ownerAvailable!=="boolean"||!Number.isFinite(ownerBudget)||ownerBudget<0||ownerBudget>s.owner.abilities.output||s.turn===Number.MAX_SAFE_INTEGER)throw Error("INVALID_TICK");
+  let next={...s,turn:s.turn+1},events=[],budget=ownerBudget;
   for(const b of s.beasts){
    if(b.status!=="active")continue;
    let funded=false;
    if(b.awakened){if(b.self.energy>=b.upkeep){next=change(next,b,{self:{...b.self,energy:b.self.energy-b.upkeep}});funded=true}}
-   else if(b.type==="ordinary"){if(ownerAvailable&&next.owner.energy>=b.upkeep&&next.owner.abilities.output>=b.upkeep){next={...next,owner:{...next.owner,energy:next.owner.energy-b.upkeep}};funded=true}}
+   else if(b.type==="ordinary"){if(ownerAvailable&&next.owner.energy>=b.upkeep&&budget>=b.upkeep){next={...next,owner:{...next.owner,energy:next.owner.energy-b.upkeep}};budget-=b.upkeep;funded=true}}
    else{const x=r.supply(next.relics,b.anchorId,b.upkeep);if(x.ok){next={...next,relics:x.state};funded=true}}
    if(!funded){const status=b.type==="ordinary"&&!b.awakened?"dispersed":"dormant";next=change(next,lookup(next,b.id),{status});events.push({id:b.id,type:status})}
    else events.push({id:b.id,type:"maintained",amount:b.upkeep});
