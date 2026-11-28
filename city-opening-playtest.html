@@ -156,23 +156,23 @@ main:has(#layoutEditor[open]:not([hidden])) .furniture[aria-pressed=true]{outlin
 .chest-perspective{display:block;position:relative;width:100%;transform-origin:0 0;pointer-events:none}
 
 /* Interior interactions: reversible, independent visual states. */
-.door-opening{position:absolute;inset:0;clip-path:polygon(20% 13%,100% 7%,100% 100%,20% 93%);background:linear-gradient(90deg,#302219,#110f0e 75%);opacity:0;transition:opacity .25s;pointer-events:none}
-.door-leaf{position:relative;transform-origin:right center;transition:transform .35s ease}
+.door-opening{position:absolute;inset:0;background:url('assets/interiors/furniture/doorway-open-v2.svg') center/100% 100% no-repeat;opacity:0;transition:opacity .25s;pointer-events:none;z-index:1}
+.door-leaf{position:relative;transition:opacity .25s ease}.door-swing{position:absolute;inset:0;background:url('assets/interiors/furniture/door-leaf-v2.svg') center/100% 100% no-repeat;transform-origin:right center;opacity:0;z-index:2;pointer-events:none;transition:transform .35s ease,opacity .25s;transform:translateX(0) scaleX(1)}
 .furniture[data-item=door][data-open=true] .door-opening{opacity:1}
-.furniture[data-item=door][data-open=true] .door-leaf{transform:perspective(180px) rotateY(-58deg)}
+.furniture[data-item=door][data-open=true] .door-swing{opacity:1;transform:translateX(-81%) skewY(-8deg) scaleX(.83)}
 .furniture[data-item=lamp] img{transition:filter .25s}
 .furniture[data-item=lamp][data-open=false] img{filter:brightness(.43) saturate(.62)}
 #room::after{content:'';position:absolute;inset:0;z-index:90;background:#171821;opacity:0;transition:opacity .35s;pointer-events:none}
 #room[data-lamp=off]::after{opacity:.045}
 #room[data-curtains=closed]::after{opacity:.12}
 #room[data-curtains=closed][data-lamp=off]::after{opacity:.25}
-.curtain-cover{position:absolute;inset:4% 2% 2%;overflow:hidden;pointer-events:none}
-.curtain-panel{position:absolute;top:0;bottom:0;width:51%;opacity:0;transition:transform .4s ease,opacity .25s;box-shadow:inset 0 -4px #b59368,inset 0 -7px #765736;background:repeating-linear-gradient(90deg,#92765a 0%,#c9ad89 5%,#e0c5a1 10%,#b69a78 15%,#81674e 19%,#92765a 22%);border-radius:0 0 5% 5%}
-.curtain-left{left:0;transform:translateX(-100%);border-right:2px solid #8c7053}
-.curtain-right{right:0;transform:translateX(100%);border-left:2px solid #8c7053}
-.furniture[data-item=window][data-open=false] .curtain-panel{opacity:1;transform:translateX(0)}
-@media(prefers-reduced-motion:reduce){.door-opening,.door-leaf,.curtain-panel,#room::after,.furniture[data-item=lamp] img{transition:none}}
-</style></head><body><header><strong>迷宮盡頭的燈火</strong><span id="clock"></span><button id="layoutQuick" type="button" aria-controls="layoutEditor" aria-expanded="false">家具調整</button><span class="muted">城鎮開場 V0.19</span></header><main><aside class="side"><h2>旅途紀錄</h2><div id="log" class="log"></div></aside><div class="center"><div id="scene" class="scene" data-scene="rental-room">
+.curtain-cover{position:absolute;inset:1% 1.5% 1%;overflow:hidden;pointer-events:none}
+.curtain-panel{position:absolute;top:0;bottom:0;width:50.5%;opacity:0;transition:transform .45s ease,opacity .25s;background-size:100% 100%;background-repeat:no-repeat;transform-origin:top center;filter:drop-shadow(1px 1px 1px #38271966)}
+.curtain-left{left:0;transform:scaleX(.15);transform-origin:left top;background-image:url('assets/interiors/furniture/curtain-left-v2.svg')}
+.curtain-right{right:0;transform:scaleX(.15);transform-origin:right top;background-image:url('assets/interiors/furniture/curtain-right-v2.svg')}
+.furniture[data-item=window][data-open=false] .curtain-panel{opacity:1;transform:scaleX(1)}
+@media(prefers-reduced-motion:reduce){#room .door-opening,#room .door-leaf,.door-swing,.curtain-panel,#room::after,.furniture[data-item=lamp] img{transition:none}}
+</style></head><body><header><strong>迷宮盡頭的燈火</strong><span id="clock"></span><button id="layoutQuick" type="button" aria-controls="layoutEditor" aria-expanded="false">家具調整</button><span class="muted">城鎮開場 V0.20</span></header><main><aside class="side"><h2>旅途紀錄</h2><div id="log" class="log"></div></aside><div class="center"><div id="scene" class="scene" data-scene="rental-room">
 <div id="room"><img class="room-base" src="assets/interiors/rental-room/empty.png" alt="城鎮出租屋室內"><div id="furniture"></div></div>
 <svg id="street" viewBox="0 0 960 540" xmlns="http://www.w3.org/2000/svg" aria-label="城鎮街道配置草圖" shape-rendering="crispEdges"><rect width="960" height="540" fill="#bdc8ac"/><rect y="290" width="960" height="250" fill="#8c846d"/><path d="M355 540L447 280H522L669 540Z" fill="#a49b84"/><path d="M0 130L170 70L330 130V390H0Z" fill="#a68e6e"/><path d="M0 130L170 70L330 130L320 151L170 97L0 155Z" fill="#484a3e"/><path d="M30 160H110V245H30ZM215 160H288V245H215Z" fill="#435344"/><rect x="126" y="235" width="85" height="155" fill="#504334"/><path d="M960 145L782 83L632 145V392H960Z" fill="#8a866e"/><path d="M632 145L782 83L960 145V165L782 110L632 165Z" fill="#4a5046"/><rect x="688" y="175" width="84" height="90" fill="#445c52"/><rect x="814" y="245" width="90" height="147" fill="#534537"/><path d="M337 225L392 182L448 225V322H337ZM523 216L580 175L625 216V320H523Z" fill="#817d64"/><path d="M0 460H960M0 500H960M420 360L390 540M530 360L578 540" stroke="#756d5a" stroke-width="4"/><path d="M20 402H250M710 402H930" stroke="#c0b096" stroke-width="6"/></svg>
 <div id="targets"></div></div><section class="dialog"><h2 id="dialogTitle">清晨</h2><p id="dialogText">窗外傳來街坊的聲音。這是你在城鎮租下的小房間。</p><div id="choices" class="choices"></div><p id="status" class="status" role="status"></p></section><details id="layoutEditor" class="dialog"><summary>家具配置</summary><div id="layoutControls"><label>物件 <select id="layoutItem"></select></label><div id="layoutFields"></div><div class="choices"><button id="layoutSave" type="button">儲存配置</button><button id="layoutReset" type="button">恢復預設</button></div><p id="layoutStatus" class="status" role="status"></p></div></details></div><aside class="side"><h2 id="place">出租屋</h2><p id="description">城鎮住宅區・私人房間</p><h2>目前衣著</h2><p id="clothes"></p><h2>今日事項</h2><p id="notice"></p><div id="roomWeather"><label for="windowWeather">窗外天氣</label><p><select id="windowWeather"><option value="auto">自然天氣</option></select></p><p id="windowWeatherStatus" aria-live="polite"></p><button type="button" id="windowThunder" aria-pressed="false">雷聲已關閉</button></div><div class="choices"><button id="reset">重新開始</button><a href="./">返回原試玩</a></div></aside></main>
@@ -180,7 +180,7 @@ main:has(#layoutEditor[open]:not([hidden])) .furniture[aria-pressed=true]{outlin
 <script src="assets/interior_layout_v1.js?v=13"></script>
 <script src="assets/weather_system_v1.js?v=window-5"></script>
 <script src="assets/rental_window_sky_v1.js?v=4"></script>
-<script src="assets/city_opening_view_v1.js?v=30"></script>
+<script src="assets/city_opening_view_v1.js?v=31"></script>
 <script>
 (function(){
  const panel=document.getElementById('layoutEditor'), quick=document.getElementById('layoutQuick');
