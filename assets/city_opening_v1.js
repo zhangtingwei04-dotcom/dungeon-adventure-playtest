@@ -36,7 +36,7 @@
   else if(key==="read"){a.flags.noticeRead=true;message="閱讀校方通知。";thought="請先在城鎮安頓，後續將另行通知報到事項。";}
   else if(key==="look"){message="望向逐漸熱鬧的街道。"}
   else if(key==="mirror"){message="整理了自己的儀容。"}
-  else if(key==="leave"){(a.flags.furnitureOpen??={}).door=false;minutes=3;to="rental-corridor";message="離開私人房間，走到二樓公共走廊。"}
+  else if(key==="leave"){(a.flags.furnitureOpen??={}).door=false;minutes=3;to="rental-corridor";message="走出私人房間，隨手關上房門，來到二樓公共走廊。"}
   else if(key==="downstairs"){minutes=3;to="rental-street";message="沿樓梯下樓，走到城鎮街道。"}
   else if(key==="return"){(a.flags.furnitureOpen??={}).door=false;minutes=3;to=a.scene==="rental-street"?"rental-corridor":"rental-room";message=to==="rental-corridor"?"回到二樓公共走廊。":"回到私人房間。"}
   const before=a.scene;clock.advance(a,minutes,{reason:"city-opening:"+key,fromScene:before,toScene:to});a.scene=to;events.appendTravel(a,"daily",message,thought);return {ok:true,message:thought||message,minutes}

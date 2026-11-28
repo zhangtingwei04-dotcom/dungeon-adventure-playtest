@@ -57,6 +57,7 @@
   let chestPreview = 'open';
   let game = city.create();
   let selected = null;
+  let doorTransit = false;
   let overrides = {};
 
   try {
@@ -101,6 +102,7 @@
   }
 
   function select(id) {
+    if(doorTransit)return;
     selected = id;
     get('status').textContent = '';
     render();
@@ -453,6 +455,41 @@
   portrait.addEventListener('change', renderWeather);
   document.addEventListener('visibilitychange', renderWeather);
 
+  // One travel action; the two door toggles are visual-only and cost no world time.
+  async function leaveThroughDoor() {
+    if(doorTransit || game.scene!=='rental-room')return;
+    if(!city.ready(game)){
+      get('status').textContent='先換好外出衣著。';
+      return;
+    }
+    doorTransit=true;
+    const activeGame=game;
+    const wait=ms=>new Promise(resolve=>setTimeout(resolve,reduceMotion.matches?0:ms));
+    const show=message=>{
+      render();
+      get('status').textContent=message;
+    };
+    try{
+      if(!city.isOpen(game,'door')){
+        city.act(game,'door','door-open');
+        show('打開房門……');
+        await wait(760);
+      }
+      show('走出房間……');
+      await wait(240);
+      city.act(game,'door','door-close');
+      show('隨手關上房門……');
+      await wait(760);
+      if(game!==activeGame)return;
+      const result=city.act(game,'door','leave');
+      if(result.ok)selected=null;
+      get('status').textContent=result.ok?result.message+'（'+result.minutes+'分鐘）':result.reason;
+    }finally{
+      doorTransit=false;
+      render();
+    }
+  }
+
   function render() {
     const room = game.scene === 'rental-room';
     get('scene').dataset.scene = game.scene;
@@ -486,6 +523,8 @@
 
     const view = city.inspect(game, selected);
     const choices = get('choices');
+    get('reset').disabled=doorTransit;
+    get('layoutQuick').disabled=doorTransit;
     choices.replaceChildren();
     if (!view) {
       get('dialogTitle').textContent = room ? '出租屋' : corridor?'二樓公共走廊':'住宅區街道';
@@ -498,14 +537,18 @@
     get('dialogTitle').textContent = room ? labels.get(selected) : selected==='stairs'?'樓梯':corridor?'返回房間':'返回住宅走廊';
     get('dialogText').textContent = view.text;
     for (const [key, label] of view.actions) {
-      choices.append(button(label, () => {
+      const choice=button(label, () => {
+        if(doorTransit)return;
+        if(key==='leave'){void leaveThroughDoor();return;}
         const result = city.act(game, selected, key);
         get('status').textContent = result.ok
           ? result.message + (result.minutes ? '（' + result.minutes + '分鐘）' : '')
           : result.reason;
         if (result.ok && (['leave','return','downstairs'].includes(key))) selected = null;
         render();
-      }));
+      });
+      choice.disabled=doorTransit;
+      choices.append(choice);
     }
   }
 
@@ -604,6 +647,7 @@
     saveLayout(true);
   };
   get('reset').onclick = () => {
+    if(doorTransit)return;
     if (!confirm('重新開始城鎮開場試玩？')) return;
     game = city.create();
     weatherPicker.value = 'auto';
